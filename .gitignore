@@ -1,0 +1,7 @@
+/_out/
+/.direnv/
+/.envrc
+/kubeconfig
+/kustomize
+/bootstrap/github-deploy.key
+/bootstrap/github-deploy.key.pub
