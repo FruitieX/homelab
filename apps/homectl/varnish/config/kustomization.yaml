@@ -1,0 +1,5 @@
+configMapGenerator:
+  - name: varnish-vcl
+    namespace: default
+    files:
+    - default.vcl
