@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: add-bot
+  namespace: default
+spec:
+  selector:
+    matchLabels:
+      app: add-bot
+  template:
+    metadata:
+      labels:
+        app: add-bot
+    spec:
+      containers:
+        - name: add-bot
+          image: fruitiex/add-bot:latest
+          env:
+            - name: TELOXIDE_TOKEN
+              value: ${TELOXIDE_TOKEN}

@@ -16,7 +16,7 @@ metadata:
   name: varnish-proxy
   namespace: default
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: varnish-proxy
