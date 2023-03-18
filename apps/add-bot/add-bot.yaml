@@ -18,3 +18,5 @@ spec:
           env:
             - name: TELOXIDE_TOKEN
               value: ${TELOXIDE_TOKEN}
+          command: ["add-bot"]
+          args: ["--tz", "Europe/Helsinki"]
