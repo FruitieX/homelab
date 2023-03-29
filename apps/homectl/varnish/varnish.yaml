@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: varnish-svc
+  name: varnish
   namespace: default
 spec:
   ports:
@@ -61,6 +61,6 @@ spec:
         pathType: Prefix
         backend:
           service:
-            name: varnish-svc
+            name: varnish
             port:
               number: 8080
