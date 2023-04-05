@@ -15,7 +15,7 @@ metadata:
   name: pihole
   namespace: pihole
   annotations:
-    external-dns.alpha.kubernetes.io/hostname: pihole
+    external-dns.alpha.kubernetes.io/hostname: pihole.localdomain
 spec:
   type: LoadBalancer
   selector:
