@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hue-mqtt
+  namespace: default
+spec:
+  selector:
+    matchLabels:
+      app: hue-mqtt
+  template:
+    metadata:
+      labels:
+        app: hue-mqtt
+    spec:
+      volumes:
+        - name: hue-mqtt-config
+          secret:
+            secretName: hue-mqtt-config
+
+      containers:
+        - name: hue-mqtt
+          image: fruitiex/hue-mqtt:latest
+          command: ["hue-mqtt"]
+          resources:
+            limits:
+              memory: 128Mi
+              cpu: 100m
+          workingDir: /app
+          volumeMounts:
+            - mountPath: /app
+              name: hue-mqtt-config

@@ -3,6 +3,7 @@ kind: Kustomization
 resources:
   - ./add-bot
   - ./homectl
+  - ./hue-mqtt
   - ./mosquitto
   - ./ingress-proxy
   - ./pihole
