@@ -1,3 +1,4 @@
+# https://cert-manager.io/docs/tutorials/acme/nginx-ingress/
 ---
 apiVersion: v1
 kind: Namespace
