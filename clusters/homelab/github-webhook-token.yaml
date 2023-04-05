@@ -1,0 +1,38 @@
+apiVersion: v1
+kind: Secret
+metadata:
+    name: webhook-notification-token
+    namespace: flux-system
+stringData:
+    token: ENC[AES256_GCM,data:e+k22Z10bjmJym6UzEFvTAeCIoiQ0OC6qYaaNZOp7quA66K6CkbbRQ==,iv:W6wKozlJYeVhgfHjX5u7tAnY701zN2sk6TfH9/UtnIQ=,tag:qnByjkvXLW3aUHXMzt50fw==,type:str]
+sops:
+    kms: []
+    gcp_kms: []
+    azure_kv: []
+    hc_vault: []
+    age: []
+    lastmodified: "2023-04-05T08:20:00Z"
+    mac: ENC[AES256_GCM,data:lZQd4I1SLtYoAclNb9O4hhyxKo0qqne/1/JikRWEnFrgd/DoTO6pp0fdNuwp0Xzj1C9tABAF2cDFQzNLL6iKJmqHR3BWq3IQfotkkVkELG5nzoi2Rub33KiigAOuV+pVDD+4CfzFgfuw76RSxOsqXZ/z7vGAdf2RQM+CbRS350E=,iv:+fddRezoNy+Kz/Uceg+BwEtKhEKrL+HyVqbHkCJvuDY=,tag:P019Yc7jud7Nw7J86Og88A==,type:str]
+    pgp:
+        - created_at: "2023-04-05T08:20:00Z"
+          enc: |-
+            -----BEGIN PGP MESSAGE-----
+
+            wcFMA8WjeZLD+fxwARAAzPP57lnve1B1yjppzLGMw4yjNlSKzoQfWkrvi8bFeEAC
+            O6BCQBu6N0XJ7h+S5T6lYjRw1v/OgMistRqavqeqpMzYtNi06gOMEAjgLl/43y32
+            4vS5rSUbyfNG9CidJ33Mo+Z2XuQqpUzJcrXcJwtqZSjf3eyZFxvS8wDUeS1hqgQ4
+            QPlDd1on0R1nqNJNO+aZ6OwEC8WRxbXjWlHZKszxc0OKpZohlEEAp7nJMB8eVax/
+            NctlierK0AovJOm9cRKBqKM8FxtzGQfkuGu8kN1AGAQQyLzjfi0vQQTFEXdpRRBS
+            O9Hh3hLteepMKgAz5yalZBElMtth8FwmrE/aFC1jRh2vXx8i6PnkT34i9W3Az7zy
+            5pPPzyIDQlXfPqi3JsI+EDCahqWD4wnX54KDzVL/QdF4GseQHU07ra3VR/ZjRKyO
+            e2KFvqwESqDdzJssyDEaY8XW0xWVNzkr4kgbgnG0is2qmR70GPG8Q5zbctlYOfXo
+            rF7TdR739vUZfjAKY3759yTpGJUFyLEG64zgCgtIYEPm6ElAvWN8XGsZrxBx9fbV
+            FJDEPI1rel1evtDTwkgDx79erE+ik2fndT9zCpvt5CUhpqhWJXzvGGCuhHm8PVgb
+            /jDSGuPBD2aGqrjUl4RjJ+P3tKJvr8LwfJL3JBTmSZRZZIT3TgxWHckgmqaD9BvS
+            UQGpuHHsMRU0oZ+U8uPBQUfliDRI7VBIBDzfMwKIfS2lVdHwGYDljHRt0Bqyq/Ao
+            OMO6tURsUIKtP2r08sHcfbohEE0E4curdD52bIW5YT6MXw==
+            =cVmX
+            -----END PGP MESSAGE-----
+          fp: 3536F7F9345D96C86FB7F9CD21FAFEE575B18815
+    encrypted_regex: ^(data|stringData)$
+    version: 3.7.3
