@@ -15,6 +15,13 @@ metadata:
   namespace: ingress-proxy
 spec:
   ingressClassName: nginx
+  tls:
+    - hosts:
+        - fruitiex.org
+        - lovegren.fi
+        - pokemon.fruitiex.org
+        - obico.fruitiex.org
+      secretName: satsuma-tls
   rules:
     - host: fruitiex.org
       http:

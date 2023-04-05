@@ -15,6 +15,14 @@ metadata:
   namespace: ingress-proxy
 spec:
   ingressClassName: nginx
+  tls:
+    - hosts:
+        - nectarine.fruitiex.org
+        - drive.fruitiex.org
+        - photos.fruitiex.org
+        - drive.lovegren.fi
+        - photos.lovegren.fi
+      secretName: nectarine-tls
   rules:
     - host: nectarine.fruitiex.org
       http:
@@ -66,5 +74,3 @@ spec:
                 name: nectarine
                 port:
                   number: 5081
-
-
