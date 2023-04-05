@@ -4,5 +4,6 @@ resources:
   - ./add-bot
   - ./homectl
   - ./mosquitto
+  - ./ingress-proxy
   - ./pihole
   - ./podinfo
