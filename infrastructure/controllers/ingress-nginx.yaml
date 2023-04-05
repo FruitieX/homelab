@@ -35,5 +35,7 @@ spec:
     controller:
       service:
         type: "LoadBalancer"
+        annotations:
+          metallb.universe.tf/loadBalancerIPs: 192.168.11.1
     admissionWebhooks:
       enabled: false
