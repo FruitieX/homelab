@@ -2,7 +2,7 @@
 apiVersion: cert-manager.io/v1
 kind: ClusterIssuer
 metadata:
-  name: letsencrypt
+  name: letsencrypt-staging
 spec:
   acme:
     # Replace the email address with your own contact email
@@ -10,7 +10,24 @@ spec:
     # The server is replaced in /clusters/production/infrastructure.yaml
     server: https://acme-staging-v02.api.letsencrypt.org/directory
     privateKeySecretRef:
-      name: letsencrypt-nginx
+      name: letsencrypt-staging
+    solvers:
+      - http01:
+          ingress:
+            class: nginx
+---
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: letsencrypt-prod
+spec:
+  acme:
+    # Replace the email address with your own contact email
+    email: fruitiex@gmail.com
+    # The server is replaced in /clusters/production/infrastructure.yaml
+    server: https://acme-v02.api.letsencrypt.org/directory
+    privateKeySecretRef:
+      name: letsencrypt-prod
     solvers:
       - http01:
           ingress:
