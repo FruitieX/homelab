@@ -9,7 +9,7 @@ spec:
   timeout: 30m
   path: ./apps
   prune: true
-  wait: false
+  wait: true
   dependsOn:
     - name: infra-configs
   sourceRef:
