@@ -5,8 +5,8 @@ metadata:
   namespace: default
 spec:
   ports:
-  - name: "http"
-    port: 80
+    - name: "http"
+      port: 80
   selector:
     app: varnish-proxy
 ---
@@ -31,19 +31,23 @@ spec:
           configMap:
             name: varnish-vcl
       containers:
-      - name: varnish
-        image: varnish:alpine
-        imagePullPolicy: Always
-        env:
-        - name: VARNISH_HTTP_PORT
-          value: "8080"
-        - name: VCL_CONFIG
-          value: /etc/varnish/configmap/default.vcl
-        volumeMounts:
-          - name: varnish-config
-            mountPath: /etc/varnish/configmap
-        ports:
-        - containerPort: 8080
+        - name: varnish
+          image: varnish:alpine
+          imagePullPolicy: Always
+          env:
+            - name: VARNISH_HTTP_PORT
+              value: "8080"
+            - name: VCL_CONFIG
+              value: /etc/varnish/configmap/default.vcl
+          volumeMounts:
+            - name: varnish-config
+              mountPath: /etc/varnish/configmap
+          ports:
+            - containerPort: 8080
+          resources:
+            limits:
+              memory: 1Gi
+              cpu: 500m
 
 ---
 apiVersion: networking.k8s.io/v1
@@ -54,13 +58,13 @@ metadata:
 spec:
   ingressClassName: nginx
   rules:
-  # - host: fruitiex.example.com
-  - http:
-      paths:
-      - path: /weather
-        pathType: Prefix
-        backend:
-          service:
-            name: varnish
-            port:
-              number: 8080
+    # - host: fruitiex.example.com
+    - http:
+        paths:
+          - path: /weather
+            pathType: Prefix
+            backend:
+              service:
+                name: varnish
+                port:
+                  number: 8080

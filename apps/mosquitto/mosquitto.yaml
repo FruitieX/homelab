@@ -49,4 +49,8 @@ spec:
           args: ["-c", "/mosquitto-no-auth.conf"]
           ports:
             - containerPort: 1883
+          resources:
+            limits:
+              cpu: 100m
+              memory: 128Mi
 ---

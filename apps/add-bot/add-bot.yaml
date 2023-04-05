@@ -20,3 +20,7 @@ spec:
               value: ${TELOXIDE_TOKEN}
           command: ["add-bot"]
           args: ["--tz", "Europe/Helsinki"]
+          resources:
+            limits:
+              memory: 128Mi
+              cpu: 100m
