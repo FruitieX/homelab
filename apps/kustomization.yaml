@@ -8,3 +8,5 @@ resources:
   - ./ingress-proxy
   - ./pihole
   - ./podinfo
+  - ./tuya-mqtt
+  - ./twinkly-mqtt

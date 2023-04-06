@@ -1,25 +1,25 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: hue-mqtt
+  name: tuya-mqtt
   namespace: default
 spec:
   selector:
     matchLabels:
-      app: hue-mqtt
+      app: tuya-mqtt
   template:
     metadata:
       labels:
-        app: hue-mqtt
+        app: tuya-mqtt
     spec:
       volumes:
-        - name: hue-mqtt-config
+        - name: tuya-mqtt-config
           secret:
-            secretName: hue-mqtt-config
+            secretName: tuya-mqtt-config
 
       containers:
-        - name: hue-mqtt
-          image: fruitiex/hue-mqtt:latest
+        - name: tuya-mqtt
+          image: fruitiex/tuya-mqtt:latest
           resources:
             limits:
               memory: 128Mi
@@ -27,4 +27,5 @@ spec:
           workingDir: /app
           volumeMounts:
             - mountPath: /app
-              name: hue-mqtt-config
+              name: tuya-mqtt-config
+

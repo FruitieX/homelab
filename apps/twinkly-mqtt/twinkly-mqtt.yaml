@@ -1,25 +1,25 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: hue-mqtt
+  name: twinkly-mqtt
   namespace: default
 spec:
   selector:
     matchLabels:
-      app: hue-mqtt
+      app: twinkly-mqtt
   template:
     metadata:
       labels:
-        app: hue-mqtt
+        app: twinkly-mqtt
     spec:
       volumes:
-        - name: hue-mqtt-config
+        - name: twinkly-mqtt-config
           secret:
-            secretName: hue-mqtt-config
+            secretName: twinkly-mqtt-config
 
       containers:
-        - name: hue-mqtt
-          image: fruitiex/hue-mqtt:latest
+        - name: twinkly-mqtt
+          image: fruitiex/twinkly-mqtt:latest
           resources:
             limits:
               memory: 128Mi
@@ -27,4 +27,6 @@ spec:
           workingDir: /app
           volumeMounts:
             - mountPath: /app
-              name: hue-mqtt-config
+              name: twinkly-mqtt-config
+
+

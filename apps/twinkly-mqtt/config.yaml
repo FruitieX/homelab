@@ -1,0 +1,39 @@
+apiVersion: v1
+kind: Secret
+metadata:
+    namespace: default
+    name: twinkly-mqtt-config
+type: Opaque
+stringData:
+    Settings.toml: ENC[AES256_GCM,data:bJr4VbF2z2vWcG4p83bMlAp1IijHmrlqScZ6YfKiLs3K8HpC4DOHdZMmd2wRmyF3GPSl2O65iWtH0mX9gb5ydQ3eMtOEz+HoJ2kCcg9yDwF6mNCIpOzLyx3zjrJaIi8gTug30sVgmwCYXTF0ykC6a18FRlRtkvzTmwk0xt0q8eyimJ63WYMQ16eTJEIc3/4iQ0D2kl7AWHQJxFGQ2GTtPDbfrlUsvmehKafY97ABRMp4iGvT46wuEKXpF7dUepo=,iv:CqovUUdwAoxn7irNy3pzdFO9NL5D5xaBU9ER8IUVN5A=,tag:pnNJ4Gtu0yiPYznK9ytKcA==,type:str]
+sops:
+    kms: []
+    gcp_kms: []
+    azure_kv: []
+    hc_vault: []
+    age: []
+    lastmodified: "2023-04-06T05:30:06Z"
+    mac: ENC[AES256_GCM,data:9ZK8PWJ0Z6CFAS1li8IEIC6cAhFI5j1FWiItLhsg19gEl6SjiGY77PpsSS7lWzroWr6sIEXwFStLKZ0Q5IV7frT2FujlTFsHlaLroOnPKUBihiqDb/XSFeBoix7DTJEePfnhE+N7NloAb9niC4uhLwReqbNoalJm4glzcnKQUi4=,iv:/8ULxDfcFiwL4/IoosW/dsXfho+dhO6lFQM6HuhJrXU=,tag:9LMcCO1G2AobqQKahsxXAQ==,type:str]
+    pgp:
+        - created_at: "2023-04-06T05:30:06Z"
+          enc: |-
+            -----BEGIN PGP MESSAGE-----
+
+            wcFMA8WjeZLD+fxwARAAmLs9aPEHRGuWHaSHNCYXYnEhl7tpZZN/uoGtfTgKXli8
+            oejsijsOjays9X2J96RNnveJ+5K0CAPjH593tChmYvbYIEf2OJ4a0JN7joIUIKm0
+            eQJi9OcKUgvJqSunHY9LdFBuF4hhRNSs9/UWZeEkU/cw7xFvUhjJkb1W0d4gBzDS
+            thMumRqcoH+W76OuN7OT55gcJ3ad2XmW+PruHc/UjjPeR5DdjOWKKcPpoRPgoE/2
+            GEGBMH/QgVZPD8ZYwmxXY2cojk6PmpM36nX9E8SBuGHcJ8bDE2gv68xqr/Tl/ESx
+            JNa2Ghop2twtWRpZff0ZV4trX2DfzYl3jYSlhByIYXoVX+vTUDjPb1Af4HICz/2T
+            R874R9hkp4oOACn8g5PJ6KG6XUnlEZtXM7Vk/4r04cHyDihEsFCmH5Bkwwb6kh+R
+            PSEHGqpkPeociaFWGlOHzdJTx4CC5z4jC65YvJlXtpxjHXS+SWX1spSPfdaP6VD7
+            9U2lqYPzjYdVQJ3nsH0QJGuGdInuH8Q0y+3Z7xzAo2LikBX/XTDWypusrT0x7lPT
+            mOf329VX2VodfUZe0kBqQejwrWF86MI2JlcsRDZNK63zIqNRF73RzqrVo+NwrZNb
+            QR0DE6pgFH2Qlmt5vcaO1IyfVtQ7Lm3XZ/24FuBvuMDmoEjtNezBk6ZHi50k+ITS
+            UQEPCqP7jAIJnMiDDbe380bmfETSakP6XdxvxXqYZxmfcCtVd1xCZ8loZ+MHbAAe
+            fqXLJGywUagxn1qujAYiMr6k+EVTIPbb3Wt73kpD/NG2fA==
+            =y1Td
+            -----END PGP MESSAGE-----
+          fp: 3536F7F9345D96C86FB7F9CD21FAFEE575B18815
+    encrypted_regex: ^(data|stringData)$
+    version: 3.7.3
