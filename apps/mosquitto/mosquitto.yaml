@@ -4,7 +4,7 @@ metadata:
   name: mqtt
   namespace: default
   annotations:
-    external-dns.alpha.kubernetes.io/hostname: mqtt.localdomain
+    external-dns.alpha.kubernetes.io/hostname: mqtt,mqtt.localdomain
 spec:
   type: LoadBalancer
   selector:

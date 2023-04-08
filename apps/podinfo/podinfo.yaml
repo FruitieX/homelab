@@ -4,7 +4,7 @@ metadata:
   name: podinfo
   namespace: default
   annotations:
-    external-dns.alpha.kubernetes.io/hostname: podinfo.localdomain
+    external-dns.alpha.kubernetes.io/hostname: podinfo,podinfo.localdomain
 spec:
   type: LoadBalancer
   selector:
@@ -20,8 +20,14 @@ kind: Ingress
 metadata:
   name: podinfo-ingress
   namespace: default
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
 spec:
   ingressClassName: nginx
+  tls:
+    - hosts:
+        - podinfo.fruitiex.org
+      secretName: podinfo-tls
   rules:
     - host: podinfo.fruitiex.org
       http:
