@@ -6,6 +6,7 @@ resources:
   - ./hue-mqtt
   - ./mosquitto
   - ./ingress-proxy
+  - ./lifx-mqtt
   - ./pihole
   - ./podinfo
   - ./tuya-mqtt

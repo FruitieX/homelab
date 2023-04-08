@@ -1,0 +1,39 @@
+apiVersion: v1
+kind: Secret
+metadata:
+    namespace: default
+    name: lifx-mqtt-config
+type: Opaque
+stringData:
+    Settings.toml: ENC[AES256_GCM,data:4UHdFiZ6sXTrKJ+m6euRshf0DCM2EFrewzQWSVUGyoUNxt+xW9b+Ls74+4Up4HP4m3YF1hO4kER0IXI3ZnK/OJuDm2EX3NOjmUU9P1/HhKBmrqi+MECQZVYxg4eWAoYnGt7YCECC7ZDU6lS6VKrKreZiJ2C98kjcAa9qPK6Wq9mH3ButyHERIr7oNt7U3AATIDaVYse+eVt1SUe6iIqjpUvId2LLDMSJ6TWPnj9CXM67ChUag8p0BNs0ZXueaGjLWPSC1tbbUDi9YUG05gVKAtE353SQ7rrYdWQycqSE3tJSM3W+JR7fzVceRij27zYGkhTH7A5Hq3JYKPLj9LYY1nCwW+m9HQudUcy4LDB7tc7sP6n0ehK6WlzgEc+5yQSqLA==,iv:TfA3y4Wzf5/iFPElAfGHa69tPBWXfSTYdQJSFHS7dPY=,tag:e7kAj0nPu5ciEHmuyC/Qmw==,type:str]
+sops:
+    kms: []
+    gcp_kms: []
+    azure_kv: []
+    hc_vault: []
+    age: []
+    lastmodified: "2023-04-08T08:12:42Z"
+    mac: ENC[AES256_GCM,data:B19VXhwcucUhzC/MPYBDO2l6RHlKDH9jkR+qHort7jTEFYH9GbNXg2btLhU5sM0OpuJ3vUzO9R+SOSuqA72kOOFxf+QjtyHdRpSeTHcKnSn1LR5cG0kZNZAZb7GqH45K2KUznQrIHitBXDXLed9finfrzKD9GNcGuU4xiCSzrt8=,iv:eLQw+3ZGhP4bQ4H8SkJjnycrWV2bYUnoemcCX1YAMww=,tag:7j2s7cy1yqhtHts2YvUUHw==,type:str]
+    pgp:
+        - created_at: "2023-04-08T08:12:42Z"
+          enc: |-
+            -----BEGIN PGP MESSAGE-----
+
+            wcFMA8WjeZLD+fxwARAAx7iKzjeR1O2J0d4io7ksDyiRTCfDZ+IxBBXQcM0tpIAG
+            lpDyWSyS/z02ZioKqr4B/mq5OxVDVE5FRTwx9nYd6bb9ah3Our4LY++Ml2DJ8MPB
+            6GbbhnbUmy0srBaOrmUTVicvF7avlX1vuQnCkNNmaD59PZRP3PqO7Ll4sIdGAK16
+            hqCfF9lm9thD636EPCh6ICMEFvimh016ZA8LqQduE3HBtnJb5AU35giSSwyj09zU
+            31EGrIuIuf0++dJg3IHV3wX85no1bqSslmJZ5Yo/MWIp+3XXVxFO8NdfLomjk0jQ
+            FG2Ze+5OsZx3BIpAoTxNkkKoQaEBZzU3tsQKBqUaFymSoHblLWbz50/c8bfKFZpK
+            UcCwSj33S6l9kMf6J2CpCTEQbiOsDstildvIxP0hToTgPGFQudkwFFIuxVJ/Ly7/
+            VEMsSwqOM/uwHUTzxCrewQi0YB0Sig+7DKLCDRdNl87RKaImyTa3T7oHs1D+nhxl
+            7HTIrPn/iFLNp8BKfEclOQi+OtnggMh18HS28J9S6trWXMgYT77fNO2YBQFkDIlD
+            CatnULeeqgb/Mps9jalXuYXPi+gek+/RxUaabBr2UQVmmWoAVO1faY84RuCyBqfT
+            TJAJkpf50sEAf11C1u+UCfPOngXdnKrpMDVRAN9MraHVvXFmRpR4jXmfKBHWeJLS
+            UQE6mGMqOPfXagJ8XKJWlcMqNPL8Sq7GgH7UTmXV7yZjOCPBU7A5hLAlke9LcV9o
+            j2kLkNLhtjprU3xMeDkRlmyr7xLrS6FunHDJ2q0yLOATYw==
+            =m3ab
+            -----END PGP MESSAGE-----
+          fp: 3536F7F9345D96C86FB7F9CD21FAFEE575B18815
+    encrypted_regex: ^(data|stringData)$
+    version: 3.7.3
