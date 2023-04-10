@@ -7,7 +7,6 @@ resources:
   - ./mosquitto
   - ./ingress-proxy
   - ./lifx-mqtt
-  - ./pihole
   - ./podinfo
   - ./tuya-mqtt
   - ./twinkly-mqtt

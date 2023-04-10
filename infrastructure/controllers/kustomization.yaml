@@ -5,4 +5,5 @@ resources:
   - external-dns.yaml
   - kube-prometheus-stack.yaml
   - ingress-nginx.yaml
+  - pihole.yaml
   - weave-gitops.yaml
