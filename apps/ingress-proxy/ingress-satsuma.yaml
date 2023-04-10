@@ -1,0 +1,88 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+    name: satsuma
+    namespace: ingress-proxy
+    annotations:
+        cert-manager.io/cluster-issuer: letsencrypt-prod
+spec:
+    ingressClassName: nginx
+    tls:
+        - hosts:
+            - ENC[AES256_GCM,data:LTTGjQxiMwDCoz3a,iv:MLpW2IkdJZN1WMSRMJTKITrRdZbmdMTVoqCTxCoa6Es=,tag:Zj5luQfRkteqr0VTK1KSsQ==,type:str]
+            - ENC[AES256_GCM,data:l4OkE190JCaafxk=,iv:ik87Z4gce0Sx2JV9YFsM7lwAT2HxKsKDHhxShvkdqzM=,tag:Ib+dUKshdy+D87IZm9zivw==,type:str]
+            - ENC[AES256_GCM,data:FRYLc22mKKgOm0Gpt5MGMKF6BzU=,iv:u7yv3AmBeEVSFLz4kIWgscBZBZB+P5AnepsPBrgnVl4=,tag:xDW7R/JVumx0IIDMgfXnpQ==,type:str]
+            - ENC[AES256_GCM,data:4y97kGFj4TI2jM+EzNAGlgJb,iv:tvQ4A6439GOD4xuUZKiZf0VchmMTywCkNSme3l5vVkE=,tag:TyLUKuZorjFYJrO9L0wklQ==,type:str]
+          secretName: satsuma-tls
+    rules:
+        - host: ENC[AES256_GCM,data:xFCnwNH/3qa8ezYw,iv:aOXGo7GFX8/5a/10hbExREROKlgego4vSiC9Nw98Dak=,tag:nSXhdMufQ7axFrtjSjQkkw==,type:str]
+          http:
+            paths:
+                - path: /
+                  pathType: Prefix
+                  backend:
+                    service:
+                        name: satsuma
+                        port:
+                            number: 80
+        - host: ENC[AES256_GCM,data:Qzrf731Itlq/4LI=,iv:7Ox2WDCJlTp120xxZ/otlp/oh/FRtOIicqk4mG+LDiY=,tag:j6PlFkqsZ60ybdEUdFvHLw==,type:str]
+          http:
+            paths:
+                - path: /
+                  pathType: Prefix
+                  backend:
+                    service:
+                        name: satsuma
+                        port:
+                            number: 80
+        - host: ENC[AES256_GCM,data:m2g4GbyUulGh1Oa8biMqElOqc9c=,iv:OWgpaXujZBC/UBweIzOhycIP9aM8z27k/uFfOMJFE3Q=,tag:NLgWGbaXb48ryOzDCxknpg==,type:str]
+          http:
+            paths:
+                - path: /
+                  pathType: Prefix
+                  backend:
+                    service:
+                        name: satsuma
+                        port:
+                            number: 8989
+        - host: ENC[AES256_GCM,data:MXsgXNfolizRUz2DYu+bG2R5,iv:qEREKedFJMgPCO6FkcldDlLzkPPmVR36UneCjxpK2Hg=,tag:yoxsqqz1hfzxFVI/vUuOzA==,type:str]
+          http:
+            paths:
+                - path: /
+                  pathType: Prefix
+                  backend:
+                    service:
+                        name: satsuma
+                        port:
+                            number: 3334
+sops:
+    kms: []
+    gcp_kms: []
+    azure_kv: []
+    hc_vault: []
+    age: []
+    lastmodified: "2023-04-10T17:59:56Z"
+    mac: ENC[AES256_GCM,data:u2Jpxukexj0eiSpcM3neJTrHdY6I7piEVn2kvUJXp7ZidXCl1TtL465Ufkq28TwDb681KQKnRrruV2tMIjJ0i85geYKi4jtZoji6fA/JCWlRs4D6tDKYAKXlDlP8mmrCJXBUjCno5RLbr0rOvi3ujD90fTvB60s4QTaFJRp4l+k=,iv:QNfS+p37t+nLEDuJhqtrfOZiT14zOAwOSe5MMmB7tr4=,tag:SwZtgsUdzxOIwSFGw4jUHA==,type:str]
+    pgp:
+        - created_at: "2023-04-10T17:59:56Z"
+          enc: |-
+            -----BEGIN PGP MESSAGE-----
+
+            wcFMA8WjeZLD+fxwARAAhqdZgezm9C+GejiLR5jTSQQy8+XEB1eO5KIL8zK2EeNF
+            xDdXDzg6pHtX846srSxsl1Ml+jo/YidAO0ncmS92Kz7FDu+PM5wMYjje8FEYmkh4
+            CiIf1oWzvjM8rSyTntm5g89q/LIPZfS6DBEJxiyQZV7pfGOoT8/dXnESucp8phx8
+            AuOoXnX7cK25RCNDPa6SQcb6k5g+Kwyg99/LKsHMt8K0jyCQcmJfiv5zd1Luil9f
+            1Tl15oWM2Xh/sHs65ZOl8/IwSmWPTrJC7m0gHkk1pqHSs+UjwP7WPK6zcyKx7yqL
+            O69ydcNaQc1hSSlCC5FeT+I7rOwVGOl4laXwbg9VWlkzWO027Ulpe1ulMUlb6Id2
+            rlcR9+aLEYFAOa2GczhgBSpcbOpg/eHzr+nZNdXiEu3M3HMOBPVPd3mZG6H5xsYQ
+            rkmRAZXwx4eeH3lyL7d8Y3p4b76/D0Mbehn/lfoLGl8hjsakz6t7eXExYXpHZVXj
+            W4ggxh1h5//tVWXK9U3oRPNjDfSyQ2iDQEDcBYKus0o76hZv9UEScOwmmucH76yl
+            kkoaivk6aLx9vbrOM3VjMP+iOnUmi0zqQ5Rx3VwJ888IZ1Xtib7tBjmqdNGHcoQ7
+            9f9P8tGbNZMyoAzJhZH5vHqgSTDRQh3YLAYZRsO5Cydvoru/CdiosMIb97hL0/PS
+            UQFPAQCbtE//ShHRm9Bt0ShLfGMvGu/EPM3aAUl0Vpjzg+cusGQwaWlSd/rZ/U5t
+            lwp+woQZ6hciaSdx6gwkeoPwUhNSxZuE/DhT21autJVG6Q==
+            =b3Vv
+            -----END PGP MESSAGE-----
+          fp: 3536F7F9345D96C86FB7F9CD21FAFEE575B18815
+    encrypted_regex: ^(hosts?)$
+    version: 3.7.3

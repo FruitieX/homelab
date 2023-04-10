@@ -1,0 +1,99 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+    name: nectarine
+    namespace: ingress-proxy
+    annotations:
+        cert-manager.io/cluster-issuer: letsencrypt-prod
+spec:
+    ingressClassName: nginx
+    tls:
+        - hosts:
+            - ENC[AES256_GCM,data:hlr1CCtzAJZAls+1kxGJ2Y++47s/ww==,iv:xmUb8x9Tj/WdJxJ0/QcwN5rEz/V70TiL6c57jkCmF8o=,tag:VhlCRtJT04qeFrSXgWLC1w==,type:str]
+            - ENC[AES256_GCM,data:51SHpMJQsAr7s3akRhrNZY5F,iv:Vpyb17WKrco32uqLBZZZXN0QPSj4XxRFUXqtW3jggJs=,tag:BIXKyt7UwqJwKS66L02ztA==,type:str]
+            - ENC[AES256_GCM,data:T6+Hp+nnaxbAtfDn6H8oQs5YDQ==,iv:pvNrkP6WdFicGEoxNmY4igZxNJzK18bhR5fecrwu2/s=,tag:ns7pRygaXjXrBxzj39b1Pg==,type:str]
+            - ENC[AES256_GCM,data:+OL6TXENhHHjPw5UU9oal94=,iv:G5M5aTKXhQnZEK3qG4c8UhCqpcMQWthF6SfTKhLdqhE=,tag:+7oft11Y94JEJJis3YBVYg==,type:str]
+            - ENC[AES256_GCM,data:eYgNcphANZyRjQVKeu6i6NwS,iv:ly35YD769N0jT8bFBu+41Z/bD+VUiA19VudHZPLE9L4=,tag:owe2WFHm/TGpSGeRkmNBiw==,type:str]
+          secretName: nectarine-tls
+    rules:
+        - host: ENC[AES256_GCM,data:VC4IhfGK8KqJ1wj9E5KW6jZ8LhJlMA==,iv:VtCCOAtF6xIa6Wli6lwQL4Utf9rIvs53pI3ZwBBVXA4=,tag:OkZMuukh5zdHlVn+0v7xhg==,type:str]
+          http:
+            paths:
+                - path: /
+                  pathType: Prefix
+                  backend:
+                    service:
+                        name: nectarine
+                        port:
+                            number: 5000
+        - host: ENC[AES256_GCM,data:nzLNgxt7xFLIiGAJC2zY/7Hv,iv:FZWNapPkEy1hMydc1KVXDdqkS69biZXaNmWn2V9va2k=,tag:X+IPc4Mb/DVPaI/lQwF2qA==,type:str]
+          http:
+            paths:
+                - path: /
+                  pathType: Prefix
+                  backend:
+                    service:
+                        name: nectarine
+                        port:
+                            number: 10002
+        - host: ENC[AES256_GCM,data:igViFu1Cbl2Xd3C+Q5OAvQRrKg==,iv:SNM7a3WvXMLOeLfaoIYQaE6aC78daF8HfUtUUNTbUTI=,tag:587mRIsoh+T/+I+xYYencQ==,type:str]
+          http:
+            paths:
+                - path: /
+                  pathType: Prefix
+                  backend:
+                    service:
+                        name: nectarine
+                        port:
+                            number: 5081
+        - host: ENC[AES256_GCM,data:xv6IrZkpPgdVISZSHBlDHEc=,iv:hiUDtrQQza7UpvpDUPAo8t6rbovOTulkYYF4jhB/m+8=,tag:YK5YYOSQcFK1m740hqUk+w==,type:str]
+          http:
+            paths:
+                - path: /
+                  pathType: Prefix
+                  backend:
+                    service:
+                        name: nectarine
+                        port:
+                            number: 10002
+        - host: ENC[AES256_GCM,data:rpmCFAHWj01YMsqRHnJe9GQi,iv:RauaHCpuzq1VBwpF7ZeT5AQTZ/5xdTlBaVMPZxp1NbY=,tag:MphsZnaOpEYDrY4i4EgKOg==,type:str]
+          http:
+            paths:
+                - path: /
+                  pathType: Prefix
+                  backend:
+                    service:
+                        name: nectarine
+                        port:
+                            number: 5081
+sops:
+    kms: []
+    gcp_kms: []
+    azure_kv: []
+    hc_vault: []
+    age: []
+    lastmodified: "2023-04-10T17:59:38Z"
+    mac: ENC[AES256_GCM,data:qj+MBvNO9gS6l/Gzwi6B2BEhHSjKvAPum1Jg1QsUcZYulIrXT0WYsvwGMdp1NNvtlIyvloOPuRsIkmXAAsSnhnkbeamKq5C4R6Y5qoR4DQ9IMHcGxg7yQMg9mwiMhKaWorx3MiYRSDyiPDIR7YTW8CwE+soYfFpYFn9K2D552/s=,iv:GYdUOw362DIucPCyWWVSDvKUzljYzENd8mc7YXxtUTU=,tag:w9mCm559H/7U0xVidPVzbg==,type:str]
+    pgp:
+        - created_at: "2023-04-10T17:59:38Z"
+          enc: |-
+            -----BEGIN PGP MESSAGE-----
+
+            wcFMA8WjeZLD+fxwAQ//Y0MfVpk9G0PvpfLWMevIARlNbInfcRxDswfvNHK6Wjc7
+            mudjGPdluetccIQVCbcSHskdoqNUxGXaFEsWq+xrmVyVtt5aVQ9GHq48G8StM4iu
+            x04xPdcdUjTy9m/kzzLbEdnmAxJ8JXBG72utod5sGncYDTHOtvHAeBilAst2sTnz
+            Cv1Pyf9bJSMUCgU0h9ajVwmOZBcZGkGEbgq66svJLArAxCWAW2H/he7HRAJn+asG
+            JyJaxplH2jyC8sB7xZ2Pcua8fpfeYjvL2m9DBGHmhIjMZFaUmQ7npYkGlbMZAqPg
+            E5W7n2N+DoTP6H81jcbjuzKAcaGqxVJEdfeOz0CSRHOR8BSfDnDpbReOwmJlgq1V
+            YgSoUZqHCFu+Mz07KJuIyDneizQh3gLG6IICwQaLoMh0nyBac7iVyQsuokQzq+p6
+            xTAF/uQ4fP90bCig5aWi97rRFCf1eXQ68s+fh0RHqxcTCGNGm3nekc8ofkeOVynh
+            /Cf4H4enq1HvqYA9Hko/t/MpcCC4l3YDcTE/oczoefQRMVXCw7sWG+aREmhB0uL8
+            CcscylJZvUPrgX1DEZ9RYfaxJxzs3GYaMzPdG/bHEP452kI+5geyh9yRI2S/+LB8
+            q9jWm82JuxMBJncz4m5SRBvinXnZHuotcoECCF2Ga6Wov+6lA/nM8R+HtF+QSr3S
+            UQE5d5DDWiQGK7bIBcTwO80le+ojyUpbXCm4HTioZtjX4pP8eFNFJpDqsJu+A2Cu
+            H1ye2GX0h7exzQkdMXEumjFoeJpyWLJ0n6fNef1PVTG2Eg==
+            =ladq
+            -----END PGP MESSAGE-----
+          fp: 3536F7F9345D96C86FB7F9CD21FAFEE575B18815
+    encrypted_regex: ^(hosts?)$
+    version: 3.7.3

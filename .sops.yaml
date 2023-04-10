@@ -1,4 +1,7 @@
 creation_rules:
+  - path_regex: apps/ingress-proxy/.*
+    encrypted_regex: '^(hosts?)$'
+    pgp: 3536F7F9345D96C86FB7F9CD21FAFEE575B18815 
+
   - encrypted_regex: '^(data|stringData)$'
-    pgp: >-
-      3536F7F9345D96C86FB7F9CD21FAFEE575B18815 
+    pgp: 3536F7F9345D96C86FB7F9CD21FAFEE575B18815 
