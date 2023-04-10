@@ -5,9 +5,7 @@ metadata:
   name: letsencrypt-staging
 spec:
   acme:
-    # Replace the email address with your own contact email
-    email: fruitiex@gmail.com
-    # The server is replaced in /clusters/production/infrastructure.yaml
+    email: ${LETSENCRYPT_EMAIL}
     server: https://acme-staging-v02.api.letsencrypt.org/directory
     privateKeySecretRef:
       name: letsencrypt-staging
@@ -22,9 +20,7 @@ metadata:
   name: letsencrypt-prod
 spec:
   acme:
-    # Replace the email address with your own contact email
-    email: fruitiex@gmail.com
-    # The server is replaced in /clusters/production/infrastructure.yaml
+    email: ${LETSENCRYPT_EMAIL}
     server: https://acme-v02.api.letsencrypt.org/directory
     privateKeySecretRef:
       name: letsencrypt-prod
