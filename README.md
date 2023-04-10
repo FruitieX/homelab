@@ -27,7 +27,7 @@ To follow this guide, you need the following:
 3. While installing, note down the following details into an .envrc file:
 
 ```
-# IP address of your control plane node
+# IP address of your control plane node, printed to machine TTY when performing control plane node installation.
 export CONTROL_PLANE_IP="192.168.10.206"
 
 # Path to your talosconfig, created in the `Generate Machine Configurations` section.
@@ -40,7 +40,7 @@ export KUBECONFIG="./kubeconfig"
 export GITHUB_TOKEN="ghp_XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
 
 # Paste your GPG key fingerprint from the prerequisites here
-export KEY_FP="XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+export SOPS_PGP_FP="XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
 
 export NIXPKGS_ALLOW_UNFREE=1
 
@@ -64,7 +64,7 @@ Verify that you can now run e.g. `kubectl get nodes -o wide` to list your nodes.
 ```
 kubectl create namespace flux-system
 
-gpg --export-secret-keys --armor "${KEY_FP}" |
+gpg --export-secret-keys --armor "${SOPS_PGP_FP}" |
 kubectl create secret generic sops-gpg \
 --namespace=flux-system \
 --from-file=sops.asc=/dev/stdin
@@ -81,10 +81,6 @@ kubectl create secret generic sops-gpg \
 - [/apps/kustomization.yaml](/apps/kustomization.yaml)
 
   Comment out all apps and start adding back only the ones you need. I recommend starting out with only `podinfo` as it requires minimal configuration.
-
-- [/.sops.yaml](/.sops.yaml)
-
-  Replace the GPG fingerprints with your own (same as what you set KEY_FP to in .envrc)
 
 7. Re-encrypting SOPS secrets
 
