@@ -6,4 +6,3 @@ metadata:
   name: cluster-config
 data:
   LETSENCRYPT_CLUSTER_ISSUER: letsencrypt-prod
-  DOMAIN_NAME: fruitiex.org

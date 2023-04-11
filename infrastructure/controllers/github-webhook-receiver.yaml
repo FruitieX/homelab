@@ -26,10 +26,10 @@ spec:
   ingressClassName: nginx
   tls:
     - hosts:
-        - flux-notification.fruitiex.org
+        - ${FLUX_NOTIFICATION_DOMAIN_NAME}
       secretName: flux-notification-tls
   rules:
-    - host: flux-notification.fruitiex.org
+    - host: ${FLUX_NOTIFICATION_DOMAIN_NAME}
       http:
         paths:
           - path: /

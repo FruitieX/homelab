@@ -22,10 +22,10 @@ To follow this guide, you need the following:
 
   ```
   ;; A Records
-  example.org.	    60	IN	A	    <my home IP>
+  example.org.	    60	IN	A	      <my home IP>
 
   ;; CNAME Records
-  *.example.org.	60	IN	CNAME	example.org.
+  *.example.org.	  60	IN	CNAME	  example.org.
   ```
 
   The idea is that any HTTP requests to subdomains are forwarded to the corresponding service by `ingress-nginx` running in the cluster.
@@ -99,11 +99,11 @@ To follow this guide, you need the following:
 
     - [/clusters/homelab/cluster-config.yaml](/clusters/homelab/cluster-config.yaml)
 
-      Contains configuration values that can be interpolated with `${CONFIG_KEY}` syntax into most other files.
+      Contains configuration values that can be interpolated with `${CONFIG_KEY}` syntax into most other files:
 
-      You want to change `DOMAIN_NAME` to match your domain.
+      - `LETSENCRYPT_CLUSTER_ISSUER`: You will probably want to set this to `letsencrypt-staging` until you have your domain name / DNS / port forwards etc set up correctly. This is to avoid hitting Let's Encrypt's very strict rate limits.
 
-      You will also probably want to set `LETSENCRYPT_CLUSTER_ISSUER` to `letsencrypt-staging` until you have your domain name / DNS / port forwards etc set up correctly. This is to avoid hitting Let's Encrypt's very strict rate limits.
+      Feel free to add more configuration values here as needed.
 
 7.  Replace SOPS encrypted secrets in the configuration.
 
@@ -124,9 +124,14 @@ To follow this guide, you need the following:
 
     - [/clusters/homelab/cluster-secrets.yaml](/clusters/homelab/cluster-secrets.yaml)
 
-      Contains secret values that can be interpolated with `${SECRET_KEY}` syntax into most other files.
+      Contains secret config values that can be interpolated with `${SECRET_CONFIG_KEY}` syntax into most other files:
 
-      You will probably want to set `PIHOLE_WEBPASSWORD` to something so you can log in to pi-hole, and `LETSENCRYPT_EMAIL` pointing at your e-mail address so letsencrypt can contact you if needed. Other values can be removed for now. Feel free to add more secret values here as needed in the future.
+      - `PIHOLE_PASSWORD`: Password used to access the Pi-hole web interface.
+      - `LETSENCRYPT_EMAIL`: Your e-mail address so letsencrypt can contact you if needed (certificate expiration warnings).
+      - `FLUX_NOTIFICATION_DOMAIN_NAME`: Domain name for your flux webhook notification endpoint. For example `flux-notification.example.org`
+      - `PODINFO_DOMAIN_NAME`: Domain name where the `podinfo` example application will be exposed. For example `podinfo.example.org`
+
+      Other values can be removed for now. Feel free to add more secret values here as needed.
 
       Remember to re-encrypt the file before you commit.
 

@@ -26,10 +26,10 @@ spec:
   ingressClassName: nginx
   tls:
     - hosts:
-        - podinfo.fruitiex.org
+        - ${PODINFO_DOMAIN_NAME}
       secretName: podinfo-tls
   rules:
-    - host: podinfo.fruitiex.org
+    - host: ${PODINFO_DOMAIN_NAME}
       http:
         paths:
           - path: /
