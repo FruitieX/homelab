@@ -3,6 +3,7 @@ kind: Kustomization
 resources:
   - cert-manager.yaml
   - external-dns.yaml
+  - github-webhook-receiver.yaml
   - kube-prometheus-stack.yaml
   - ingress-nginx.yaml
   - pihole.yaml

@@ -21,15 +21,15 @@ metadata:
   name: notification-receiver
   namespace: flux-system
   annotations:
-    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    cert-manager.io/cluster-issuer: ${LETSENCRYPT_CLUSTER_ISSUER}
 spec:
   ingressClassName: nginx
   tls:
     - hosts:
-        - flux-notification.fruitiex.org
+        - flux-notification.${DOMAIN_NAME}
       secretName: flux-notification-tls
   rules:
-    - host: flux-notification.fruitiex.org
+    - host: flux-notification.${DOMAIN_NAME}
       http:
         paths:
           - path: /

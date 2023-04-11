@@ -21,15 +21,15 @@ metadata:
   name: podinfo-ingress
   namespace: default
   annotations:
-    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    cert-manager.io/cluster-issuer: ${LETSENCRYPT_CLUSTER_ISSUER}
 spec:
   ingressClassName: nginx
   tls:
     - hosts:
-        - podinfo.fruitiex.org
+        - podinfo.${DOMAIN_NAME}
       secretName: podinfo-tls
   rules:
-    - host: podinfo.fruitiex.org
+    - host: podinfo.${DOMAIN_NAME}
       http:
         paths:
           - path: /

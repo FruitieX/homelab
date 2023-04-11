@@ -4,18 +4,18 @@ metadata:
     name: satsuma
     namespace: ingress-proxy
     annotations:
-        cert-manager.io/cluster-issuer: letsencrypt-prod
+        cert-manager.io/cluster-issuer: ${LETSENCRYPT_CLUSTER_ISSUER}
 spec:
     ingressClassName: nginx
     tls:
         - hosts:
-            - ENC[AES256_GCM,data:LTTGjQxiMwDCoz3a,iv:MLpW2IkdJZN1WMSRMJTKITrRdZbmdMTVoqCTxCoa6Es=,tag:Zj5luQfRkteqr0VTK1KSsQ==,type:str]
-            - ENC[AES256_GCM,data:l4OkE190JCaafxk=,iv:ik87Z4gce0Sx2JV9YFsM7lwAT2HxKsKDHhxShvkdqzM=,tag:Ib+dUKshdy+D87IZm9zivw==,type:str]
-            - ENC[AES256_GCM,data:FRYLc22mKKgOm0Gpt5MGMKF6BzU=,iv:u7yv3AmBeEVSFLz4kIWgscBZBZB+P5AnepsPBrgnVl4=,tag:xDW7R/JVumx0IIDMgfXnpQ==,type:str]
-            - ENC[AES256_GCM,data:4y97kGFj4TI2jM+EzNAGlgJb,iv:tvQ4A6439GOD4xuUZKiZf0VchmMTywCkNSme3l5vVkE=,tag:TyLUKuZorjFYJrO9L0wklQ==,type:str]
+            - ENC[AES256_GCM,data:zNxDML3p0E55osuL,iv:qqeDKlwuxoM9G+BJm9XWKFE9kVOz6YLY0rqfFL8JXU8=,tag:JgFxvATyN7KPFXWcdiPAYQ==,type:str]
+            - ENC[AES256_GCM,data:C4RRG+nWC49g8vc=,iv:AoCUGJ4EOIkKGFee+MOVqHtL1jXkj/jOggX4EYlgJYQ=,tag:XgYDlMR+m2kXo3D4wZpq8A==,type:str]
+            - ENC[AES256_GCM,data:3PegcDa0yD+zJAw9Xm1tfVTWR3Y=,iv:RIRVu2mdG3RfkezOCk/VzYAvMdNqhGCKezkcI5t7zPA=,tag:TYw7brE3ywt2jC0jGDJfWw==,type:str]
+            - ENC[AES256_GCM,data:+fya3/Xc2Asv6Rs2RctOLiz7,iv:qx7lQ+eb+pswJR8oBQKhXGrm+QNrL4GWuaspYExUrq8=,tag:tysS1h2Cgcvq+w2B1HIKHw==,type:str]
           secretName: satsuma-tls
     rules:
-        - host: ENC[AES256_GCM,data:xFCnwNH/3qa8ezYw,iv:aOXGo7GFX8/5a/10hbExREROKlgego4vSiC9Nw98Dak=,tag:nSXhdMufQ7axFrtjSjQkkw==,type:str]
+        - host: ENC[AES256_GCM,data:QVZ80xoRFUI0lEK2,iv:eVEDIehxvI6enlbcF4DdPLb4sqnvjzWKqbP9FmkdfMY=,tag:fIGRj4M6lleeCuwt93mLEA==,type:str]
           http:
             paths:
                 - path: /
@@ -25,7 +25,7 @@ spec:
                         name: satsuma
                         port:
                             number: 80
-        - host: ENC[AES256_GCM,data:Qzrf731Itlq/4LI=,iv:7Ox2WDCJlTp120xxZ/otlp/oh/FRtOIicqk4mG+LDiY=,tag:j6PlFkqsZ60ybdEUdFvHLw==,type:str]
+        - host: ENC[AES256_GCM,data:Wc8YflBueqFcgD0=,iv:myzvYB0mWqLvcRO8kn1kztb2HcjVZH7cF/pZxwmHr5Q=,tag:JBqeputL50LnMKpTJtSenA==,type:str]
           http:
             paths:
                 - path: /
@@ -35,7 +35,7 @@ spec:
                         name: satsuma
                         port:
                             number: 80
-        - host: ENC[AES256_GCM,data:m2g4GbyUulGh1Oa8biMqElOqc9c=,iv:OWgpaXujZBC/UBweIzOhycIP9aM8z27k/uFfOMJFE3Q=,tag:NLgWGbaXb48ryOzDCxknpg==,type:str]
+        - host: ENC[AES256_GCM,data:Cu70vo3D7eUTrHCv/mXOmsFjX6U=,iv:VrEIf2497WRByOVDiecA6EO8JUSE4a7nmKiTbDKCUgI=,tag:AtsVB+xrvgkL2sY2dh9Z5w==,type:str]
           http:
             paths:
                 - path: /
@@ -45,7 +45,7 @@ spec:
                         name: satsuma
                         port:
                             number: 8989
-        - host: ENC[AES256_GCM,data:MXsgXNfolizRUz2DYu+bG2R5,iv:qEREKedFJMgPCO6FkcldDlLzkPPmVR36UneCjxpK2Hg=,tag:yoxsqqz1hfzxFVI/vUuOzA==,type:str]
+        - host: ENC[AES256_GCM,data:XLlAy+Ex8C9c6Ju42i58MyPE,iv:g/d/pZzguz9hg/XCi5lHOEkgrnnh/fKTh5edS3e1u8c=,tag:Ogcrc8wg8njlZdxw9MPzwg==,type:str]
           http:
             paths:
                 - path: /
@@ -61,27 +61,27 @@ sops:
     azure_kv: []
     hc_vault: []
     age: []
-    lastmodified: "2023-04-10T17:59:56Z"
-    mac: ENC[AES256_GCM,data:u2Jpxukexj0eiSpcM3neJTrHdY6I7piEVn2kvUJXp7ZidXCl1TtL465Ufkq28TwDb681KQKnRrruV2tMIjJ0i85geYKi4jtZoji6fA/JCWlRs4D6tDKYAKXlDlP8mmrCJXBUjCno5RLbr0rOvi3ujD90fTvB60s4QTaFJRp4l+k=,iv:QNfS+p37t+nLEDuJhqtrfOZiT14zOAwOSe5MMmB7tr4=,tag:SwZtgsUdzxOIwSFGw4jUHA==,type:str]
+    lastmodified: "2023-04-11T08:11:33Z"
+    mac: ENC[AES256_GCM,data:tOvf27jnvr5ft7cZNzdRCMkNBSgaDRNR+drI765gnXTFEWATX5At4/JdgrjOnCIQKx9EryKYi590wRSzoYezFunHee42Kkf2VKWT+snnnkp5Ic1M2ivIDtMUMaaGCGk6LtYDXBbdiyAWVMBxDXq7qIIU1OBGtK+oLKe7BhqHAgU=,iv:8Ryr91ZZ6TkNzLKOnJ9fh0DP5tJshtWP75+TFSXe76Y=,tag:hm2X22FH+fxwQEXu3XN8dw==,type:str]
     pgp:
-        - created_at: "2023-04-10T17:59:56Z"
+        - created_at: "2023-04-11T08:11:33Z"
           enc: |-
             -----BEGIN PGP MESSAGE-----
 
-            wcFMA8WjeZLD+fxwARAAhqdZgezm9C+GejiLR5jTSQQy8+XEB1eO5KIL8zK2EeNF
-            xDdXDzg6pHtX846srSxsl1Ml+jo/YidAO0ncmS92Kz7FDu+PM5wMYjje8FEYmkh4
-            CiIf1oWzvjM8rSyTntm5g89q/LIPZfS6DBEJxiyQZV7pfGOoT8/dXnESucp8phx8
-            AuOoXnX7cK25RCNDPa6SQcb6k5g+Kwyg99/LKsHMt8K0jyCQcmJfiv5zd1Luil9f
-            1Tl15oWM2Xh/sHs65ZOl8/IwSmWPTrJC7m0gHkk1pqHSs+UjwP7WPK6zcyKx7yqL
-            O69ydcNaQc1hSSlCC5FeT+I7rOwVGOl4laXwbg9VWlkzWO027Ulpe1ulMUlb6Id2
-            rlcR9+aLEYFAOa2GczhgBSpcbOpg/eHzr+nZNdXiEu3M3HMOBPVPd3mZG6H5xsYQ
-            rkmRAZXwx4eeH3lyL7d8Y3p4b76/D0Mbehn/lfoLGl8hjsakz6t7eXExYXpHZVXj
-            W4ggxh1h5//tVWXK9U3oRPNjDfSyQ2iDQEDcBYKus0o76hZv9UEScOwmmucH76yl
-            kkoaivk6aLx9vbrOM3VjMP+iOnUmi0zqQ5Rx3VwJ888IZ1Xtib7tBjmqdNGHcoQ7
-            9f9P8tGbNZMyoAzJhZH5vHqgSTDRQh3YLAYZRsO5Cydvoru/CdiosMIb97hL0/PS
-            UQFPAQCbtE//ShHRm9Bt0ShLfGMvGu/EPM3aAUl0Vpjzg+cusGQwaWlSd/rZ/U5t
-            lwp+woQZ6hciaSdx6gwkeoPwUhNSxZuE/DhT21autJVG6Q==
-            =b3Vv
+            wcFMA8WjeZLD+fxwAQ/+NVFziKxB3thFWXbEWLMAbnvEORYkbcMEMQeG/W/II1o+
+            0wOmpNKmHGP01oNtB6FTqIhWpESP9App+9fYDdTdi5zFTLBpjW0cwTBLq4Kdc3DB
+            MdaHCl4/HWi61dh2cPEjONn/oDXJpa8LKF9XhI4FAoXwvcI8LcVsW/T8GhumOSoV
+            39pH+7EwxtPYqUAP736G+nwK41F2+uLsYEhDOOeJQUPoW5km1XMBJ4K3N5jiL0BI
+            s8i2t+YDEuVi6zehcw04+RXtDsXKWpShdX3SlQCdStOiYyXg1ooNSLCSYUeHhtEu
+            FBW8BrSMeZTHDU+2SIrcsaqxkbPFHstNp6z3CKIHoVMgopdN+xZstZVgEOXSl5wG
+            /BYF6sgfbdkMTzh7b7m0M5HkLcOUFrQxs8nJNRoRwk0LlY3XwUbYkCjU/eWMzv/t
+            9QSaSNhLxX3s/j66scW1voRGGXLI7HT18txnXXuKni46/xuJ+K5fNVvYYX/7Ctw8
+            69Yb1WV3kgBdUGOBLBNaaGDETomBNJr+u++xlMSpTSQgkxJ/JMjE/kPs08nXhrCs
+            ucNDkPIoj4kdFoGz0A4YWLUNFkRSDCTmeVjnPnoonAx3wk7AOM3U9QPWZFjBUgv+
+            Zo/8MWtcyF/yiXW91836C8SlZ+Qz2VSpIgVH7B3guQ96y4jelt7/QhqC0TkC+cbS
+            UQHlIMR5jOL4JSuQ2wlmGn2pwJn5whCvH5DxSuAg4z+UlRx0LyNIH23TscRQQZgu
+            m+RUEVFiQSVmfVR3bIAEzwQYlHgKCNKze5wWmSNE9GMplg==
+            =yME/
             -----END PGP MESSAGE-----
           fp: 3536F7F9345D96C86FB7F9CD21FAFEE575B18815
     encrypted_regex: ^(hosts?)$
