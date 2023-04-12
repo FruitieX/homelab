@@ -1,3 +1,17 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: add-bot-data
+  namespace: default
+spec:
+  storageClassName: homelab-nfs
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -20,7 +34,15 @@ spec:
               value: ${ADD_BOT_TOKEN}
           command: ["add-bot"]
           args: ["--tz", "Europe/Helsinki"]
+          workingDir: /app
+          volumeMounts:
+            - mountPath: /app
+              name: add-bot-data
           resources:
             limits:
               memory: 128Mi
               cpu: 100m
+      volumes:
+        - name: add-bot-data
+          persistentVolumeClaim:
+            claimName: add-bot-data
