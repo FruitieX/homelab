@@ -1,0 +1,12 @@
+# https://fluxcd.io/flux/guides/webhook-receivers/
+
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: notification-receiver
+resources:
+  - namespace.yaml
+  - github-webhook-token.yaml
+  - service.yaml
+  - ingress.yaml
+  - receiver.yaml
+

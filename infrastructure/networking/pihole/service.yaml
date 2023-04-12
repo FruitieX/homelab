@@ -1,0 +1,28 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: pihole
+  namespace: pihole
+  annotations:
+    metallb.universe.tf/loadBalancerIPs: 192.168.11.11
+    external-dns.alpha.kubernetes.io/hostname: pihole,pihole.localdomain
+spec:
+  type: LoadBalancer
+  selector:
+    app: pihole
+  ports:
+    - name: dns-tcp
+      port: 53
+      protocol: TCP
+    - name: dns-udp
+      port: 53
+      protocol: UDP
+    # - name: dhcp
+    #   port: 67
+    #   protocol: UDP
+    - name: http
+      port: 80
+      protocol: TCP
+    - name: https
+      port: 443
+      protocol: TCP

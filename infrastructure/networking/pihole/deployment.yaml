@@ -1,0 +1,60 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pihole
+  namespace: pihole
+spec:
+  selector:
+    matchLabels:
+      app: pihole
+  template:
+    metadata:
+      labels:
+        app: pihole
+    spec:
+      # hostNetwork: true
+      dnsPolicy: "None"
+      dnsConfig:
+        nameservers:
+          # upstream DNS used by pihole.
+          - 192.168.1.1
+      containers:
+        - name: pihole
+          # https://hub.docker.com/r/pihole/pihole/tags
+          image: pihole/pihole:2023.03.1
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: WEBPASSWORD
+              value: ${PIHOLE_WEBPASSWORD}
+          securityContext:
+            privileged: true
+          ports:
+            - containerPort: 53
+              protocol: TCP
+            - containerPort: 53
+              protocol: UDP
+            # - containerPort: 67
+            #   protocol: UDP
+            - containerPort: 80
+              protocol: TCP
+            - containerPort: 443
+              protocol: TCP
+          volumeMounts:
+            - name: etc
+              mountPath: /etc/pihole
+            - name: dnsmasq
+              mountPath: /etc/dnsmasq.d
+          resources:
+            requests:
+              memory: 128Mi
+              cpu: 100m
+            limits:
+              memory: 2Gi
+              cpu: 1000m
+      volumes:
+        - name: etc
+          emptyDir:
+            sizeLimit: 500Mi
+        - name: dnsmasq
+          emptyDir:
+            sizeLimit: 500Mi

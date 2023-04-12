@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: notification-receiver
+  namespace: notification-receiver
+spec:
+  type: LoadBalancer
+  selector:
+    app: notification-controller
+  ports:
+    - name: http
+      port: 9292
+      protocol: TCP
+      targetPort: 9292
