@@ -12,6 +12,9 @@ spec:
   selector:
     matchLabels:
       name: postgresql-pv
+  resources:
+    requests:
+      storage: 10Gi
 ---
 apiVersion: v1
 kind: Service
