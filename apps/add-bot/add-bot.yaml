@@ -16,8 +16,8 @@ spec:
         - name: add-bot
           image: fruitiex/add-bot:latest
           env:
-            - name: TELOXIDE_TOKEN
-              value: ${TELOXIDE_TOKEN}
+            - name: ADD_BOT_TOKEN
+              value: ${ADD_BOT_TOKEN}
           command: ["add-bot"]
           args: ["--tz", "Europe/Helsinki"]
           resources:
