@@ -8,5 +8,6 @@ resources:
   - ./ingress-proxy
   - ./lifx-mqtt
   - ./podinfo
+  - ./postgresql
   - ./tuya-mqtt
   - ./twinkly-mqtt
