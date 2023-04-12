@@ -10,8 +10,6 @@ spec:
   prune: true
   dependsOn:
     - name: infra-configs
-    - name: cluster-secrets
-    - name: cluster-config
   sourceRef:
     kind: GitRepository
     name: flux-system

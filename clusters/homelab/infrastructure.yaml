@@ -14,9 +14,6 @@ spec:
   path: ./infrastructure/controllers
   prune: true
   wait: true
-  dependsOn:
-    - name: cluster-secrets
-    - name: cluster-config
   decryption:
     provider: sops
     secretRef:
@@ -59,8 +56,6 @@ metadata:
 spec:
   dependsOn:
     - name: infra-controllers
-    - name: cluster-secrets
-    - name: cluster-config
   interval: 1h
   retryInterval: 1m
   timeout: 30s

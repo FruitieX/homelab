@@ -74,18 +74,7 @@ To follow this guide, you need the following:
 
     Verify that you can now run e.g. `kubectl get nodes -o wide` to list your nodes.
 
-5.  Export the public and private keypair from your local GPG keyring and create a Kubernetes secret named sops-gpg in the flux-system namespace:
-
-    ```
-    kubectl create namespace flux-system
-
-    gpg --export-secret-keys --armor "${SOPS_PGP_FP}" |
-    kubectl create secret generic sops-gpg \
-    --namespace=flux-system \
-    --from-file=sops.asc=/dev/stdin
-    ```
-
-6.  Edit the configuration to match your setup. You will probably at least want to look at:
+5.  Edit the configuration to match your setup. You will probably at least want to look at:
 
     - [/metallb-config/ipaddresspool.yaml](/metallb-config/ipaddresspool.yaml)
 
@@ -105,7 +94,7 @@ To follow this guide, you need the following:
 
       Feel free to add more configuration values here as needed.
 
-7.  Replace SOPS encrypted secrets in the configuration.
+6.  Replace SOPS encrypted secrets in the configuration.
 
     The repository contains a number of secrets that have been encrypted using my GPG key with Mozilla SOPS. You (and your cluster) won't be able to read these encrypted values, and attempting to deploy them as such will probably fail.
 
@@ -145,13 +134,27 @@ To follow this guide, you need the following:
 
       Remember to re-encrypt the file before you commit.
 
-8.  Bootstrap your cluster with flux
+7.  Bootstrap your cluster with flux
 
     ```
+    # Create flux-system namespace or below command will fail
+    kubectl create namespace flux-system
+
+    # Export the public and private keypair from your local GPG keyring and
+    # create a Kubernetes secret named sops-gpg in the flux-system namespace
+    gpg --export-secret-keys --armor "${SOPS_PGP_FP}" |
+    kubectl create secret generic sops-gpg \
+    --namespace=flux-system \
+    --from-file=sops.asc=/dev/stdin
+
+    # Inject cluster secrets to circumvent dependency issue
+    sops --decrypt clusters/homelab/cluster-secrets.yaml | kubectl apply -f -
+
+    # Bootstrap flux
     flux bootstrap github --owner=MyGitHubUser --repository=homelab --personal --path=clusters/homelab
     ```
 
-9.  Optional: Set up GitHub push event webhook notifications
+8.  Optional: Set up GitHub push event webhook notifications
 
     Normally, flux will poll your repository for changes. This means there will be a delay between when you push until flux picks up on the changes. You can get around this by manually running `flux reconcile kustomization flux-system`, or by setting up webhook receivers so that GitHub will notify your cluster of the push event.
 
