@@ -2,7 +2,7 @@ apiVersion: v1
 kind: Secret
 metadata:
     name: github-webhook-token
-    namespace: notification-receiver
+    namespace: flux-system
 stringData:
     token: ENC[AES256_GCM,data:qgYcSmmAZmidJyNdn2zGWkjeaYXxODXYhbdTZfshEYsLMCUGV93BtA==,iv:7BdCEkNaVk8yMh+NqHlbaeSMtzQvwol1MjkVxI+F6no=,tag:zAR1SuezCbO0Tf8h/ezENQ==,type:str]
 sops:

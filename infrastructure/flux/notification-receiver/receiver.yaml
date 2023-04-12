@@ -2,7 +2,7 @@ apiVersion: notification.toolkit.fluxcd.io/v1beta2
 kind: Receiver
 metadata:
   name: notification-receiver
-  namespace: notification-receiver
+  namespace: flux-system
 spec:
   type: github
   events:
