@@ -1,13 +1,13 @@
 apiVersion: v1
 kind: Secret
 metadata:
-    name: postgresql-config
+    name: postgres-config
     namespace: default
 type: Opaque
 stringData:
     POSTGRES_USER: ENC[AES256_GCM,data:GV8HtII31gE=,iv:g4bjZboV8XprWMtT+Z6CC6ON+mckbkeJJBI9HhUeXZo=,tag:w7rFadI0ALnP3yPUNEF1uQ==,type:str]
     POSTGRES_PASSWORD: ENC[AES256_GCM,data:zbO76yyEUe70eegVtwhk8MNx8cg=,iv:JUZHTbqtx99pu/LmglDc5rXqMKCi1+iFcwouvgcxSPk=,tag:N+iEzhH+KXQQ9O6YjRVVBg==,type:str]
-    PGHOST: ENC[AES256_GCM,data:bgVm3DU+VJRjIQ==,iv:SUtemsT9Xh+oSDKr05VlIUmmFDoDiJCb/rZxf1Gcd7k=,tag:d3UPqfBhV1czhWdbcLXJug==,type:str]
+    PGHOST: ENC[AES256_GCM,data:EVk4q8cJsks=,iv:GUPFXgF1koEAak5TXyviys5qD1ifvKm45p8r93EDv88=,tag:l/5nDkOUTsU2aSmj+nDdJQ==,type:str]
     PGUSER: ENC[AES256_GCM,data:s5wWW2L09P0=,iv:+3/pEXeCYQ41B9FVvvJqAsk9AvKu3KRrH7ZBzqwbFZU=,tag:Q0QWOPv9wdwtTETydIfj5g==,type:str]
     PGPASSWORD: ENC[AES256_GCM,data:+tdeHAR4Jj9CuO8NWmd+VBhpdfc=,iv:5e099GeSVqIOuf+OPZ83fticI0iHcQMJj9Nvm2y5OQI=,tag:OEtWg9G34P5BPRJ10IO2Ow==,type:str]
 sops:
@@ -16,8 +16,8 @@ sops:
     azure_kv: []
     hc_vault: []
     age: []
-    lastmodified: "2023-04-12T07:58:17Z"
-    mac: ENC[AES256_GCM,data:fWGoslsQ758nNsiwLr5WPrqm7p8drqScmuA0kBwEi0n2crCYVlcQ6SINoTYHmfZoObfCPaiOl2dAkO84K5tSu1bcOPlnEWgxp0USMt2uPiEKN0atcUlazGWvKu6gePFlbZL1q4vsN+OezWvP6+g0SPvaeW03fHMEMG7TIb2z6DA=,iv:Kv39b5OOUIQOeaK2e9S3mPtPVa2+L6sWEjLTGDclgWU=,tag:WQ0Pd+kNSP+bw/2jSYLQZg==,type:str]
+    lastmodified: "2023-04-12T10:00:31Z"
+    mac: ENC[AES256_GCM,data:aeyAXRr4CBWiX1MkntAZvVJsuTQi26+DJTDWXxZTUQYxZe3v3wD+MuPnSfBRGQN3gYIuRo12hGazpyLxh8upzAUUXWBnN1bS/gtK8UtiNOia8KvH0EyEtuS6Ln38SURNykYKDSa2eK3uTDKmINfagBmxZ/vw0P6ATOv6r7jnLMs=,iv:wfmhZSojfZl3aaHvglLhYZmasHiUbZ+q8YraHF9UihE=,tag:HWL5lfGV1PhiPdVp11z94g==,type:str]
     pgp:
         - created_at: "2023-04-12T07:51:35Z"
           enc: |-
