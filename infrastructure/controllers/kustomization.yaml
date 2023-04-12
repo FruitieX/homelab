@@ -9,4 +9,3 @@ resources:
   - ingress-nginx.yaml
   - storage.yaml
   - pihole.yaml
-  - weave-gitops.yaml
