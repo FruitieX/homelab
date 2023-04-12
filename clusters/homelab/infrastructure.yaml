@@ -7,7 +7,7 @@ metadata:
 spec:
   interval: 1h
   retryInterval: 1m
-  timeout: 5m
+  timeout: 30s
   sourceRef:
     kind: GitRepository
     name: flux-system
@@ -58,7 +58,7 @@ spec:
     - name: infra-controllers
   interval: 1h
   retryInterval: 1m
-  timeout: 5m
+  timeout: 30s
   sourceRef:
     kind: GitRepository
     name: flux-system
