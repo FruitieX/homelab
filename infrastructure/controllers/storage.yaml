@@ -1,0 +1,31 @@
+apiVersion: source.toolkit.fluxcd.io/v1beta2
+kind: HelmRepository
+metadata:
+  name: nfs-subdir-external-provisioner
+  namespace: default
+spec:
+  interval: 1h
+  url: https://kubernetes-sigs.github.io/nfs-subdir-external-provisioner
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: nfs-subdir-external-provisioner
+  namespace: default
+spec:
+  interval: 30m
+  chart:
+    spec:
+      chart: nfs-subdir-external-provisioner
+      version: 4.x
+      sourceRef:
+        kind: HelmRepository
+        name: nfs-subdir-external-provisioner
+        namespace: default
+      interval: 12h
+  values:
+    storageClass:
+      name: homelab-nfs
+    nfs:
+      server: nectarine
+      path: /volume1/homelab

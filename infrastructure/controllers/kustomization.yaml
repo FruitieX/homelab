@@ -7,6 +7,6 @@ resources:
   - github-webhook-token.yaml
   - kube-prometheus-stack.yaml
   - ingress-nginx.yaml
-  - homelab-nfs-mounts.yaml
+  - storage.yaml
   - pihole.yaml
   - weave-gitops.yaml
