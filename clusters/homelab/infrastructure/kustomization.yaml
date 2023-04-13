@@ -6,6 +6,7 @@ resources:
   - cert-manager.yaml
   - notification-receiver.yaml
   - nfs-subdir-external-provisioner.yaml
+  - synology-csi.yaml
   - crds.yaml
   - kube-prometheus-stack.yaml
   - external-dns.yaml

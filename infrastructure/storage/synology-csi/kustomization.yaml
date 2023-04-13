@@ -1,0 +1,12 @@
+# https://www.talos.dev/v1.3/kubernetes-guides/configuration/synology-csi/
+
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: synology-csi
+resources:
+  - namespace.yaml
+  - client-info.yaml
+  - controller.yaml
+  - csi-driver.yaml
+  - node.yaml
+  - storage-class.yaml

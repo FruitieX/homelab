@@ -1,0 +1,38 @@
+apiVersion: v1
+kind: Secret
+metadata:
+    name: client-info-secret
+    namespace: synology-csi
+stringData:
+    client-info.yaml: ENC[AES256_GCM,data:fZ43ciM3JFNhPYymf1sG6C47MHYM1UmV36Abgp9ZyjVH5xspaXE6l+iko+wUzKfUooh/C0xxckcz0DniKTYLMLYEEA/LQsn6D0lyQyTcPghxPvRM/f0t+Av1b3Fy/Kjh0f4lqsT/MwwxTvc9+iIKPfiAcvQZDdIPBw==,iv:dFyESTgIfwXc2BscM8ymgDYWJnLd69AnHLOmFl2ewj4=,tag:9WPqB5SKgjGB+ht96OWMsQ==,type:str]
+sops:
+    kms: []
+    gcp_kms: []
+    azure_kv: []
+    hc_vault: []
+    age: []
+    lastmodified: "2023-04-13T18:01:34Z"
+    mac: ENC[AES256_GCM,data:rAvm60QIl4dsc5gNC29Fbn57ACNsw/rmieu8LRnEDYrk7UqeMYry2Y6HNDRAX5CnIlUrniChk7I8NivEr9RLrBVSUjBvfWmMvH5Np/wl39bwSJfdC3qX6zy6cW0jl5p3qgiQ8ldfe7rWSnwpVpX6ITrdLOCJ4mpZoWGtcMj32Nk=,iv:Kal1JpItuc1DIxV4ElvX5evPOCG76zL/Su4NQz34/b8=,tag:Jodc5u7cBHN7zTROeCNU4Q==,type:str]
+    pgp:
+        - created_at: "2023-04-13T17:50:04Z"
+          enc: |-
+            -----BEGIN PGP MESSAGE-----
+
+            wcFMA8WjeZLD+fxwAQ//ZkWGp+CLf0/gblQBUwhrn1w1DOOYE6llS2TzOKxN/WNu
+            hXZpeVwONpWI4hXDyvvFTSegUhIeIHYLHSz2rmDOpSlmbEFmTiUAmiH3vAkviiYD
+            kKFYifEnL4Xh92xsbGSJw3JP7Rve5ceLPMjLZxVR2m4NGkdoQy2dpDZQl8ZaaoTq
+            ikbX75vcfzRISFNzz+l47ED89u1lXLqmiAQabO80904QPXyUWZPqpjfxq0n3i0O2
+            vjee3wbfRjfXWhgGa5RK+mMNBso0Ys72ke9oo6AkhEX84kXeUT0b1f8NvES+ANQ0
+            8cuZdCeAkteSSzF7+hpN8T39Xxf9l4kwWcPc+0YgjTVYmsoIfauwKo8jYYVBdTfp
+            NKroacw7JNeHYPc77t+X76boGNZDPkBNpuVQo699VcpOu24HqFjWoGRxbbqYMIlz
+            H1GQoqxGgvmsoJr1wYrsViBLb1gwCZ9rbYDq1fytu8WxIhAHWSbsTU8SzmUOPbE3
+            v5V71qBaOZzA0pUbBVxDNpUCTM7vKc2tDw7NwEHI9mb/HxAsgQ9nwO9U5bHIRj4n
+            XP4Pge634UMXqCoBIrYFaB5ZgiwNFkdZXPKIZE8ViX0ct/uul0ykDlbxMIpW391F
+            UGe4NKY8d2NZJIhDb2Ki3JEgvw+Zmlr42aX6eeQCiR9NGFpxpO8Fg/8Qvtt2VUnS
+            UQFZ9LNyhmv7yC18PZOs2uajBczK/fD8DxScTg8RM6lGi31OJGGIKEXG4faGQ951
+            bc1GEbTDPou//yonc+HC0JnuRiugEidxi9/cNe1s5jdDnA==
+            =arQA
+            -----END PGP MESSAGE-----
+          fp: 3536F7F9345D96C86FB7F9CD21FAFEE575B18815
+    encrypted_regex: ^(data|stringData)$
+    version: 3.7.3
