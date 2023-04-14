@@ -39,6 +39,12 @@ To follow this guide, you need the following:
     - One control plane node with 4 GB RAM
     - Two worker nodes with 8 GB RAM each
 
+    NOTE: If you want iSCSI support, you need to apply `talos-machine-patch.yaml` like so:
+
+    ```
+    talosctl gen config homelab-cluster https://$CONTROL_PLANE_IP:6443 --output-dir _out --config-patch @talos-machine-patch.yaml
+    ```
+
 3.  While installing, note down the following details into an .envrc file:
 
     ```
