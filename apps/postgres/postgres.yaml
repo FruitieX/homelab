@@ -4,8 +4,7 @@ metadata:
   name: postgres-data
   namespace: default
 spec:
-  storageClassName: homelab-nfs
-  volumeMode: Filesystem
+  storageClassName: syno-storage
   accessModes:
     - ReadWriteOnce
   resources:
