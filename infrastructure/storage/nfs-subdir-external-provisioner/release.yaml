@@ -21,4 +21,7 @@ spec:
     nfs:
       server: nectarine
       path: /volume1/homelab
-      mountOptions: nfsvers=4.1
+      mountOptions:
+        - nfsvers=4.1
+        - timeo=600
+        - retrans=3

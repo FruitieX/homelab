@@ -3,7 +3,7 @@ kind: Kustomization
 metadata:
   name: ingress-proxy
 spec:
-  validation: server
+  validation: none
   interval: 1m0s
   sourceRef:
     kind: GitRepository

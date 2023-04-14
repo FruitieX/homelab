@@ -172,3 +172,13 @@ To follow this guide, you need the following:
 
     - Payload URL: compose the address using the receiver LB and the generated URL http://<LoadBalancerAddress>/<ReceiverURL>
     - Secret: use the token string
+
+9.  If kustomizations containing ingresses fail with `x509: certificate signed by unknown authority` errors, run:
+
+    ```
+    ns=ingress-nginx
+    CA=$(kubectl -n $ns get secret ingress-nginx-admission -ojsonpath='{.data.ca}')
+    kubectl patch validatingwebhookconfigurations ingress-nginx-admission -n $ns --type='json' -p='[{"op": "add", "path": "/webhooks/0/clientConfig/caBundle", "value":"'$CA'"}]'
+    ```
+
+    Source: https://fabianlee.org/2022/01/29/nginx-ingress-nginx-controller-admission-error-x509-certificate-signed-by-unknown-authority/
