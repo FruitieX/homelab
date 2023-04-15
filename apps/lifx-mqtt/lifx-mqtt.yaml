@@ -19,7 +19,7 @@ spec:
 
       containers:
         - name: lifx-mqtt
-          image: fruitiex/lifx-mqtt:latest
+          image: fruitiex/lifx-mqtt:0.1.0-1
           resources:
             limits:
               memory: 128Mi

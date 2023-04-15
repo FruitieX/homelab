@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: homectl-server
+  namespace: default
+spec:
+  selector:
+    matchLabels:
+      app: homectl-server
+  template:
+    metadata:
+      labels:
+        app: homectl-server
+    spec:
+      volumes:
+        - name: homectl-server-settings
+          secret:
+            secretName: homectl-server-settings
+
+      containers:
+        - name: homectl-server
+          image: fruitiex/homectl-server:0.1.1-1
+          envFrom:
+            - secretRef:
+                name: homectl-server-env
+          resources:
+            limits:
+              memory: 128Mi
+              cpu: 500m
+          workingDir: /app
+          volumeMounts:
+            - mountPath: /app
+              name: homectl-server-settings
