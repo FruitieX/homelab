@@ -9,32 +9,10 @@ spec:
     ingressClassName: nginx
     tls:
         - hosts:
-            - ENC[AES256_GCM,data:zNxDML3p0E55osuL,iv:qqeDKlwuxoM9G+BJm9XWKFE9kVOz6YLY0rqfFL8JXU8=,tag:JgFxvATyN7KPFXWcdiPAYQ==,type:str]
-            - ENC[AES256_GCM,data:C4RRG+nWC49g8vc=,iv:AoCUGJ4EOIkKGFee+MOVqHtL1jXkj/jOggX4EYlgJYQ=,tag:XgYDlMR+m2kXo3D4wZpq8A==,type:str]
             - ENC[AES256_GCM,data:3PegcDa0yD+zJAw9Xm1tfVTWR3Y=,iv:RIRVu2mdG3RfkezOCk/VzYAvMdNqhGCKezkcI5t7zPA=,tag:TYw7brE3ywt2jC0jGDJfWw==,type:str]
             - ENC[AES256_GCM,data:+fya3/Xc2Asv6Rs2RctOLiz7,iv:qx7lQ+eb+pswJR8oBQKhXGrm+QNrL4GWuaspYExUrq8=,tag:tysS1h2Cgcvq+w2B1HIKHw==,type:str]
           secretName: satsuma-tls
     rules:
-        - host: ENC[AES256_GCM,data:QVZ80xoRFUI0lEK2,iv:eVEDIehxvI6enlbcF4DdPLb4sqnvjzWKqbP9FmkdfMY=,tag:fIGRj4M6lleeCuwt93mLEA==,type:str]
-          http:
-            paths:
-                - path: /
-                  pathType: Prefix
-                  backend:
-                    service:
-                        name: satsuma
-                        port:
-                            number: 80
-        - host: ENC[AES256_GCM,data:Wc8YflBueqFcgD0=,iv:myzvYB0mWqLvcRO8kn1kztb2HcjVZH7cF/pZxwmHr5Q=,tag:JBqeputL50LnMKpTJtSenA==,type:str]
-          http:
-            paths:
-                - path: /
-                  pathType: Prefix
-                  backend:
-                    service:
-                        name: satsuma
-                        port:
-                            number: 80
         - host: ENC[AES256_GCM,data:Cu70vo3D7eUTrHCv/mXOmsFjX6U=,iv:VrEIf2497WRByOVDiecA6EO8JUSE4a7nmKiTbDKCUgI=,tag:AtsVB+xrvgkL2sY2dh9Z5w==,type:str]
           http:
             paths:
@@ -61,8 +39,8 @@ sops:
     azure_kv: []
     hc_vault: []
     age: []
-    lastmodified: "2023-04-11T08:11:33Z"
-    mac: ENC[AES256_GCM,data:tOvf27jnvr5ft7cZNzdRCMkNBSgaDRNR+drI765gnXTFEWATX5At4/JdgrjOnCIQKx9EryKYi590wRSzoYezFunHee42Kkf2VKWT+snnnkp5Ic1M2ivIDtMUMaaGCGk6LtYDXBbdiyAWVMBxDXq7qIIU1OBGtK+oLKe7BhqHAgU=,iv:8Ryr91ZZ6TkNzLKOnJ9fh0DP5tJshtWP75+TFSXe76Y=,tag:hm2X22FH+fxwQEXu3XN8dw==,type:str]
+    lastmodified: "2023-04-15T17:53:19Z"
+    mac: ENC[AES256_GCM,data:rK18eE3/FnFTsiynuBSU8wPOUud5dJj1TPmghAUwxB4QiS2RCRL3wFC1C2926GC0bubP0e0mblXEaVtza8rFxHoPkU+1wm866LIU4K6tuozwByM4AbZUIg25vDgwolDx46BLx9B4Zfr4oXUqxavb3Qt3Tq516OAT0brP7U/GG2E=,iv:/UQckhtH7PWbf0jPwSNo1nNUWe4VnyPocymsgf8poOI=,tag:0HyMnt0LSdcqXuPF2NH8ZQ==,type:str]
     pgp:
         - created_at: "2023-04-11T08:11:33Z"
           enc: |-

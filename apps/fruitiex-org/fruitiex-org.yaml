@@ -1,24 +1,22 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: podinfo
+  name: fruitiex-org
   namespace: default
-  annotations:
-    external-dns.alpha.kubernetes.io/hostname: podinfo,podinfo.localdomain
 spec:
   type: LoadBalancer
   selector:
-    app: podinfo
+    app: fruitiex-org
   ports:
     - name: http
       protocol: TCP
       port: 80
-      targetPort: 9898
+      targetPort: 80
 ---
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: podinfo-ingress
+  name: fruitiex-org-ingress
   namespace: default
   annotations:
     cert-manager.io/cluster-issuer: ${LETSENCRYPT_CLUSTER_ISSUER}
@@ -26,41 +24,52 @@ spec:
   ingressClassName: nginx
   tls:
     - hosts:
-        - ${PODINFO_DOMAIN_NAME}
-      secretName: podinfo-tls
+        - fruitiex.org
+        - lovegren.fi
+      secretName: fruitiex-org-tls
   rules:
-    - host: ${PODINFO_DOMAIN_NAME}
+    - host: fruitiex.org
       http:
         paths:
           - path: /
             pathType: Prefix
             backend:
               service:
-                name: podinfo
+                name: fruitiex-org
+                port:
+                  number: 80
+    - host: lovegren.fi
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: fruitiex-org
                 port:
                   number: 80
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: podinfo
+  name: fruitiex-org
   namespace: default
 spec:
   selector:
     matchLabels:
-      app: podinfo
+      app: fruitiex-org
   template:
     metadata:
       labels:
-        app: podinfo
+        app: fruitiex-org
     spec:
       containers:
-        - name: podinfo
-          image: ghcr.io/stefanprodan/podinfo:5.0.0
+        - name: fruitiex-org
+          image: fruitiex/fruitiex.org:latest
           imagePullPolicy: IfNotPresent
           ports:
             - name: http
-              containerPort: 9898
+              containerPort: 80
               protocol: TCP
           resources:
             limits:
