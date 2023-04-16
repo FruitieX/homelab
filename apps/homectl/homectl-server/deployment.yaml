@@ -23,6 +23,9 @@ spec:
           envFrom:
             - secretRef:
                 name: homectl-server-env
+          env:
+            - name: TZ
+              value: Europe/Helsinki
           resources:
             limits:
               memory: 128Mi
