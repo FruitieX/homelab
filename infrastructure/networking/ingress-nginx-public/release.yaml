@@ -16,7 +16,8 @@ spec:
         namespace: flux-system
   values:
     controller:
-      ingressClassResource: public
+      ingressClassResource:
+        name: public
       service:
         type: "LoadBalancer"
         annotations:
