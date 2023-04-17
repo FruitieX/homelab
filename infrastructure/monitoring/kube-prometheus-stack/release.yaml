@@ -16,10 +16,32 @@ spec:
         namespace: flux-system
   values:
     grafana:
+      service:
+        type: NodePort
       ingress:
         enabled: true
+        ingressClassName: private
         annotations:
-          kubernetes.io/ingress.class: private
           nginx.ingress.kubernetes.io/ssl-redirect: "\"false\""
         hosts:
           - grafana.fruitiex.org
+    alertmanager:
+      service:
+        type: NodePort
+      ingress:
+        enabled: true
+        ingressClassName: private
+        annotations:
+          nginx.ingress.kubernetes.io/ssl-redirect: "\"false\""
+        hosts:
+          - alertmanager.fruitiex.org
+    prometheus:
+      service:
+        type: NodePort
+      ingress:
+        enabled: true
+        ingressClassName: private
+        annotations:
+          nginx.ingress.kubernetes.io/ssl-redirect: "\"false\""
+        hosts:
+          - prometheus.fruitiex.org
