@@ -6,4 +6,5 @@ resources:
   - ingress-nginx.yaml
   - kube-prometheus-stack.yaml
   - metallb.yaml
+  - metrics-server.yaml
   - nfs-subdir-external-provisioner.yaml
