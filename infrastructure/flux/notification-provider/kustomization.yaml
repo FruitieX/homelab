@@ -1,0 +1,10 @@
+# https://fluxcd.io/flux/guides/notifications/
+
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - alert.yaml
+  - discord-webhook-url.yaml
+  - provider.yaml
+
+

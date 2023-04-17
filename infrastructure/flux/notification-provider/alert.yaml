@@ -1,0 +1,15 @@
+apiVersion: notification.toolkit.fluxcd.io/v1beta2
+kind: Alert
+metadata:
+  name: reconciliation-alert
+  namespace: flux-system
+spec:
+  summary: "homelab cluster"
+  providerRef:
+    name: notification-provider
+  eventSeverity: error
+  eventSources:
+    - kind: GitRepository
+      name: '*'
+    - kind: Kustomization
+      name: '*'

@@ -1,0 +1,39 @@
+apiVersion: v1
+kind: Secret
+metadata:
+    name: discord-webhook-url
+    namespace: flux-system
+type: Opaque
+stringData:
+    address: ENC[AES256_GCM,data:e8Cr7kk6uYrkWssJadypqg2gvWYiUmc9EAs0j+R2VA8cFmejz3UXf4RPduCtMOeUS+Lr4Z2objcCaoh5vmQ5acxchXNVozp0zTXwUUBAulH0ojaVLfzUOTn8xzjbrp1YdWakLDTqJ916TGXEuVcbi/6+pfMMGX1+9g==,iv:H8ub5CS+IFz2TcS2FJ1Kavg+iBN9wVrJkay69or07pk=,tag:/RqOsGiJzfh98U10WPk8+A==,type:str]
+sops:
+    kms: []
+    gcp_kms: []
+    azure_kv: []
+    hc_vault: []
+    age: []
+    lastmodified: "2023-04-17T16:52:58Z"
+    mac: ENC[AES256_GCM,data:92VMCDF8O35aZnHKyB44nZbrskpZPMRMCKx/WCZ5nrJ8zzIRGbOcdeuEpbYiTu1m4sC6RLUYixxHT98QpMLIEV0tVz0/zqBSlSPwrhw+rTzzlG7JIKeleh6nD81+GiwBj4/zIzlL4m984wj9irsf4O2h0wbm9pKBYvkyPjiMBNA=,iv:8lkqUkMTUeE27CODfVc9s8fmPXMbKPR7hVU35oIx0As=,tag:aovcM0WaOVXWyDU0qv8b1w==,type:str]
+    pgp:
+        - created_at: "2023-04-17T16:52:58Z"
+          enc: |-
+            -----BEGIN PGP MESSAGE-----
+
+            wcFMA8WjeZLD+fxwAQ/9EHwG7fB3f9OO79ZUavP2/7Agx0xDlB5i4SJ/xPqMD7nw
+            FFpDRmMnWdkPXWazKrD7Jobrb9Wjlq5XLFjZ4Tcxolas3aJmnrabtY5cGMCYPfnB
+            wcPTPRf7sK1lTTY6ogWOs+IkwhJYtFZSIgYNpgnZoNCNjJX1ObZzr/aYF2N5X6ZH
+            40T5vJzTBp0HX7D8S5im+QGmmFqlnWzU1u3dNkHbbxO72KDBd07LxXuqx4ULzh6H
+            V+/ZX6KKqvd/kWVOJzLmdshDY+nHZbH+KSp2Gy/RQwOqA5NpM+al4Q74C1WxnFU8
+            UeOWe8646fXHuP4tpYrWPGrTuQwdToero469MUFYIM0u1mh+dFkgxznV63musFMz
+            E6DViB0rFOfK4MS0ba9TPUSGmHBjYUWb7gpzuMnFJcRbKGEGv83csm0KnKa/NBzQ
+            Fa/3aakzaEkcgpBsTzm4o4Kg5mQAt98btetYhEeuVwbGBAm5MWESPNAhqtsxawEx
+            Ukw/EsaCjFjbQm31ISD/dVlbLOJADRl6uSHEcYkChkdS1KNd9W6DTWCpWEftiU47
+            G2a2IZapLS7HNhSkI5sfGpsJ8LVxG1xPgiJqA/bAixztQ+4zMdjzA/ebmWuCDA1f
+            kOOYcf3+2nZkqm7V3ud2M4W7yffB8F+vIarTEaNNQ4qNd3jU1kuabXYnqKUREsjS
+            UQFdxGU0QktG5NdPj3//tYf0TrM62l/gJ+zthNATrG/gJYugLC2cmZlLIgI+bzRy
+            kqtwhzmIBkHGnU/32WGwdYNxz/VVa7zPUY6eaagEiWGaNg==
+            =iI5v
+            -----END PGP MESSAGE-----
+          fp: 3536F7F9345D96C86FB7F9CD21FAFEE575B18815
+    encrypted_regex: ^(data|stringData)$
+    version: 3.7.3

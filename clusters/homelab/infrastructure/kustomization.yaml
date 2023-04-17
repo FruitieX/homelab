@@ -5,6 +5,7 @@ resources:
   - sources.yaml
   - cert-manager.yaml
   - notification-receiver.yaml
+  - notification-provider.yaml
   - nfs-subdir-external-provisioner.yaml
   - synology-csi.yaml
   - crds.yaml
