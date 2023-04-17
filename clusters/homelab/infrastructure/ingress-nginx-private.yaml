@@ -1,14 +1,14 @@
 apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
 kind: Kustomization
 metadata:
-  name: ingress-nginx
+  name: ingress-nginx-private
 spec:
   validation: server
   interval: 1m0s
   sourceRef:
     kind: GitRepository
     name: flux-system
-  path: ./infrastructure/networking/ingress-nginx
+  path: ./infrastructure/networking/ingress-nginx-private
   prune: true
   wait: false
   decryption:

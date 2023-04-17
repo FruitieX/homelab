@@ -21,7 +21,7 @@ metadata:
   annotations:
     cert-manager.io/cluster-issuer: ${LETSENCRYPT_CLUSTER_ISSUER}
 spec:
-  ingressClassName: nginx
+  ingressClassName: public
   tls:
     - hosts:
         - fruitiex.org

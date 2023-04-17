@@ -11,6 +11,7 @@ resources:
   - crds.yaml
   - kube-prometheus-stack.yaml
   - external-dns.yaml
-  - ingress-nginx.yaml
+  - ingress-nginx-public.yaml
+  - ingress-nginx-private.yaml
   - metallb.yaml
   - pihole.yaml

@@ -6,7 +6,7 @@ metadata:
     annotations:
         cert-manager.io/cluster-issuer: ${LETSENCRYPT_CLUSTER_ISSUER}
 spec:
-    ingressClassName: nginx
+    ingressClassName: public
     tls:
         - hosts:
             - ENC[AES256_GCM,data:3PegcDa0yD+zJAw9Xm1tfVTWR3Y=,iv:RIRVu2mdG3RfkezOCk/VzYAvMdNqhGCKezkcI5t7zPA=,tag:TYw7brE3ywt2jC0jGDJfWw==,type:str]
@@ -39,8 +39,8 @@ sops:
     azure_kv: []
     hc_vault: []
     age: []
-    lastmodified: "2023-04-15T17:53:19Z"
-    mac: ENC[AES256_GCM,data:rK18eE3/FnFTsiynuBSU8wPOUud5dJj1TPmghAUwxB4QiS2RCRL3wFC1C2926GC0bubP0e0mblXEaVtza8rFxHoPkU+1wm866LIU4K6tuozwByM4AbZUIg25vDgwolDx46BLx9B4Zfr4oXUqxavb3Qt3Tq516OAT0brP7U/GG2E=,iv:/UQckhtH7PWbf0jPwSNo1nNUWe4VnyPocymsgf8poOI=,tag:0HyMnt0LSdcqXuPF2NH8ZQ==,type:str]
+    lastmodified: "2023-04-17T17:47:15Z"
+    mac: ENC[AES256_GCM,data:GVltckDuhBwhe2YwSX77ZOMD7g1AVc6zWCpPTvz7dw0qPFIBXeydRRBol34chEiPWSkPGslE4isw9pMjsEf7QlV/lROTIXSAcx/53wEK24DOiPWyQgtUCjMcsFmVDAyMsirVrm9TCqEd1qY1JiKH9+smP7eHlgRmAbKOCUMbOdU=,iv:3N+IwKVeKt5ON9cg/fo8tR4pV1gZ6oxtQZvjNTieV28=,tag:uxrlJTRW7LarUINErf4cEQ==,type:str]
     pgp:
         - created_at: "2023-04-11T08:11:33Z"
           enc: |-
