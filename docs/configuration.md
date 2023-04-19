@@ -16,11 +16,11 @@ There are a few different approaches to configuration in the k8s ecosystem. In t
 
   Configuration usually happens through environment variables or volume mounts to mount config files from either `kind: ConfigMap` or `kind: Secret` manifests. These kinds of manifests both act as a key/value store, where the key is the filename and value is the file contents. The filenames will be available under some given volume mountPath.
 
-- ### [Helm](https://helm.sh/)
+- ### Helm
 
-  Helm is a package manager for Kubernetes.
+  [Helm](https://helm.sh/) is a package manager for Kubernetes.
 
-  Here somebody has packaged an application (or several) into a Helm chart. You can find readily made helm charts e.g. here https://artifacthub.io/packages/search
+  Applications come packaged as Helm charts. You can find readily made helm charts [e.g. here](https://artifacthub.io/packages/search)
 
   This repo is structured such that Helm chart "sources" - HelmRepositories - are stored in [/infrastructure/sources](/infrastructure/sources), and charts can be "released" by a HelmRelease (for example [/infrastructure/networking/ingress-nginx-public/release.yaml](/infrastructure/networking/ingress-nginx-public/release.yaml), here you can also see values being overridden)
 
@@ -32,13 +32,13 @@ There are a few different approaches to configuration in the k8s ecosystem. In t
 
 These notes explain how I make use of each of the services and how to configure them for this use case. Note that they can usually do a lot more than explained here.
 
-## MetalLB
+## [MetalLB](https://metallb.universe.tf/)
 
 MetalLB allows k8s services to appear under their own unique IP address in your home network.
 
 - [/infrastructure/crds/metallb-config.yaml](/infrastructure/crds/metallb-config.yaml)
 
-  Set the IP address pool that [MetalLB](https://metallb.universe.tf/) should use when exposing services to your home network.
+  Set the IP address pool that MetalLB should use when exposing services to your home network.
 
   Make sure it's outside the range of your router's DHCP allocation pool (don't use e.g. 192.168.1.0/24) so you don't get collisions.
 
@@ -52,7 +52,7 @@ MetalLB allows k8s services to appear under their own unique IP address in your 
 
 ## Pi-hole
 
-Pi-hole acts as a DNS server that can block ads in your home network. It's supported by external-dns that we will configure below.
+[Pi-hole](https://pi-hole.net/) acts as a DNS server that can block ads in your home network. It's supported by external-dns that we will configure below.
 
 - Set `PIHOLE_PASSWORD` in your [/clusters/homelab/cluster-secrets.yaml](/clusters/homelab/cluster-secrets.yaml) file.
 
@@ -72,7 +72,7 @@ Pi-hole acts as a DNS server that can block ads in your home network. It's suppo
 
 ## external-dns
 
-external-dns keeps the DNS records of supported DNS servers in sync with IP addresses of your services.
+[external-dns](https://github.com/kubernetes-sigs/external-dns) keeps the DNS records of supported DNS servers in sync with IP addresses of your services.
 
 - Search for `external-dns.alpha.kubernetes.io/hostname` annotations in the repo.
 
@@ -137,7 +137,7 @@ Flux can forward reconciliation errors to various chat apps, I'm personally usin
 
 ## ingress-nginx
 
-ingress-nginx acts as a reverse proxy for HTTP requests to your cluster. Based on the subdomain a HTTP request was made to, ingress-nginx can forward the request to the appropriate service.
+[ingress-nginx](https://github.com/kubernetes/ingress-nginx) acts as a reverse proxy for HTTP requests to your cluster. Based on the subdomain a HTTP request was made to, ingress-nginx can forward the request to the appropriate service.
 
 - This repo contains two instances of ingress-nginx:
 
@@ -171,7 +171,7 @@ ingress-nginx acts as a reverse proxy for HTTP requests to your cluster. Based o
 
 ## cert-manager
 
-cert-manager obtains and renews Let's Encrypt certificates.
+[cert-manager](https://cert-manager.io/) obtains and renews Let's Encrypt certificates.
 
 - Set `LETSENCRYPT_EMAIL` in your [/clusters/homelab/cluster-secrets.yaml](/clusters/homelab/cluster-secrets.yaml) file.
 
@@ -185,7 +185,7 @@ cert-manager obtains and renews Let's Encrypt certificates.
 
 ## synology-csi
 
-synology-csi is a Container Storage Interface driver for Synology NAS. It
+[synology-csi](https://github.com/SynologyOpenSource/synology-csi) is a Container Storage Interface driver for Synology NAS. It
 automatically manages iSCSI targets and LUNs so you don't need to create them by
 hand.
 
@@ -230,7 +230,7 @@ creating and mounting iSCSI targets from a Synology NAS.
 
 ## nfs-subdir-external-provisioner
 
-You can also opt to use NFS instead of iSCSI. It's a bit easier to configure,
+You can also opt to use NFS with [nfs-subdir-external-provisioner](https://github.com/kubernetes-sigs/nfs-subdir-external-provisioner) instead of iSCSI. It's a bit easier to configure,
 however there may be various pitfalls involved especially if used as storage for
 database servers.
 
