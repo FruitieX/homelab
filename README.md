@@ -2,6 +2,8 @@
 
 This repo contains a declarative, GitOps definition of my homelab.
 
+![Photo of my homelab](/docs/homelab.jpg)
+
 ## Components
 
 In summary, the homelab is built up using:
