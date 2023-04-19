@@ -1,10 +1,20 @@
+# FruitieX' homelab
+
 This repo contains a declarative, GitOps definition of my homelab.
 
-# Notes
+## Components
 
-I have been running Kubernetes via [Talos Linux under Proxmox VE](https://www.talos.dev/v1.3/talos-guides/install/virtualized-platforms/proxmox/) for easy reinstalls when I inevitably screw something up.
+In summary, the homelab is built up using:
 
-Partially due to this, there is no PXE boot installation procedure - I found it easy enough to spin up new VM:s and installing Talos manually via Proxmox' web interface.
+- [A mini PC](https://store.minisforum.de/collections/alle-produkte-1/products/minisforum-venus-series-um560?variant=41392983572663), [NAS](https://www.synology.com/en-us/support/download/DS420+?version=7.1#system) and some [UniFi](https://eu.store.ui.com/products/unifi-dream-machine) network infrastructure
+- [Kubernetes](https://kubernetes.io/), running on virtual [Talos Linux](https://www.talos.dev/) nodes in [Proxmox VE](https://www.proxmox.com/en/proxmox-ve)
+- [Flux CD](https://fluxcd.io/) reconciling cluster configuration from this git repo
+- [MetalLB](https://metallb.universe.tf/), [external-dns](https://github.com/kubernetes-sigs/external-dns) & [Pi-hole](https://pi-hole.net/) expose apps on separate IP addresses with associated DNS records
+- [ingress-nginx](https://github.com/kubernetes/ingress-nginx) & [cert-manager](https://cert-manager.io/) reverse proxy subdomain HTTP requests with auto-renewing [Let's Encrypt](https://letsencrypt.org/) certificates
+- [nfs-subdir-external-provisioner](https://github.com/kubernetes-sigs/nfs-subdir-external-provisioner) & [synology-csi](https://github.com/SynologyOpenSource/synology-csi) provide persistent storage on NAS
+- [kube-prometheus-stack](https://github.com/prometheus-operator/kube-prometheus) provides detailed metrics
+
+[More detailed writeup](/docs/components.md)
 
 # Prerequisites
 
@@ -12,173 +22,168 @@ To follow this guide, you need the following:
 
 - One or more x86_64 hosts to run this on.
 - The [nix package manager](https://nixos.org/download.html).
-- A [fork of this repo](https://github.com/FruitieX/homelab/fork).
-- A GitHub personal access token with repo permissions. See the GitHub documentation on [creating a personal access token](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token).
+- [A fork of this repo](https://github.com/FruitieX/homelab/fork).
+- A GitHub personal access token with repo permissions. This is needed by Flux to read your (possibly private) repo and push some initial manifests. See the GitHub documentation on [creating a personal access token](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token).
 - A GPG key for encrypting & decrypting secrets with Mozilla SOPS. Follow [this guide](https://fluxcd.io/flux/guides/mozilla-sops/#generate-a-gpg-key) until `Store the key fingerprint as an environment variable`.
-- NFS mounts on a NAS if any of your workloads need persistent storage.
-- A domain name if you want to access your cluster's services from outside your home network.
+- NFS or iSCSI mounts on a NAS if any of your workloads need persistent storage.
+- A domain name if you want to provide access to certain cluster services from outside your home network.
 
-  In addition to an A record pointing directly at my home IP, I've also configured a wildcard CNAME record pointing at my domain:
-
-  ```
-  ;; A Records
-  example.org.	    60	IN	A	      <my home IP>
-
-  ;; CNAME Records
-  *.example.org.	  60	IN	CNAME	  example.org.
-  ```
-
-  The idea is that any HTTP requests to subdomains are forwarded to the corresponding service by `ingress-nginx` running in the cluster.
+  [Click here for more info on my DNS provider and router setup](/docs/dns.md)
 
 # Installation
 
-1.  Install [Proxmox VE](https://www.proxmox.com/en/downloads/category/iso-images-pve) on your host(s). Optional but recommended: [set up `pve-no-subscription` updates repo](https://www.virtualizationhowto.com/2022/08/proxmox-update-no-subscription-repository-configuration/)
+## Setting up the cluster
 
-2.  Spin up any number of VM:s and [install Talos Linux](https://www.talos.dev/v1.3/talos-guides/install/virtualized-platforms/proxmox/) on each of them. My toy cluster (with only one physical machine mind you) runs:
+- Install [Proxmox VE](https://www.proxmox.com/en/downloads/category/iso-images-pve) on your host(s). Optional but recommended: [set up `pve-no-subscription` updates repo](https://www.virtualizationhowto.com/2022/08/proxmox-update-no-subscription-repository-configuration/)
 
-    - One control plane node with 4 GB RAM
-    - Two worker nodes with 8 GB RAM each
+- Spin up any number of VM:s and [install Talos Linux](https://www.talos.dev/v1.3/talos-guides/install/virtualized-platforms/proxmox/) on each of them. My toy cluster (running on one physical machine only mind you) runs:
 
-    NOTE: If you want iSCSI support, you need to apply `talos-machine-patch.yaml` like so:
+  - One control plane node with 4 GB RAM
+  - Two worker nodes with 8 GB RAM each
 
-    ```
-    talosctl gen config homelab-cluster https://$CONTROL_PLANE_IP:6443 --output-dir _out --config-patch @talos-machine-patch.yaml
-    ```
+  NOTE: If you want iSCSI support, you need to apply the included `talos-machine-patch.yaml` like so:
 
-3.  While installing, note down the following details into an .envrc file:
+  ```
+  talosctl gen config homelab-cluster https://$CONTROL_PLANE_IP:6443 --output-dir _out --config-patch @talos-machine-patch.yaml
+  ```
 
-    ```
-    # IP address of your control plane node, printed to machine TTY in the `Start Control Plane Node` section.
-    export CONTROL_PLANE_IP="192.168.10.206"
+  NOTE: While installing, write down the following details into an .envrc file:
 
-    # Path to your talosconfig, created in the `Generate Machine Configurations` section.
-    export TALOSCONFIG="_out/talosconfig"
+  ```
+  # IP address of your control plane node, printed to machine TTY in the `Start Control Plane Node` section.
+  export CONTROL_PLANE_IP="192.168.10.206"
 
-    # Path to your kubeconfig, created in the `Retreive the kubeconfig` section.
-    export KUBECONFIG="./kubeconfig"
+  # Path to your talosconfig, created in the `Generate Machine Configurations` section.
+  export TALOSCONFIG="_out/talosconfig"
 
-    # Paste your GitHub personal access token from the prerequisites here
-    export GITHUB_TOKEN="ghp_XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+  # Path to your kubeconfig, created in the `Retreive the kubeconfig` section.
+  export KUBECONFIG="./kubeconfig"
 
-    # Paste your GPG key fingerprint from the prerequisites here
-    export SOPS_PGP_FP="XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+  # Paste your GitHub personal access token from the prerequisites here
+  export GITHUB_TOKEN="ghp_XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
 
-    export NIXPKGS_ALLOW_UNFREE=1
+  # Write down your GitHub username here
+  export GITHUB_USER="XXXXXXXXXX"
 
-    # Uncomment if using nix-direnv
-    # use nix
-    ```
+  # Paste your GPG key fingerprint from the prerequisites here
+  export SOPS_PGP_FP="XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
 
-4.  If using nix-direnv:
+  export NIXPKGS_ALLOW_UNFREE=1
 
-    - Approve the .envrc with `direnv allow`
+  # Uncomment if using nix-direnv
+  # use nix
+  ```
 
-    If using nix-shell manually:
+- After the installation:
 
-    - Enter the nix shell using `nix-shell`.
-    - Source the .envrc file into your shell.
+  - Enter the nix shell using `nix-shell`.
+  - Source the .envrc file into your shell: `source .envrc`
 
-    Verify that you can now run e.g. `kubectl get nodes -o wide` to list your nodes.
+  Verify that you can now run e.g. `kubectl get nodes -o wide` to list your nodes.
 
-5.  Edit the configuration to match your setup. You will probably at least want to look at:
+  Note that all following steps will assume your .envrc is sourced and necessary tools are installed (via entering the nix-shell or otherwise).
 
-    - [/metallb-config/ipaddresspool.yaml](/metallb-config/ipaddresspool.yaml)
+## Preparing your configuration for bootstrapping Flux CD
 
-      Sets the IP address pool that [MetalLB](https://metallb.universe.tf/) uses when exposing services to your home network.
+- If you are installing this for the first time, I suggest starting out with a
+  clean slate and commenting out all apps and infrastructure manifests before
+  proceeding. There's plenty of configuration and secrets that are specific to my setup, and it's maybe a bit much to take it all in at once.
+  
+  You can add manifests back later one at a time after you've bootstrapped
+  a minimal cluster setup with Flux CD.
 
-      Make sure it's outside the range of your router's DHCP allocation pool (e.g. 192.168.1.0/24) so you don't get collisions.
+  Open up and edit the following files:
 
-    - [/apps/kustomization.yaml](/apps/kustomization.yaml)
+  - [/clusters/homelab/infrastructure/kustomization.yaml](/clusters/homelab/infrastructure/kustomization.yaml)
 
-      Comment out all apps and start adding back only the ones you need. I recommend starting out with only `podinfo` as it requires minimal configuration.
+    Comment out all resources except for `sources.yaml`
 
-    - [/clusters/homelab/cluster-config.yaml](/clusters/homelab/cluster-config.yaml)
+  - [/clusters/homelab/apps/kustomization.yaml](/clusters/homelab/apps/kustomization.yaml)
 
-      Contains configuration values that can be interpolated with `${CONFIG_KEY}` syntax into most other files:
+    Comment out all resources except for `podinfo.yaml`
 
-      - `LETSENCRYPT_CLUSTER_ISSUER`: You will probably want to set this to `letsencrypt-staging` until you have your domain name / DNS / port forwards etc set up correctly. This is to avoid hitting Let's Encrypt's very strict rate limits.
+  - [/clusters/homelab/cluster-config.yaml](/clusters/homelab/cluster-config.yaml)
 
-      Feel free to add more configuration values here as needed.
+    Contains configuration values that can be interpolated with `${CONFIG_KEY}` syntax into most other files.
+  
+    Change the following values:
 
-6.  Replace SOPS encrypted secrets in the configuration.
+    - `LETSENCRYPT_CLUSTER_ISSUER`: Set this to `letsencrypt-staging` until you have your domain name / DNS / port forwards etc set up correctly. This is to avoid hitting Let's Encrypt's very strict rate limits.
 
-    The repository contains a number of secrets that have been encrypted using my GPG key with Mozilla SOPS. You (and your cluster) won't be able to read these encrypted values, and attempting to deploy them as such will probably fail.
+    Feel free to eventually add more configuration values here as needed.
 
-    Thankfully you can still open these yaml files containing the secrets, and see what keys (as in key/value pair) they contain.
-    Search for `sops:` to find remaining encrypted secrets. See below for a list of files you may want to modify.
+  - [/clusters/homelab/cluster-secrets.yaml](/clusters/homelab/cluster-secrets.yaml)
 
-    The procedure for each secrets file is as follows:
+    Contains secret configuration values that can be interpolated with `${CONFIG_KEY}` syntax into most other files.
 
-    - Open up a secret file in your text editor and remove the entire `sops:` section at the end.
-
-    - Replace all values under `stringData` with their plain-text representations. If you're not sure what the values refer to, search for them in the repo. Remove any secrets that you don't think you will need.
-
-    - Re-encrypt the file using your GPG key by running: `sops --encrypt --in-place path/to/secrets-file.yaml`
-
-    You will probably at least want to look at:
-
-    - [/clusters/homelab/cluster-secrets.yaml](/clusters/homelab/cluster-secrets.yaml)
-
-      Contains secret config values that can be interpolated with `${SECRET_CONFIG_KEY}` syntax into most other files:
-
-      - `PIHOLE_PASSWORD`: Password used to access the Pi-hole web interface.
-      - `LETSENCRYPT_EMAIL`: Your e-mail address so letsencrypt can contact you if needed (certificate expiration warnings).
-      - `FLUX_NOTIFICATION_DOMAIN_NAME`: Domain name for your flux webhook notification endpoint. For example `flux-notification.example.org`
-      - `PODINFO_DOMAIN_NAME`: Domain name where the `podinfo` example application will be exposed. For example `podinfo.example.org`
-
-      Other values can be removed for now. Feel free to add more secret values here as needed.
-
-      Remember to re-encrypt the file before you commit.
-
-    - [/infrastructure/controllers/github-webhook-token.yaml](/infrastructure/controllers/github-webhook-token.yaml)
-
-      Note: If you don't want to use flux webhook receivers, remove the `infrastructure/*/github-webhook-*.yaml` files from the `kustomization.yaml` file next to them.
-
-      If you do want to use [flux webhook receivers](https://fluxcd.io/flux/guides/webhook-receivers/), then this file should contain a randomly generated `token` that flux will use to verify that it's GitHub sending the HTTP request and not somebody else.
-
-      Replace the `token` value with the output of `head -c 12 /dev/urandom | shasum | cut -d ' ' -f1`. Take note of the value, as you will need it later.
-
-      Remember to re-encrypt the file before you commit.
-
-7.  Bootstrap your cluster with flux
+    Replace the entire file contents with:
 
     ```
-    # Create flux-system namespace or below command will fail
-    kubectl create namespace flux-system
-
-    # Export the public and private keypair from your local GPG keyring and
-    # create a Kubernetes secret named sops-gpg in the flux-system namespace
-    gpg --export-secret-keys --armor "${SOPS_PGP_FP}" |
-    kubectl create secret generic sops-gpg \
-    --namespace=flux-system \
-    --from-file=sops.asc=/dev/stdin
-
-    # Inject cluster secrets to circumvent dependency issue
-    sops --decrypt clusters/homelab/cluster-secrets.yaml | kubectl apply -f -
-
-    # Bootstrap flux
-    flux bootstrap github --owner=MyGitHubUser --repository=homelab --personal --path=clusters/homelab
+    apiVersion: v1                                                   
+    kind: Secret                                                     
+    metadata:                                                        
+        namespace: flux-system                                       
+        name: cluster-secrets                                        
+    type: Opaque                                                     
+    stringData:                                                      
+        # Domain name of the `podinfo` app ingress
+        PODINFO_DOMAIN_NAME: podinfo.example.org                    
     ```
 
-8.  Optional: Set up GitHub push event webhook notifications
+    Set `PODINFO_DOMAIN_NAME` to some valid domain name of your choice.
 
-    Normally, flux will poll your repository for changes. This means there will be a delay between when you push until flux picks up on the changes. You can get around this by manually running `flux reconcile kustomization flux-system`, or by setting up webhook receivers so that GitHub will notify your cluster of the push event.
+    Now it's time to encrypt the file using Mozilla SOPS:
 
-    Assuming you have saved an encrypted token into `github-webhook-token.yaml` from an earlier step, you should be able to run `kubectl -n flux-system get receiver`. Note down the receiver URL (i.e. `/hook/...`)
+    `sops --encrypt --in-place clusters/homelab/cluster-secrets.yaml`
 
-    The domain name address is configured in [/clusters/homelab/github-webhook-receiver.yaml](/clusters/homelab/github-webhook-receiver.yaml)
+    If you want to make further changes to the file, run:
+    
+    `sops clusters/homelab/cluster-secrets.yaml`
 
-    On GitHub, navigate to your repository and click on the “Add webhook” button under “Settings/Webhooks”. Fill the form with:
+## Bootstrap Flux CD
 
-    - Payload URL: compose the address using the receiver LB and the generated URL http://<LoadBalancerAddress>/<ReceiverURL>
-    - Secret: use the token string
+```
+# Create flux-system namespace or below command will fail
+kubectl create namespace flux-system
 
-9.  If kustomizations containing ingresses fail with `x509: certificate signed by unknown authority` errors, run:
+# Export the public and private keypair from your local GPG keyring and
+# create a Kubernetes secret named sops-gpg in the flux-system namespace
+gpg --export-secret-keys --armor "${SOPS_PGP_FP}" |
+kubectl create secret generic sops-gpg \
+--namespace=flux-system \
+--from-file=sops.asc=/dev/stdin
 
-    ```
-    ns=ingress-nginx
-    CA=$(kubectl -n $ns get secret ingress-nginx-admission -ojsonpath='{.data.ca}')
-    kubectl patch validatingwebhookconfigurations ingress-nginx-admission -n $ns --type='json' -p='[{"op": "add", "path": "/webhooks/0/clientConfig/caBundle", "value":"'$CA'"}]'
-    ```
+# Inject cluster secrets to circumvent dependency issue
+sops --decrypt clusters/homelab/cluster-secrets.yaml | kubectl apply -f -
 
-    Source: https://fabianlee.org/2022/01/29/nginx-ingress-nginx-controller-admission-error-x509-certificate-signed-by-unknown-authority/
+# Bootstrap flux
+flux bootstrap github --owner=${GITHUB_USER} --repository=homelab --personal --path=clusters/homelab
+```
+
+# Status checks & troubleshooting
+
+- Commands to check the status of your cluster/reconciliation:
+
+  ```
+  # Show status of your nodes
+  kubectl get nodes -o wide
+
+  # Show status of all your pods
+  kubectl get pods -A
+
+  # Show details of all pods in pihole namespace
+  kubectl describe pod -n pihole
+
+  # Show status of all flux resources
+  flux get all -A
+
+  # Follow logs from flux components
+  flux logs --tail 20 -f
+
+  # Get Kubernetes events with type=Warning
+  kubectl get events -A --field-selector type=Warning
+  ```
+
+## Further configuration
+
+[Click here](/docs/configuration.md) for more information on adding back various apps and infrastructure to your configuration.
