@@ -8,3 +8,4 @@ resources:
   - metallb.yaml
   - metrics-server.yaml
   - nfs-subdir-external-provisioner.yaml
+  - reloader.yaml

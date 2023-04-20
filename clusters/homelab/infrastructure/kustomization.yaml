@@ -15,3 +15,4 @@ resources:
   - ingress-nginx-private.yaml
   - metallb.yaml
   - pihole.yaml
+  - reloader.yaml
