@@ -21,7 +21,7 @@ spec:
 
       containers:
         - name: homectl-server
-          image: fruitiex/homectl-server:0.1.1-2
+          image: fruitiex/homectl-server:0.1.1-3
           envFrom:
             - secretRef:
                 name: homectl-server-env
