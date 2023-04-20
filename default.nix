@@ -3,7 +3,6 @@
 pkgs.mkShell {
   name = "homelab";
   buildInputs = with pkgs; [
-    _1password
     gnupg
     kubectl
     sops
