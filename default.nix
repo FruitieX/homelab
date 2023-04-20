@@ -8,5 +8,6 @@ pkgs.mkShell {
     kubectl
     sops
     fluxcd
+    pre-commit
   ];
 }
