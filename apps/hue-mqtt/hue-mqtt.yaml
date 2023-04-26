@@ -19,7 +19,7 @@ spec:
 
       containers:
         - name: hue-mqtt
-          image: fruitiex/hue-mqtt:0.1.0-1
+          image: fruitiex/hue-mqtt:0.1.0-3
           resources:
             limits:
               memory: 128Mi
