@@ -3,9 +3,10 @@ kind: Kustomization
 namespace: flux-system
 resources:
   - cert-manager.yaml
+  - grafana.yaml
   - ingress-nginx.yaml
-  - kube-prometheus-stack.yaml
   - metallb.yaml
   - metrics-server.yaml
   - nfs-subdir-external-provisioner.yaml
+  - prometheus-community.yaml
   - reloader.yaml
