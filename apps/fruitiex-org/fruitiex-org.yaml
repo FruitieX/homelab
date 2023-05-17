@@ -65,7 +65,7 @@ spec:
     spec:
       containers:
         - name: fruitiex-org
-          image: fruitiex/fruitiex.org:latest
+          image: fruitiex/fruitiex.org:latest@sha256:e1879e97e4c5c790bed86366adc01d0265ba2de286209da79455d29edcb686d1
           imagePullPolicy: IfNotPresent
           ports:
             - name: http
