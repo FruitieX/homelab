@@ -31,7 +31,7 @@ spec:
     spec:
       containers:
         - name: add-bot
-          image: fruitiex/add-bot:latest@sha256:63d6002251de3be13221c337485b46a94cf0f7a4be2d357cc931dc85d19b3dfa
+          image: ghcr.io/fruitiex/add-bot:0.2.0@sha256:fa404af7fdad53b660a494a598bad1dd11925e522a94aa738260d454b7196b3c
           env:
             - name: TELOXIDE_TOKEN
               value: ${ADD_BOT_TOKEN}
