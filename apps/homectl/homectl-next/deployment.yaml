@@ -21,7 +21,7 @@ spec:
 
       containers:
         - name: homectl-server
-          image: ghcr.io/fruitiex/homectl-next:main@sha256:077058fadd3c10fa9af37d89f9daf993ffcab1b771a20ca660ba69de16f81960
+          image: ghcr.io/fruitiex/homectl-next:main@sha256:c4aa975afb018c6f210aa6e4de55c2bd1726da5077f7d3f27cbae0fe99faace4
           env:
             - name: TZ
               value: Europe/Helsinki
@@ -29,7 +29,6 @@ spec:
             limits:
               memory: 128Mi
               cpu: 500m
-          workingDir: /app
           volumeMounts:
             - mountPath: /app/.env
               name: homectl-next-settings
