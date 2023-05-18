@@ -12,7 +12,7 @@ spec:
   prune: true
   wait: true
   dependsOn:
-    - name: nfs-subdir-external-provisioner
+    - name: synology-csi
   decryption:
     provider: sops
     secretRef:
