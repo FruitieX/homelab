@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: homectl-next
+  namespace: default
+  annotations:
+    configmap.reloader.stakater.com/reload: "homectl-next-settings"
+spec:
+  selector:
+    matchLabels:
+      app: homectl-next
+  template:
+    metadata:
+      labels:
+        app: homectl-next
+    spec:
+      volumes:
+        - name: homectl-next-settings
+          secret:
+            secretName: homectl-next-settings
+
+      containers:
+        - name: homectl-server
+          image: ghcr.io/fruitiex/homectl-next:main@sha256:4818866caaaddaa41c5d36c8494554bf305aa883bb675b54b0fc75f7d61c7e9d
+          env:
+            - name: TZ
+              value: Europe/Helsinki
+          resources:
+            limits:
+              memory: 128Mi
+              cpu: 500m
+          workingDir: /app
+          volumeMounts:
+            - mountPath: /app/.env
+              name: homectl-next-settings
+              subPath: .env

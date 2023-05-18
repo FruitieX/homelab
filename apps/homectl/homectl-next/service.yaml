@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: homectl-next
+  namespace: default
+  annotations:
+    external-dns.alpha.kubernetes.io/hostname: homectl-next,homectl-next.localdomain,homectl,homectl.localdomain
+spec:
+  type: LoadBalancer
+  selector:
+    app: homectl-next
+  ports:
+  - name: homectl-next
+    protocol: TCP
+    port: 80
+    targetPort: 3000
