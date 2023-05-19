@@ -12,7 +12,7 @@ spec:
     solvers:
       - http01:
           ingress:
-            class: nginx
+            ingressClassName: public
       - dns01:
           cloudflare:
             email: ${CLOUDFLARE_EMAIL}
@@ -36,7 +36,7 @@ spec:
     solvers:
       - http01:
           ingress:
-            class: nginx
+            ingressClassName: public
       - dns01:
           cloudflare:
             email: ${CLOUDFLARE_EMAIL}

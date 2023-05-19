@@ -16,8 +16,13 @@ spec:
         namespace: flux-system
   values:
     controller:
+      # electionID: ingress-controller-private
       ingressClassResource:
         name: private
+        # enabled: true
+        # default: false
+        # controllerValue: "k8s.io/private-ingress-nginx"
+      # ingressClass: private
       service:
         type: "LoadBalancer"
         annotations:
