@@ -1,6 +1,7 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
-  - ./ingress-nectarine.yaml
+  - ./ingress-nectarine-fruitiex-org.yaml
+  - ./ingress-nectarine-lovegren-fi.yaml
   - ./namespace.yaml
   - ./services.yaml

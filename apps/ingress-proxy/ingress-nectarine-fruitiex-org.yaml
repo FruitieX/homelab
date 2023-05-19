@@ -1,10 +1,8 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-    name: nectarine
+    name: nectarine-fruitiex-org
     namespace: ingress-proxy
-    annotations:
-        cert-manager.io/cluster-issuer: ${LETSENCRYPT_CLUSTER_ISSUER}
 spec:
     ingressClassName: public
     tls:
@@ -12,9 +10,7 @@ spec:
             - ENC[AES256_GCM,data:hlr1CCtzAJZAls+1kxGJ2Y++47s/ww==,iv:xmUb8x9Tj/WdJxJ0/QcwN5rEz/V70TiL6c57jkCmF8o=,tag:VhlCRtJT04qeFrSXgWLC1w==,type:str]
             - ENC[AES256_GCM,data:51SHpMJQsAr7s3akRhrNZY5F,iv:Vpyb17WKrco32uqLBZZZXN0QPSj4XxRFUXqtW3jggJs=,tag:BIXKyt7UwqJwKS66L02ztA==,type:str]
             - ENC[AES256_GCM,data:T6+Hp+nnaxbAtfDn6H8oQs5YDQ==,iv:pvNrkP6WdFicGEoxNmY4igZxNJzK18bhR5fecrwu2/s=,tag:ns7pRygaXjXrBxzj39b1Pg==,type:str]
-            - ENC[AES256_GCM,data:+OL6TXENhHHjPw5UU9oal94=,iv:G5M5aTKXhQnZEK3qG4c8UhCqpcMQWthF6SfTKhLdqhE=,tag:+7oft11Y94JEJJis3YBVYg==,type:str]
-            - ENC[AES256_GCM,data:eYgNcphANZyRjQVKeu6i6NwS,iv:ly35YD769N0jT8bFBu+41Z/bD+VUiA19VudHZPLE9L4=,tag:owe2WFHm/TGpSGeRkmNBiw==,type:str]
-          secretName: nectarine-tls
+          secretName: fruitiex-org-wildcard-crt
     rules:
         - host: ENC[AES256_GCM,data:VC4IhfGK8KqJ1wj9E5KW6jZ8LhJlMA==,iv:VtCCOAtF6xIa6Wli6lwQL4Utf9rIvs53pI3ZwBBVXA4=,tag:OkZMuukh5zdHlVn+0v7xhg==,type:str]
           http:
@@ -46,34 +42,14 @@ spec:
                         name: nectarine
                         port:
                             number: 5081
-        - host: ENC[AES256_GCM,data:xv6IrZkpPgdVISZSHBlDHEc=,iv:hiUDtrQQza7UpvpDUPAo8t6rbovOTulkYYF4jhB/m+8=,tag:YK5YYOSQcFK1m740hqUk+w==,type:str]
-          http:
-            paths:
-                - path: /
-                  pathType: Prefix
-                  backend:
-                    service:
-                        name: nectarine
-                        port:
-                            number: 10002
-        - host: ENC[AES256_GCM,data:rpmCFAHWj01YMsqRHnJe9GQi,iv:RauaHCpuzq1VBwpF7ZeT5AQTZ/5xdTlBaVMPZxp1NbY=,tag:MphsZnaOpEYDrY4i4EgKOg==,type:str]
-          http:
-            paths:
-                - path: /
-                  pathType: Prefix
-                  backend:
-                    service:
-                        name: nectarine
-                        port:
-                            number: 5081
 sops:
     kms: []
     gcp_kms: []
     azure_kv: []
     hc_vault: []
     age: []
-    lastmodified: "2023-04-17T17:47:06Z"
-    mac: ENC[AES256_GCM,data:jh6vFtX1J0USfQXmuKaNM9m16R3+F4DVMuks2JcADiirJxFhoWy66dKJLFp8Gn9LJ/mkZQMkkkj21FaJp0V96ye9NPbJgcqDyzWOk90DycrulB997txE29a29M2sLCf1aNxh854KOl28trVi2wC9Y+w+Ailkz3pqGmBlefOVkiY=,iv:+a2lD8e+A0DbSqFs/gfuf+FpRsXeD1J0KMmf0DQDDow=,tag:WdMPCi5GwHfHRPj2Xt73BA==,type:str]
+    lastmodified: "2023-05-19T20:27:18Z"
+    mac: ENC[AES256_GCM,data:hGGZEdfQNuWoKqQT7d8s6TnGoZXD7sdCgCf06LjCzMN1CHV2MGKeIjWJDuB29yWKe0ZXhSBHRcfq8YvKKY6gT4zxCeNIjX2RcDnqumD5YAbno6LFsox7vzEB5xGXWOA6aCJzdZ5jXc870BySjt+hH7Th5CXc7fH4sROdaHzoxhA=,iv:SOgTu3Sma69be0rHfeBFOt3eGUOXTah5Ye9mk9GHwks=,tag:pe2zQcT/ipkEDz2AGWhsEA==,type:str]
     pgp:
         - created_at: "2023-04-10T17:59:38Z"
           enc: |-

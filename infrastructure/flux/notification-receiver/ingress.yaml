@@ -3,14 +3,12 @@ kind: Ingress
 metadata:
   name: notification-receiver
   namespace: flux-system
-  annotations:
-    cert-manager.io/cluster-issuer: ${LETSENCRYPT_CLUSTER_ISSUER}
 spec:
   ingressClassName: public
   tls:
     - hosts:
         - ${FLUX_NOTIFICATION_DOMAIN_NAME}
-      secretName: flux-notification-tls
+      secretName: fruitiex-org-wildcard-crt
   rules:
     - host: ${FLUX_NOTIFICATION_DOMAIN_NAME}
       http:
