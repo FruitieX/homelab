@@ -18,15 +18,12 @@ kind: Ingress
 metadata:
   name: fruitiex-org-ingress
   namespace: default
-  annotations:
-    cert-manager.io/cluster-issuer: ${LETSENCRYPT_CLUSTER_ISSUER}
 spec:
   ingressClassName: public
   tls:
     - hosts:
         - fruitiex.org
-        - lovegren.fi
-      secretName: fruitiex-org-tls
+      secretName: fruitiex-org-wildcard-crt
   rules:
     - host: fruitiex.org
       http:
@@ -38,6 +35,21 @@ spec:
                 name: fruitiex-org
                 port:
                   number: 80
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: lovegren-fi-ingress
+  namespace: default
+  annotations:
+    cert-manager.io/cluster-issuer: ${LETSENCRYPT_CLUSTER_ISSUER}
+spec:
+  ingressClassName: public
+  tls:
+    - hosts:
+        - lovegren.fi
+      secretName: lovegren-fi-tls
+  rules:
     - host: lovegren.fi
       http:
         paths:
