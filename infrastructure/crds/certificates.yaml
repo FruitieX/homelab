@@ -1,0 +1,14 @@
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: fruitiex-org-wildcard-crt
+  namespace: default
+spec:
+  secretName: fruitiex-org-wildcard-crt
+  issuerRef: 
+    kind: ClusterIssuer
+    name: ${LETSENCRYPT_CLUSTER_ISSUER}
+  commonName: "*.fruitiex.org"
+  dnsNames:
+    - "*.fruitiex.org"

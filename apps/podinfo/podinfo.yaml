@@ -20,14 +20,12 @@ kind: Ingress
 metadata:
   name: podinfo-ingress
   namespace: default
-  annotations:
-    cert-manager.io/cluster-issuer: ${LETSENCRYPT_CLUSTER_ISSUER}
 spec:
   ingressClassName: public
   tls:
     - hosts:
         - ${PODINFO_DOMAIN_NAME}
-      secretName: podinfo-tls
+      secretName: fruitiex-org-wildcard-crt
   rules:
     - host: ${PODINFO_DOMAIN_NAME}
       http:

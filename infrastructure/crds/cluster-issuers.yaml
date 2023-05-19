@@ -13,6 +13,15 @@ spec:
       - http01:
           ingress:
             class: nginx
+      - dns01:
+          cloudflare:
+            email: ${CLOUDFLARE_EMAIL}
+            apiTokenSecretRef:
+              name: cloudflare-api-token-secret
+              key: api-token
+        selector:
+          dnsNames:
+            - '*.fruitiex.org'
 ---
 apiVersion: cert-manager.io/v1
 kind: ClusterIssuer
@@ -28,3 +37,12 @@ spec:
       - http01:
           ingress:
             class: nginx
+      - dns01:
+          cloudflare:
+            email: ${CLOUDFLARE_EMAIL}
+            apiTokenSecretRef:
+              name: cloudflare-api-token-secret
+              key: api-token
+        selector:
+          dnsNames:
+            - '*.fruitiex.org'
