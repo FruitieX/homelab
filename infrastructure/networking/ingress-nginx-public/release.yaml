@@ -16,13 +16,13 @@ spec:
         namespace: flux-system
   values:
     controller:
-      # electionID: ingress-controller-public
+      electionID: ingress-controller-public
       ingressClassResource:
         name: public
         # enabled: true
         # default: false
         # controllerValue: "k8s.io/public-ingress-nginx"
-      # ingressClass: public
+      ingressClass: public
       service:
         type: "LoadBalancer"
         annotations:
