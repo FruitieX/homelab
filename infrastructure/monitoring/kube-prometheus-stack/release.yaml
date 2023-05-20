@@ -21,8 +21,10 @@ spec:
       ingress:
         enabled: true
         ingressClassName: private
-        annotations:
-          nginx.ingress.kubernetes.io/ssl-redirect: "\"false\""
+        tls:
+          - hosts:
+              - grafana.fruitiex.org
+            secretName: fruitiex-org-wildcard-crt
         hosts:
           - grafana.fruitiex.org
     alertmanager:
@@ -31,8 +33,10 @@ spec:
       ingress:
         enabled: true
         ingressClassName: private
-        annotations:
-          nginx.ingress.kubernetes.io/ssl-redirect: "\"false\""
+        tls:
+          - hosts:
+              - alertmanager.fruitiex.org
+            secretName: fruitiex-org-wildcard-crt
         hosts:
           - alertmanager.fruitiex.org
     prometheus:
@@ -41,7 +45,9 @@ spec:
       ingress:
         enabled: true
         ingressClassName: private
-        annotations:
-          nginx.ingress.kubernetes.io/ssl-redirect: "\"false\""
+        tls:
+          - hosts:
+              - prometheus.fruitiex.org
+            secretName: fruitiex-org-wildcard-crt
         hosts:
           - prometheus.fruitiex.org
