@@ -16,3 +16,4 @@ resources:
   - metallb.yaml
   - pihole.yaml
   - reloader.yaml
+  - reflector.yaml

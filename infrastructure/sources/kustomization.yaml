@@ -3,6 +3,7 @@ kind: Kustomization
 namespace: flux-system
 resources:
   - cert-manager.yaml
+  - emberstack.yaml
   - grafana.yaml
   - ingress-nginx.yaml
   - metallb.yaml
