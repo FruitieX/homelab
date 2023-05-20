@@ -1,0 +1,22 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: homectl-ingress
+  namespace: default
+spec:
+  ingressClassName: private
+  tls:
+    - hosts:
+        - homectl.fruitiex.org
+      secretName: fruitiex-org-wildcard-crt
+  rules:
+    - host: homectl.fruitiex.org
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: homectl-next
+                port:
+                  number: 80

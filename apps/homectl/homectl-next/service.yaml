@@ -3,8 +3,6 @@ kind: Service
 metadata:
   name: homectl-next
   namespace: default
-  annotations:
-    external-dns.alpha.kubernetes.io/hostname: homectl-next.fruitiex.org,homectl.fruitiex.org
 spec:
   type: LoadBalancer
   selector:

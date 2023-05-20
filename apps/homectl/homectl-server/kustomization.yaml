@@ -4,4 +4,5 @@ resources:
   - ./config.yaml
   - ./env.yaml
   - ./deployment.yaml
+  - ./ingress.yaml
   - ./service.yaml
