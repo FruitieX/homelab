@@ -19,10 +19,14 @@ spec:
       electionID: ingress-controller-private
       ingressClassResource:
         name: private
-        # enabled: true
-        # default: false
+        enabled: true
+        default: false
         # controllerValue: "k8s.io/private-ingress-nginx"
       ingressClass: private
+      ingressClassByName: true
+      extraArgs:
+        ingress-class: private
+        controller-class: "k8s.io/private-ingress-nginx"
       service:
         type: "LoadBalancer"
         annotations:
