@@ -2,7 +2,7 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
     name: nectarine-lovegren-fi
-    namespace: ingress-proxy
+    namespace: default
     annotations:
         cert-manager.io/cluster-issuer: ${LETSENCRYPT_CLUSTER_ISSUER}
 spec:
@@ -39,8 +39,8 @@ sops:
     azure_kv: []
     hc_vault: []
     age: []
-    lastmodified: "2023-05-19T20:27:34Z"
-    mac: ENC[AES256_GCM,data:mmfiiSaCl2SRsxoN933kK7osj2pL+eKMAp35aGtsy5UPXTZSG7joGLnh9PPDdC+dtvPmNFilrICOIXvpoPbMdm+OSgaVnjh4JDW/RFHAxcFxW6uC9JxJBETd5/p32toqP2k6YmhiJpNsJbszEMgwEC/bCO6JsSk2Y3+yn98eDPA=,iv:VMKEzosvGZjXbHHw5JRqf25K++MULcdSIPVqJCVmFf0=,tag:yuARy1ipsDbj0l9F4gUmqQ==,type:str]
+    lastmodified: "2023-05-20T16:35:52Z"
+    mac: ENC[AES256_GCM,data:SMCtfkLUX5m6xG8/qZ36GYMYmgRvE4qtT3Wk9nYAiuDLcJEPL6SFICCJZSf5ThIFI7uY2m8oz42Boc876NDrcSdsxpd4qPxPTuABf9yO2Bd8wSMwlaX2jk2/d8Evpdio/8K53aBeFItgq0OTnRF6hqmvWr7bxrPnfLh316wcMa4=,iv:WzxsZkxR4o3khKRz5TLPzbGujNBg8KCesv9/avYK7dA=,tag:uzSLcJ+nKNJT8rtTcod+SA==,type:str]
     pgp:
         - created_at: "2023-04-10T17:59:38Z"
           enc: |-

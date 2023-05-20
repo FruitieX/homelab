@@ -2,7 +2,7 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
     name: nectarine-fruitiex-org
-    namespace: ingress-proxy
+    namespace: default
 spec:
     ingressClassName: public
     tls:
@@ -48,8 +48,8 @@ sops:
     azure_kv: []
     hc_vault: []
     age: []
-    lastmodified: "2023-05-19T20:27:18Z"
-    mac: ENC[AES256_GCM,data:hGGZEdfQNuWoKqQT7d8s6TnGoZXD7sdCgCf06LjCzMN1CHV2MGKeIjWJDuB29yWKe0ZXhSBHRcfq8YvKKY6gT4zxCeNIjX2RcDnqumD5YAbno6LFsox7vzEB5xGXWOA6aCJzdZ5jXc870BySjt+hH7Th5CXc7fH4sROdaHzoxhA=,iv:SOgTu3Sma69be0rHfeBFOt3eGUOXTah5Ye9mk9GHwks=,tag:pe2zQcT/ipkEDz2AGWhsEA==,type:str]
+    lastmodified: "2023-05-20T16:36:01Z"
+    mac: ENC[AES256_GCM,data:Ap7DsiVBKY9IumyKKkyMHpf9V5szPZ/Fi7SeArFJ7uCUBzb9hQncPMKeqMAkRk+zx/bhehpCXAgMv3kHGe9dh+ccONSNSjxJuPNgigMsXZlm1Ous4fq5206BHCvebDgR51YQjzoMpo3todL4SPRduWfRtE/HpYFJfTMzqIUUMhw=,iv:nS+fj9YLXybMJfXiNbQMZo8JsMCjci4iQQyWPtrtGXg=,tag:KjYjvX8cSKDEeIj9eeRR0g==,type:str]
     pgp:
         - created_at: "2023-04-10T17:59:38Z"
           enc: |-
