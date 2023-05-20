@@ -41,6 +41,29 @@ spec:
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
+  name: www-fruitiex-org-ingress
+  namespace: default
+spec:
+  ingressClassName: public
+  tls:
+    - hosts:
+        - www.fruitiex.org
+      secretName: fruitiex-org-wildcard-crt
+  rules:
+    - host: www.fruitiex.org
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: fruitiex-org
+                port:
+                  number: 80
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
   name: lovegren-fi-ingress
   namespace: default
   annotations:
