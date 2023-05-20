@@ -3,6 +3,8 @@ kind: Ingress
 metadata:
   name: notification-receiver
   namespace: flux-system
+  annotations:
+    external-dns.alpha.kubernetes.io/exclude: 'true'
 spec:
   ingressClassName: public
   tls:

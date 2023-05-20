@@ -21,17 +21,17 @@ spec:
           args:
             - --source=service
             - --source=ingress
-            # Pihole only supports A/CNAME records so there is no mechanism to track ownership.
-            # You don't need to set this flag, but if you leave it unset, you will receive warning
-            # logs when ExternalDNS attempts to create TXT records.
-            - --registry=noop
-            # IMPORTANT: If you have records that you manage manually in Pi-hole, set
-            # the policy to upsert-only so they do not get deleted.
-            - --policy=upsert-only
-            - --provider=pihole
-            # Change this to the actual address of your Pi-hole web server
-            - --pihole-server=http://pihole.pihole.svc.cluster.local
-            - --pihole-password=${PIHOLE_WEBPASSWORD}
+            # TODO: replace annotation filter with ingress class filter, which will be supported in a future version of external-dns
+            # - --ingress-class=private
+            - --annotation-filter=external-dns.alpha.kubernetes.io/exclude notin (true)
+            - --domain-filter=fruitiex.org
+            - --provider=cloudflare
+            - --cloudflare-dns-records-per-page=5000
+          env:
+            - name: CF_API_EMAIL
+              value: ${CLOUDFLARE_EMAIL}
+            - name: CF_API_TOKEN
+              value: ${EXTERNAL_DNS_CLOUDFLARE_API_TOKEN}
           resources:
             limits:
               memory: 512Mi
