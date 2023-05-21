@@ -11,7 +11,7 @@ In summary, the homelab is built up using:
 - [A mini PC](https://store.minisforum.de/collections/alle-produkte-1/products/minisforum-venus-series-um560?variant=41392983572663), [NAS](https://www.synology.com/en-us/support/download/DS420+?version=7.1#system) and some [UniFi](https://eu.store.ui.com/products/unifi-dream-machine) network infrastructure
 - [Kubernetes](https://kubernetes.io/), running on virtual [Talos Linux](https://www.talos.dev/) nodes in [Proxmox VE](https://www.proxmox.com/en/proxmox-ve)
 - [Flux CD](https://fluxcd.io/) reconciling cluster configuration from this git repo
-- [MetalLB](https://metallb.universe.tf/), [external-dns](https://github.com/kubernetes-sigs/external-dns) & [Pi-hole](https://pi-hole.net/) expose apps on separate IP addresses with associated DNS records
+- [MetalLB](https://metallb.universe.tf/) & [external-dns](https://github.com/kubernetes-sigs/external-dns) expose apps on separate IP addresses with associated DNS records
 - [ingress-nginx](https://github.com/kubernetes/ingress-nginx) & [cert-manager](https://cert-manager.io/) reverse proxy subdomain HTTP requests with auto-renewing [Let's Encrypt](https://letsencrypt.org/) certificates
 - [nfs-subdir-external-provisioner](https://github.com/kubernetes-sigs/nfs-subdir-external-provisioner) & [synology-csi](https://github.com/SynologyOpenSource/synology-csi) provide persistent storage on NAS
 - [kube-prometheus-stack](https://github.com/prometheus-operator/kube-prometheus) provides detailed metrics

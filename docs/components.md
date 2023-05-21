@@ -38,14 +38,12 @@ I make use of the following pieces of software and infrastructure:
 - In case of emergency, redeployment of the entire cluster (including OS
   installations, assuming configuration is already adapted to environment) takes < 30 min
 
-### MetalLB, Pi-hole & external-dns
+### MetalLB & external-dns
 
 - Services get their own IP addresses allocated in my home network under a separate subnet
   - Every container can use whatever TCP/UDP ports it wants, there are no collisions
   - It's possible to run multiple duplicate services on their default ports
-- Pi-hole acts as DNS server in my home network, with the router's DHCP configured to point clients to pihole
-  - Network-wide ad blocking
-- Every service gets their IP address added to Pi-hole's local DNS records
+- Every service gets their IP address added to Cloudfront DNS records
   - For example, the `podinfo` hostname resolves the podinfo service, reachable both inside the cluster and from my home network
 
 ### ingress-nginx & cert-manager

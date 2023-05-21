@@ -72,12 +72,18 @@ MetalLB allows k8s services to appear under their own unique IP address in your 
 
 ## external-dns
 
-[external-dns](https://github.com/kubernetes-sigs/external-dns) keeps the DNS records of supported DNS servers in sync with IP addresses of your services.
+[external-dns](https://github.com/kubernetes-sigs/external-dns) keeps the DNS records of supported DNS servers in sync with IP addresses of your services. This repo is configured uses Cloudfront DNS, refer to the [external-dns documentation](https://kubernetes-sigs.github.io/external-dns) on what other providers are supported and how to configure them.
 
 - Search for `external-dns.alpha.kubernetes.io/hostname` annotations in the repo.
 
-  This annotation sets the hostname/domain name that external dns will publish to Pi-hole.
+  This annotation sets the hostname/domain name that external dns will publish to Cloudfront.
   Can be set to multiple values by comma separating them.
+
+- Set `CLOUDFLARE_EMAIL` and `EXTERNAL_DNS_CLOUDFLARE_API_TOKEN` in your [/clusters/homelab/cluster-secrets.yaml](/clusters/homelab/cluster-secrets.yaml) file.
+
+  See [external-dns documentation](https://kubernetes-sigs.github.io/external-dns/v0.13.4/tutorials/cloudflare/#creating-cloudflare-credentials) on how to generate Cloudflare API tokens with sufficient permissions for external-dns' use.
+
+  See [/docs/sops.md](/docs/sops.md) for more information on how to store secrets.
 
 - Add `external-dns.yaml` back in [/clusters/homelab/infrastructure/kustomization.yaml](/clusters/homelab/infrastructure/kustomization.yaml). Commit and push.
 
@@ -173,7 +179,18 @@ Flux can forward reconciliation errors to various chat apps, I'm personally usin
 
 [cert-manager](https://cert-manager.io/) obtains and renews Let's Encrypt certificates.
 
-- Set `LETSENCRYPT_EMAIL` in your [/clusters/homelab/cluster-secrets.yaml](/clusters/homelab/cluster-secrets.yaml) file.
+This repo configures cert-manager is both HTTP01 and DNS01 challenge solvers.
+DNS01 allows requesting wildcard certificates that can be shared by all your
+subdomains (including private services).
+
+DNS01 requires some extra configuration, as cert-manager needs access to your
+DNS provider in order to prove ownership of a domain.
+
+- Set `LETSENCRYPT_EMAIL` and `CLOUDFLARE_EMAIL` in your [/clusters/homelab/cluster-secrets.yaml](/clusters/homelab/cluster-secrets.yaml) file.
+
+  Set `api-token` in your [/infrastructure/certificates/cert-manager/cloudflare-api-token-secret.yaml](/infrastructure/certificates/cert-manager/cloudflare-api-token-secret.yaml) file.
+
+  See [cert-managers documentation](https://cert-manager.io/docs/configuration/acme/dns01/cloudflare/#api-tokens) on how to generate Cloudflare API tokens with sufficient permissions for cert-manager's use.
 
   See [/docs/sops.md](/docs/sops.md) for more information on how to store secrets.
 
