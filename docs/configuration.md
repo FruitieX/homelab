@@ -50,26 +50,6 @@ MetalLB allows k8s services to appear under their own unique IP address in your 
 
 - You should now start seeing external IP:s being assigned to your services in `kubectl get svc -A`
 
-## Pi-hole
-
-[Pi-hole](https://pi-hole.net/) acts as a DNS server that can block ads in your home network. It's supported by external-dns that we will configure below.
-
-- Set `PIHOLE_PASSWORD` in your [/clusters/homelab/cluster-secrets.yaml](/clusters/homelab/cluster-secrets.yaml) file.
-
-  See [/docs/sops.md](/docs/sops.md) for more information on how to store secrets.
-
-  This will be the password that's used to access the Pi-hole web interface under `http://pihole.example.org/admin`
-
-- Add `pihole.yaml` back in [/clusters/homelab/infrastructure/kustomization.yaml](/clusters/homelab/infrastructure/kustomization.yaml). Commit and push.
-
-- Once you have Pi-hole running, first get the external IP address of the `pihole` service: `kubectl get svc -n pihole`
-
-- Verify that DNS requests to Pi-hole work:
-  `dig @<external ip of pihole> google.com +short`
-  `dig @<external ip of pihole> podinfo +short`
-
-- Configure your router's DHCP server to hand out the DNS address of the Pi-hole service.
-
 ## external-dns
 
 [external-dns](https://github.com/kubernetes-sigs/external-dns) keeps the DNS records of supported DNS servers in sync with IP addresses of your services. This repo is configured uses Cloudfront DNS, refer to the [external-dns documentation](https://kubernetes-sigs.github.io/external-dns) on what other providers are supported and how to configure them.

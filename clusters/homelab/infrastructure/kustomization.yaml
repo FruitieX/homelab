@@ -14,6 +14,5 @@ resources:
   - ingress-nginx-public.yaml
   - ingress-nginx-private.yaml
   - metallb.yaml
-  - pihole.yaml
   - reloader.yaml
   - reflector.yaml
