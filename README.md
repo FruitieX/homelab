@@ -173,9 +173,6 @@ flux bootstrap github --owner=${GITHUB_USER} --repository=homelab --personal --p
   # Show status of all your pods
   kubectl get pods -A
 
-  # Show details of all pods in pihole namespace
-  kubectl describe pod -n pihole
-
   # Show status of all flux resources
   flux get all -A
 
@@ -185,6 +182,8 @@ flux bootstrap github --owner=${GITHUB_USER} --repository=homelab --personal --p
   # Get Kubernetes events with type=Warning
   kubectl get events -A --field-selector type=Warning
   ```
+
+- Flux CD troubleshooting guide: https://fluxcd.io/flux/cheatsheets/troubleshooting/
 
 ## Further configuration
 
