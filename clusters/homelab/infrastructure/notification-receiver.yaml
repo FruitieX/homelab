@@ -4,7 +4,9 @@ metadata:
   name: notification-receiver
 spec:
   validation: server
-  interval: 1m0s
+  interval: 10m
+  timeout: 1m
+  retryInterval: 10s
   sourceRef:
     kind: GitRepository
     name: flux-system
