@@ -17,7 +17,7 @@ spec:
       serviceAccountName: external-dns
       containers:
         - name: external-dns
-          image: registry.k8s.io/external-dns/external-dns:v0.13.4@sha256:b1ee7b829bd4c8bc5fbae0e4671cc423304a5a4c8228dc13e2c961c1e5eb90e4
+          image: registry.k8s.io/external-dns/external-dns:v0.13.5@sha256:974dc3010624a7a8135f6ced78b3a7191eddbd511916ea7df5a392d68616ab59
           args:
             - --source=service
             - --source=ingress
