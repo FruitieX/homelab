@@ -19,41 +19,13 @@ metadata:
   name: fruitiex-org-ingress
   namespace: default
   annotations:
-    cert-manager.io/cluster-issuer: ${LETSENCRYPT_CLUSTER_ISSUER}
-    external-dns.alpha.kubernetes.io/exclude: 'true'
+    nginx.ingress.kubernetes.io/server-alias: www.fruitiex.org
 spec:
   ingressClassName: public
   tls:
-    - hosts:
-        - fruitiex.org
-      secretName: fruitiex-org-tls
+    - secretName: fruitiex-org-tls
   rules:
     - host: fruitiex.org
-      http:
-        paths:
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: fruitiex-org
-                port:
-                  number: 80
----
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  name: www-fruitiex-org-ingress
-  namespace: default
-  annotations:
-    external-dns.alpha.kubernetes.io/exclude: 'true'
-spec:
-  ingressClassName: public
-  tls:
-    - hosts:
-        - www.fruitiex.org
-      secretName: fruitiex-org-wildcard-crt
-  rules:
-    - host: www.fruitiex.org
       http:
         paths:
           - path: /
@@ -74,9 +46,7 @@ metadata:
 spec:
   ingressClassName: public
   tls:
-    - hosts:
-        - lovegren.fi
-      secretName: lovegren-fi-tls
+    - secretName: lovegren-fi-tls
   rules:
     - host: lovegren.fi
       http:

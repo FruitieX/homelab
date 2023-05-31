@@ -9,10 +9,7 @@ metadata:
 spec:
     ingressClassName: public
     tls:
-        - hosts:
-            - ENC[AES256_GCM,data:+OL6TXENhHHjPw5UU9oal94=,iv:G5M5aTKXhQnZEK3qG4c8UhCqpcMQWthF6SfTKhLdqhE=,tag:+7oft11Y94JEJJis3YBVYg==,type:str]
-            - ENC[AES256_GCM,data:eYgNcphANZyRjQVKeu6i6NwS,iv:ly35YD769N0jT8bFBu+41Z/bD+VUiA19VudHZPLE9L4=,tag:owe2WFHm/TGpSGeRkmNBiw==,type:str]
-          secretName: nectarine-tls
+        - secretName: nectarine-tls
     rules:
         - host: ENC[AES256_GCM,data:xv6IrZkpPgdVISZSHBlDHEc=,iv:hiUDtrQQza7UpvpDUPAo8t6rbovOTulkYYF4jhB/m+8=,tag:YK5YYOSQcFK1m740hqUk+w==,type:str]
           http:
@@ -40,8 +37,8 @@ sops:
     azure_kv: []
     hc_vault: []
     age: []
-    lastmodified: "2023-05-20T18:08:48Z"
-    mac: ENC[AES256_GCM,data:GjdLVxoa77PQyhI9ND/Abrfd7TYOhOmHrm1G1wWfNAsLb/4rwy8w2mE8PmFqnxllpFsm9ZGFZK+UPFy+HvcClVlV7pAnPAc1ODFpI4ZpCL2FjYzdk5z006sP5P2M1E96ZnImlsIE5E+8wDyn3E1vZi6lSTwdatsErrn8xJb7Nhs=,iv:YDEKJB8dHue4TrCZ+dT3tMyKAptdUb3ItoEXEgZnXxM=,tag:z4eH2DZxIIEyzRzgt015Yw==,type:str]
+    lastmodified: "2023-05-29T20:21:51Z"
+    mac: ENC[AES256_GCM,data:lEAZ+JBFzRTL8GIV/kepAc1TZkKWbaITLf8YWV5UF+Oc2gt8dCTZosIsOD7UdB2IHjz3FDAJu6LUXaKjXwQ0hVsOO5N7q5WPz1UqPlgpMdyiutkP2x1cqJWLvrUTfKNNPxnsNme+ncnfdwzWVCnODbxS8FJH1YY040aazURe5/w=,iv:ezaKoMtBzR7L5cLSMbVAfIacwPvIBgAFOKjIW6uRp60=,tag:jOCuEjUM9EbVW7qlxDP8mA==,type:str]
     pgp:
         - created_at: "2023-04-10T17:59:38Z"
           enc: |-

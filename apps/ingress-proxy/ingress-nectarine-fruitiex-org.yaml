@@ -8,11 +8,7 @@ metadata:
 spec:
     ingressClassName: public
     tls:
-        - hosts:
-            - ENC[AES256_GCM,data:hlr1CCtzAJZAls+1kxGJ2Y++47s/ww==,iv:xmUb8x9Tj/WdJxJ0/QcwN5rEz/V70TiL6c57jkCmF8o=,tag:VhlCRtJT04qeFrSXgWLC1w==,type:str]
-            - ENC[AES256_GCM,data:51SHpMJQsAr7s3akRhrNZY5F,iv:Vpyb17WKrco32uqLBZZZXN0QPSj4XxRFUXqtW3jggJs=,tag:BIXKyt7UwqJwKS66L02ztA==,type:str]
-            - ENC[AES256_GCM,data:T6+Hp+nnaxbAtfDn6H8oQs5YDQ==,iv:pvNrkP6WdFicGEoxNmY4igZxNJzK18bhR5fecrwu2/s=,tag:ns7pRygaXjXrBxzj39b1Pg==,type:str]
-          secretName: fruitiex-org-wildcard-crt
+        - secretName: fruitiex-org-tls
     rules:
         - host: ENC[AES256_GCM,data:VC4IhfGK8KqJ1wj9E5KW6jZ8LhJlMA==,iv:VtCCOAtF6xIa6Wli6lwQL4Utf9rIvs53pI3ZwBBVXA4=,tag:OkZMuukh5zdHlVn+0v7xhg==,type:str]
           http:
@@ -50,8 +46,8 @@ sops:
     azure_kv: []
     hc_vault: []
     age: []
-    lastmodified: "2023-05-20T18:08:19Z"
-    mac: ENC[AES256_GCM,data:gokUwP+MC4D1Z29NBi4s1I0MeW8eCT3qArglIp33yJz+xjgnnWcuc2GNZ/DlrL/HJ69qMtFO7tBeYUEPuaqndfEr9upJkPS8J7FRlsOrfxu/eS2Fu6JOfPz/LbyIfXw9XghHg6ki7ArdltG0fOwEHowjXsr9rbUynLLAGxcueaI=,iv:7Tfl7QihuFMLblpxnPpOF2zgEBpJ6xsuGhTJNoqw/54=,tag:TRf4PV8sgjTcROJvOIdnZQ==,type:str]
+    lastmodified: "2023-05-29T20:21:35Z"
+    mac: ENC[AES256_GCM,data:MjbpsRig3sPH9v/u9Dae9uIz9a9iYEQMpEG72Z4aBDtdXmARC9TVJcmNvYcgmE652g5h7qlpdn5SbTdBep6sPbGvRZJIPQSOtE/ZJMSy0E0C1ESSnf9tZGQ62x1GpDCWe2XhVXoa1OidVd++6gXnlCem53srXux3TrElgSyvKhM=,iv:XIlGP7JIZVqCXoGBId6cpLERFtPgNmHiFH8NqYX4iAA=,tag:DlP6vMgKwlpZ+WwKmJrnMA==,type:str]
     pgp:
         - created_at: "2023-04-10T17:59:38Z"
           enc: |-

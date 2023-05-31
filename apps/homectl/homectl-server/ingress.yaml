@@ -20,9 +20,7 @@ metadata:
 spec:
   ingressClassName: private
   tls:
-    - hosts:
-        - homectl-server.fruitiex.org
-      secretName: fruitiex-org-wildcard-crt
+    - secretName: fruitiex-org-tls
   rules:
     - host: homectl-server.fruitiex.org
       http:

@@ -22,9 +22,7 @@ spec:
         enabled: true
         ingressClassName: private
         tls:
-          - hosts:
-              - grafana.fruitiex.org
-            secretName: fruitiex-org-wildcard-crt
+          - secretName: fruitiex-org-tls
         hosts:
           - grafana.fruitiex.org
     alertmanager:
@@ -34,9 +32,7 @@ spec:
         enabled: true
         ingressClassName: private
         tls:
-          - hosts:
-              - alertmanager.fruitiex.org
-            secretName: fruitiex-org-wildcard-crt
+          - secretName: fruitiex-org-tls
         hosts:
           - alertmanager.fruitiex.org
     prometheus:
@@ -46,8 +42,6 @@ spec:
         enabled: true
         ingressClassName: private
         tls:
-          - hosts:
-              - prometheus.fruitiex.org
-            secretName: fruitiex-org-wildcard-crt
+          - secretName: fruitiex-org-tls
         hosts:
           - prometheus.fruitiex.org

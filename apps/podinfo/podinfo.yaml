@@ -19,13 +19,11 @@ metadata:
   name: podinfo-ingress
   namespace: default
   annotations:
-    external-dns.alpha.kubernetes.io/exclude: 'true'
+    external-dns.alpha.kubernetes.io/exclude: "true"
 spec:
   ingressClassName: public
   tls:
-    - hosts:
-        - ${PODINFO_DOMAIN_NAME}
-      secretName: fruitiex-org-wildcard-crt
+    - secretName: fruitiex-org-tls
   rules:
     - host: ${PODINFO_DOMAIN_NAME}
       http:
