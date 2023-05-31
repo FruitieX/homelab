@@ -4,7 +4,7 @@ metadata:
   name: homectl-server
   namespace: default
   annotations:
-    configmap.reloader.stakater.com/reload: "homectl-server-settings"
+    secret.reloader.stakater.com/reload: "homectl-server-settings"
 spec:
   selector:
     matchLabels:

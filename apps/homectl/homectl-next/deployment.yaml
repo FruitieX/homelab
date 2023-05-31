@@ -4,7 +4,7 @@ metadata:
   name: homectl-next
   namespace: default
   annotations:
-    configmap.reloader.stakater.com/reload: "homectl-next-settings"
+    secret.reloader.stakater.com/reload: "homectl-next-settings"
 spec:
   selector:
     matchLabels:
