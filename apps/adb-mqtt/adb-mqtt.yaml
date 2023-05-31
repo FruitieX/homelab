@@ -1,0 +1,49 @@
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: adb-data
+  namespace: default
+spec:
+  storageClassName: syno-storage
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: adb-mqtt
+  namespace: default
+spec:
+  selector:
+    matchLabels:
+      app: adb-mqtt
+  template:
+    metadata:
+      labels:
+        app: adb-mqtt
+    spec:
+      volumes:
+        - name: adb-mqtt-config
+          secret:
+            secretName: adb-mqtt-config
+        - name: adb-data
+          persistentVolumeClaim:
+            claimName: adb-data
+
+      containers:
+        - name: adb-mqtt
+          image: ghcr.io/fruitiex/adb-mqtt:0.1.0@sha256:d1e4bd8cd0fd49d3febb056903f51b6704c12febde014dce9976826af821e88c
+          resources:
+            limits:
+              memory: 128Mi
+              cpu: 100m
+          workingDir: /app
+          volumeMounts:
+            - mountPath: /app
+              name: adb-mqtt-config
+            - mountPath: /root/.android
+              name: adb-data

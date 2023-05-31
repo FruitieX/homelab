@@ -12,4 +12,5 @@ resources:
   - podinfo.yaml
   - tuya-mqtt.yaml
   - twinkly-mqtt.yaml
+  - adb-mqtt.yaml
   - fruitiex-org.yaml
