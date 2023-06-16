@@ -19,7 +19,7 @@ spec:
 
       containers:
         - name: lifx-mqtt
-          image: ghcr.io/fruitiex/lifx-mqtt:0.2.0@sha256:4b27cfe1aa7e7b21add10707f7a3376c1067ae5924a44e04603fa34725670d4f
+          image: ghcr.io/fruitiex/lifx-mqtt:0.4.0@sha256:95995d5a278a78bff6aae1cc2a4304e80d2f595f09bd6abc1a6e829413dfd1b3
           resources:
             limits:
               memory: 128Mi
