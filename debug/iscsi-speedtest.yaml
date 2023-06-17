@@ -24,7 +24,7 @@ spec:
     spec:
       containers:
       - name: read
-        image: ubuntu:jammy@sha256:dfd64a3b4296d8c9b62aa3309984f8620b98d87e47492599ee20739e8eb54fbf
+        image: ubuntu:jammy@sha256:6120be6a2b7ce665d0cbddc3ce6eae60fe94637c6a66985312d1f02f63cc0bcd
         command: ["dd","if=/mnt/pv/test.img","of=/dev/null","bs=8k"]
         volumeMounts:
         - mountPath: "/mnt/pv"
@@ -49,7 +49,7 @@ spec:
     spec:
       containers:
       - name: write
-        image: ubuntu:jammy@sha256:dfd64a3b4296d8c9b62aa3309984f8620b98d87e47492599ee20739e8eb54fbf
+        image: ubuntu:jammy@sha256:6120be6a2b7ce665d0cbddc3ce6eae60fe94637c6a66985312d1f02f63cc0bcd
         command: ["dd","if=/dev/zero","of=/mnt/pv/test.img","bs=1G","count=1","oflag=dsync"]
         volumeMounts:
         - mountPath: "/mnt/pv"
