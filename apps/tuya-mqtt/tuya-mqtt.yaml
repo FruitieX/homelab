@@ -3,6 +3,8 @@ kind: Deployment
 metadata:
   name: tuya-mqtt
   namespace: default
+  annotations:
+    secret.reloader.stakater.com/reload: "tuya-mqtt-config"
 spec:
   selector:
     matchLabels:

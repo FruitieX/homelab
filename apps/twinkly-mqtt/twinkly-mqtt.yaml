@@ -3,6 +3,8 @@ kind: Deployment
 metadata:
   name: twinkly-mqtt
   namespace: default
+  annotations:
+    secret.reloader.stakater.com/reload: "twinkly-mqtt-config"
 spec:
   selector:
     matchLabels:

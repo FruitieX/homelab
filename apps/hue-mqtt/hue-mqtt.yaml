@@ -3,6 +3,8 @@ kind: Deployment
 metadata:
   name: hue-mqtt
   namespace: default
+  annotations:
+    secret.reloader.stakater.com/reload: "hue-mqtt-config"
 spec:
   selector:
     matchLabels:

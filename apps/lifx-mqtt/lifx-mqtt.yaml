@@ -3,6 +3,8 @@ kind: Deployment
 metadata:
   name: lifx-mqtt
   namespace: default
+  annotations:
+    secret.reloader.stakater.com/reload: "lifx-mqtt-config"
 spec:
   selector:
     matchLabels:
