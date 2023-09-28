@@ -4,7 +4,7 @@ metadata:
   name: postgres
 spec:
   interval: 10m
-  timeout: 1m
+  timeout: 5m
   retryInterval: 10s
   sourceRef:
     kind: GitRepository
