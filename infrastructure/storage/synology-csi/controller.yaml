@@ -109,7 +109,7 @@ spec:
             capabilities:
               add: ["SYS_ADMIN"]
             allowPrivilegeEscalation: true
-          image: registry.k8s.io/sig-storage/csi-attacher:v4.4.0@sha256:dbded4ebe299973e31d0ef55815eb07a990fc67872b14900a8e69232acae4f2d
+          image: registry.k8s.io/sig-storage/csi-attacher:v4.4.1@sha256:033c2e5d3a190686c32298e0ae972a79aff903958db204a084c503356e66967d
           args:
             - --v=5
             - --csi-address=$(ADDRESS)
