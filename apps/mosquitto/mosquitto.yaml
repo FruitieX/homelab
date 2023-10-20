@@ -31,7 +31,7 @@ spec:
     spec:
       containers:
         - name: mosquitto
-          image: eclipse-mosquitto:2.0@sha256:6e957b3dffe57afa895bed1e311db6f786eb93de70519df2dc81ef77ad6a21d3
+          image: eclipse-mosquitto:2.0@sha256:b6281fbd33f4e91d0ea3874c46188b57a63d176116202c4be6cd277228b8c6f6
           command: ["mosquitto"]
           args: ["-c", "/mosquitto-no-auth.conf"]
           ports:
