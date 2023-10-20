@@ -46,27 +46,11 @@ spec:
         app: postgres
     spec:
       containers:
-        - name: postgres
-          image: postgres:16@sha256:3d9ed832906091d609cfd6f283e79492ace01ba15866b21d8a262e8fd1cdfb55
-          imagePullPolicy: "IfNotPresent"
-          ports:
-            - containerPort: 5432
-          env:
-            - name: PGDATA
-              value: /var/lib/postgresql/data/pgdata
-          envFrom:
-            - secretRef:
-                name: postgres-config
-          volumeMounts:
-            - mountPath: /var/lib/postgresql/data
-              name: postgres-data
-          resources:
-            limits:
-              cpu: 1000m
-              memory: 512Mi
-        # - name: postgres-debug
-        #   image: postgres:16@sha256:1e90f8560705b0daccbd8eb25573627c8452fc9282496433aab1259ae4c85824
+        # - name: postgres
+        #   image: postgres:16@sha256:3d9ed832906091d609cfd6f283e79492ace01ba15866b21d8a262e8fd1cdfb55
         #   imagePullPolicy: "IfNotPresent"
+        #   ports:
+        #     - containerPort: 5432
         #   env:
         #     - name: PGDATA
         #       value: /var/lib/postgresql/data/pgdata
@@ -80,8 +64,24 @@ spec:
         #     limits:
         #       cpu: 1000m
         #       memory: 512Mi
-        #   command: ["sh", "-c"]
-        #   args: ["while true; do echo 'debug pod running' && sleep 5; done;"]
+        - name: postgres-debug
+          image: postgres:16@sha256:1e90f8560705b0daccbd8eb25573627c8452fc9282496433aab1259ae4c85824
+          imagePullPolicy: "IfNotPresent"
+          env:
+            - name: PGDATA
+              value: /var/lib/postgresql/data/pgdata
+          envFrom:
+            - secretRef:
+                name: postgres-config
+          volumeMounts:
+            - mountPath: /var/lib/postgresql/data
+              name: postgres-data
+          resources:
+            limits:
+              cpu: 1000m
+              memory: 512Mi
+          command: ["sh", "-c"]
+          args: ["while true; do echo 'debug pod running' && sleep 5; done;"]
       volumes:
         - name: postgres-data
           persistentVolumeClaim:
