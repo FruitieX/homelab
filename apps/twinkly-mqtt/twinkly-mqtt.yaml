@@ -31,4 +31,7 @@ spec:
             - mountPath: /app
               name: twinkly-mqtt-config
 
-
+      initContainers:
+        - name: wait-for-mqtt-broker
+          image: busybox
+          command: ["sh", "-c", "until nc -z mqtt 1883; do echo waiting for mqtt broker; sleep 1; done"]
