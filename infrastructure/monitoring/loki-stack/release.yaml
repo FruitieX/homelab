@@ -17,3 +17,14 @@ spec:
   values:
     loki:
       isDefault: false
+    grafana:
+      sidecar:
+        datasources:
+          enabled: true
+    persistence:
+      type: pvc
+      enabled: true
+      storageClassName: syno-storage
+      accessModes:
+        - ReadWriteOnce
+      size: 10Gi
