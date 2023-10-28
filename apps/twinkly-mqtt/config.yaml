@@ -5,15 +5,15 @@ metadata:
     name: twinkly-mqtt-config
 type: Opaque
 stringData:
-    Settings.toml: ENC[AES256_GCM,data:2PiElxB2ihhCtNey4PuutltUUTniQrgEzg+lDhoHUpQWDzWwKf0VUeug9A9yTHLNjWuBzq6ctrndbVhOYBaAOoSrwm1GxB8deJWM4LbybqAlZPjODLFzaUT1mjK7z4sQ2qD3vBeKMDDLcm7kh0CYe0SA0MrE06oluuFxqtdek4OTuEnLh6RsYBBt2HmPti5eWP5lYmWVGrMosv11++AeX64pftTbMv1SjEvb3Ma9mOTaZBQfQHQDFUO2vqq6/EoCmw==,iv:FK5sQDql2khXdgRNvmAmu6du4IFJ/wwgrRJK7Wy1wqc=,tag:9qXuKnzIsllxjkwSh6Zggg==,type:str]
+    Settings.toml: ENC[AES256_GCM,data:wUaj+4p4E5oimxFbi8Z+si9MBuu4PxqOq18oNjkV9hlLjn1VHPOt8ZqRJC/huGYeBhjxMppIzfW+s3mWTtaHXtWbhOiJ7NGKnUdAE6ZK6ODgfS9TIGej69YUNQ2HUD55yAdJdd7GANYOQm/zGGJMPHsxm54fKccpIgsJyOLMNuocN2DW4961RNzGk2F00mDuhyVoPgVynOfkBOW6MBJDfYh0hBJfD/HhPKwynchAXz9M6RacAjlJj0SyoRoL9d06gS38+pEnOMjBCMsMpYExZMXkgSzT30yHNpdLtVHPt/5tEia0w/VEmKUC6DE=,iv:/cJZ1WyYMTgBVsRTkis7g+2QdtGX5puoH+5EnY6V8cU=,tag:G0ALX1gyTODB5NY57Vwf4w==,type:str]
 sops:
     kms: []
     gcp_kms: []
     azure_kv: []
     hc_vault: []
     age: []
-    lastmodified: "2023-06-16T05:58:53Z"
-    mac: ENC[AES256_GCM,data:QcwJCT0zIyV2AdJHeEH9et+2gxScm2SuhjHjRqKwwfJb0SOhYDhWUwSDw/FPP5KDidRhU4cwpMPSzov7kC4dp1Z0uDrvQEWBuT+OkKT1a03xIBER1ECYphl8Lacov8VZpq8OS0lqxAO0uFTAYganXgwzaIyrEFRah6ckCWSCyHc=,iv:GhHpk0bcPXWvjRbIIMEEj1DjADEhsj6qw1+NnPflF1s=,tag:/PcHw4a6LiWuEDxEkptxwA==,type:str]
+    lastmodified: "2023-10-28T10:59:48Z"
+    mac: ENC[AES256_GCM,data:knTXdi+lDSFEAGALOqoTI6/2LIRmajXJBUUai1+ph1FM7Pm1H2XYNKKavGcX6BGL7vPZJ/tRPx9SJq7WiTGH0Q6JdMmtfaIRSB31gR6KHtbq67tBu35EZ05mFIqebdWBvYNsN1dcjl7XGONFrQY2gt1m57btcPSSzTIWu2FgskA=,iv:bSMyqb0+rm4PEcYcz5w8Y2C+F4vIyG8PYC5Z8Kl341A=,tag:hDhPUD1y4+4MLD1SDM23ag==,type:str]
     pgp:
         - created_at: "2023-04-06T05:30:06Z"
           enc: |-
@@ -36,4 +36,4 @@ sops:
             -----END PGP MESSAGE-----
           fp: 3536F7F9345D96C86FB7F9CD21FAFEE575B18815
     encrypted_regex: ^(data|stringData)$
-    version: 3.7.3
+    version: 3.8.0
