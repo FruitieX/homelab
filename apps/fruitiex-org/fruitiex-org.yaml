@@ -75,7 +75,7 @@ spec:
     spec:
       containers:
         - name: fruitiex-org
-          image: ghcr.io/fruitiex/fruitiex.org:main@sha256:d76501220f555625902d666fe5fc9651bbf28907fdd73a1033dcc31c49dedd23
+          image: ghcr.io/fruitiex/fruitiex.org:main@sha256:b8169bc4156937060495e75d4c19bb7e9bbbbbfdbca24cce5f435a5af19db9da
           imagePullPolicy: IfNotPresent
           ports:
             - name: http
