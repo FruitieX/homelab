@@ -37,8 +37,8 @@ sops:
     azure_kv: []
     hc_vault: []
     age: []
-    lastmodified: "2023-05-29T20:21:51Z"
-    mac: ENC[AES256_GCM,data:lEAZ+JBFzRTL8GIV/kepAc1TZkKWbaITLf8YWV5UF+Oc2gt8dCTZosIsOD7UdB2IHjz3FDAJu6LUXaKjXwQ0hVsOO5N7q5WPz1UqPlgpMdyiutkP2x1cqJWLvrUTfKNNPxnsNme+ncnfdwzWVCnODbxS8FJH1YY040aazURe5/w=,iv:ezaKoMtBzR7L5cLSMbVAfIacwPvIBgAFOKjIW6uRp60=,tag:jOCuEjUM9EbVW7qlxDP8mA==,type:str]
+    lastmodified: "2023-11-27T14:57:20Z"
+    mac: ENC[AES256_GCM,data:HmK/FzMyRt2FHt1i2QOgAKSw+kx8Tp5dmecNjyPkT/KartfUfM3Ov6XGaXKiiRaVbWuzP0EzU6EOFTvXmbCrUt9jBFTvKs7Wcqb9KPF/qEvjHhZvIp8IszfIOkuG/SU2cCc9RxpMmCN8AZpJHrI+W8db6Wx8p20TwsyT+jZsSJk=,iv:B+KSXk9hWaaobJWQyP2kUcoKGA26Y0yp+tL4majxphw=,tag:/MzFZZi9x/supePW6GTuwA==,type:str]
     pgp:
         - created_at: "2023-04-10T17:59:38Z"
           enc: |-
@@ -61,4 +61,4 @@ sops:
             -----END PGP MESSAGE-----
           fp: 3536F7F9345D96C86FB7F9CD21FAFEE575B18815
     encrypted_regex: ^(hosts?)$
-    version: 3.7.3
+    version: 3.8.0

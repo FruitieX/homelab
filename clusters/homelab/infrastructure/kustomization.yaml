@@ -9,11 +9,11 @@ resources:
   - nfs-subdir-external-provisioner.yaml
   - synology-csi.yaml
   - crds.yaml
-  - kube-prometheus-stack.yaml
+  # - kube-prometheus-stack.yaml
   - external-dns.yaml
   - ingress-nginx-public.yaml
   - ingress-nginx-private.yaml
   - metallb.yaml
   - reloader.yaml
   - reflector.yaml
-  - loki-stack.yaml
+  # - loki-stack.yaml

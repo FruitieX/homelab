@@ -8,8 +8,8 @@ metadata:
 provisioner: csi.san.synology.com
 parameters:
   protocol: iscsi
-  fsType: ext4
-  dsm: nectarine
-  location: '/volume1'
+  csi.storage.k8s.io/fstype: ext4
+  dsm: nectarine.internal.fruitiex.org
+  location: "/volume1"
 reclaimPolicy: Retain
 allowVolumeExpansion: true

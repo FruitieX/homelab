@@ -19,7 +19,7 @@ spec:
       name: homelab-nfs
       reclaimPolicy: Retain
     nfs:
-      server: nectarine
+      server: nectarine.internal.fruitiex.org
       path: /volume1/homelab
       mountOptions:
         - nfsvers=4.1

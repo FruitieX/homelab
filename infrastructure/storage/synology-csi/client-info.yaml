@@ -4,15 +4,15 @@ metadata:
     name: client-info-secret
     namespace: synology-csi
 stringData:
-    client-info.yaml: ENC[AES256_GCM,data:fZ43ciM3JFNhPYymf1sG6C47MHYM1UmV36Abgp9ZyjVH5xspaXE6l+iko+wUzKfUooh/C0xxckcz0DniKTYLMLYEEA/LQsn6D0lyQyTcPghxPvRM/f0t+Av1b3Fy/Kjh0f4lqsT/MwwxTvc9+iIKPfiAcvQZDdIPBw==,iv:dFyESTgIfwXc2BscM8ymgDYWJnLd69AnHLOmFl2ewj4=,tag:9WPqB5SKgjGB+ht96OWMsQ==,type:str]
+    client-info.yaml: ENC[AES256_GCM,data:bCPFvdrT5u7rRdHxsXKCOGVHYRIPkpgB4ElkuBYr5fkjSKnnQQpa3gVP19gv9NvoZuuDi3KeueHnPFlLkRHrLT7VIA01KSMFWfUDWY9A8lgRYJTHZ5cKSYOrrk+Sj+pZhJi7NZvV2FAvB6DT+jf8QkOy+oPebN2Y4WXo8buPQuodwWDV8JRWBMJTOAhOkt8=,iv:74r83RxrsoW0VXoorUd70CZ65uHxr2vGs5JWzKEeSpw=,tag:Gr7k+cy418k2/QJnr/a3Iw==,type:str]
 sops:
     kms: []
     gcp_kms: []
     azure_kv: []
     hc_vault: []
     age: []
-    lastmodified: "2023-04-13T18:01:34Z"
-    mac: ENC[AES256_GCM,data:rAvm60QIl4dsc5gNC29Fbn57ACNsw/rmieu8LRnEDYrk7UqeMYry2Y6HNDRAX5CnIlUrniChk7I8NivEr9RLrBVSUjBvfWmMvH5Np/wl39bwSJfdC3qX6zy6cW0jl5p3qgiQ8ldfe7rWSnwpVpX6ITrdLOCJ4mpZoWGtcMj32Nk=,iv:Kal1JpItuc1DIxV4ElvX5evPOCG76zL/Su4NQz34/b8=,tag:Jodc5u7cBHN7zTROeCNU4Q==,type:str]
+    lastmodified: "2023-11-27T16:17:21Z"
+    mac: ENC[AES256_GCM,data:GGb/BLe6P8cvX222HonODqupqimW+YH+gjHWqBxpv6UKVq+1FLB9lZ6yx5iyCLpa4fwdD/5aYRELz2qN15dGHfaATt1/CSh+QfuqQqZl8RjjJg+KpQrVTgS4G4nd3muRlqsT74UgAeF2jeyvENJjJbdlebYFDnx/ODCcD/0U9M8=,iv:xoCol8HmGspPSQnbs6uy2NUePJ8o71KqbOfNzQZezyQ=,tag:piqQYRZUv3k6nok0gAJRYg==,type:str]
     pgp:
         - created_at: "2023-04-13T17:50:04Z"
           enc: |-
@@ -35,4 +35,4 @@ sops:
             -----END PGP MESSAGE-----
           fp: 3536F7F9345D96C86FB7F9CD21FAFEE575B18815
     encrypted_regex: ^(data|stringData)$
-    version: 3.7.3
+    version: 3.8.0
