@@ -6,7 +6,6 @@ resources:
   - emberstack.yaml
   - grafana.yaml
   - ingress-nginx.yaml
-  - k8s-at-home.yaml
   - metallb.yaml
   - metrics-server.yaml
   - nfs-subdir-external-provisioner.yaml
