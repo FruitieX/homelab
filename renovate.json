@@ -3,7 +3,9 @@
   "extends": [
     "config:base",
     ":automergeDigest",
-    ":semanticCommits"
+    ":semanticCommits",
+    ":prHourlyLimitNone",
+    ":prConcurrentLimitNone"
   ],
   "kubernetes": {
     "fileMatch": ["\\.yaml$"]
