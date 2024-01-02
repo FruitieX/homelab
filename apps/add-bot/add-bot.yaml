@@ -31,16 +31,16 @@ spec:
     spec:
       containers:
         - name: add-bot
-          image: ghcr.io/fruitiex/add-bot-rs:0.3.0@sha256:639f58dde980479cbfb073ea273c18b6461f3341f2c8e4edad155704e2f1478e
-          env:
-            - name: TELOXIDE_TOKEN
-              value: ${ADD_BOT_TOKEN}
+          image: ghcr.io/fruitiex/add-bot-rs:0.4.0@sha256:8b9553e5e3d0314dc284ead5b4eb1d3ad6fb8fb66a786e7d758f9844087d898e
           command: ["add-bot"]
           args: ["--tz", "Europe/Helsinki"]
           workingDir: /app
           volumeMounts:
             - mountPath: /app
               name: add-bot-data
+            - mountPath: /app/Settings.toml
+              name: add-bot-config
+              subPath: Settings.toml
           resources:
             limits:
               memory: 128Mi
@@ -49,3 +49,6 @@ spec:
         - name: add-bot-data
           persistentVolumeClaim:
             claimName: add-bot-data
+        - name: add-bot-config
+          secret:
+            secretName: add-bot-config
