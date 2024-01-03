@@ -1,4 +1,4 @@
-apiVersion: helm.toolkit.fluxcd.io/v2beta2
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
 kind: HelmRelease
 metadata:
   name: kube-prometheus-stack
@@ -34,12 +34,12 @@ spec:
         size: 10Gi
       defaultDashboardsTimezone: Europe/Helsinki
       additionalDatasources:
-      - name: Loki
-        type: loki
-        isDefault: false
-        access: proxy
-        url: http://loki.monitoring.svc.cluster.local:3100
-        version: 1
+        - name: Loki
+          type: loki
+          isDefault: false
+          access: proxy
+          url: http://loki.monitoring.svc.cluster.local:3100
+          version: 1
     alertmanager:
       service:
         type: NodePort
