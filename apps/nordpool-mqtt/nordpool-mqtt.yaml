@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nordpool-mqtt
+  namespace: default
+  annotations:
+    secret.reloader.stakater.com/reload: "nordpool-mqtt-config"
+spec:
+  selector:
+    matchLabels:
+      app: nordpool-mqtt
+  template:
+    metadata:
+      labels:
+        app: nordpool-mqtt
+    spec:
+      volumes:
+        - name: nordpool-mqtt-config
+          secret:
+            secretName: nordpool-mqtt-config
+
+      containers:
+        - name: nordpool-mqtt
+          image: ghcr.io/fruitiex/nordpool-mqtt:0.1.0@sha256:61b13871d465aae4d0d1f77917ee60e2cd61840b10724774d73d4410e5a4d0e8
+          resources:
+            limits:
+              memory: 128Mi
+              cpu: 100m
+          workingDir: /app
+          volumeMounts:
+            - mountPath: /app
+              name: nordpool-mqtt-config
+
+      initContainers:
+        - name: wait-for-mqtt-broker
+          image: busybox
+          command:
+            [
+              "sh",
+              "-c",
+              "until nc -z mqtt 1883; do echo waiting for mqtt broker; sleep 1; done",
+            ]
