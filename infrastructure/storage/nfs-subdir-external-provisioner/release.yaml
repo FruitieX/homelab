@@ -20,7 +20,7 @@ spec:
       reclaimPolicy: Retain
     nfs:
       server: nectarine.internal.fruitiex.org
-      path: /volume1/homelab
+      path: /volume3/homelab
       mountOptions:
         - nfsvers=4.1
         - timeo=600

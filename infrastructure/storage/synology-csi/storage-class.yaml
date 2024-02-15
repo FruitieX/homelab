@@ -10,6 +10,6 @@ parameters:
   protocol: iscsi
   csi.storage.k8s.io/fstype: ext4
   dsm: nectarine.internal.fruitiex.org
-  location: "/volume1"
+  location: "/volume3"
 reclaimPolicy: Retain
 allowVolumeExpansion: true
