@@ -31,13 +31,13 @@ spec:
     spec:
       containers:
         - name: add-bot
-          image: ghcr.io/fruitiex/add-bot-rs:0.9.1@sha256:6ac8a4a6b7573fc00a16c0f7ae316ef35a6441ad736813187ab3149f4a655fd5
+          image: ghcr.io/fruitiex/add-bot-rs:0.10.0@sha256:51e99276eb637db9ae4a5d6d80602fff2271ff022a087df11bb59c56ad7518fc
           command: ["add-bot"]
           args: ["--tz", "Europe/Helsinki"]
           workingDir: /app
           volumeMounts:
-            - mountPath: /app
-              name: add-bot-data
+            # - mountPath: /app
+            #   name: add-bot-data
             - mountPath: /app/Settings.toml
               name: add-bot-config
               subPath: Settings.toml
@@ -46,9 +46,9 @@ spec:
               memory: 128Mi
               cpu: 100m
       volumes:
-        - name: add-bot-data
-          persistentVolumeClaim:
-            claimName: add-bot-data
+        # - name: add-bot-data
+        #   persistentVolumeClaim:
+        #     claimName: add-bot-data
         - name: add-bot-config
           secret:
             secretName: add-bot-config
