@@ -6,6 +6,9 @@ metadata:
   annotations:
     secret.reloader.stakater.com/reload: "homectl-server-settings"
 spec:
+  replicas: 1
+  strategy:
+    type: Recreate
   selector:
     matchLabels:
       app: homectl-server
