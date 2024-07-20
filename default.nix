@@ -1,4 +1,4 @@
-{ pkgs ? import (fetchTarball "https://github.com/NixOS/nixpkgs/archive/a9f6c4e42df9296e3994fdf1f6af9ec99ec385bc.tar.gz") {}
+{ pkgs ? import (fetchTarball "https://github.com/NixOS/nixpkgs/archive/63911cd477b27ee05240f565e26dc9a545270430.tar.gz") {}
 }:
 pkgs.mkShell {
   name = "homelab";
@@ -7,6 +7,7 @@ pkgs.mkShell {
     kubectl
     sops
     fluxcd
+    talosctl
     pre-commit
   ];
 }
