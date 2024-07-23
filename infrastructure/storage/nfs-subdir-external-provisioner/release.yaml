@@ -5,7 +5,7 @@ metadata:
   namespace: nfs-subdir-external-provisioner
 spec:
   interval: 1h
-  timeout: 1m
+  timeout: 3m
   chart:
     spec:
       chart: nfs-subdir-external-provisioner
