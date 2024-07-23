@@ -9,7 +9,6 @@ resources:
   - hue-mqtt.yaml
   - ingress-proxy.yaml
   - lifx-mqtt.yaml
-  - podinfo.yaml
   - tuya-mqtt.yaml
   - twinkly-mqtt.yaml
   - nordpool-mqtt.yaml
