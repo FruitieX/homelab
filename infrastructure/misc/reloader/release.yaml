@@ -4,7 +4,7 @@ metadata:
   name: reloader
   namespace: reloader
 spec:
-  interval: 10m
+  interval: 1h
   timeout: 1m
   chart:
     spec:
