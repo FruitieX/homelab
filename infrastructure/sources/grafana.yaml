@@ -3,5 +3,5 @@ kind: HelmRepository
 metadata:
   name: grafana
 spec:
-  interval: 1h
+  interval: 24h
   url: https://grafana.github.io/helm-charts

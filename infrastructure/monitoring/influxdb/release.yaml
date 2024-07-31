@@ -1,0 +1,29 @@
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: influxdb
+  namespace: influxdb
+spec:
+  interval: 1h
+  timeout: 5m
+  chart:
+    spec:
+      chart: influxdb2
+      version: "*"
+      sourceRef:
+        kind: HelmRepository
+        name: influxdata
+        namespace: flux-system
+  values:
+    adminUser:
+      existingSecret: influxdb-auth
+    persistence:
+      enabled: true
+      storageClass: syno-storage
+      size: 10Gi
+    ingress:
+      enabled: true
+      className: private
+      tls: true
+      secretName: fruitiex-org-tls
+      hostname: influxdb.fruitiex.org

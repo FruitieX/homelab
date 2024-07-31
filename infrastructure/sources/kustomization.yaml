@@ -11,3 +11,4 @@ resources:
   - nfs-subdir-external-provisioner.yaml
   - prometheus-community.yaml
   - reloader.yaml
+  - influxdata.yaml

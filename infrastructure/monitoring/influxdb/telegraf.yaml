@@ -1,0 +1,44 @@
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: telegraf-home
+spec:
+  interval: 1h
+  timeout: 5m
+  chart:
+    spec:
+      chart: telegraf
+      version: "*"
+      sourceRef:
+        kind: HelmRepository
+        name: influxdata
+        namespace: flux-system
+  values:
+    metrics:
+      health: 
+        enabled: false
+      internal:
+        enabled: false
+
+    config:
+      agent:
+        omit_hostname: true
+
+      outputs:
+        - influxdb_v2:
+            urls:
+              - "https://influxdb.fruitiex.org"
+            organization: influxdata
+            bucket: home
+            token: ${INFLUXDB_TOKEN}
+
+      inputs:
+        - mqtt_consumer:
+            servers:
+              - "tcp://mqtt.fruitiex.org:1883"
+            topics:
+              - "home/#"
+            data_format: json_v2
+            tags:
+              - name
+              - id

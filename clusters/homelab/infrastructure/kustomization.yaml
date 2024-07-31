@@ -16,4 +16,5 @@ resources:
   - metallb.yaml
   - reloader.yaml
   - reflector.yaml
+  - influxdb.yaml
   # - loki-stack.yaml

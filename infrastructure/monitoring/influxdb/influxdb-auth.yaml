@@ -1,0 +1,40 @@
+apiVersion: v1
+kind: Secret
+metadata:
+    namespace: influxdb
+    name: influxdb-auth
+type: Opaque
+stringData:
+    admin-password: ENC[AES256_GCM,data:3wLiBd2jzWG8QZmsampuWY7AYKM=,iv:Zco6dXhrUdFsO5XfiOapG89iPSs7TzaTE5idYRmVvb0=,tag:QTV+l5RtdUYjkbw51kkrZw==,type:str]
+    admin-token: ENC[AES256_GCM,data:zkhcQvzqgNSAAWLwttX8LZM52doSn60RqCZB2W1Pt0XL7WXJ/O0uU6HFJoayuW95/9dianl6ep1DRdfublUz0PCsWmLwauQ10v4gozz8IWhCLSlTf5VUJQ==,iv:W2tV4zsnVH0eBUrkcwwusvP3kpXGKDK9F1YiZFoJug4=,tag:XSaInpsntOwALTOcP38kLQ==,type:str]
+sops:
+    kms: []
+    gcp_kms: []
+    azure_kv: []
+    hc_vault: []
+    age: []
+    lastmodified: "2024-08-01T14:21:55Z"
+    mac: ENC[AES256_GCM,data:v/a4sN/MGMXiDo0166atsfaDzj39F4sDHNxfsUfVKYru6J+4B5wRvP0n2bcwMWHPr+StNFJXov90QG1QrkNxEfGpkl4qZcR5DEosmtMoS3fX7hTN2IEe/YCjuS4dWxNc7du5yBL29eSRnGO6dLko9c6nCEtJ6OS+9u0TJHIFCpo=,iv:qhzz8w33SozIHKpnzHkRbWd1CnEHq5ocNnO7IitYEy8=,tag:zgMolSPstIEODgIDsrhx9w==,type:str]
+    pgp:
+        - created_at: "2024-08-01T07:24:13Z"
+          enc: |-
+            -----BEGIN PGP MESSAGE-----
+
+            wcFMA8WjeZLD+fxwAQ//aBlQKYyIbSAaQpuAwgzGnxlyS9FooiqMWVV4su2/U0Lg
+            bd4sZvhkVEyF8ph7GAZPK+sarG8WWMLHdafvKxoewEukzfgEyHG8wRnK9MZUWbF6
+            pN4JHvIjYWMKPufwKPpgmnol/wf70kyKol2/AyUoG6DnrgaPkSXunFq1/aq9VuGK
+            YL4yP1jvYOAJqi4XuHz4AS5zF42YYaUV8/xxbf3hniop4FsXKyGBnu2eQ511pMym
+            2TxioXuuUdflM1mZO/PBHTXlTJNhbo96slsXPmatb24Ze1ziPAm9X7BD+8LgYb6k
+            vIxJ7WMlnwlILkmmz5Gbz8EARlxivdJ0ubiIhYuEnykITTBgh2BfF+oFq6NWcApg
+            75j2pMOAjKwIcdDIJdB0vHBxr8FU7tzMS/Z9KoM7v9KwKa/hSgnmQ7FCNY/wpmlL
+            RNTqRkZrXXBjbKT4T/it/vp1ttUigbXxQsvSE7/BIDSK37Pu/KRTi/HLTqJodr6F
+            mswsFbTuPLzL1FO0OEkjA+hfU/FDxyxr+DPTl2olHpiqOP1XlRmnJB9TR3FAwyEv
+            dH2lSxN6Te7R8lV8nDS4n3lh4CsfJM9EaSP/sofPUWGiyew1bDcs5nciP6oqb2Kg
+            fgLHk05FYL4bxDjrptw9BX8Dh0Nt+a7FilEsFv2TBxL5h1ZF2EKE2+z9jiA7/GjS
+            UQHCMN5WiZpL0zSreLY+pDngPx2M1wq9+hhcCwjZagCox7wrK+t23ZuxSoC18RGS
+            7VQ/P8vvxaDEk+H96oJzx4UqOne/6ihLhFzSYQfVRTuD4g==
+            =xv4o
+            -----END PGP MESSAGE-----
+          fp: 3536F7F9345D96C86FB7F9CD21FAFEE575B18815
+    encrypted_regex: ^(data|stringData)$
+    version: 3.9.0
