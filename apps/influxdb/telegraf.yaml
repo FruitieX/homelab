@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: telegraf-home
+  namespace: default
+  annotations:
+    secret.reloader.stakater.com/reload: "telegraf-home-config"
+spec:
+  selector:
+    matchLabels:
+      app: telegraf-home
+  template:
+    metadata:
+      labels:
+        app: telegraf-home
+    spec:
+      volumes:
+        - name: telegraf-home-config
+          secret:
+            secretName: telegraf-home-config
+
+      containers:
+        - name: telegraf
+          image: telegraf
+          resources:
+            limits:
+              memory: 128Mi
+              cpu: 100m
+          workingDir: /etc/telegraf
+          volumeMounts:
+            - mountPath: /etc/telegraf
+              name: telegraf-home-config

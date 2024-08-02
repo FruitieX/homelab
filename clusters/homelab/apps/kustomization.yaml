@@ -14,3 +14,4 @@ resources:
   - nordpool-mqtt.yaml
   - adb-mqtt.yaml
   - fruitiex-org.yaml
+  - influxdb.yaml
