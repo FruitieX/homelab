@@ -14,6 +14,10 @@ spec:
     protocol: TCP
     port: 1883
     targetPort: 1883
+  - name: websocket
+    protocol: TCP
+    port: 9001
+    targetPort: 9001
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -36,6 +40,9 @@ spec:
           args: ["-c", "/mosquitto-no-auth.conf"]
           ports:
             - containerPort: 1883
+              name: mqtt
+            - containerPort: 9001
+              name: websocket
           resources:
             limits:
               cpu: 100m
