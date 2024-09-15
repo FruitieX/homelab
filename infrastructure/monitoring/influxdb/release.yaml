@@ -4,7 +4,7 @@ metadata:
   name: influxdb
   namespace: influxdb
 spec:
-  interval: 1h
+  interval: 24h
   timeout: 5m
   chart:
     spec:

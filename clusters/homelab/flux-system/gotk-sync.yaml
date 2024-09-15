@@ -19,7 +19,7 @@ metadata:
   name: flux-system
   namespace: flux-system
 spec:
-  interval: 1h
+  interval: 24h
   path: ./clusters/homelab
   prune: true
   sourceRef:

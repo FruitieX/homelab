@@ -3,7 +3,7 @@ kind: HelmRelease
 metadata:
   name: telegraf-home
 spec:
-  interval: 1h
+  interval: 24h
   timeout: 5m
   chart:
     spec:
@@ -15,7 +15,7 @@ spec:
         namespace: flux-system
   values:
     metrics:
-      health: 
+      health:
         enabled: false
       internal:
         enabled: false

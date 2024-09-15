@@ -3,7 +3,7 @@ kind: Kustomization
 metadata:
   name: postgres
 spec:
-  interval: 1h
+  interval: 24h
   timeout: 5m
   retryInterval: 10s
   sourceRef:

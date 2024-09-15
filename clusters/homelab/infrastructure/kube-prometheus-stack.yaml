@@ -3,7 +3,7 @@ kind: Kustomization
 metadata:
   name: kube-prometheus-stack
 spec:
-  interval: 1h
+  interval: 24h
   timeout: 3m
   retryInterval: 10s
   sourceRef:
