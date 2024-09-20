@@ -1,0 +1,41 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: grafana
+  namespace: grafana
+spec:
+  interval: 24h
+  timeout: 5m
+  chart:
+    spec:
+      chart: grafana
+      version: "*"
+      sourceRef:
+        kind: HelmRepository
+        name: grafana
+        namespace: flux-system
+  values:
+    ingress:
+      enabled: true
+      ingressClassName: private
+      tls:
+        - secretName: fruitiex-org-tls
+      hosts:
+        - grafana.fruitiex.org
+    persistence:
+      type: pvc
+      enabled: true
+      storageClassName: syno-storage
+      accessModes:
+        - ReadWriteOnce
+      size: 10Gi
+    sidecar:
+      alerts:
+        enabled: true
+        searchNamespace: ALL
+      dashboards:
+        enabled: true
+        searchNamespace: ALL
+      datasources:
+        enabled: true
+        searchNamespace: ALL

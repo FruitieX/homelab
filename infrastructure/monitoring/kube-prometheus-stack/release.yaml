@@ -16,30 +16,7 @@ spec:
         namespace: flux-system
   values:
     grafana:
-      service:
-        type: NodePort
-      ingress:
-        enabled: true
-        ingressClassName: private
-        tls:
-          - secretName: fruitiex-org-tls
-        hosts:
-          - grafana.fruitiex.org
-      persistence:
-        type: pvc
-        enabled: true
-        storageClassName: syno-storage
-        accessModes:
-          - ReadWriteOnce
-        size: 10Gi
-      defaultDashboardsTimezone: Europe/Helsinki
-      additionalDatasources:
-        - name: Loki
-          type: loki
-          isDefault: false
-          access: proxy
-          url: http://loki.monitoring.svc.cluster.local:3100
-          version: 1
+      enabled: false
     alertmanager:
       service:
         type: NodePort

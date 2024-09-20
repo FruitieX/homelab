@@ -17,4 +17,5 @@ resources:
   - reloader.yaml
   - reflector.yaml
   - influxdb.yaml
+  - grafana.yaml
   # - loki-stack.yaml
