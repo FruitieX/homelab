@@ -18,8 +18,6 @@ spec:
     grafana:
       enabled: false
     alertmanager:
-      service:
-        type: NodePort
       ingress:
         enabled: true
         ingressClassName: private
@@ -38,8 +36,6 @@ spec:
                 requests:
                   storage: 10Gi
     prometheus:
-      service:
-        type: NodePort
       ingress:
         enabled: true
         ingressClassName: private
