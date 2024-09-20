@@ -39,3 +39,6 @@ spec:
       datasources:
         enabled: true
         searchNamespace: ALL
+      notifiers:
+        enabled: true
+        searchNamespace: ALL

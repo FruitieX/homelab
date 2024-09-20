@@ -17,6 +17,8 @@ spec:
   values:
     grafana:
       enabled: false
+      forceDeployDatasources: true
+      forceDeployDashboards: true
     alertmanager:
       ingress:
         enabled: true
