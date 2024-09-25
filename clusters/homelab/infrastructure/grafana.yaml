@@ -3,7 +3,7 @@ kind: Kustomization
 metadata:
   name: grafana
 spec:
-  interval: 24h
+  interval: 99999h
   timeout: 3m
   retryInterval: 10s
   sourceRef:
@@ -23,4 +23,3 @@ spec:
         name: cluster-config
       - kind: Secret
         name: cluster-secrets
-

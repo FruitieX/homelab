@@ -4,7 +4,7 @@ metadata:
   name: reflector
   namespace: reflector
 spec:
-  interval: 24h
+  interval: 99999h
   timeout: 3m
   chart:
     spec:

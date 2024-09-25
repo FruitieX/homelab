@@ -3,7 +3,7 @@ kind: HelmRelease
 metadata:
   name: telegraf-home
 spec:
-  interval: 24h
+  interval: 99999h
   timeout: 5m
   chart:
     spec:
