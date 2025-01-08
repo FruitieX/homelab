@@ -1,4 +1,4 @@
-{ pkgs ? import (fetchTarball "https://github.com/NixOS/nixpkgs/archive/63911cd477b27ee05240f565e26dc9a545270430.tar.gz") {}
+{ pkgs ? import (fetchTarball "https://github.com/NixOS/nixpkgs/archive/893757b4674d2653daf6d0cab18615d2570a29cd.tar.gz") {}
 }:
 pkgs.mkShell {
   name = "homelab";
