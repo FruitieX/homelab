@@ -6,7 +6,6 @@ resources:
   - postgres.yaml
   - add-bot.yaml
   - homectl.yaml
-  - hue-mqtt.yaml
   - ingress-proxy.yaml
   - lifx-mqtt.yaml
   - tuya-mqtt.yaml
@@ -15,3 +14,4 @@ resources:
   - adb-mqtt.yaml
   - fruitiex-org.yaml
   - influxdb.yaml
+#  - hue-mqtt.yaml
