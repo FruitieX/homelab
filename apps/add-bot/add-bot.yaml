@@ -11,6 +11,7 @@ spec:
   resources:
     requests:
       storage: 1Gi
+  volumeName: pvc-51cb2ddf-a3fa-442b-81e5-cbbb02e2978d
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -31,7 +32,7 @@ spec:
     spec:
       containers:
         - name: add-bot
-          image: ghcr.io/fruitiex/add-bot-rs:0.12.1@sha256:6ce9a267fa790465e61989bdb5cc916719d15a6131713218974d6d53a967e87b
+          image: ghcr.io/fruitiex/add-bot-rs:main@sha256:24acfd6a392b3e9f89b190a11280b3f6bbf56f1ec7ba465889ddf69f9faf96bf
           command: ["add-bot"]
           args: ["--tz", "Europe/Helsinki"]
           workingDir: /app
