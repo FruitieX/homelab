@@ -11,7 +11,7 @@ resources:
   - tuya-mqtt.yaml
   - twinkly-mqtt.yaml
   - nordpool-mqtt.yaml
-  - adb-mqtt.yaml
   - fruitiex-org.yaml
   - influxdb.yaml
-#  - hue-mqtt.yaml
+# - adb-mqtt.yaml
+# - hue-mqtt.yaml

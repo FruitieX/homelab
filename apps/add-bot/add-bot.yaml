@@ -4,14 +4,12 @@ metadata:
   name: add-bot-data
   namespace: default
 spec:
-  storageClassName: homelab-nfs
-  volumeMode: Filesystem
+  storageClassName: nfs-csi
   accessModes:
     - ReadWriteOnce
   resources:
     requests:
       storage: 1Gi
-  volumeName: pvc-51cb2ddf-a3fa-442b-81e5-cbbb02e2978d
 ---
 apiVersion: apps/v1
 kind: Deployment

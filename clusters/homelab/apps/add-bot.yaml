@@ -12,8 +12,6 @@ spec:
   path: ./apps/add-bot
   prune: true
   wait: true
-  dependsOn:
-    - name: nfs-subdir-external-provisioner
   decryption:
     provider: sops
     secretRef:

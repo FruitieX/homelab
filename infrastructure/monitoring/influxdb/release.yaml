@@ -19,7 +19,7 @@ spec:
       existingSecret: influxdb-auth
     persistence:
       enabled: true
-      storageClass: syno-storage
+      storageClass: nfs-csi
       size: 100Gi
     ingress:
       enabled: true

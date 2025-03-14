@@ -25,7 +25,7 @@ spec:
     persistence:
       type: pvc
       enabled: true
-      storageClassName: syno-storage
+      storageClassName: nfs-csi
       accessModes:
         - ReadWriteOnce
       size: 10Gi

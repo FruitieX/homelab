@@ -6,8 +6,8 @@ resources:
   - cert-manager.yaml
   - notification-receiver.yaml
   - notification-provider.yaml
-  - nfs-subdir-external-provisioner.yaml
   - synology-csi.yaml
+  - csi-driver-nfs.yaml
   - crds.yaml
   - kube-prometheus-stack.yaml
   - external-dns.yaml
@@ -19,3 +19,4 @@ resources:
   - influxdb.yaml
   - grafana.yaml
   # - loki-stack.yaml
+  # - nfs-subdir-external-provisioner.yaml
