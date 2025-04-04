@@ -5,15 +5,15 @@ metadata:
     name: homectl-next-settings
 type: Opaque
 stringData:
-    .env: ENC[AES256_GCM,data:kA/OOooukk/pmgEUidLw2ptSPk4tz90P53YnrvSQ/7J5zeZBPfpk5PWI2O0lVJRKk6kbHmttqbjw6IH4J81SXcxY5Qi4GCP8kO90RSTDLdp3HgFJLz9tgP3iBp752Q8oaz0ij07LYNPPpST4y+H3TbpYa1FlvxLng7OMqT9pqhU2Xt3dZagQE29czAAa3QDSFfRF1A==,iv:xbDkC2DaF8dL3HZFBHtslqlkczkJV0j+30buYBPWVes=,tag:ngONFthr7sMqnuWZZh+a4g==,type:str]
+    .env: ENC[AES256_GCM,data:UfjkCL7ocefWOAtrgCWXZtbygK8DEFvAYxp60GhZ5O6AlTL8Us8T/egXmsuCou2eIKGxyKK5A/2CCzZrLFh0XEXmioSnIZn40FEBb4f5J/rivseBMRJnqgJac6WhKQtk1Wxsgpi8494qPN9MepyxhVXvgGUk7DvBhBXDI++OlUhj7dGQT4z8D4X3oje4I+uPsN0eWkWBry8WfDNgqIRuu+lvOcG7Zx+0O7kJXRynwmuUNTJjwGP54NNawb5EYAB62ae6aIKi8BqTiLCHYYMeDNJzkYhhDi3hxEA2U/FTo29y/iXvMc2NrPBcCOqZL+8wZkSYKvrfLai++uxa/NHg0BnAp5xlEDssoHy30DixN9yoDQ==,iv:UzJql0444ZjxvXRa1ii3MLzQ/DsN1dO115UrzIdeUyk=,tag:H11BwbhnHocOs8i6glMGtA==,type:str]
 sops:
     kms: []
     gcp_kms: []
     azure_kv: []
     hc_vault: []
     age: []
-    lastmodified: "2023-05-20T18:43:09Z"
-    mac: ENC[AES256_GCM,data:Y3UBLlJEJFzIPbPB/xpDLr5Inrwi9CxpdWQ9obMzO7/xT54LjweT/gALXoYjLWs7IVE9Aid9vopn4o+ZLKDHmGyAtARz5sc7GccY33f5PVG9WHlgufWwxmuqo+rnLxDURk/xOyF3A+/bjs2L2K/ulubWaOuqLw3pR31Np/GUe0U=,iv:5Hxhems8hKciqbdVQOzCPCewth4W3C4Nzt8n6GkMxR8=,tag:IZKRlf29p8Cgvi/lYVeeCw==,type:str]
+    lastmodified: "2025-04-04T12:21:27Z"
+    mac: ENC[AES256_GCM,data:kBpKA+Spthe75vnNh0lYjwLgNNDjCCYvVVAyIjdrQihB23dnk94POw4Hw732Du9cg4pKU/A/S634mBXEkXWPzs+5wgLQlJWWtZO+4Vhk9gdzANcJFoe31zgtcQOmr9KHmXZQ4NjvERD7Uv51PM+scUWJiEx3z398cRXb7H7/V+Q=,iv:3GsnuZu3u6xfQpZ4+MomGfDF/hnFo07cCW3rk1C5zgM=,tag:KMw7/1jYy216WAiiCUlW/w==,type:str]
     pgp:
         - created_at: "2023-05-18T17:20:04Z"
           enc: |-
@@ -36,4 +36,4 @@ sops:
             -----END PGP MESSAGE-----
           fp: 3536F7F9345D96C86FB7F9CD21FAFEE575B18815
     encrypted_regex: ^(data|stringData)$
-    version: 3.7.3
+    version: 3.9.2
