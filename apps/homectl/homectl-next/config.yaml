@@ -5,15 +5,15 @@ metadata:
     name: homectl-next-settings
 type: Opaque
 stringData:
-    .env: ENC[AES256_GCM,data:UfjkCL7ocefWOAtrgCWXZtbygK8DEFvAYxp60GhZ5O6AlTL8Us8T/egXmsuCou2eIKGxyKK5A/2CCzZrLFh0XEXmioSnIZn40FEBb4f5J/rivseBMRJnqgJac6WhKQtk1Wxsgpi8494qPN9MepyxhVXvgGUk7DvBhBXDI++OlUhj7dGQT4z8D4X3oje4I+uPsN0eWkWBry8WfDNgqIRuu+lvOcG7Zx+0O7kJXRynwmuUNTJjwGP54NNawb5EYAB62ae6aIKi8BqTiLCHYYMeDNJzkYhhDi3hxEA2U/FTo29y/iXvMc2NrPBcCOqZL+8wZkSYKvrfLai++uxa/NHg0BnAp5xlEDssoHy30DixN9yoDQ==,iv:UzJql0444ZjxvXRa1ii3MLzQ/DsN1dO115UrzIdeUyk=,tag:H11BwbhnHocOs8i6glMGtA==,type:str]
+    .env: ENC[AES256_GCM,data:zyqEGuGlPxV6vO62oYbYHN15Bc8ba9DT03P1yJvj0v+v0VGSSF4WEMLis9amyTzYT0qtm5onkWjFLK50sLk8AkGpwzUn9xGHdiKmzRBe9R+u/Gju2ojpcaR/1vjEqSP/ZMGKmZXhphatqDDHBCBpGxJkhi0Dd7fTxSqheBUyaBr+/ryOuDNucZEIMH2u5alg7qv4O2HCkrnz5Mqp7oqRZHMal2krW8Ae2F64s+a4hrMG9u44ClSBBkGQAS+GyUxzrVbZBvVZYVv5CNYDlwjB7Zd4e1Hmamg5foCD5R8KDocVv6VaCP3MmJIYbAEef5JHa6ygdTOh/mT6JPYum6nZQKqweDodQ2Si8RJODDctXFQ/GKqNNtJ8ZCko+9JlokI+ZilF9Xqn6RsFjmMGK/tU2MyRZ6DSaYKjQWusVug2mrH61AypDmEkHDHzkh0caROhc6jcBd78nP2UbZAPVPGPJNxLqlPX5R0olJ7+/uVNfdeQHlc2H5+hZ93STiW71z73cV5oUe1+s2lcVWftWSW8GQxcFq8fsFVHoRnxEk3P/PKjTbU=,iv:KPqjMHMaBMbWXL/p4+T+0jl9BjBmgdd7Ux3PV0RUtUc=,tag:33yGQKZ+fRC9QNf+QGubuQ==,type:str]
 sops:
     kms: []
     gcp_kms: []
     azure_kv: []
     hc_vault: []
     age: []
-    lastmodified: "2025-04-04T12:21:27Z"
-    mac: ENC[AES256_GCM,data:kBpKA+Spthe75vnNh0lYjwLgNNDjCCYvVVAyIjdrQihB23dnk94POw4Hw732Du9cg4pKU/A/S634mBXEkXWPzs+5wgLQlJWWtZO+4Vhk9gdzANcJFoe31zgtcQOmr9KHmXZQ4NjvERD7Uv51PM+scUWJiEx3z398cRXb7H7/V+Q=,iv:3GsnuZu3u6xfQpZ4+MomGfDF/hnFo07cCW3rk1C5zgM=,tag:KMw7/1jYy216WAiiCUlW/w==,type:str]
+    lastmodified: "2025-04-05T16:53:22Z"
+    mac: ENC[AES256_GCM,data:24nJ0KlDaeZxbbrxV/LOOqmOQnZ2y09xtIzKvfqSr6+iPt/8PED5YlmoB5IwaThtHKdEwKpR1taWjLhxgpeQUu6bWQylbY4hBqXdXn13PoyjXHHyd/oo7ngREi4v0IjbpwU3oLY5I+4JHCBKWuuF+xs99nmlsa17dLENsYm+7/0=,iv:JqkYi+UBK5idGvs45iuR83+e+HuMPwD8BS1+PkYF8cU=,tag:Ktd6r20m08fdy2DntXCPCg==,type:str]
     pgp:
         - created_at: "2023-05-18T17:20:04Z"
           enc: |-
