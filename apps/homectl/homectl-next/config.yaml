@@ -5,15 +5,15 @@ metadata:
     name: homectl-next-settings
 type: Opaque
 stringData:
-    .env: ENC[AES256_GCM,data:zyqEGuGlPxV6vO62oYbYHN15Bc8ba9DT03P1yJvj0v+v0VGSSF4WEMLis9amyTzYT0qtm5onkWjFLK50sLk8AkGpwzUn9xGHdiKmzRBe9R+u/Gju2ojpcaR/1vjEqSP/ZMGKmZXhphatqDDHBCBpGxJkhi0Dd7fTxSqheBUyaBr+/ryOuDNucZEIMH2u5alg7qv4O2HCkrnz5Mqp7oqRZHMal2krW8Ae2F64s+a4hrMG9u44ClSBBkGQAS+GyUxzrVbZBvVZYVv5CNYDlwjB7Zd4e1Hmamg5foCD5R8KDocVv6VaCP3MmJIYbAEef5JHa6ygdTOh/mT6JPYum6nZQKqweDodQ2Si8RJODDctXFQ/GKqNNtJ8ZCko+9JlokI+ZilF9Xqn6RsFjmMGK/tU2MyRZ6DSaYKjQWusVug2mrH61AypDmEkHDHzkh0caROhc6jcBd78nP2UbZAPVPGPJNxLqlPX5R0olJ7+/uVNfdeQHlc2H5+hZ93STiW71z73cV5oUe1+s2lcVWftWSW8GQxcFq8fsFVHoRnxEk3P/PKjTbU=,iv:KPqjMHMaBMbWXL/p4+T+0jl9BjBmgdd7Ux3PV0RUtUc=,tag:33yGQKZ+fRC9QNf+QGubuQ==,type:str]
+    .env: ENC[AES256_GCM,data:LFcWFP+MfJvDLxHW8SBk+4Rs8CCWj17vOxkAyV7DTBqXe6PQ1EHzU9Ygdda0KiVlue/lGF+P1lFLUcKzgweEdK5DIul6cYv6p2xiQOCPhOVI+TanCfCej6beroSiMfaxoibEoxitGuZws1DEAWZQlWoWj4m2z7Zrvy7Mj/317SAiJQZkL3HTeIENe3tgHUF226ot0iXuPw/P2FrKKjs1CtB1J1Z/fEn7wLVNRX+1JTbB1qqVNocpAaOfEg4ARx5mE7a4WL3MNbW6+zbtLtV+sogBzf6EXfSvOxCiza22qRfqibXI3jNPzfn+Xp5tTybJLKk04d0SBHbCXDx1OkzcJCOQqvgkkp2hRvfir2LCBSXU5eD+ztdhGQtyoWg1Eekh3VH02Qt3UC2Cv6i9qMkyUn0LOef5gk7b4ayD8RZ6TpQrxBvHFpnrlJEPG9zimBDz6bnLC+R/2EvCv25ibrRd2gOKONvm96ofXxZ+KPsFM6zuEv5gRnHnYU1I6LxyAKXC7cFoctVqWGVWoSNsF2LQ9rQ8U++rXuvfIewzJWOvAMBgGQ8=,iv:aaHAnUj0x29D/PNeuwsl84Y47AJKYn2/72vbXhcaIdQ=,tag:jtnBPheVEZu6xVc8UoM/5g==,type:str]
 sops:
     kms: []
     gcp_kms: []
     azure_kv: []
     hc_vault: []
     age: []
-    lastmodified: "2025-04-05T16:53:22Z"
-    mac: ENC[AES256_GCM,data:24nJ0KlDaeZxbbrxV/LOOqmOQnZ2y09xtIzKvfqSr6+iPt/8PED5YlmoB5IwaThtHKdEwKpR1taWjLhxgpeQUu6bWQylbY4hBqXdXn13PoyjXHHyd/oo7ngREi4v0IjbpwU3oLY5I+4JHCBKWuuF+xs99nmlsa17dLENsYm+7/0=,iv:JqkYi+UBK5idGvs45iuR83+e+HuMPwD8BS1+PkYF8cU=,tag:Ktd6r20m08fdy2DntXCPCg==,type:str]
+    lastmodified: "2025-04-07T10:37:23Z"
+    mac: ENC[AES256_GCM,data:iDBFEKKYDamfp4+R8mYHA0GTReehevZ0K+I3dPUV1hjkxEG+2y22bsYqcBa75UuJhDLEYXZr3y3txBGkC4Blplvypq2AWLb6/0jd65ooLIjlcDtBUosw2OculF6mwTQ+HzrGddxhXHw6dIT19BUIUDhxS7In4NPwi3sdQmJe768=,iv:jFg/t7Hzxq8NnUEtZL7A5BRQyEOoeCVkzmuLh5HG0uc=,tag:Be0KSdbr01G9PyXf4lXzKA==,type:str]
     pgp:
         - created_at: "2023-05-18T17:20:04Z"
           enc: |-
