@@ -5,15 +5,15 @@ metadata:
     name: nordpool-mqtt-config
 type: Opaque
 stringData:
-    Settings.toml: ENC[AES256_GCM,data:StqkwzLd8hz/f5b5H5k/S6Gn0LbVq4iX0GXCNu4dT6JXw30CD2s6/cTygbkwEw+Mio/RsWdRAtHd9w3x2Jths3Hm3HvZlGU/pnH7FzvUw0FZiwGrEfAiF0wCgvs=,iv:oc+vtsk5CCsr8tj9f2qbkE23FVmTYjf9R0/OebbneUY=,tag:8f+uUNAme1j1tyvXk+QFgQ==,type:str]
+    Settings.toml: ENC[AES256_GCM,data:7O9ts12OLQI+r71YoH/a7dfdaUzxblBgqlHbwh5nb4T7IzbXNCNkHZBYFguejR+xGpYhWGMQPcjPqX0X922uCIZ+f6bkEvOGUGU44nop4zDu4low20xSISe/HB+Rm4AehlY7YwA9dRcR69cagkBtukudBSsByaTIbGG6tBM5cZl03WPlgtGkXnyrYVUDZOQin+vz9jU8VQzIup1aNqIR2VHhBRaqToYxjWDZj9gWbXoilpYL24hZC7SN3/QF1+IMNzpk1zoENPRIIE3f8yydHrs6EcjVfnUvJTZik97zPF4MdiIyScB2Ui3cgX5hMT9zAc8qAdhvKwjEl3s59AvNAb3dDGPCaBOCYKNCnsqD7oqPYJaFMnk1N3yw,iv:X3HAt1t2Hr8pXmrxpE+ujXK+5OStsMYieaX6YD1GLuk=,tag:p49ze99gOYtPwn0oSby/ig==,type:str]
 sops:
     kms: []
     gcp_kms: []
     azure_kv: []
     hc_vault: []
     age: []
-    lastmodified: "2024-02-07T11:38:40Z"
-    mac: ENC[AES256_GCM,data:hED1inW4MQJ5hZ5oAF8i0T8/hX+HB9OABM0azHEtAPYeNX72gxGHp4IujHNYfNYKVwL7O6WF1F6rYMZGyCNFhXnsS9b16hpWrgH4C4xc8U2+WYOItEEZnQpS+fHh+3w14KAIK6ZeUzXyHFAfrSG2hu80qKb5OjsqGIYnN9NNQ2U=,iv:iXAsnrC70k9bfVFdUfBGpZmjD0jfBx3MOD8esoOD4g0=,tag:c4Wj5oCVK/MNSLjxjXEqMA==,type:str]
+    lastmodified: "2025-04-07T10:05:18Z"
+    mac: ENC[AES256_GCM,data:3FGDh5/kh5a2v0ZNzwQ0BJceD9nqMFbq+I9Cky6ODBEffdwFnjvkVqvRW0MU8qOROBXRcbkDRqaGW7ByRXLF859MG2zDvGyJSZwNL43e59z9xuZtSxKG45M5ggZWvwU/a4YwXZZzVFi1Is8inPsA4DrJrxOoglVD7uGOU5TUMDk=,iv:1xt/6+cKr1ck15SeWt2/G6hKSqTmm9MorL/WJjCAfyg=,tag:OnHvm9rOP9TsrwM4W0KN8Q==,type:str]
     pgp:
         - created_at: "2023-04-06T05:30:06Z"
           enc: |-
@@ -36,4 +36,4 @@ sops:
             -----END PGP MESSAGE-----
           fp: 3536F7F9345D96C86FB7F9CD21FAFEE575B18815
     encrypted_regex: ^(data|stringData)$
-    version: 3.8.0
+    version: 3.9.2
