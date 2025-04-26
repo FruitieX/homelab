@@ -1,0 +1,41 @@
+ingress:
+    tls:
+        - secretName: ENC[AES256_GCM,data:V8kP4y1j2HV0WKu3kmXDhg==,iv:Zrd462SkRVllGHwhFVQdWoKg1fEtfwqVdGfMPofmtqg=,tag:h2rRlhwsos361KyEPVkQnQ==,type:str]
+          hosts:
+            - ENC[AES256_GCM,data:eLf6bC3fyZjfpXeVjbaAlpN5Uwez,iv:R2yW6yKzOu+i/YuKrAECZAXuQk1WW1hmdbKkmCb3m8c=,tag:rO0/skIGw/jVERxyQ/oR6w==,type:str]
+    hosts:
+        - host: ENC[AES256_GCM,data:u+juAI4vCNyHZ8hvvwKLBOHuJC5i,iv:oqdXB5b+hIfq84t0UeozvAc66PMB8RXd7BQJy3amyN4=,tag:ZA+7vMrm1LzC9eUn3wR5kg==,type:str]
+          paths:
+            - path: ENC[AES256_GCM,data:gw==,iv:2wopwSZdRfW89Cz3iuikDhw1uI7n6qBkproK7H6M8PM=,tag:ofZM1yDatK1hVRovm8E+XQ==,type:str]
+              pathType: ENC[AES256_GCM,data:LvBRFSOxW7HNp3IMaWsBUV5tZDpxYg==,iv:xUjAAGNOpzM/w7xXn06XIk5dgvAyUKmZ+Crux2FfYsk=,tag:9axTQTvAht91VuPmFaPxYQ==,type:str]
+sops:
+    kms: []
+    gcp_kms: []
+    azure_kv: []
+    hc_vault: []
+    age: []
+    lastmodified: "2025-07-08T18:12:19Z"
+    mac: ENC[AES256_GCM,data:aq89a0X9LFP0Bwp7YDl+34QLcQWvV1nbctDEAeKdYxQfb7r46Gl3EWtXMcDY5DtCXR6NGPAe0WM68HegAU4t0Wu/yqJR6mofSLwY0f4glr3c4XmxWQJasroX0m4Sj/Z/5EGWYdxWrlRict9XhQrkpwB4Cgef3JtFQiTuiMGYeMQ=,iv:4hcNnzmxFksVAdT8Bs7x92eHp84IM9Kjxy/BxK/gTZI=,tag:rTlSV7T0AS+l8F7fW0V5TQ==,type:str]
+    pgp:
+        - created_at: "2025-07-08T18:12:19Z"
+          enc: |-
+            -----BEGIN PGP MESSAGE-----
+
+            wcFMA8WjeZLD+fxwAQ//QLUImOU3zQAJSSVCEr2Dca6dqil09DXBjrzuU2Qm5uQI
+            zhBCtFW2a4ckvreqecgZU+paD+8MGw0M4W+L/XKSx6sRXejGH7zTQyHaKuR1Dbt8
+            gvG8dY7p9tU41b+wXbtT+a+2g/2kFkMONGTCXX8N6OS1l4STeUzLiAcQqWFKKXH6
+            iv1rn+5qEZgp4QvEp9bMMIjNwQWDXfjwz072VAlnQEOuJnGGmoy98NlRW3OgBxGP
+            I/cVJ5arsQMKuPowddkxcT24dDk00JesvT+xxAPZjPg0gfmuOCZxUrkNLLrWXozU
+            PogvPI64I88CF4yIPqCxgbtQv5upK0cD2AVo33hj8KjzrsHH4fB/t78iRnCGXdcj
+            8Q8Ttufo4eaY0oGcmVEYZy7bAbYQMFxKhvuE9Ph0f7QLSz5HOaOHoT3cBGf0Wc28
+            UkjZAbEyHQ3XPsae3VqkJautcbcf39aU40M6G/6fBsVewxi9OrpqB2kfnM+gQtDi
+            r4Yh70IvbrmJRGSUbZpCNxA4XnjACJUSMBqrShuF1ev/pWZBzTpMw3gzIcFMu+k5
+            fXym5Rn6Mfa/bBgXVGNR5wE2P9uUgiCnYqdrciWeRbxIYLjJvZ/rY5aw2VkM7jFq
+            V9myATGzyActCgUVS9uHsBuTRub7Jo1kHqH5Pv2YosSNce9PaYbewmX/ftQA6YfS
+            UQGXAMpk5lkirw09jGJn/4Ht4JnUhU1ERlDEqTlZWlFP0possXds1vv7m6f0pTpj
+            7jAePdpKFhkIPAsGeFK0i04ZCqqfpjHkoTZVsXI9OajMQA==
+            =sovS
+            -----END PGP MESSAGE-----
+          fp: 3536F7F9345D96C86FB7F9CD21FAFEE575B18815
+    encrypted_regex: ingress
+    version: 3.9.2

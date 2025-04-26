@@ -21,7 +21,10 @@ spec:
               key: api-token
         selector:
           dnsNames:
-            - '*.fruitiex.org'
+            - "fruitiex.org"
+            - "*.fruitiex.org"
+            - "lovegren.fi"
+            - "*.lovegren.fi"
 ---
 apiVersion: cert-manager.io/v1
 kind: ClusterIssuer
@@ -45,4 +48,7 @@ spec:
               key: api-token
         selector:
           dnsNames:
-            - '*.fruitiex.org'
+            - "fruitiex.org"
+            - "*.fruitiex.org"
+            - "lovegren.fi"
+            - "*.lovegren.fi"
