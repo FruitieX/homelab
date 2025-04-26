@@ -13,5 +13,6 @@ resources:
   - nordpool-mqtt.yaml
   - fruitiex-org.yaml
   - influxdb.yaml
+  - jellyfin.yaml
 # - adb-mqtt.yaml
 # - hue-mqtt.yaml
