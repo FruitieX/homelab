@@ -18,3 +18,23 @@ spec:
       reflector.v1.k8s.emberstack.com/reflection-allowed-namespaces: "flux-system,ingress-proxy,kube-prometheus-stack,grafana,influxdb" # Control destination namespaces
       reflector.v1.k8s.emberstack.com/reflection-auto-enabled: "true" # Auto create reflection for matching namespaces
       reflector.v1.k8s.emberstack.com/reflection-auto-namespaces: "flux-system,ingress-proxy,kube-prometheus-stack,grafana,influxdb" # Control auto-reflection namespaces
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: lovegren-fi-tls
+  namespace: default
+spec:
+  secretName: lovegren-fi-tls
+  issuerRef:
+    kind: ClusterIssuer
+    name: ${LETSENCRYPT_CLUSTER_ISSUER}
+  dnsNames:
+    - "lovegren.fi"
+    - "*.lovegren.fi"
+  secretTemplate:
+    annotations:
+      reflector.v1.k8s.emberstack.com/reflection-allowed: "true"
+      reflector.v1.k8s.emberstack.com/reflection-allowed-namespaces: "flux-system,ingress-proxy,kube-prometheus-stack,grafana,influxdb" # Control destination namespaces
+      reflector.v1.k8s.emberstack.com/reflection-auto-enabled: "true" # Auto create reflection for matching namespaces
+      reflector.v1.k8s.emberstack.com/reflection-auto-namespaces: "flux-system,ingress-proxy,kube-prometheus-stack,grafana,influxdb" # Control auto-reflection namespaces

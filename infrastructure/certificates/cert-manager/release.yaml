@@ -16,3 +16,7 @@ spec:
         namespace: flux-system
   values:
     installCRDs: true
+    podDnsConfig:
+      nameservers:
+        - "1.1.1.1"
+        - "8.8.8.8"
