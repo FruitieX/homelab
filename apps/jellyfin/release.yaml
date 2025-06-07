@@ -17,7 +17,7 @@ spec:
   values:
     ingress:
       enabled: true
-      className: private
+      className: public
       tls:
         - secretName: fruitiex-org-tls
           hosts:
