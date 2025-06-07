@@ -18,6 +18,8 @@ spec:
     ingress:
       enabled: true
       className: public
+      annotations:
+        external-dns.alpha.kubernetes.io/exclude: "true"
       tls:
         - secretName: fruitiex-org-tls
           hosts:
