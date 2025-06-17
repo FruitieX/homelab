@@ -1,0 +1,49 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: immich
+  namespace: default
+spec:
+  interval: 99999h
+  timeout: 5m
+  chartRef:
+    kind: OCIRepository
+    name: immich
+  values:
+    image:
+      tag: v1.134.0
+    redis:
+      enabled: true
+    envFrom:
+      - secretRef:
+          name: immich-postgres-config
+    postgresql:
+      global:
+        postgresql:
+          auth:
+            existingSecret: 
+    server:
+      ingress:
+        main:
+          enabled: true
+          className: public
+          annotations:
+            external-dns.alpha.kubernetes.io/exclude: "true"
+          tls:
+            - secretName: fruitiex-org-tls
+              hosts:
+                - immich.fruitiex.org
+          hosts:
+            - host: immich.fruitiex.org
+              paths:
+                - path: /
+                  pathType: ImplementationSpecific
+    immich:
+      persistence:
+        library:
+          enabled: true
+          accessMode: ReadWriteMany
+          size: 10Gi
+          storageClass: nfs-csi
+          existingClaim: pvc-immich-media
+      

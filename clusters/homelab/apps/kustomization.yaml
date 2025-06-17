@@ -14,5 +14,6 @@ resources:
   - fruitiex-org.yaml
   - influxdb.yaml
   - jellyfin.yaml
+  - immich.yaml
 # - adb-mqtt.yaml
 # - hue-mqtt.yaml
