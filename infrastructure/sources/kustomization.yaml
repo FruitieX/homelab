@@ -14,3 +14,4 @@ resources:
   - reloader.yaml
   - influxdata.yaml
   - jellyfin.yaml
+  - immich.yaml
