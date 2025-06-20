@@ -48,7 +48,7 @@ spec:
     spec:
       containers:
         - name: immich-postgres
-          image: ghcr.io/immich-app/postgres:14-vectorchord0.3.0-pgvectors0.2.0@sha256:fa4f6e0971f454cd95fec5a9aaed2ed93d8f46725cc6bc61e0698e97dba96da1
+          image: ghcr.io/immich-app/postgres:14-vectorchord0.3.0-pgvectors0.2.0@sha256:007a98749340534a0408a26435b1a0ab5ded76df788f897fdb6342c9c1b95448
           imagePullPolicy: "IfNotPresent"
           ports:
             - containerPort: 5432
