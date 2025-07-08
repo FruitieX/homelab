@@ -20,15 +20,6 @@ spec:
       className: public
       annotations:
         external-dns.alpha.kubernetes.io/exclude: "true"
-      tls:
-        - secretName: fruitiex-org-tls
-          hosts:
-            - jellyfin.fruitiex.org
-      hosts:
-        - host: jellyfin.fruitiex.org
-          paths:
-            - path: /
-              pathType: ImplementationSpecific
     persistence:
       config:
         enabled: true
@@ -43,4 +34,7 @@ spec:
         existingClaim: pvc-jellyfin-media
     service:
       type: LoadBalancer
+  valuesFrom:
+    - kind: Secret
+      name: jellyfin-secret-values
     

@@ -66,15 +66,6 @@ spec:
           ingressClassName: public
           annotations:
             external-dns.alpha.kubernetes.io/exclude: "true"
-          tls:
-            - secretName: fruitiex-org-tls
-              hosts:
-                - immich.fruitiex.org
-          hosts:
-            - host: immich.fruitiex.org
-              paths:
-                - path: /
-                  pathType: ImplementationSpecific
     immich:
       persistence:
         library:
@@ -83,4 +74,6 @@ spec:
           size: 10Gi
           storageClass: nfs-csi
           existingClaim: immich-library
-      
+  valuesFrom:
+    - kind: Secret
+      name: immich-secret-values

@@ -5,3 +5,10 @@ resources:
   - ./immich-postgres.yaml
   - ./release.yaml
   - ./volume.yaml
+secretGenerator:
+  - name: immich-secret-values
+    namespace: default
+    files:
+      - immich-secret-values.yaml
+generatorOptions:
+  disableNameSuffixHash: true

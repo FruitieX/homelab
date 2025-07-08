@@ -3,3 +3,10 @@ kind: Kustomization
 resources:
   - ./volume.yaml
   - ./release.yaml
+secretGenerator:
+  - name: jellyfin-secret-values
+    namespace: default
+    files:
+      - jellyfin-secret-values.yaml
+generatorOptions:
+  disableNameSuffixHash: true
