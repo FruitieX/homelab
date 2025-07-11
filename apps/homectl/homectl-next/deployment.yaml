@@ -21,7 +21,7 @@ spec:
 
       containers:
         - name: homectl-server
-          image: ghcr.io/fruitiex/homectl-next:main@sha256:3efbdeedab76c319703ac97523d94f1348c5dd37650ef87e4325a7f35869f991
+          image: ghcr.io/fruitiex/homectl-next:main@sha256:d01e23f4115efc516fcb79981a33ea056c834acb1bc2f49f7ecc9dac7d5da899
           env:
             - name: TZ
               value: Europe/Helsinki
