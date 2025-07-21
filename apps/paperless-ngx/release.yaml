@@ -1,0 +1,56 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: paperless-ngx
+  namespace: default
+spec:
+  interval: 99999h
+  timeout: 5m
+  chart:
+    spec:
+      chart: paperless-ngx
+      version: "*"
+      sourceRef:
+        kind: HelmRepository
+        name: gabe565
+        namespace: flux-system
+  values:
+    env:
+      USERMAP_UID: "1026"
+      USERMAP_GID: "100"
+    ingress:
+      main:
+        enabled: true
+        ingressClassName: private
+        tls:
+          - secretName: fruitiex-org-tls
+            hosts:
+              - paperless.fruitiex.org
+        hosts:
+          - host: paperless.fruitiex.org
+            paths:
+              - path: /
+                pathType: ImplementationSpecific
+    service:
+      main:
+        type: LoadBalancer
+    persistence:
+      data:
+        enabled: true
+        accessMode: ReadWriteOnce
+        size: 10Gi
+        storageClass: nfs-csi
+      media:
+        enabled: true
+        accessMode: ReadWriteMany
+        size: 10Gi
+        storageClass: nfs-csi
+        existingClaim: pvc-paperless-ngx-media
+      export:
+        enabled: false
+      consume:
+        enabled: false
+    redis:
+      auth:
+        existingSecret: paperless-redis
+        existingSecretPasswordKey: redis-password

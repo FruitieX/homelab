@@ -1,0 +1,39 @@
+apiVersion: v1
+kind: Secret
+metadata:
+    namespace: default
+    name: paperless-redis
+type: Opaque
+stringData:
+    redis-password: ENC[AES256_GCM,data:VqpArnMCxTz+UpNfo0sU,iv:Kc81SC6n1jtQqFDay9hEYoHYdls7f/PrP9KDXG1YhgU=,tag:kXdYFLokyoNS6LKtVd6oCw==,type:str]
+sops:
+    kms: []
+    gcp_kms: []
+    azure_kv: []
+    hc_vault: []
+    age: []
+    lastmodified: "2025-07-21T19:16:59Z"
+    mac: ENC[AES256_GCM,data:JVM3e2YWOlzfb/rHe5PbrzMqpAyPEjEFpoMpHFqtK3eQAtFi1v0ev3LcE4Om3zYV9i4gUr4ah62jKnObgHBqX/l8++uaTxVTLOURl4cFk+gGSmeWC57OQNFNvWHOMXFwa/Gl+qR0Vw3DyJbcJw4N4O6QCYp9Glc6Wkkt/x+VRcY=,iv:c12oVe6e7wf5xv7IRhuoKXA3WK/6SPo4FkogSdVn1U4=,tag:mxqEYMqwJqKlQiRJ7etVSA==,type:str]
+    pgp:
+        - created_at: "2025-07-21T19:16:59Z"
+          enc: |-
+            -----BEGIN PGP MESSAGE-----
+
+            wcFMA8WjeZLD+fxwARAAm8l+y6ROcLvBu9MOnSsLHAfGLCv694VQF0NV72Q7b6UC
+            mcvtYnA87AdDGyRtEW+d3+7mchtv4/hD7mg8VXmyfJggJDScjYh2r8Sr7rjaX/48
+            0Q0MLNoq0BVO5AqF23Dw6VOVq31EUtvlNEbeIJM/DzdgWoyqZE2LuPGC5IxKy8MK
+            skPtQbvgMMZSZ6CRUKQXu9U3I3WTWlYo8i6KWOsP6zFgl+I4qSUnr419Mj7eYK08
+            +32VX2bQYGtFr76zjety8GEo2gd8YAyE6O3pWcGl+EOkROzNi9dCmCH5CfTSxIp9
+            avTXXUsNjuZy7LOFJHT8xSveLja88xv6zdd6rm/Z3Hv85Pikorfw2M3wvc3PolOc
+            UWh1v/7+1D2hsu0VLMo/YV9QgBNyDyvTWi9ICI5zgLs5LJHqqYWeeDS/x9DYImy6
+            450mYn0YRRz5uqirjKgcro2pTj7dxL+WEGDDdANqPVtIzwaxLb31Pdx0vU3z4V5e
+            srP53x1oEzCD65aIny+p7QIpLfp/jsHpzDugf2XsdWci9gyVUkZwsQR2817Fy+fw
+            CMw0vxtX5L1dijEQ9TVPAHPdBKkN6zWeLzVGfeS7M8lW7i3lhivfHTT6wIto+7xS
+            vQcKuUl5llrUSpKZCey1ZkiTm6B2ppLmJAkkAtphe8P3GACSBgbO8kzze/VOK6TS
+            UQElggvWuAoOP73i2/zuGA1xZzdhKSY7r6uFhJA8kRwTA4WRDMRciWM1ov+gfIfI
+            OHxNYkF4goB5NfLjMkpq9nUYUiASpwpafdAMo8vjmNr0UA==
+            =6Nch
+            -----END PGP MESSAGE-----
+          fp: 3536F7F9345D96C86FB7F9CD21FAFEE575B18815
+    encrypted_regex: ^(data|stringData)$
+    version: 3.9.2

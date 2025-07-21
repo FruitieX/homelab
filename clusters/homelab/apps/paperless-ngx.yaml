@@ -1,0 +1,20 @@
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: paperless-ngx
+spec:
+  interval: 99999h
+  timeout: 3m
+  retryInterval: 10s
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+  path: ./apps/paperless-ngx
+  prune: true
+  wait: true
+  decryption:
+    provider: sops
+    secretRef:
+      name: sops-gpg
+  postBuild:
+    substitute: {}

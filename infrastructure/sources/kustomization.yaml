@@ -15,3 +15,4 @@ resources:
   - influxdata.yaml
   - jellyfin.yaml
   - immich.yaml
+  - gabe565.yaml
