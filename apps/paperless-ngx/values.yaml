@@ -1,0 +1,41 @@
+ingress:
+    tls:
+        - secretName: fruitiex-org-tls
+          hosts:
+            - paperless.fruitiex.org
+    hosts:
+        - host: paperless.fruitiex.org
+          paths:
+            - path: /
+              pathType: ImplementationSpecific
+sops:
+    kms: []
+    gcp_kms: []
+    azure_kv: []
+    hc_vault: []
+    age: []
+    lastmodified: "2025-07-21T17:22:36Z"
+    mac: ENC[AES256_GCM,data:ZF9DdlftjYIE4aigXsGahXdjlQTNfkrJAOsbaMGNOr+A7aLzyiByfETY6UWCJyflPN/OcHcDLrB6acH8iTAREJsMDbYJ+5+CxpLFBrJOQcjTfQzKNCEYz72o9gxJjTB6kbnQCkuVsvLVuYIgVrNd/ZVsOSy90O5wcoAscEXz+tY=,iv:cmIxAarAORjTYwkVWzTGS7dxOXGgZn2IpnDm4s2GFZg=,tag:UgomdV/n58yXo7IEtIT1yQ==,type:str]
+    pgp:
+        - created_at: "2025-07-21T17:22:36Z"
+          enc: |-
+            -----BEGIN PGP MESSAGE-----
+
+            wcFMA8WjeZLD+fxwAQ/8DwzPE4OXhnykPp1ulFTH3c8sVwgJ/YgNC8VH3vku5E8C
+            cqiljopQ0BUNLgPV5DFgtVbpI2UvGVUMnXw5PByQh2Y+vdGBJqk/MkzjKIZ6x4hN
+            VLxUnmRG/BhwGdJHvBNZ2yBNihjem4vve20RcAqWfWeqmogwAxXn+cUjcVZ5YBx0
+            pAiSlYwnuJxSgKT/Vuq/jNesaJMW/0GVLPPkzEjXpctGsxcBZq/6Jpccpq9MTlqO
+            ilLmF61McZhDr4ZV+bStGRxmjVOOO27mALYgpmzQ6Z9LwTmjk0Zon6v+10t9u8ZD
+            uNTmKZ4OU13x9umAXLkMwKzWvKrmaMntuvmBmyRBfL+7INShRV6WPBq+IZBYJJd1
+            /Po1VCbAN0Zo5JE0C0c/sTCQUSdLPuf5sqVYIIcQzx5gReycicJoQyuayaf/Jg/c
+            v0s9GDRg4+LVU48Q+fJnaodFXWUa7CctcH6VvVFr4j7OnmfVQffcu3iXSpgBHvkJ
+            pj9fH/+3bGFTjcwIa28HwdbcUJvdMuKN10g7tCJUSyyXQ2HKvUdA5+TuLO9KlbqN
+            bL6Njg3Up9X0CubB5dysd6kfhkbzmXMFOfRxkIjOR4pAhxkKnMQRMSvGzaC6DlO2
+            mndLsp3s2s1HqGgX3Ka5hB7FCMSPNi/Jf6MTzmWSUNX8DpmcieLHZxlVN85l8wzS
+            UQH1G/9PKae876kdbZXbP57F9LMNLp3MCvKRpnAc7ULkqytG9YhXB0lzmyMutLwJ
+            dPswb66MW+/QwDNceffbZis3FOSOWFTo868ZCK4xM7Qp0A==
+            =oqU2
+            -----END PGP MESSAGE-----
+          fp: 3536F7F9345D96C86FB7F9CD21FAFEE575B18815
+    encrypted_regex: ^(data|stringData)$
+    version: 3.9.2

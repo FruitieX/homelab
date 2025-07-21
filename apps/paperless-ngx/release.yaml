@@ -1,0 +1,37 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: paperless-ngx
+  namespace: default
+spec:
+  interval: 99999h
+  timeout: 5m
+  chart:
+    spec:
+      chart: paperless-ngx
+      version: "*"
+      sourceRef:
+        kind: HelmRepository
+        name: gabe565
+        namespace: flux-system
+  values:
+    ingress:
+      enabled: true
+      className: private
+      annotations:
+        external-dns.alpha.kubernetes.io/exclude: "true"
+    persistence:
+      data:
+        enabled: true
+        accessMode: ReadWriteOnce
+        size: 10Gi
+        storageClass: nfs-csi
+      media:
+        enabled: true
+        accessMode: ReadWriteMany
+        size: 10Gi
+        storageClass: nfs-csi
+        existingClaim: pvc-paperless-ngx-media
+  valuesFrom:
+    - kind: Secret
+      name: paperless-ngx-secret-values
