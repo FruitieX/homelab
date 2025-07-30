@@ -1,0 +1,61 @@
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: gonic
+  namespace: default
+spec:
+  interval: 99999h
+  chart:
+    spec:
+      chart: gonic
+      version: "6.4.2"
+      sourceRef:
+        kind: HelmRepository
+        name: geek-cookbook
+        namespace: flux-system
+  values:
+    image:
+      repository: sentriz/gonic
+      tag: v0.16.4
+
+    env:
+      TZ: Europe/Helsinki
+      GONIC_PLAYLISTS_PATH: /playlists
+
+    ingress:
+      main:
+        enabled: true
+        ingressClassName: private
+        annotations:
+          # Override to prevent bjw-s common library from adding forbidden configuration-snippet
+          nginx.ingress.kubernetes.io/configuration-snippet: ~
+        hosts:
+          - host: gonic.fruitiex.org
+            paths:
+              - path: /
+                pathType: Prefix
+        tls:
+          - secretName: fruitiex-org-tls
+            hosts:
+              - gonic.fruitiex.org
+
+    persistence:
+      config:
+        enabled: true
+        type: pvc
+        accessMode: ReadWriteOnce
+        size: 1Gi
+        storageClass: nfs-csi
+      playlist:
+        enabled: true
+        type: pvc
+        accessMode: ReadWriteOnce
+        size: 1Gi
+        storageClass: nfs-csi
+        mountPath: /playlists
+      music:
+        enabled: true
+        type: pvc
+        existingClaim: gonic-music-pvc
+        mountPath: /music
+        readOnly: true

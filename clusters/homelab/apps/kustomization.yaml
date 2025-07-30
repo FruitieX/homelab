@@ -16,6 +16,7 @@ resources:
   - jellyfin.yaml
   - immich.yaml
   - navidrome.yaml
+  # - gonic.yaml
   # - paperless-ngx.yaml
 # - adb-mqtt.yaml
 # - hue-mqtt.yaml

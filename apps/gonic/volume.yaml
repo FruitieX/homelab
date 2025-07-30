@@ -2,9 +2,7 @@
 apiVersion: v1
 kind: PersistentVolume
 metadata:
-  annotations:
-    pv.kubernetes.io/provisioned-by: nfs.csi.k8s.io
-  name: pv-navidrome-music
+  name: gonic-music-pv
 spec:
   capacity:
     storage: 100Gi
@@ -16,18 +14,16 @@ spec:
     - nfsvers=4.1
   csi:
     driver: nfs.csi.k8s.io
-    # volumeHandle format: {nfs-server-address}#{sub-dir-name}#{share-name}
-    # make sure this value is unique for every share in the cluster
-    volumeHandle: nectarine.internal.fruitiex.org/volume3/music#navidrome-music
+    volumeHandle: nectarine.internal.fruitiex.org/volume3/music#gonic-music
     volumeAttributes:
       server: nectarine.internal.fruitiex.org
       share: /volume3
       subDir: music
 ---
-kind: PersistentVolumeClaim
 apiVersion: v1
+kind: PersistentVolumeClaim
 metadata:
-  name: pvc-navidrome-music
+  name: gonic-music-pvc
   namespace: default
 spec:
   accessModes:
@@ -35,5 +31,5 @@ spec:
   resources:
     requests:
       storage: 100Gi
-  volumeName: pv-navidrome-music
+  volumeName: gonic-music-pv
   storageClassName: nfs-csi
