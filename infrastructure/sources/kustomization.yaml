@@ -16,3 +16,4 @@ resources:
   - jellyfin.yaml
   - immich.yaml
   - gabe565.yaml
+  - navidrome.yaml

@@ -15,6 +15,7 @@ resources:
   - influxdb.yaml
   - jellyfin.yaml
   - immich.yaml
+  - navidrome.yaml
   # - paperless-ngx.yaml
 # - adb-mqtt.yaml
 # - hue-mqtt.yaml

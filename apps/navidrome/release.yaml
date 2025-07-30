@@ -1,0 +1,54 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: navidrome
+  namespace: default
+spec:
+  interval: 99999h
+  timeout: 5m
+  chart:
+    spec:
+      chart: navidrome
+      version: "*"
+      sourceRef:
+        kind: HelmRepository
+        name: djjudas21
+        namespace: flux-system
+  values:
+    env:
+      ND_MUSICFOLDER: "/music"
+      ND_LOGLEVEL: "info"
+      ND_ENABLETRANSCODINGCONFIG: "true"
+      ND_SESSIONTIMEOUT: "72h"
+      TZ: "Europe/Helsinki"
+
+    ingress:
+      main:
+        enabled: true
+        ingressClassName: private
+        annotations:
+          # Remove any problematic nginx annotations by setting them explicitly
+          nginx.ingress.kubernetes.io/configuration-snippet: ~
+        tls:
+          - secretName: fruitiex-org-tls
+            hosts:
+              - navidrome.fruitiex.org
+        hosts:
+          - host: navidrome.fruitiex.org
+            paths:
+              - path: /
+                pathType: ImplementationSpecific
+
+    persistence:
+      config:
+        enabled: true
+        type: pvc
+        accessMode: ReadWriteOnce
+        size: 1Gi
+        storageClass: nfs-csi
+      music:
+        enabled: true
+        type: pvc
+        existingClaim: pvc-navidrome-music
+        mountPath: /music
+        readOnly: true
