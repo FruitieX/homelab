@@ -1,0 +1,29 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: photoframe-rs
+  namespace: default
+spec:
+  selector:
+    matchLabels:
+      app: photoframe-rs
+  template:
+    metadata:
+      labels:
+        app: photoframe-rs
+    spec:
+      volumes:
+        - name: photoframe-rs-config
+          persistentVolumeClaim:
+            claimName: photoframe-rs-config
+      containers:
+        - name: photoframe-rs
+          image: ghcr.io/fruitiex/photoframe-rs-server:main@sha256:b088f26091621489538d3c0bb2054c649f8e1b14384559b958c61ca8ca0d8cb9
+          resources:
+            limits:
+              memory: 256Mi
+              cpu: 1000m
+          workingDir: /app
+          volumeMounts:
+            - mountPath: /app
+              name: photoframe-rs-config
