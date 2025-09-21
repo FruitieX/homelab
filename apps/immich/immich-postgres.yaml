@@ -48,7 +48,7 @@ spec:
     spec:
       containers:
         - name: immich-postgres
-          image: ghcr.io/immich-app/postgres:14-vectorchord0.3.0-pgvectors0.2.0@sha256:fa4f6e0971f454cd95fec5a9aaed2ed93d8f46725cc6bc61e0698e97dba96da1
+          image: ghcr.io/immich-app/postgres:14-vectorchord0.4.3-pgvectors0.2.0 
           imagePullPolicy: "IfNotPresent"
           ports:
             - containerPort: 5432
@@ -60,11 +60,11 @@ spec:
               name: immich-postgres-data
           resources:
             limits:
-              cpu: 1000m
-              memory: 1024Mi
+              cpu: 4
+              memory: 2048Mi
             requests:
-              cpu: 500m
-              memory: 512Mi
+              cpu: 0.5
+              memory: 1024Mi
       volumes:
         - name: immich-postgres-data
           persistentVolumeClaim:
