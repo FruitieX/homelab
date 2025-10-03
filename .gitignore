@@ -1,4 +1,5 @@
-/_out/
+/_out
+/secrets.yaml
 /.direnv/
 /.envrc
 /kubeconfig

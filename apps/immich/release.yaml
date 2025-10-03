@@ -8,23 +8,14 @@ spec:
   timeout: 5m
   chart:
     spec:
-      chart: immich
-      version: "*"
+      chart: charts/immich
       sourceRef:
-        kind: HelmRepository
-        name: immich
+        kind: GitRepository
+        name: immich-git
         namespace: flux-system
   values:
     image:
-      tag: v1.142.1
-    redis:
-      enabled: true
-      master:
-        resources:
-          requests:
-            memory: 300Mi
-          limits:
-            memory: 512Mi
+      tag: v2.0.0
     env:
       DB_DATABASE_NAME: immich
       DB_HOSTNAME: immich-postgres.fruitiex.org
@@ -42,16 +33,16 @@ spec:
     envFrom:
       - secretRef:
           name: immich-postgres-config
-    postgresql:
-      global:
-        postgresql:
-          auth:
-            existingSecret: 
-    machine-learning:
+    # Using unreleased chart from git with valkey subchart instead of redis
+    valkey:
+      enabled: true
+      image:
+        repository: docker.io/valkey/valkey
+        tag: 8.0-alpine
       persistence:
-        external:
+        data:
           enabled: true
-          existingClaim: pvc-immich-media
+          existingClaim: immich-valkey
     server:
       envFrom:
         - secretRef:

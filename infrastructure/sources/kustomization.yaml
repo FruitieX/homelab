@@ -15,6 +15,7 @@ resources:
   - influxdata.yaml
   - jellyfin.yaml
   - immich.yaml
+  - immich-git.yaml
   - gabe565.yaml
   - navidrome.yaml
   - geek-cookbook.yaml
