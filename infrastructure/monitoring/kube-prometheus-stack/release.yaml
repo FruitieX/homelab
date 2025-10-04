@@ -46,6 +46,8 @@ spec:
         hosts:
           - prometheus.fruitiex.org
       prometheusSpec:
+        retention: 90d
+        retentionSize: "100GB"
         storageSpec:
           volumeClaimTemplate:
             spec:
@@ -54,4 +56,4 @@ spec:
                 - ReadWriteOnce
               resources:
                 requests:
-                  storage: 50Gi
+                  storage: 200Gi
