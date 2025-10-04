@@ -5,3 +5,4 @@ resources:
   - namespace.yaml
   - loki-release.yaml
   - promtail-release.yaml
+  - grafana-datasource.yaml

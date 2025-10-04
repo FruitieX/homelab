@@ -4,4 +4,3 @@ namespace: grafana
 resources:
   - namespace.yaml
   - release.yaml
-  - datasource-loki.yaml

@@ -21,6 +21,8 @@ spec:
         effect: NoSchedule
     serviceMonitor:
       enabled: true
+      labels:
+        release: kube-prometheus-stack
     config:
       clients:
         - url: http://loki.loki.svc.cluster.local:3100/loki/api/v1/push

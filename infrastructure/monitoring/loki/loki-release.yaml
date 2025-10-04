@@ -53,7 +53,7 @@ spec:
     loki:
       commonConfig:
         replication_factor: 1
-      auth_enabled: true
+      auth_enabled: false
       storage:
         type: filesystem
         bucketNames:
@@ -92,9 +92,11 @@ spec:
         enabled: true
       serviceMonitor:
         enabled: true
+        labels:
+          release: kube-prometheus-stack
 
     # Reduce memcached chunks-cache footprint to fit worker capacity
     chunksCache:
       enabled: true
       replicas: 1
-      allocatedMemory: 1024 # MB; chart derives requests/limits ~1.2x -> ~1228Mi
+      allocatedMemory: 128
