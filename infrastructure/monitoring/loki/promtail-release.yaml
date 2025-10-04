@@ -1,0 +1,26 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: promtail
+  namespace: loki
+spec:
+  interval: 99999h
+  timeout: 5m
+  chart:
+    spec:
+      chart: promtail
+      version: "*"
+      sourceRef:
+        kind: HelmRepository
+        name: grafana
+        namespace: flux-system
+  values:
+    tolerations:
+      - key: node-role.kubernetes.io/control-plane
+        operator: Exists
+        effect: NoSchedule
+    serviceMonitor:
+      enabled: true
+    config:
+      clients:
+        - url: http://loki.loki.svc.cluster.local:3100/loki/api/v1/push

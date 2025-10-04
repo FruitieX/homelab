@@ -18,5 +18,5 @@ resources:
   - reflector.yaml
   - influxdb.yaml
   - grafana.yaml
-  # - loki-stack.yaml
+  - monitoring-loki.yaml
   # - nfs-subdir-external-provisioner.yaml
