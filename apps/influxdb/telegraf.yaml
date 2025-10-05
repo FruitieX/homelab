@@ -24,7 +24,7 @@ spec:
           image: telegraf
           resources:
             limits:
-              memory: 128Mi
+              memory: 300Mi
               cpu: 100m
           workingDir: /etc/telegraf
           volumeMounts:
