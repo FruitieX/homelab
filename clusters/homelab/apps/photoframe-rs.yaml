@@ -12,8 +12,6 @@ spec:
   path: ./apps/photoframe-rs
   prune: true
   wait: true
-  dependsOn:
-    - name: mosquitto
   decryption:
     provider: sops
     secretRef:

@@ -13,7 +13,7 @@ spec:
   prune: true
   wait: true
   dependsOn:
-    - name: synology-csi
+    - name: csi-driver-nfs
   decryption:
     provider: sops
     secretRef:

@@ -21,7 +21,7 @@ spec:
           image: ghcr.io/fruitiex/photoframe-rs-server:main@sha256:098a6d8731f38889438ab849c44d76b18cf19e962f8c02fba462ea4e682b1c12
           resources:
             limits:
-              memory: 256Mi
+              memory: 512Mi
               cpu: 1000m
           env:
             - name: TZ
