@@ -30,7 +30,7 @@ spec:
     spec:
       containers:
         - name: add-bot
-          image: ghcr.io/fruitiex/add-bot-rs:main@sha256:6bf947f6fafff3ebf19f5f4a9797669e631453d85027056e3c0e92c27f765dfc
+          image: ghcr.io/fruitiex/add-bot-rs:main@sha256:740b673b569e93b197a882b254bab788c56c9ea3d22052a397e7adeb1cf5123d
           command: ["add-bot"]
           args: ["--tz", "Europe/Helsinki"]
           workingDir: /app
@@ -43,7 +43,7 @@ spec:
           resources:
             limits:
               memory: 128Mi
-              cpu: 100m
+              cpu: 500m
       volumes:
         # - name: add-bot-data
         #   persistentVolumeClaim:
