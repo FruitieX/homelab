@@ -18,11 +18,11 @@ spec:
     driver: nfs.csi.k8s.io
     # volumeHandle format: {nfs-server-address}#{sub-dir-name}#{share-name}
     # make sure this value is unique for every share in the cluster
-    volumeHandle: nectarine.internal.fruitiex.org/volume3/music#navidrome-music
+    volumeHandle: nectarine.internal.fruitiex.org/volume3/music/Rasmus#navidrome-music
     volumeAttributes:
       server: nectarine.internal.fruitiex.org
       share: /volume3
-      subDir: music
+      subDir: music/Rasmus
 ---
 kind: PersistentVolumeClaim
 apiVersion: v1
