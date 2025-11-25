@@ -1,4 +1,4 @@
-apiVersion: helm.toolkit.fluxcd.io/v2beta1
+apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
   name: gonic
@@ -16,10 +16,11 @@ spec:
   values:
     image:
       repository: sentriz/gonic
-      tag: v0.16.4
+      tag: v0.19.0
 
     env:
       TZ: Europe/Helsinki
+      GONIC_DB_PATH: /config/gonic.db
       GONIC_PLAYLISTS_PATH: /playlists
 
     ingress:
@@ -56,6 +57,6 @@ spec:
       music:
         enabled: true
         type: pvc
-        existingClaim: gonic-music-pvc
+        existingClaim: pvc-gonic-music
         mountPath: /music
         readOnly: true

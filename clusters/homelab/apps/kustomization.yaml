@@ -17,7 +17,7 @@ resources:
   - immich.yaml
   - navidrome.yaml
   - photoframe-rs.yaml
-  # - gonic.yaml
+  - gonic.yaml
   # - paperless-ngx.yaml
 # - adb-mqtt.yaml
 # - hue-mqtt.yaml
