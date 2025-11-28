@@ -21,7 +21,7 @@ spec:
 
       containers:
         - name: tuya-mqtt
-          image: ghcr.io/fruitiex/tuya-mqtt:0.5.1@sha256:5e5760ce79718f8d3b430d87741f01348b54b2f0f8ebf15203d5f0dab246834b
+          image: ghcr.io/fruitiex/tuya-mqtt:0.5.1@sha256:3b0226d9660318ce698e21cc252a4da55729bdc2eac0a425aab4413f7e1ed4f9
           resources:
             limits:
               memory: 128Mi
