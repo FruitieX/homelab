@@ -18,6 +18,7 @@ resources:
   - navidrome.yaml
   - photoframe-rs.yaml
   - gonic.yaml
+  - ferrotune.yaml
   # - paperless-ngx.yaml
 # - adb-mqtt.yaml
 # - hue-mqtt.yaml

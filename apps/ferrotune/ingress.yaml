@@ -1,0 +1,20 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ferrotune-ingress
+  namespace: default
+spec:
+  ingressClassName: private
+  tls:
+    - secretName: fruitiex-org-tls
+  rules:
+    - host: ferrotune.fruitiex.org
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: ferrotune-service
+                port:
+                  number: 4040

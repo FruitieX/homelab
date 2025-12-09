@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ferrotune
+  namespace: default
+spec:
+  selector:
+    matchLabels:
+      app: ferrotune
+  template:
+    metadata:
+      labels:
+        app: ferrotune
+    spec:
+      imagePullSecrets:
+        - name: ghcr-credentials
+      volumes:
+        - name: ferrotune-music
+          persistentVolumeClaim:
+            claimName: pvc-ferrotune-music
+        - name: ferrotune-data
+          persistentVolumeClaim:
+            claimName: ferrotune-data
+      containers:
+        - name: ferrotune
+          image: ghcr.io/fruitiex/ferrotune:main@sha256:128b01c22e8c23f4707b3c987b1bf6f280b6d62bb0a2c617fd427db78c606245
+          resources:
+            limits:
+              memory: 512Mi
+              cpu: 1000m
+          env:
+            - name: TZ
+              value: Europe/Helsinki
+            - name: PORT
+              value: "4040"
+            - name: FERROTUNE_PORT
+              value: "4040"
+          volumeMounts:
+            - mountPath: /music
+              name: ferrotune-music
+              readOnly: true
+            - mountPath: /data
+              name: ferrotune-data
