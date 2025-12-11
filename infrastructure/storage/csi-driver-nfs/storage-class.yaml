@@ -12,3 +12,8 @@ volumeBindingMode: Immediate
 mountOptions:
   - hard
   - nfsvers=4.1
+  - noatime
+  - rsize=1048576
+  - wsize=1048576
+  - timeo=600
+  - retrans=2

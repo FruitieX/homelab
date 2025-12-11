@@ -11,7 +11,13 @@ spec:
   persistentVolumeReclaimPolicy: Retain
   storageClassName: nfs-csi
   mountOptions:
+    - hard
     - nfsvers=4.1
+    - noatime
+    - rsize=1048576
+    - wsize=1048576
+    - timeo=600
+    - retrans=2
   csi:
     driver: nfs.csi.k8s.io
     volumeHandle: nectarine.internal.fruitiex.org/volume3/music#ferrotune-music
