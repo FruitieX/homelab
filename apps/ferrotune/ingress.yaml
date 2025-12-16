@@ -3,6 +3,8 @@ kind: Ingress
 metadata:
   name: ferrotune-ingress
   namespace: default
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: "10000m"
 spec:
   ingressClassName: private
   tls:
