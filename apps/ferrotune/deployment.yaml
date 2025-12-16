@@ -23,7 +23,7 @@ spec:
             claimName: ferrotune-data
       containers:
         - name: ferrotune
-          image: ghcr.io/fruitiex/ferrotune:main@sha256:a6db8ca94c838ce202682c594826f79a840fbc65b1d0a249e277ceae80dee7a8
+          image: ghcr.io/fruitiex/ferrotune:main@sha256:496f42b5a7d3ef2ec006ea17bc3a9efb146912fa71458ecebfd1537b29a281e0
           resources:
             limits:
               memory: 512Mi
@@ -35,9 +35,18 @@ spec:
               value: "4040"
             - name: FERROTUNE_PORT
               value: "4040"
+            - name: FERROTUNE_DB_MAX_CONNECTIONS
+              value: "1"
+            - name: FERROTUNE_DB_JOURNAL_MODE
+              value: "delete"
+            - name: FERROTUNE_DB_SYNCHRONOUS
+              value: "normal"
+            - name: FERROTUNE_DB_LOCKING_MODE
+              value: "exclusive"
+            - name: FERROTUNE_DB_BUSY_TIMEOUT
+              value: "1"
           volumeMounts:
             - mountPath: /music
               name: ferrotune-music
-              readOnly: true
             - mountPath: /data
               name: ferrotune-data
