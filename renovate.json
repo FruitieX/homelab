@@ -8,9 +8,23 @@
     ":prConcurrentLimitNone"
   ],
   "kubernetes": {
-    "fileMatch": ["\\.yaml$"]
+    "fileMatch": [
+      "\\.yaml$"
+    ]
   },
   "docker": {
     "pinDigests": true
-  }
+  },
+  "packageRules": [
+    {
+      "description": "Ignore self-hosted GHCR images (managed by cross-repo dispatch)",
+      "matchDatasources": [
+        "docker"
+      ],
+      "matchPackagePrefixes": [
+        "ghcr.io/fruitiex/"
+      ],
+      "enabled": false
+    }
+  ]
 }

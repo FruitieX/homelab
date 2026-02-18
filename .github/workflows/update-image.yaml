@@ -1,0 +1,69 @@
+name: Update container image
+
+on:
+  repository_dispatch:
+    types: [image-update]
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Update image digest
+        env:
+          IMAGE: ${{ github.event.client_payload.image }}
+          DIGEST: ${{ github.event.client_payload.digest }}
+        run: |
+          # Normalize image name to lowercase (GHCR is case-insensitive,
+          # but github.repository preserves casing)
+          IMAGE="${IMAGE,,}"
+
+          # Validate inputs
+          if [[ -z "$IMAGE" || -z "$DIGEST" ]]; then
+            echo "::error::Missing required payload fields: image and digest"
+            exit 1
+          fi
+
+          if [[ ! "$DIGEST" =~ ^sha256:[a-f0-9]{64}$ ]]; then
+            echo "::error::Invalid digest format: $DIGEST"
+            exit 1
+          fi
+
+          # Find files containing this image reference
+          FILES=$(grep -rl "$IMAGE" apps/ || true)
+
+          if [[ -z "$FILES" ]]; then
+            echo "::error::No files found matching image: $IMAGE"
+            exit 1
+          fi
+
+          echo "Updating $IMAGE to $DIGEST in:"
+          echo "$FILES"
+
+          # Replace the digest (or add one if missing) for this image
+          # Handles both "image:tag@sha256:..." and "image:tag" (no digest) formats
+          for file in $FILES; do
+            # Escape dots and slashes in image name for sed
+            ESCAPED_IMAGE=$(echo "$IMAGE" | sed 's/[.\/]/\\&/g')
+            sed -i -E "s|(${ESCAPED_IMAGE}:[a-zA-Z0-9._-]+)(@sha256:[a-f0-9]+)?|\1@${DIGEST}|g" "$file"
+          done
+
+      - name: Commit and push
+        env:
+          IMAGE: ${{ github.event.client_payload.image }}
+          DIGEST: ${{ github.event.client_payload.digest }}
+        run: |
+          IMAGE="${IMAGE,,}"
+          SHORT_IMAGE="${IMAGE##*/}"
+          SHORT_DIGEST="${DIGEST:7:12}"
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git diff --cached --quiet && echo "No changes to commit" && exit 0
+          git commit -m "chore: update ${SHORT_IMAGE} to ${SHORT_DIGEST}"
+          git push
