@@ -4,6 +4,9 @@ metadata:
   name: ferrotune
   namespace: default
 spec:
+  strategy:
+    type: Recreate
+    rollingUpdate: null
   selector:
     matchLabels:
       app: ferrotune
@@ -23,7 +26,7 @@ spec:
             claimName: ferrotune-data
       containers:
         - name: ferrotune
-          image: ghcr.io/fruitiex/ferrotune:main@sha256:97087452d330bb5fcdf4b3d6679140823b3f18b4b5adb792cd28bdd6a54e9f74
+          image: ghcr.io/fruitiex/ferrotune:main@sha256:c24dbf1d019196b2e0c882790cd8715c1edff9e5dfb988211cb3615c475a292a
           resources:
             limits:
               memory: 512Mi
@@ -43,8 +46,8 @@ spec:
               value: "normal"
             - name: FERROTUNE_DB_LOCKING_MODE
               value: "exclusive"
-            - name: FERROTUNE_DB_BUSY_TIMEOUT
-              value: "1"
+            #- name: FERROTUNE_DB_BUSY_TIMEOUT
+              #value: "1"
           volumeMounts:
             - mountPath: /music
               name: ferrotune-music
