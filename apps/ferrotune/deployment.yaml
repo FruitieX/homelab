@@ -26,7 +26,7 @@ spec:
             claimName: ferrotune-data
       containers:
         - name: ferrotune
-          image: ghcr.io/fruitiex/ferrotune:main@sha256:d84cc0f4af0f958ea7980892d3933a6d6a7b7124bc80d374fa92459259ff9c65
+          image: ghcr.io/fruitiex/ferrotune:main@sha256:68d77fa56be20bfd0a45d1d29f98d136db7e4db14233395033ebf9e26a904b0f
           resources:
             limits:
               memory: 512Mi
