@@ -4,7 +4,7 @@ metadata:
   name: homectl-server
   namespace: default
   annotations:
-    secret.reloader.stakater.com/reload: "homectl-server-settings"
+    secret.reloader.stakater.com/reload: "homectl-server-env,homectl-server-settings"
 spec:
   replicas: 1
   strategy:
@@ -24,7 +24,7 @@ spec:
 
       containers:
         - name: homectl-server
-          image: ghcr.io/fruitiex/homectl-server:main@sha256:05c5391958af56695e76f4ce1fe75c44a26539863eea5b0983f9c74ac3a05734
+          image: ghcr.io/fruitiex/homectl-server:main@sha256:892f7cba2628c905238c040ac4c0f69fa2b8079a9234ba5fd7452968c5685571
           envFrom:
             - secretRef:
                 name: homectl-server-env
