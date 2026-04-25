@@ -3,6 +3,8 @@ kind: Deployment
 metadata:
   name: ferrotune
   namespace: default
+  annotations:
+    secret.reloader.stakater.com/reload: "ferrotune-env"
 spec:
   strategy:
     type: Recreate
@@ -27,6 +29,9 @@ spec:
       containers:
         - name: ferrotune
           image: ghcr.io/fruitiex/ferrotune:main@sha256:1f31e106e4b3c334259d4802b5a4ba0660bda4dad9e95e737c35f6038f21b3e0
+          envFrom:
+            - secretRef:
+                name: ferrotune-env
           resources:
             limits:
               memory: 512Mi
