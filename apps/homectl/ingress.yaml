@@ -1,7 +1,7 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: homectl-server-ingress
+  name: homectl-ingress
   namespace: default
   annotations:
     nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
@@ -22,13 +22,13 @@ spec:
   tls:
     - secretName: fruitiex-org-tls
   rules:
-    - host: homectl-server.fruitiex.org
+    - host: homectl.fruitiex.org
       http:
         paths:
           - path: /
             pathType: Prefix
             backend:
               service:
-                name: homectl-server
+                name: homectl
                 port:
                   number: 45289

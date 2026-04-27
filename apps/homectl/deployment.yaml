@@ -1,30 +1,25 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: homectl-server
+  name: homectl
   namespace: default
   annotations:
-    secret.reloader.stakater.com/reload: "homectl-server-env,homectl-server-settings"
+    secret.reloader.stakater.com/reload: "homectl-server-env"
 spec:
   replicas: 1
   strategy:
     type: Recreate
   selector:
     matchLabels:
-      app: homectl-server
+      app: homectl
   template:
     metadata:
       labels:
-        app: homectl-server
+        app: homectl
     spec:
-      volumes:
-        - name: homectl-server-settings
-          secret:
-            secretName: homectl-server-settings
-
       containers:
-        - name: homectl-server
-          image: ghcr.io/fruitiex/homectl-server:main@sha256:892f7cba2628c905238c040ac4c0f69fa2b8079a9234ba5fd7452968c5685571
+        - name: homectl
+          image: ghcr.io/fruitiex/homectl:main@sha256:89db73013ac29f26b9f80590ec65b180f81e75c9718bd361c2877cbbb83e1ef8
           envFrom:
             - secretRef:
                 name: homectl-server-env
@@ -33,14 +28,18 @@ spec:
               value: Europe/Helsinki
             - name: RUST_LOG
               value: "homectl_server=info"
+            - name: CONFIG_FILE
+              value: /app/Settings.toml
+            - name: HOMECTL_UI_DIST_DIR
+              value: /app/ui/dist
           resources:
             limits:
-              memory: 128Mi
+              memory: 256Mi
               cpu: 500m
+          ports:
+            - name: http
+              containerPort: 45289
           workingDir: /app
-          volumeMounts:
-            - mountPath: /app
-              name: homectl-server-settings
 
       initContainers:
         - name: wait-for-mqtt-broker

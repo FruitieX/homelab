@@ -1,14 +1,14 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: homectl-next
+  name: homectl
   namespace: default
 spec:
   type: LoadBalancer
   selector:
-    app: homectl-next
+    app: homectl
   ports:
-  - name: homectl-next
+  - name: http
     protocol: TCP
-    port: 80
-    targetPort: 3000
+    port: 45289
+    targetPort: http
