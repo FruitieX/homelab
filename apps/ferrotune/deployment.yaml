@@ -28,7 +28,7 @@ spec:
             claimName: ferrotune-data
       containers:
         - name: ferrotune
-          image: ghcr.io/fruitiex/ferrotune:main@sha256:75fb819d80a3390a70c91ef9c33cc97454a49e9f3d8726305118f37833782363
+          image: ghcr.io/fruitiex/ferrotune:main@sha256:1edfec60f27471199c962ec9073b8859e8eb7235c76739e1aaa725a4b4b71b68
           envFrom:
             - secretRef:
                 name: ferrotune-env
