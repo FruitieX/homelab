@@ -26,6 +26,9 @@ spec:
         - name: ferrotune-data
           persistentVolumeClaim:
             claimName: ferrotune-data
+        - name: ferrotune-transcodes
+          emptyDir:
+            sizeLimit: 20Gi
       containers:
         - name: ferrotune
           image: ghcr.io/fruitiex/ferrotune:main@sha256:a06ba243ace6334f558dbe38466cee9f8214bb89d997a0ddb1e9415241c61d26
@@ -51,6 +54,10 @@ spec:
               value: "normal"
             - name: FERROTUNE_DB_LOCKING_MODE
               value: "exclusive"
+            - name: FERROTUNE_TRANSCODE_CACHE_PATH
+              value: /cache/transcodes
+            - name: FERROTUNE_TRANSCODE_CACHE_MAX_MB
+              value: "20480"
             #- name: FERROTUNE_DB_BUSY_TIMEOUT
               #value: "1"
           volumeMounts:
@@ -58,3 +65,5 @@ spec:
               name: ferrotune-music
             - mountPath: /data
               name: ferrotune-data
+            - mountPath: /cache/transcodes
+              name: ferrotune-transcodes
