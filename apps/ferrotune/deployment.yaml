@@ -31,7 +31,7 @@ spec:
             sizeLimit: 20Gi
       containers:
         - name: ferrotune
-          image: ghcr.io/fruitiex/ferrotune:main@sha256:df64c4de98962bf0affbb9ef09039ba9911facf86b42856560416cb326b2b447
+          image: ghcr.io/fruitiex/ferrotune:main@sha256:edb292748834a2e9d5c71f535e0554a03087bc462794ce70b9ade820910c663e
           envFrom:
             - secretRef:
                 name: ferrotune-env
