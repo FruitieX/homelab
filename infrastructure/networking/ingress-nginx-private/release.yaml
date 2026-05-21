@@ -29,5 +29,6 @@ spec:
         controller-class: "k8s.io/private-ingress-nginx"
       service:
         type: "LoadBalancer"
+        externalTrafficPolicy: Local
         annotations:
           metallb.universe.tf/loadBalancerIPs: 192.168.11.99
