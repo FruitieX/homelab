@@ -19,6 +19,8 @@ resources:
   - photoframe-rs.yaml
   #- gonic.yaml
   - ferrotune.yaml
+  # - llama-cpp.yaml
+  - bambuddy.yaml
   # - paperless-ngx.yaml
 # - adb-mqtt.yaml
 # - hue-mqtt.yaml

@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bambuddy
+  namespace: default
+  labels:
+    app: bambuddy
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: bambuddy
+  template:
+    metadata:
+      labels:
+        app: bambuddy
+    spec:
+      securityContext:
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+      containers:
+        - name: bambuddy
+          image: ghcr.io/maziggy/bambuddy:latest
+          ports:
+            - containerPort: 8000
+              name: http
+          env:
+            - name: TZ
+              value: "Europe/Berlin"
+            - name: PUID
+              value: "1000"
+            - name: PGID
+              value: "1000"
+            - name: PORT
+              value: "8000"
+          volumeMounts:
+            - name: data
+              mountPath: /app/data
+            - name: logs
+              mountPath: /app/logs
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "100m"
+            limits:
+              memory: "1Gi"
+              cpu: "500m"
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: pvc-bambuddy-data
+        - name: logs
+          persistentVolumeClaim:
+            claimName: pvc-bambuddy-logs

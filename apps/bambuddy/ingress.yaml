@@ -1,0 +1,22 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: bambuddy-ingress
+  namespace: default
+  annotations:
+    external-dns.alpha.kubernetes.io/hostname: bambuddy.fruitiex.org
+spec:
+  ingressClassName: private
+  tls:
+    - secretName: fruitiex-org-tls
+  rules:
+    - host: bambuddy.fruitiex.org
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: bambuddy-service
+                port:
+                  number: 8000
