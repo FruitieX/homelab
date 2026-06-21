@@ -1,0 +1,22 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: spliit-ingress
+  namespace: default
+  annotations:
+    external-dns.alpha.kubernetes.io/exclude: "true"
+spec:
+  ingressClassName: public
+  tls:
+    - secretName: fruitiex-org-tls
+  rules:
+    - host: spliit.fruitiex.org
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: spliit
+                port:
+                  number: 3000

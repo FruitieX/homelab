@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: spliit
+  namespace: default
+spec:
+  selector:
+    app: spliit
+  ports:
+    - protocol: TCP
+      port: 3000
+      targetPort: http
+  type: ClusterIP

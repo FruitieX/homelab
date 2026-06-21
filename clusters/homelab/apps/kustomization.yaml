@@ -21,6 +21,7 @@ resources:
   - ferrotune.yaml
   # - llama-cpp.yaml
   - bambuddy.yaml
+  - spliit.yaml
   # - paperless-ngx.yaml
 # - adb-mqtt.yaml
 # - hue-mqtt.yaml

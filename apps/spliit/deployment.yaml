@@ -1,0 +1,51 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: spliit
+  namespace: default
+  labels:
+    app: spliit
+  annotations:
+    secret.reloader.stakater.com/reload: "spliit-env"
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: spliit
+  template:
+    metadata:
+      labels:
+        app: spliit
+    spec:
+      containers:
+        - name: spliit
+          image: ghcr.io/spliit-app/spliit:1.19.0
+          imagePullPolicy: "IfNotPresent"
+          ports:
+            - name: http
+              containerPort: 3000
+          envFrom:
+            - secretRef:
+                name: spliit-env
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "100m"
+            limits:
+              memory: "1Gi"
+              cpu: "1000m"
+          readinessProbe:
+            httpGet:
+              path: /api/health/readiness
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            failureThreshold: 6
+          livenessProbe:
+            httpGet:
+              path: /api/health/liveness
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 30
