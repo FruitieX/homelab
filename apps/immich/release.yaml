@@ -11,60 +11,81 @@ spec:
       chart: charts/immich
       sourceRef:
         kind: GitRepository
-        name: immich-git
+        name: immich
         namespace: flux-system
   values:
-    image:
-      tag: v2.0.0
-    env:
-      DB_DATABASE_NAME: immich
-      DB_HOSTNAME: immich-postgres.fruitiex.org
-      DB_USERNAME:
-        valueFrom:
-          secretKeyRef:
-            name: immich-postgres-config
-            key: DB_USERNAME
-      DB_PASSWORD:
-        valueFrom:
-          secretKeyRef:
-            name: immich-postgres-config
-            key: DB_PASSWORD
-      DB_PORT: "5432"
-    envFrom:
-      - secretRef:
-          name: immich-postgres-config
-    # Using unreleased chart from git with valkey subchart instead of redis
-    valkey:
-      enabled: true
-      image:
-        repository: docker.io/valkey/valkey
-        tag: 8.0-alpine
-      persistence:
-        data:
-          enabled: true
-          existingClaim: immich-valkey
+    # 1. Main Immich Server Configuration
     server:
-      envFrom:
-        - secretRef:
-            name: immich-postgres-config
-      persistence:
-        external:
-          enabled: true
-          existingClaim: pvc-immich-media
       ingress:
         main:
           enabled: true
           ingressClassName: public
           annotations:
             external-dns.alpha.kubernetes.io/exclude: "true"
+      controllers:
+        main:
+          containers:
+            main:
+              image:
+                tag: v3.0.2
+              env:
+                REDIS_HOSTNAME: immich-valkey
+                IMMICH_MACHINE_LEARNING_URL: http://immich-machine-learning:3003
+                DB_DATABASE_NAME: immich
+                DB_HOSTNAME: immich-postgres.fruitiex.org
+                DB_PORT: "5432"
+                DB_USERNAME:
+                  valueFrom:
+                    secretKeyRef:
+                      name: immich-postgres-config
+                      key: DB_USERNAME
+                DB_PASSWORD:
+                  valueFrom:
+                    secretKeyRef:
+                      name: immich-postgres-config
+                      key: DB_PASSWORD
+              envFrom:
+                - secretRef:
+                    name: immich-postgres-config
+              volumeMounts:
+                - name: media
+                  mountPath: /usr/src/app/upload
+          volumes:
+            media:
+              persistentVolumeClaim:
+                claimName: pvc-immich-media
+
+    # 2. Machine Learning Configuration
+    machine-learning:
+      controllers:
+        main:
+          containers:
+            main:
+              volumeMounts:
+                - name: ml-cache
+                  mountPath: /cache
+          volumes:
+            ml-cache:
+              emptyDir: {}
+
+    # 3. Valkey Cache Configuration
+    valkey:
+      enabled: true
+      controllers:
+        main:
+          containers:
+            main:
+              image:
+                repository: docker.io/valkey/valkey
+                tag: 8.0-alpine
+      persistence:
+        data:
+          enabled: true
+          type: persistentVolumeClaim
+          existingClaim: immich-valkey
+
+    # 4. Core Immich Shared Persistence Settings
     immich:
       persistence:
         library:
-          enabled: true
-          accessMode: ReadWriteMany
-          size: 10Gi
-          storageClass: nfs-csi
           existingClaim: immich-library
-  valuesFrom:
-    - kind: Secret
-      name: immich-secret-values
