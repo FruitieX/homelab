@@ -1,0 +1,119 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: llama-cpp
+  namespace: default
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: llama-cpp
+  template:
+    metadata:
+      labels:
+        app: llama-cpp
+    spec:
+      nodeSelector:
+        homelab.fruitiex.org/llm: "true"
+        homelab.fruitiex.org/cpu: ryzen-6800h
+      terminationGracePeriodSeconds: 30
+      volumes:
+        - name: models
+          persistentVolumeClaim:
+            claimName: llama-cpp-models
+      initContainers:
+        - name: download-model
+          image: curlimages/curl:8.11.1
+          imagePullPolicy: IfNotPresent
+          envFrom:
+            - configMapRef:
+                name: llama-cpp-config
+          command:
+            - /bin/sh
+            - -c
+          args:
+            - |
+              set -eu
+
+              if [ -s "/models/${MODEL_FILE}" ]; then
+                echo "Model already exists: ${MODEL_FILE}"
+                exit 0
+              fi
+
+              tmp="/models/${MODEL_FILE}.part"
+              curl --fail --location --retry 5 --retry-delay 5 --continue-at - --output "$tmp" "$MODEL_URL"
+              mv "$tmp" "/models/${MODEL_FILE}"
+          securityContext:
+            runAsUser: 0
+          resources:
+            limits:
+              memory: 128Mi
+              cpu: 500m
+            requests:
+              memory: 64Mi
+              cpu: 100m
+          volumeMounts:
+            - name: models
+              mountPath: /models
+      containers:
+        - name: llama-cpp
+          image: ghcr.io/ggml-org/llama.cpp:server
+          imagePullPolicy: IfNotPresent
+          envFrom:
+            - configMapRef:
+                name: llama-cpp-config
+          args:
+            - --model
+            - /models/$(MODEL_FILE)
+            - --host
+            - 0.0.0.0
+            - --port
+            - "8080"
+            - --ctx-size
+            - $(LLAMA_CTX_SIZE)
+            - --parallel
+            - $(LLAMA_PARALLEL)
+            - --threads
+            - $(LLAMA_THREADS)
+            - --batch-size
+            - $(LLAMA_BATCH_SIZE)
+            - --ubatch-size
+            - $(LLAMA_UBATCH_SIZE)
+            - --cache-type-k
+            - $(LLAMA_CACHE_TYPE_K)
+            - --cache-type-v
+            - $(LLAMA_CACHE_TYPE_V)
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+          startupProbe:
+            httpGet:
+              path: /health
+              port: http
+            periodSeconds: 10
+            failureThreshold: 120
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            periodSeconds: 10
+            failureThreshold: 6
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            periodSeconds: 30
+            failureThreshold: 3
+          resources:
+            limits:
+              memory: 8Gi
+              cpu: 7000m
+            requests:
+              memory: 5Gi
+              cpu: 2000m
+          volumeMounts:
+            - name: models
+              mountPath: /models
