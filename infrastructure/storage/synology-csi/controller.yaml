@@ -91,7 +91,7 @@ spec:
             capabilities:
               add: ["SYS_ADMIN"]
             allowPrivilegeEscalation: true
-          image: registry.k8s.io/sig-storage/csi-provisioner:v3.6.3@sha256:10624570c0aceb03f55f1eb07147b0c537e4676869cca2e9bd4bab113f810ac4
+          image: registry.k8s.io/sig-storage/csi-provisioner:v3.6.4@sha256:e7ad666f1d9b0caa077c7f0c157c9f87d1e73858390732496f66dcc716ff10c5
           args:
             - --timeout=60s
             - --csi-address=$(ADDRESS)
