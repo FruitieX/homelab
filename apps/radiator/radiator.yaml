@@ -1,0 +1,617 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: radiator-bootstrap-config
+  namespace: default
+data:
+  management-access.radconf: |
+    clients {
+        http "MANAGEMENT_ACCESS_ALLOW_LIST" {
+            # The management endpoint is reachable only through the private
+            # ingress, but also allow the cluster and LAN source ranges here.
+            client "PRIVATE_NETWORK" {
+                source {
+                    ip 10.0.0.0/8;
+                    ip 172.16.0.0/12;
+                    ip 192.168.11.0/24;
+                }
+            }
+        }
+    }
+  management.radconf: |
+    management {
+        http {
+            listen {
+                protocol tcp;
+                port 8443;
+                ip 0.0.0.0;
+            }
+
+            clients "MANAGEMENT_ACCESS_ALLOW_LIST";
+            policy "MANAGEMENT";
+        }
+    }
+  logging.radconf: |
+    logging {
+        aaa {
+            logger "AUTHENTICATION" {
+                console {
+                    loglevel info;
+                }
+            }
+
+            logger "ACCOUNTING" {
+                console {
+                    loglevel info;
+                }
+            }
+        }
+    }
+
+    aaa {
+        @pipeline "LOG_AUTHENTICATION" {
+            log "AUTHENTICATION" {
+                json {
+                    "timestamp" datetime.timestamp;
+                    "username" aaa.identity;
+                    "result" "%{aaa.result}";
+                    "reason" "%{aaa.reason}";
+                    "errors" "%{aaa.errors}";
+                }
+            }
+        }
+
+        @pipeline "LOG_ACCOUNTING" {
+            log "ACCOUNTING" {
+                json {
+                    "timestamp" datetime.timestamp;
+                    "identity" aaa.identity;
+                    "type" aaa.type;
+                    "result" "%{aaa.result}";
+                    "reason" "%{aaa.reason}";
+                    "errors" "%{aaa.errors}";
+                }
+            }
+        }
+    }
+  management-auth.radconf: |
+    backends {
+        jsonfile "MANAGEMENT_USERS" {
+            filename "/etc/radiator/management-users/management-users.json";
+            monitor false;
+
+            query "FIND_USER" {
+                mapping {
+                    user.username = doc | jsonpath("$.users[?(@.username == '%{aaa.identity}')].username");
+                    user.password = doc | jsonpath("$.users[?(@.username == '%{aaa.identity}')].password");
+                    user.privilege = doc | jsonpath("$.users[?(@.username == '%{aaa.identity}')].privilege");
+                    user.radiatordb_role = doc | jsonpath("$.users[?(@.username == '%{aaa.identity}')].roles[*]");
+                }
+            }
+        }
+    }
+
+    aaa {
+        policy "MANAGEMENT" {
+            conditions all {
+                http.management == true;
+            }
+
+            handler "AUTHENTICATION" {
+                @execute {
+                    backend {
+                        name "MANAGEMENT_USERS";
+                        query "FIND_USER";
+                    }
+
+                    http-management-authentication;
+                }
+            }
+        }
+    }
+  radius.radconf: |
+    clients {
+        radius "RADIUS_CLIENTS" {
+            client "LAN" {
+                source {
+                    ip 192.168.11.0/24;
+                    ip 192.168.1.0/24;
+                }
+                secret env.RADIUS_SHARED_SECRET;
+            }
+        }
+    }
+
+    certificates {
+        x509 "MANAGEMENT_API_CERT" {
+            filename "<root>/management/tls/certs/MANAGEMENT_API_CERT.pem";
+        }
+        key "MANAGEMENT_API_KEY" {
+            filename "<root>/management/tls/keys/MANAGEMENT_API_KEY.pem";
+        }
+    }
+
+    servers {
+        radius "RADIUS_AUTH" {
+            listen {
+                protocol udp;
+                ip 0.0.0.0;
+                port 1812;
+            }
+            clients "RADIUS_CLIENTS";
+        }
+
+        radius "RADIUS_ACCOUNTING" {
+            listen {
+                protocol udp;
+                ip 0.0.0.0;
+                port 1813;
+            }
+            clients "RADIUS_CLIENTS";
+        }
+
+        radius "RADSEC" {
+            listen {
+                protocol tls;
+                ip 0.0.0.0;
+                port 2083;
+                timeout 0;
+                tls {
+                    certificate "MANAGEMENT_API_CERT";
+                    certificate_key "MANAGEMENT_API_KEY";
+                    require_client_certificate false;
+                }
+            }
+            clients "RADIUS_CLIENTS";
+        }
+    }
+  radius-policy.radconf: |
+    aaa {
+        policy "RADIUS_AUTH" {
+            conditions all {
+                radius.request.code == radius.ACCESS_REQUEST;
+            }
+
+            handler "AUTHENTICATION" {
+                @execute {
+                    eap {
+                        eap-ttls {
+                            tls {
+                                certificate "MANAGEMENT_API_CERT";
+                                certificate_key "MANAGEMENT_API_KEY";
+                                require_client_certificate false;
+                            }
+
+                            @authentication {
+                                backend {
+                                    name "RADIUS_USERS";
+                                    query "FIND_USER";
+                                }
+                                pap;
+                            }
+                        }
+                    }
+                }
+                @final-execute {
+                    invoke "LOG_AUTHENTICATION";
+                }
+            }
+        }
+
+        policy "RADIUS_ACCOUNTING" {
+            conditions all {
+                radius.request.code == radius.ACCOUNTING_REQUEST;
+            }
+
+            handler "ACCOUNTING" {
+                @execute {
+                    accept;
+                }
+                @final-execute {
+                    invoke "LOG_ACCOUNTING";
+                }
+            }
+        }
+    }
+  radiatordb.radconf: |
+    backends {
+        postgres "RADIUS_USERS" {
+            server "pg1" {
+                host env.RADIATORDB_DB_HOST;
+                port 5432;
+                database "radiatordb";
+                username env.RADIATORDB_DB_USER;
+                password env.RADIATORDB_DB_PASSWORD;
+            }
+
+            query "FIND_USER" {
+                statement "SELECT key[1] AS username, data->>'password' AS password FROM public.documents WHERE collection = 'users' AND key[1] = $1 AND expire_at IS NULL";
+                bindings {
+                    aaa.identity;
+                }
+                mapping {
+                    user.username = username;
+                    user.password = password;
+                }
+            }
+        }
+
+        radiatordb "mydb" {
+            server "pg1" {
+                host env.RADIATORDB_DB_HOST;
+                port 5432;
+                database "radiatordb";
+                username env.RADIATORDB_DB_USER;
+                password env.RADIATORDB_DB_PASSWORD;
+            }
+
+            collection "users" {
+                name "Users";
+                description "Test user credentials";
+
+                roles {
+                    read "admin";
+                    write "admin";
+                }
+
+                key {
+                    field {
+                        name "Username";
+                        type text;
+                    }
+                }
+
+                field "password" {
+                    name "Password";
+                    type password;
+                    required true;
+                    masked true;
+                }
+            }
+        }
+    }
+  ui.radconf: |
+    ui {
+        sidebar {
+            section "RadiatorDB";
+            item "mydb" {
+                url "/radiatordb/database?dbName=mydb";
+                icon "Database";
+            }
+        }
+    }
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: radiator-config
+  namespace: default
+spec:
+  storageClassName: nfs-csi
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: radiator-postgres-data
+  namespace: default
+spec:
+  storageClassName: nfs-csi
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: radiator-postgres
+  namespace: default
+spec:
+  selector:
+    app: radiator-postgres
+  ports:
+    - name: postgres
+      protocol: TCP
+      port: 5432
+      targetPort: 5432
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: radiator-postgres
+  namespace: default
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: radiator-postgres
+  template:
+    metadata:
+      labels:
+        app: radiator-postgres
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:18@sha256:7341002d2b8c7c5bdd7542a671a95b36196c0b5b888daf454ae4fc33ba5346d7
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: postgres
+              containerPort: 5432
+          env:
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: radiator-secrets
+                  key: POSTGRES_USER
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: radiator-secrets
+                  key: POSTGRES_PASSWORD
+            - name: POSTGRES_DB
+              value: radiatordb
+            - name: PGDATA
+              value: /var/lib/postgresql/data/pgdata
+          volumeMounts:
+            - name: postgres-data
+              mountPath: /var/lib/postgresql/data
+          readinessProbe:
+            exec:
+              command:
+                - sh
+                - -c
+                - pg_isready -U "$POSTGRES_USER" -d "$POSTGRES_DB"
+            periodSeconds: 10
+            timeoutSeconds: 5
+          resources:
+            limits:
+              cpu: 1000m
+              memory: 512Mi
+      volumes:
+        - name: postgres-data
+          persistentVolumeClaim:
+            claimName: radiator-postgres-data
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: radiator-radius
+  namespace: default
+  annotations:
+    external-dns.alpha.kubernetes.io/hostname: radius.fruitiex.org
+    metallb.universe.tf/loadBalancerIPs: 192.168.11.98
+spec:
+  type: LoadBalancer
+  externalTrafficPolicy: Local
+  selector:
+    app: radiator
+  ports:
+    - name: radius-auth
+      protocol: UDP
+      port: 1812
+      targetPort: 1812
+    - name: radius-acct
+      protocol: UDP
+      port: 1813
+      targetPort: 1813
+    - name: radsec
+      protocol: TCP
+      port: 2083
+      targetPort: 2083
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: radiator-management
+  namespace: default
+spec:
+  selector:
+    app: radiator
+  ports:
+    - name: management
+      protocol: TCP
+      port: 8443
+      targetPort: 8443
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: radiator
+  namespace: default
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: radiator
+  template:
+    metadata:
+      labels:
+        app: radiator
+    spec:
+      securityContext:
+        runAsNonRoot: true
+      initContainers:
+        - name: initialize-config
+          image: busybox:1.36.1@sha256:b7f3d86d6e84fc17718c48bcde1450807faa2d56704205c697b4bd5df7b9e29f
+          command:
+            - sh
+            - -c
+          args:
+            - >-
+              if [ ! -f /var/lib/radiator/.bootstrap-complete-v4 ]; then
+                rm -f /var/lib/radiator/*.radconf /var/lib/radiator/..data;
+                rm -rf /var/lib/radiator/..20*;
+                for config in /bootstrap/*.radconf; do
+                  cp -L "$config" "/var/lib/radiator/$(basename "$config")";
+                done;
+                touch /var/lib/radiator/.bootstrap-complete-v4;
+              fi;
+              mkdir -p /var/lib/radiator/licenses /var/lib/radiator/tmp /var/lib/radiator/management/tls/certs /var/lib/radiator/management/tls/keys /var/log/radiator;
+              chown -R 1000:1000 /var/lib/radiator /var/log/radiator;
+          securityContext:
+            runAsUser: 0
+            runAsGroup: 0
+            runAsNonRoot: false
+          volumeMounts:
+            - name: bootstrap-config
+              mountPath: /bootstrap
+              readOnly: true
+            - name: radiator-config
+              mountPath: /var/lib/radiator
+            - name: radiator-logs
+              mountPath: /var/log/radiator
+        - name: wait-for-postgres
+          image: busybox:1.36.1@sha256:b7f3d86d6e84fc17718c48bcde1450807faa2d56704205c697b4bd5df7b9e29f
+          command:
+            - sh
+            - -c
+          args:
+            - >-
+              until nc -z -w 1 radiator-postgres.default.svc.cluster.local 5432;
+              do echo 'waiting for PostgreSQL'; sleep 2; done
+          securityContext:
+            runAsUser: 1000
+            runAsGroup: 1000
+            runAsNonRoot: true
+      containers:
+        - name: radiator
+          image: radiatorsoftware/radiator-server@sha256:4c421b0b9f03efb7094263997b28722636fd805978a79187c31d1cd45e32efaf
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            runAsUser: 1000
+            runAsGroup: 1000
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
+          env:
+            - name: MANAGEMENT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: radiator-secrets
+                  key: MANAGEMENT_PASSWORD
+            - name: RADIUS_SHARED_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: radiator-secrets
+                  key: RADIUS_SHARED_SECRET
+            - name: RADIATORDB_DB_HOST
+              value: radiator-postgres.default.svc.cluster.local
+            - name: RADIATORDB_DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: radiator-secrets
+                  key: POSTGRES_USER
+            - name: RADIATORDB_DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: radiator-secrets
+                  key: POSTGRES_PASSWORD
+          ports:
+            - name: management
+              containerPort: 8443
+              protocol: TCP
+            - name: radius-auth
+              containerPort: 1812
+              protocol: UDP
+            - name: radius-acct
+              containerPort: 1813
+              protocol: UDP
+            - name: radsec
+              containerPort: 2083
+              protocol: TCP
+          volumeMounts:
+            - name: radiator-config
+              mountPath: /var/lib/radiator
+            - name: management-certificate
+              mountPath: /var/lib/radiator/management/tls/certs
+              readOnly: true
+            - name: management-key
+              mountPath: /var/lib/radiator/management/tls/keys
+              readOnly: true
+            - name: management-users
+              mountPath: /etc/radiator/management-users
+              readOnly: true
+            - name: radiator-logs
+              mountPath: /var/log/radiator
+          livenessProbe:
+            httpGet:
+              path: /live
+              port: management
+              scheme: HTTP
+            initialDelaySeconds: 15
+            periodSeconds: 20
+            timeoutSeconds: 5
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: management
+              scheme: HTTP
+            initialDelaySeconds: 20
+            periodSeconds: 10
+            timeoutSeconds: 5
+          resources:
+            limits:
+              cpu: 1000m
+              memory: 1Gi
+      volumes:
+        - name: bootstrap-config
+          configMap:
+            name: radiator-bootstrap-config
+        - name: management-certificate
+          secret:
+            secretName: fruitiex-org-tls
+            items:
+              - key: tls.crt
+                path: MANAGEMENT_API_CERT.pem
+        - name: management-key
+          secret:
+            secretName: fruitiex-org-tls
+            items:
+              - key: tls.key
+                path: MANAGEMENT_API_KEY.pem
+        - name: management-users
+          secret:
+            secretName: radiator-secrets
+            items:
+              - key: MANAGEMENT_USERS_JSON
+                path: management-users.json
+        - name: radiator-config
+          persistentVolumeClaim:
+            claimName: radiator-config
+        - name: radiator-logs
+          emptyDir: {}
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: radiator-management
+  namespace: default
+  annotations:
+    external-dns.alpha.kubernetes.io/hostname: radiator.fruitiex.org
+spec:
+  ingressClassName: private
+  tls:
+    - secretName: fruitiex-org-tls
+  rules:
+    - host: radiator.fruitiex.org
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: radiator-management
+                port:
+                  number: 8443

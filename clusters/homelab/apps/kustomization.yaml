@@ -22,6 +22,7 @@ resources:
   # - llama-cpp.yaml
   - bambuddy.yaml
   - spliit.yaml
+  - radiator.yaml
   # - paperless-ngx.yaml
 # - adb-mqtt.yaml
 # - hue-mqtt.yaml
