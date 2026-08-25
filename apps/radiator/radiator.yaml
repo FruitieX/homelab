@@ -471,7 +471,7 @@ spec:
         runAsNonRoot: true
       initContainers:
         - name: initialize-config
-          image: busybox:1.36.1@sha256:b7f3d86d6e84fc17718c48bcde1450807faa2d56704205c697b4bd5df7b9e29f
+          image: busybox:1.38.0@sha256:1cfa4e2b09e127b9c4ed43578d3f3c18e7d44ea47b9ea98475c0cbe9086525f8
           command:
             - sh
             - -c
@@ -500,7 +500,7 @@ spec:
             - name: radiator-logs
               mountPath: /var/log/radiator
         - name: wait-for-postgres
-          image: busybox:1.36.1@sha256:b7f3d86d6e84fc17718c48bcde1450807faa2d56704205c697b4bd5df7b9e29f
+          image: busybox:1.38.0@sha256:1cfa4e2b09e127b9c4ed43578d3f3c18e7d44ea47b9ea98475c0cbe9086525f8
           command:
             - sh
             - -c
