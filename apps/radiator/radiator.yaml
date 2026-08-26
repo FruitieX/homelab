@@ -34,7 +34,7 @@ data:
             logger "AUTHENTICATION" {
                 memory {
                     loglevel info;
-                    size 16384;
+                    size 4096;
                 }
 
                 console {
@@ -45,7 +45,7 @@ data:
             logger "ACCOUNTING" {
                 memory {
                     loglevel info;
-                    size 16384;
+                    size 4096;
                 }
 
                 console {
@@ -60,10 +60,24 @@ data:
             log "AUTHENTICATION" {
                 json {
                     "timestamp" datetime.timestamp;
-                    "username" aaa.identity;
-                    "result" "%{aaa.result}";
-                    "reason" "%{aaa.reason}";
-                    "errors" "%{aaa.errors}";
+                    "User-Name" aaa.identity;
+                    "Result" "%{aaa.result}";
+                    "Reason" aaa.reason;
+                    "Errors" aaa.errors;
+                    "Policy" aaa.policy;
+                    "Handler" aaa.handler;
+                    "Context-Id" "%{context.id}";
+                    "Elapsed-Time" context.latency;
+                    "Client-IP-Address" radius.client.ip;
+                    "Client-Identifier" radius.client;
+                    "NAS-IP-Address" radius.request.attr.NAS-IP-Address;
+                    "NAS-Identifier" radius.request.attr.NAS-Identifier;
+                    "Calling-Station-Id" radius.request.attr.Calling-Station-Id;
+                    "Called-Station-Id" radius.request.attr.Called-Station-Id;
+                    "Request-Code" "%{radius.request.code}";
+                    "Request-Attributes" radius.request.attrs;
+                    "Reply-Code" "%{radius.reply.code}";
+                    "Reply-Attributes" radius.reply.attrs;
                 }
             }
         }
@@ -72,11 +86,30 @@ data:
             log "ACCOUNTING" {
                 json {
                     "timestamp" datetime.timestamp;
-                    "identity" aaa.identity;
-                    "type" aaa.type;
-                    "result" "%{aaa.result}";
-                    "reason" "%{aaa.reason}";
-                    "errors" "%{aaa.errors}";
+                    "User-Name" aaa.identity;
+                    "Result" "%{aaa.result}";
+                    "Reason" aaa.reason;
+                    "Errors" aaa.errors;
+                    "Policy" aaa.policy;
+                    "Handler" aaa.handler;
+                    "Context-Id" "%{context.id}";
+                    "Elapsed-Time" context.latency;
+                    "Client-IP-Address" radius.client.ip;
+                    "Client-Identifier" radius.client;
+                    "NAS-IP-Address" radius.request.attr.NAS-IP-Address;
+                    "NAS-Identifier" radius.request.attr.NAS-Identifier;
+                    "Calling-Station-Id" radius.request.attr.Calling-Station-Id;
+                    "Called-Station-Id" radius.request.attr.Called-Station-Id;
+                    "Acct-Status-Type" radius.request.attr.Acct-Status-Type;
+                    "Acct-Session-Id" radius.request.attr.Acct-Session-Id;
+                    "Acct-Session-Time" radius.request.attr.Acct-Session-Time;
+                    "Acct-Input-Octets" radius.request.attr.Acct-Input-Octets;
+                    "Acct-Output-Octets" radius.request.attr.Acct-Output-Octets;
+                    "Acct-Terminate-Cause" radius.request.attr.Acct-Terminate-Cause;
+                    "Request-Code" "%{radius.request.code}";
+                    "Request-Attributes" radius.request.attrs;
+                    "Reply-Code" "%{radius.reply.code}";
+                    "Reply-Attributes" radius.reply.attrs;
                 }
             }
         }
@@ -444,13 +477,13 @@ spec:
             - -c
           args:
             - >-
-              if [ ! -f /var/lib/radiator/.bootstrap-complete-v5 ]; then
+              if [ ! -f /var/lib/radiator/.bootstrap-complete-v6 ]; then
                 rm -f /var/lib/radiator/*.radconf /var/lib/radiator/..data;
                 rm -rf /var/lib/radiator/..20*;
                 for config in /bootstrap/*.radconf; do
                   cp -L "$config" "/var/lib/radiator/$(basename "$config")";
                 done;
-                touch /var/lib/radiator/.bootstrap-complete-v5;
+                touch /var/lib/radiator/.bootstrap-complete-v6;
               fi;
               mkdir -p /var/lib/radiator/licenses /var/lib/radiator/tmp /var/lib/radiator/management/tls/certs /var/lib/radiator/management/tls/keys /var/log/radiator;
               chown -R 1000:1000 /var/lib/radiator /var/log/radiator;
