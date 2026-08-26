@@ -7,13 +7,10 @@ data:
   management-access.radconf: |
     clients {
         http "MANAGEMENT_ACCESS_ALLOW_LIST" {
-            # The management endpoint is reachable only through the private
-            # ingress, but also allow the cluster and LAN source ranges here.
+            # The management endpoint is reachable through the private ingress.
             client "PRIVATE_NETWORK" {
                 source {
-                    ip 10.0.0.0/8;
-                    ip 172.16.0.0/12;
-                    ip 192.168.11.0/24;
+                    ip 10.244.0.0/16;
                 }
             }
         }
@@ -35,12 +32,22 @@ data:
     logging {
         aaa {
             logger "AUTHENTICATION" {
+                memory {
+                    loglevel info;
+                    size 16384;
+                }
+
                 console {
                     loglevel info;
                 }
             }
 
             logger "ACCOUNTING" {
+                memory {
+                    loglevel info;
+                    size 16384;
+                }
+
                 console {
                     loglevel info;
                 }
@@ -184,7 +191,7 @@ data:
 
                             @authentication {
                                 backend {
-                                    name "RADIUS_USERS";
+                                    name "radiatordb";
                                     query "FIND_USER";
                                 }
                                 pap;
@@ -215,7 +222,7 @@ data:
     }
   radiatordb.radconf: |
     backends {
-        postgres "RADIUS_USERS" {
+        radiatordb "radiatordb" {
             server "pg1" {
                 host env.RADIATORDB_DB_HOST;
                 port 5432;
@@ -225,24 +232,13 @@ data:
             }
 
             query "FIND_USER" {
-                statement "SELECT key[1] AS username, data->>'password' AS password FROM public.documents WHERE collection = 'users' AND key[1] = $1 AND expire_at IS NULL";
-                bindings {
-                    aaa.identity;
-                }
-                mapping {
-                    user.username = username;
-                    user.password = password;
-                }
-            }
-        }
+                collection "users";
+                key aaa.identity;
 
-        radiatordb "mydb" {
-            server "pg1" {
-                host env.RADIATORDB_DB_HOST;
-                port 5432;
-                database "radiatordb";
-                username env.RADIATORDB_DB_USER;
-                password env.RADIATORDB_DB_PASSWORD;
+                mapping {
+                    user.username = key[0];
+                    user.password = doc | jsonpath("$.password");
+                }
             }
 
             collection "users" {
@@ -274,8 +270,8 @@ data:
     ui {
         sidebar {
             section "RadiatorDB";
-            item "mydb" {
-                url "/radiatordb/database?dbName=mydb";
+            item "radiatordb" {
+                url "/radiatordb/database?dbName=radiatordb";
                 icon "Database";
             }
         }
@@ -448,13 +444,13 @@ spec:
             - -c
           args:
             - >-
-              if [ ! -f /var/lib/radiator/.bootstrap-complete-v4 ]; then
+              if [ ! -f /var/lib/radiator/.bootstrap-complete-v5 ]; then
                 rm -f /var/lib/radiator/*.radconf /var/lib/radiator/..data;
                 rm -rf /var/lib/radiator/..20*;
                 for config in /bootstrap/*.radconf; do
                   cp -L "$config" "/var/lib/radiator/$(basename "$config")";
                 done;
-                touch /var/lib/radiator/.bootstrap-complete-v4;
+                touch /var/lib/radiator/.bootstrap-complete-v5;
               fi;
               mkdir -p /var/lib/radiator/licenses /var/lib/radiator/tmp /var/lib/radiator/management/tls/certs /var/lib/radiator/management/tls/keys /var/log/radiator;
               chown -R 1000:1000 /var/lib/radiator /var/log/radiator;
@@ -496,11 +492,6 @@ spec:
               drop:
                 - ALL
           env:
-            - name: MANAGEMENT_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: radiator-secrets
-                  key: MANAGEMENT_PASSWORD
             - name: RADIUS_SHARED_SECRET
               valueFrom:
                 secretKeyRef:
@@ -562,9 +553,11 @@ spec:
             periodSeconds: 10
             timeoutSeconds: 5
           resources:
+            requests:
+              memory: 100Mi
             limits:
               cpu: 1000m
-              memory: 1Gi
+              memory: 100Mi
       volumes:
         - name: bootstrap-config
           configMap:
