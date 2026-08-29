@@ -21,7 +21,7 @@ spec:
     spec:
       containers:
         - name: spliit
-          image: ghcr.io/spliit-app/spliit:1.19.0
+          image: ghcr.io/spliit-app/spliit:1.23.1
           imagePullPolicy: "IfNotPresent"
           ports:
             - name: http
