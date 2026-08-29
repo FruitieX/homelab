@@ -22,6 +22,7 @@ spec:
             - --source=service
             - --source=gateway-httproute
             - --annotation-filter=external-dns.alpha.kubernetes.io/exclude notin (true)
+            - --annotation-prefix=external-dns.alpha.kubernetes.io/
             - --domain-filter=fruitiex.org
             - --domain-filter=lovegren.fi
             - --provider=cloudflare
