@@ -43,11 +43,16 @@ To follow this guide, you need the following:
   - One control plane node with 4 GB RAM
   - Two worker nodes with 8 GB RAM each
 
-  NOTE: If you want iSCSI support, you need to apply the included `talos-machine-patch.yaml` like so:
+  The repository pins a custom Talos Image Factory installer containing the iSCSI
+  extension. Generate the machine configurations using the repository script:
 
   ```
-  talosctl gen config homelab-cluster https://$CONTROL_PLANE_IP:6443 --output-dir _out --config-patch @talos-machine-patch.yaml
+  sh ./regen-configs.sh
   ```
+
+  Update `TALOS_VERSION`, `TALOS_SCHEMATIC`, and `KUBERNETES_VERSION` in
+  `regen-configs.sh` when changing Talos versions, Image Factory extensions, or
+  Kubernetes versions.
 
   NOTE: While installing, write down the following details into an .envrc file:
 
