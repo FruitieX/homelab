@@ -3,4 +3,4 @@ kind: Kustomization
 resources:
   - ./http-routes.yaml
   - ./namespace.yaml
-  - ./services.yaml
+  - ./backends.yaml

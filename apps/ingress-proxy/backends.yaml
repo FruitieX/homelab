@@ -1,0 +1,32 @@
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: Backend
+metadata:
+  name: nectarine-5000
+  namespace: ingress-proxy
+spec:
+  endpoints:
+    - fqdn:
+        hostname: nectarine.internal.fruitiex.org
+        port: 5000
+---
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: Backend
+metadata:
+  name: nectarine-10002
+  namespace: ingress-proxy
+spec:
+  endpoints:
+    - fqdn:
+        hostname: nectarine.internal.fruitiex.org
+        port: 10002
+---
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: Backend
+metadata:
+  name: nectarine-5081
+  namespace: ingress-proxy
+spec:
+  endpoints:
+    - fqdn:
+        hostname: nectarine.internal.fruitiex.org
+        port: 5081

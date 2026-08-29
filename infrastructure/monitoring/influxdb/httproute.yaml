@@ -1,20 +1,46 @@
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
-  name: influxdb
-  namespace: influxdb
+    name: influxdb
+    namespace: influxdb
 spec:
-  parentRefs:
-    - name: private
-      namespace: envoy-gateway-system
-      sectionName: https
-  hostnames:
-    - influxdb.fruitiex.org
-  rules:
-    - matches:
-        - path:
-            type: PathPrefix
-            value: /
-      backendRefs:
-        - name: influxdb
-          port: 80
+    parentRefs:
+        - name: private
+          namespace: envoy-gateway-system
+          sectionName: https
+    hostnames:
+        - ENC[AES256_GCM,data:2HP/owkVRqw6V+t9Cf53pu46em4B,iv:4KA4Q8AiHC/duH2Qcz32RXQzgsEdYMcK6jsx6+Hs2x8=,tag:D/p5nQxBmdwnULvaBOgTFQ==,type:str]
+    rules:
+        - matches:
+            - path:
+                type: PathPrefix
+                value: /
+          backendRefs:
+            - name: influxdb-influxdb2
+              port: 80
+sops:
+    encrypted_regex: ^(hosts?|hostnames?)$
+    lastmodified: "2026-08-29T13:22:16Z"
+    mac: ENC[AES256_GCM,data:ylStNx3fXl/ug+++aQDVXpNwAh3PdRF8R7VzEX+sC5m0zoRNsb3ssi+HCb9wywprAo3FgIuZtGKbtMP8c4vnIrNMBy2ZyPRR8+ox32zvJtnaz/FHGslGznN1AzK1dajhhFclM1uAik+qJO1/p7em5Dl8tU+0NcMF9PKUpKzVyVM=,iv:zH1lShZnWg8Dm5z/tSCqiu7Dv/zC6u3N82WpXg21WKY=,tag:W5ekuWFVpIrcDhBGXj+cNQ==,type:str]
+    pgp:
+        - created_at: "2026-08-29T13:22:16Z"
+          enc: |-
+            -----BEGIN PGP MESSAGE-----
+
+            hQIMA8WjeZLD+fxwAQ/+PDjyxz4fSwE/UcIDA+s+oaHs9ocNmkEOAPlAHL8AF5so
+            WeyNhOi2GrbcA1YtiP97Xf6xMMw++dDYs3rK2JRkG4MaoeMUXS/225X8NtACjhrI
+            mj4iRy1fE6ydNz7smPKfx3AW4W493y6X/0s1Ih92gNZ+f+iQKei1BmdGQdbDXtHX
+            J+duqk3wzAZ6gUdiuoI5UeSSXQLmEI7HPfpesbgHGLd3vutaKZw1ElKBnOwAW00+
+            +4CN/p3alPRJFe0ZauISZuK5DOniNNHbCXBGEOUBPiQuRi25xnaGDNWMXjQjgFC3
+            I3Mc8FJB5Mi33tfbsGiJ784v+m7HCsOarCyz4XsCvSyIjyzjN54Hv0PU3QuKdb7I
+            WaztOUfvOVrgdBuL054KlirCjOhm2d2RXqDghXu3r+JzWiyyT8FV9VlpBcAJH5+n
+            oa++dgThgpIYlSRBO8FaRd3EXuB3ZugUaVpQREF2S8yu1EBxPci7PF5JukUyoYiL
+            fyx38hlUesvQCnjXKGgVDw/id7DnuFiS5n12np7J0jxA7ykrQzy4PeDBFGnVBHIX
+            xOnq6uvnKxBH7xFxN2Gf8B/FKQ7cxUMx+Xt3uf3TFrxA5p+VhkXoF9XCysbC6axd
+            bjrJxaE25NhWR05YFvJ6BbO2xOAA0lERPnXboruXv4teoMEX/zDsR8rodlp42nrS
+            XgG6iPsTkOBD3FYoqhgn9/q4yHuRpBbbPqgNkxQJmRG/YrfJI8GS4shEqB1/7u0b
+            /8RGA1k4nBtkblsR2fSnea3ol+v5G59BJvnkgx2M3GQvac9p9W/7QlwbsjFM6RQ=
+            =sFH1
+            -----END PGP MESSAGE-----
+          fp: 3536F7F9345D96C86FB7F9CD21FAFEE575B18815
+    version: 3.13.3

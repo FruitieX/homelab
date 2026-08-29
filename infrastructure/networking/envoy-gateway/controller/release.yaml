@@ -51,5 +51,7 @@ spec:
       maxUnavailable: 1
     config:
       envoyGateway:
+        extensionApis:
+          enableBackend: true
         gateway:
           controllerName: gateway.envoyproxy.io/gatewayclass-controller
