@@ -49,10 +49,7 @@ spec:
                     name: immich-postgres-config
       ingress:
         main:
-          enabled: true
-          className: public
-          annotations:
-            external-dns.alpha.kubernetes.io/exclude: "true"
+          enabled: false
       persistence:
         external:
           enabled: true

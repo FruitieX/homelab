@@ -17,14 +17,13 @@ spec:
       serviceAccountName: external-dns
       containers:
         - name: external-dns
-          image: registry.k8s.io/external-dns/external-dns:v0.14.0@sha256:474077b3dfccb3021db0a6638274967d0f64ce60dd9730a6f464bee2f78b046f
+          image: registry.k8s.io/external-dns/external-dns:v0.22.0@sha256:5fdcaf7deb5c158f93a1fc6fe169cdff4cfb9ae0172bee1a90ab0ef74fb9c9cf
           args:
             - --source=service
-            - --source=ingress
-            # TODO: replace annotation filter with ingress class filter, which will be supported in a future version of external-dns
-            # - --ingress-class=private
+            - --source=gateway-httproute
             - --annotation-filter=external-dns.alpha.kubernetes.io/exclude notin (true)
             - --domain-filter=fruitiex.org
+            - --domain-filter=lovegren.fi
             - --provider=cloudflare
             - --cloudflare-dns-records-per-page=5000
           env:

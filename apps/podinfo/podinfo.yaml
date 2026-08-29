@@ -13,28 +13,28 @@ spec:
       port: 80
       targetPort: 9898
 ---
-apiVersion: networking.k8s.io/v1
-kind: Ingress
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
 metadata:
-  name: podinfo-ingress
+  name: podinfo
   namespace: default
   annotations:
     external-dns.alpha.kubernetes.io/exclude: "true"
 spec:
-  ingressClassName: public
-  tls:
-    - secretName: fruitiex-org-tls
+  parentRefs:
+    - name: public
+      namespace: envoy-gateway-system
+      sectionName: https
+  hostnames:
+    - ${PODINFO_DOMAIN_NAME}
   rules:
-    - host: ${PODINFO_DOMAIN_NAME}
-      http:
-        paths:
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: podinfo
-                port:
-                  number: 80
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /
+      backendRefs:
+        - name: podinfo
+          port: 80
 ---
 apiVersion: apps/v1
 kind: Deployment

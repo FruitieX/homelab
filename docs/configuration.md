@@ -22,7 +22,7 @@ There are a few different approaches to configuration in the k8s ecosystem. In t
 
   Applications come packaged as Helm charts. You can find readily made helm charts [e.g. here](https://artifacthub.io/packages/search)
 
-  This repo is structured such that Helm chart "sources" - HelmRepositories - are stored in [/infrastructure/sources](/infrastructure/sources), and charts can be "released" by a HelmRelease (for example [/infrastructure/networking/ingress-nginx-public/release.yaml](/infrastructure/networking/ingress-nginx-public/release.yaml), here you can also see values being overridden)
+  This repo is structured such that Helm chart "sources" - HelmRepositories - are stored in [/infrastructure/sources](/infrastructure/sources), and charts can be "released" by a HelmRelease (for example [/infrastructure/networking/envoy-gateway/controller/release.yaml](/infrastructure/networking/envoy-gateway/controller/release.yaml), here you can also see values being overridden)
 
   - Advantages: Helm charts can be an easy way to deploy very complex infrastructure into your cluster very conveniently. Helm charts usually let you override "values" to configure the deployment as you want. [Here's an example](https://artifacthub.io/packages/helm/prometheus-community/kube-prometheus-stack?modal=values) of configurable values in `kube-prometheus-stack`'s values.yaml.
 
@@ -44,7 +44,7 @@ MetalLB allows k8s services to appear under their own unique IP address in your 
 
 - Search for `metallb.universe.tf/loadBalancerIPs` annotations in the repo.
 
-  This annotation sets a static IP (from the MetalLB IP address pool) for a given service. Useful if you don't want the IP of a certain service to change (for example a DNS server or nginx-ingress, both of which you will probably configure IP addresses manually for in your router settings)
+  This annotation sets a static IP (from the MetalLB IP address pool) for a given service. Useful if you don't want the IP of a certain service to change (for example a DNS server or Envoy Gateway, both of which you will probably configure IP addresses manually for in your router settings)
 
 - Add `metallb.yaml` and `crds.yaml` back in [/clusters/homelab/infrastructure/kustomization.yaml](/clusters/homelab/infrastructure/kustomization.yaml). Commit and push.
 
@@ -121,46 +121,29 @@ Flux can forward reconciliation errors to various chat apps, I'm personally usin
 
 - You should now get Discord notifications on reconciliation failures.
 
-## ingress-nginx
+## Envoy Gateway
 
-[ingress-nginx](https://github.com/kubernetes/ingress-nginx) acts as a reverse proxy for HTTP requests to your cluster. Based on the subdomain a HTTP request was made to, ingress-nginx can forward the request to the appropriate service.
+[Envoy Gateway](https://gateway.envoyproxy.io/) implements the Kubernetes Gateway API and acts as the reverse proxy for HTTP requests to your cluster. Based on the hostname a request was made to, Envoy Gateway forwards it to the appropriate Kubernetes Service.
 
-- This repo contains two instances of ingress-nginx:
+- This repo contains two Gateway instances:
 
-  - ingress-nginx-public: For public (Internet) facing HTTP services
-  - ingress-nginx-private: For private (LAN) facing HTTP services
+  - `public`: For public (Internet) facing HTTP services
+  - `private`: For private (LAN) facing HTTP services
 
-- It's possible to select which ingress controller you want to use by specifying either:
+- Routes select the intended Gateway explicitly with a `parentRefs` entry:
 
-  - `ingressClassName: public`
-  - `ingressClassName: private`
+  - `parentRefs.name: public`
+  - `parentRefs.name: private`
 
-  in the `spec:` section of a `kind: Ingress` manifest. [Here's an example for the podinfo ingress](/apps/podinfo/podinfo.yaml).
+  in a `kind: HTTPRoute` manifest. [Here's an example for the podinfo route](/apps/podinfo/podinfo.yaml).
 
-- By default the public ingress is set to use a static IP `192.168.11.1`, which
-  you can use in your router's port forwarding settings to forward both ports 80
-  (HTTP) and 443 (HTTPS) to.
-
-- Add `ingress-nginx-public.yaml` and/or `ingress-nginx-private.yaml` back in [/clusters/homelab/infrastructure/kustomization.yaml](/clusters/homelab/infrastructure/kustomization.yaml). Commit and push.
-
-- If kustomizations containing ingresses fail with `x509: certificate signed by unknown authority` errors, run:
-
-  ```
-  ns=ingress-nginx-public
-  CA=$(kubectl -n $ns get secret ingress-nginx-admission -ojsonpath='{.data.ca}')
-  kubectl patch validatingwebhookconfigurations ingress-nginx-admission -n $ns --type='json' -p='[{"op": "add", "path": "/webhooks/0/clientConfig/caBundle", "value":"'$CA'"}]'
-  ```
-
-  NOTE: Depending on if you get this error for the public or private instance of ingress-nginx, you may need to adjust `ns` accordingly.
-
-  Source: https://fabianlee.org/2022/01/29/nginx-ingress-nginx-controller-admission-error-x509-certificate-signed-by-unknown-authority/
+- The public Gateway uses the static IP `192.168.11.1`, which you can use in your router's port forwarding settings to forward both ports 80 (HTTP) and 443 (HTTPS) to.
 
 ## cert-manager
 
 [cert-manager](https://cert-manager.io/) obtains and renews Let's Encrypt certificates.
 
-This repo configures cert-manager is both HTTP01 and DNS01 challenge solvers.
-DNS01 allows requesting wildcard certificates that can be shared by all your
+This repo configures cert-manager with a DNS01 challenge solver. DNS01 allows requesting wildcard certificates that can be shared by all your
 subdomains (including private services).
 
 DNS01 requires some extra configuration, as cert-manager needs access to your

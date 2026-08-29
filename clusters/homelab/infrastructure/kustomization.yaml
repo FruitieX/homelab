@@ -11,8 +11,8 @@ resources:
   - crds.yaml
   - kube-prometheus-stack.yaml
   - external-dns.yaml
-  - ingress-nginx-public.yaml
-  - ingress-nginx-private.yaml
+  - envoy-gateway.yaml
+  - envoy-gateway-config.yaml
   - metallb.yaml
   - reloader.yaml
   - reflector.yaml

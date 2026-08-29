@@ -12,6 +12,8 @@ spec:
   path: ./apps/homectl
   prune: true
   wait: true
+  dependsOn:
+    - name: envoy-gateway-config
   decryption:
     provider: sops
     secretRef:

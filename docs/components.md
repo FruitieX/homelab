@@ -46,11 +46,11 @@ I make use of the following pieces of software and infrastructure:
 - Every service gets their IP address added to Cloudfront DNS records
   - For example, the `podinfo` hostname resolves the podinfo service, reachable both inside the cluster and from my home network
 
-### ingress-nginx & cert-manager
+### Envoy Gateway & cert-manager
 
 - HTTP services will have their subdomains reverse proxied automatically
-  - For example, accessing `podinfo.example.org` will hit the `ingress-nginx` service (thanks to wildcard CNAME & router port forwarding)
-  - `ingress-nginx` will check the `Host` HTTP header and proxy the request to the `podinfo` service
+  - For example, accessing `podinfo.example.org` will hit the public Envoy Gateway (thanks to wildcard CNAME & router port forwarding)
+  - Envoy Gateway will check the `Host` HTTP header and proxy the request to the `podinfo` service
 - All subdomains get auto-renewing Let's Encrypt certificates
 
 ### nfs-subdir-external-provisioner, synology-csi
@@ -61,4 +61,3 @@ I make use of the following pieces of software and infrastructure:
 ### kube-prometheus-stack
 
 - Detailed Grafana dashboards & metrics
-

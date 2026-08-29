@@ -24,20 +24,7 @@ spec:
 
     ingress:
       main:
-        enabled: true
-        ingressClassName: private
-        annotations:
-          # Remove any problematic nginx annotations by setting them explicitly
-          nginx.ingress.kubernetes.io/configuration-snippet: ~
-        tls:
-          - secretName: fruitiex-org-tls
-            hosts:
-              - navidrome.fruitiex.org
-        hosts:
-          - host: navidrome.fruitiex.org
-            paths:
-              - path: /
-                pathType: ImplementationSpecific
+        enabled: false
 
     persistence:
       config:

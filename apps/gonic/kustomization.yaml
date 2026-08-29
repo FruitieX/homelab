@@ -5,3 +5,4 @@ kind: Kustomization
 resources:
   - volume.yaml
   - release.yaml
+  - httproute.yaml

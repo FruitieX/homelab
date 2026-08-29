@@ -13,7 +13,7 @@ example.org.	    60	IN	A	  <my home IP>
 The idea is that:
 
 - DNS requests to any subdomain will resolve to my home IP
-- A port forward rule for ports 80 (HTTP) and 443 (HTTPS) in my router will forward any HTTP(S) traffic to `ingress-nginx` 
-- `ingress-nginx` forwards requests to the corresponding HTTP service based on the `Host` HTTP header
+- A port forward rule for ports 80 (HTTP) and 443 (HTTPS) in my router will forward any HTTP(S) traffic to the public Envoy Gateway
+- Envoy Gateway forwards requests to the corresponding HTTP service based on the `Host` HTTP header
 
-Remember to forward ports 80 and 443 in your router once you know the IP address of your `ingress-nginx-public` service!
+Remember to forward ports 80 and 443 in your router to the IP address of the public Envoy Gateway service.

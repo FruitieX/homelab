@@ -1,22 +1,20 @@
-apiVersion: networking.k8s.io/v1
-kind: Ingress
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
 metadata:
-  name: bambuddy-ingress
+  name: bambuddy
   namespace: default
-  annotations:
-    external-dns.alpha.kubernetes.io/hostname: bambuddy.fruitiex.org
 spec:
-  ingressClassName: private
-  tls:
-    - secretName: fruitiex-org-tls
+  parentRefs:
+    - name: private
+      namespace: envoy-gateway-system
+      sectionName: https
+  hostnames:
+    - bambuddy.fruitiex.org
   rules:
-    - host: bambuddy.fruitiex.org
-      http:
-        paths:
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: bambuddy-service
-                port:
-                  number: 8000
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /
+      backendRefs:
+        - name: bambuddy-service
+          port: 8000

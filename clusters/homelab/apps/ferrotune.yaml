@@ -8,6 +8,8 @@ spec:
   interval: 10m
   path: ./apps/ferrotune
   prune: true
+  dependsOn:
+    - name: envoy-gateway-config
   sourceRef:
     kind: GitRepository
     name: flux-system

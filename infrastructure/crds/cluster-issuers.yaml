@@ -10,9 +10,6 @@ spec:
     privateKeySecretRef:
       name: letsencrypt-staging
     solvers:
-      - http01:
-          ingress:
-            ingressClassName: public
       - dns01:
           cloudflare:
             email: ${CLOUDFLARE_EMAIL}
@@ -37,9 +34,6 @@ spec:
     privateKeySecretRef:
       name: letsencrypt-prod
     solvers:
-      - http01:
-          ingress:
-            ingressClassName: public
       - dns01:
           cloudflare:
             email: ${CLOUDFLARE_EMAIL}

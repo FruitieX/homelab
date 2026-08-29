@@ -5,4 +5,5 @@ resources:
   - influxdb-auth.yaml
   - namespace.yaml
   - release.yaml
+  - httproute.yaml
   # - telegraf.yaml

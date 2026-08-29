@@ -1,0 +1,55 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: envoy-gateway
+  namespace: envoy-gateway-system
+spec:
+  interval: 30m
+  timeout: 10m
+  releaseName: envoy-gateway
+  chartRef:
+    kind: OCIRepository
+    name: envoy-gateway
+    namespace: flux-system
+  install:
+    crds: CreateReplace
+    remediation:
+      retries: 3
+  upgrade:
+    crds: CreateReplace
+    cleanupOnFail: true
+    remediation:
+      retries: 3
+      remediateLastFailure: true
+  driftDetection:
+    mode: enabled
+  values:
+    global:
+      images:
+        envoyGateway:
+          image: docker.io/envoyproxy/gateway:v1.9.0@sha256:6f40c7b218b4ff1c4cb481923ed2c9a7634580365913434dd5dda9e954c0114b
+        ratelimit:
+          image: docker.io/envoyproxy/ratelimit:17b1956c@sha256:871098f54d99ad612abdd455e39632be6d990937be2e46eecf4e39f65d948a94
+    deployment:
+      replicas: 2
+      envoyGateway:
+        resources:
+          requests:
+            cpu: 100m
+            memory: 256Mi
+          limits:
+            memory: 512Mi
+      pod:
+        topologySpreadConstraints:
+          - maxSkew: 1
+            topologyKey: kubernetes.io/hostname
+            whenUnsatisfiable: DoNotSchedule
+            labelSelector:
+              matchLabels:
+                control-plane: envoy-gateway
+    podDisruptionBudget:
+      maxUnavailable: 1
+    config:
+      envoyGateway:
+        gateway:
+          controllerName: gateway.envoyproxy.io/gatewayclass-controller

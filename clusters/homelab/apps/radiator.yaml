@@ -15,6 +15,7 @@ spec:
   wait: true
   dependsOn:
     - name: csi-driver-nfs
+    - name: envoy-gateway-config
   decryption:
     provider: sops
     secretRef:

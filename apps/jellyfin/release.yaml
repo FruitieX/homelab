@@ -16,10 +16,7 @@ spec:
         namespace: flux-system
   values:
     ingress:
-      enabled: true
-      className: public
-      annotations:
-        external-dns.alpha.kubernetes.io/exclude: "true"
+      enabled: false
     persistence:
       config:
         enabled: true
@@ -37,4 +34,3 @@ spec:
   valuesFrom:
     - kind: Secret
       name: jellyfin-secret-values
-    

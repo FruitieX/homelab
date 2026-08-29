@@ -21,12 +21,7 @@ spec:
       forceDeployDashboards: true
     alertmanager:
       ingress:
-        enabled: true
-        ingressClassName: private
-        tls:
-          - secretName: fruitiex-org-tls
-        hosts:
-          - alertmanager.fruitiex.org
+        enabled: false
       alertmanagerSpec:
         storage:
           volumeClaimTemplate:
@@ -39,12 +34,7 @@ spec:
                   storage: 10Gi
     prometheus:
       ingress:
-        enabled: true
-        ingressClassName: private
-        tls:
-          - secretName: fruitiex-org-tls
-        hosts:
-          - prometheus.fruitiex.org
+        enabled: false
       prometheusSpec:
         retention: 90d
         retentionSize: "100GB"

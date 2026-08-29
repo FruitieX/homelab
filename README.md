@@ -12,7 +12,7 @@ In summary, the homelab is built up using:
 - [Kubernetes](https://kubernetes.io/), running on virtual [Talos Linux](https://www.talos.dev/) nodes in [Proxmox VE](https://www.proxmox.com/en/proxmox-ve)
 - [Flux CD](https://fluxcd.io/) reconciling cluster configuration from this git repo
 - [MetalLB](https://metallb.universe.tf/) & [external-dns](https://github.com/kubernetes-sigs/external-dns) expose apps on separate IP addresses with associated DNS records
-- [ingress-nginx](https://github.com/kubernetes/ingress-nginx) & [cert-manager](https://cert-manager.io/) reverse proxy subdomain HTTP requests with auto-renewing [Let's Encrypt](https://letsencrypt.org/) certificates
+- [Envoy Gateway](https://gateway.envoyproxy.io/) & [cert-manager](https://cert-manager.io/) route subdomain HTTP requests with auto-renewing [Let's Encrypt](https://letsencrypt.org/) certificates
 - [nfs-subdir-external-provisioner](https://github.com/kubernetes-sigs/nfs-subdir-external-provisioner) & [synology-csi](https://github.com/SynologyOpenSource/synology-csi) provide persistent storage on NAS
 - [kube-prometheus-stack](https://github.com/prometheus-operator/kube-prometheus) provides detailed metrics
 
@@ -128,7 +128,7 @@ To follow this guide, you need the following:
         name: cluster-secrets                                        
     type: Opaque                                                     
     stringData:                                                      
-        # Domain name of the `podinfo` app ingress
+        # Domain name of the `podinfo` app HTTPRoute
         PODINFO_DOMAIN_NAME: podinfo.example.org                    
     ```
 

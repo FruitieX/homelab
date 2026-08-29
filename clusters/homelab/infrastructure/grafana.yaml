@@ -12,6 +12,8 @@ spec:
   path: ./infrastructure/monitoring/grafana
   prune: true
   wait: true
+  dependsOn:
+    - name: envoy-gateway-config
   decryption:
     provider: sops
     secretRef:

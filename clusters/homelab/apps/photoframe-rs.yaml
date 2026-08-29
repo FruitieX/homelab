@@ -12,6 +12,8 @@ spec:
   path: ./apps/photoframe-rs
   prune: true
   wait: true
+  dependsOn:
+    - name: envoy-gateway-config
   decryption:
     provider: sops
     secretRef:

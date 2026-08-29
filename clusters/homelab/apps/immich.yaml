@@ -12,6 +12,8 @@ spec:
   path: ./apps/immich
   prune: true
   wait: true
+  dependsOn:
+    - name: envoy-gateway-config
   decryption:
     provider: sops
     secretRef:
@@ -23,5 +25,4 @@ spec:
         name: cluster-config
       - kind: Secret
         name: cluster-secrets
-
 

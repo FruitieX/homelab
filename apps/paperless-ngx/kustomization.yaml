@@ -4,3 +4,4 @@ resources:
   - ./config.yaml
   - ./volume.yaml
   - ./release.yaml
+  - ./httproute.yaml

@@ -20,17 +20,7 @@ spec:
       USERMAP_GID: "100"
     ingress:
       main:
-        enabled: true
-        ingressClassName: private
-        tls:
-          - secretName: fruitiex-org-tls
-            hosts:
-              - paperless.fruitiex.org
-        hosts:
-          - host: paperless.fruitiex.org
-            paths:
-              - path: /
-                pathType: ImplementationSpecific
+        enabled: false
     service:
       main:
         type: LoadBalancer

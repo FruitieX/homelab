@@ -16,12 +16,7 @@ spec:
         namespace: flux-system
   values:
     ingress:
-      enabled: true
-      ingressClassName: private
-      tls:
-        - secretName: fruitiex-org-tls
-      hosts:
-        - grafana.fruitiex.org
+      enabled: false
     persistence:
       type: pvc
       enabled: true

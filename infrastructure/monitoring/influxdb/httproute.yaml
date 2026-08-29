@@ -1,0 +1,20 @@
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: influxdb
+  namespace: influxdb
+spec:
+  parentRefs:
+    - name: private
+      namespace: envoy-gateway-system
+      sectionName: https
+  hostnames:
+    - influxdb.fruitiex.org
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /
+      backendRefs:
+        - name: influxdb
+          port: 80

@@ -1,22 +1,20 @@
-apiVersion: networking.k8s.io/v1
-kind: Ingress
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
 metadata:
-  name: ferrotune-ingress
+  name: ferrotune
   namespace: default
-  annotations:
-    nginx.ingress.kubernetes.io/proxy-body-size: "10000m"
 spec:
-  ingressClassName: private
-  tls:
-    - secretName: fruitiex-org-tls
+  parentRefs:
+    - name: private
+      namespace: envoy-gateway-system
+      sectionName: https
+  hostnames:
+    - ferrotune.fruitiex.org
   rules:
-    - host: ferrotune.fruitiex.org
-      http:
-        paths:
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: ferrotune-service
-                port:
-                  number: 4040
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /
+      backendRefs:
+        - name: ferrotune-service
+          port: 4040

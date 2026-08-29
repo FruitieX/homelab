@@ -5,6 +5,7 @@ resources:
   - ./immich-postgres.yaml
   - ./release.yaml
   - ./volume.yaml
+  - ./httproute.yaml
 secretGenerator:
   - name: immich-secret-values
     namespace: default

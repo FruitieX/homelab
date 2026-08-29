@@ -1,4 +1,4 @@
-# https://cert-manager.io/docs/tutorials/acme/nginx-ingress/
+# https://cert-manager.io/docs/configuration/acme/dns01/cloudflare/
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 namespace: cert-manager

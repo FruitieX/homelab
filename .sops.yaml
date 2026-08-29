@@ -1,5 +1,5 @@
 creation_rules:
   - path_regex: apps/ingress-proxy/.*
-    encrypted_regex: "^(hosts?)$"
+    encrypted_regex: "^(hosts?|hostnames?)$"
 
   - encrypted_regex: "^(data|stringData)$"

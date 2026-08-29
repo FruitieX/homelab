@@ -3,3 +3,4 @@ kind: Kustomization
 resources:
   - ./release.yaml
   - ./volume.yaml
+  - ./httproute.yaml

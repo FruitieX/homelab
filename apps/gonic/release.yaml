@@ -25,20 +25,7 @@ spec:
 
     ingress:
       main:
-        enabled: true
-        ingressClassName: private
-        annotations:
-          # Override to prevent bjw-s common library from adding forbidden configuration-snippet
-          nginx.ingress.kubernetes.io/configuration-snippet: ~
-        hosts:
-          - host: gonic.fruitiex.org
-            paths:
-              - path: /
-                pathType: Prefix
-        tls:
-          - secretName: fruitiex-org-tls
-            hosts:
-              - gonic.fruitiex.org
+        enabled: false
 
     persistence:
       config:
