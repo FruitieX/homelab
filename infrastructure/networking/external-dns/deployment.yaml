@@ -25,6 +25,7 @@ spec:
             - --domain-filter=fruitiex.org
             - --domain-filter=lovegren.fi
             - --provider=cloudflare
+            - --policy=sync
             - --cloudflare-dns-records-per-page=5000
           env:
             - name: CF_API_EMAIL
