@@ -4,5 +4,6 @@ namespace: flux-system
 resources:
   - cluster-config.yaml
   - cluster-secrets.yaml
+  - flux-system
   - infrastructure
   - apps
