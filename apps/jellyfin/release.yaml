@@ -31,6 +31,24 @@ spec:
         existingClaim: pvc-jellyfin-media
     service:
       type: LoadBalancer
+    livenessProbe:
+      httpGet:
+        path: /health
+        port: http
+      initialDelaySeconds: 10
+      timeoutSeconds: 5
+      periodSeconds: 15
+      failureThreshold: 6
+      successThreshold: 1
+    readinessProbe:
+      httpGet:
+        path: /health
+        port: http
+      initialDelaySeconds: 10
+      timeoutSeconds: 5
+      periodSeconds: 15
+      failureThreshold: 6
+      successThreshold: 1
   valuesFrom:
     - kind: Secret
       name: jellyfin-secret-values
