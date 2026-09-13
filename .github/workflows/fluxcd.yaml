@@ -24,7 +24,7 @@ jobs:
             --export > ./clusters/homelab/flux-system/gotk-components.yaml
 
           VERSION="$(flux -v)"
-          echo "flux_version=$VERSION" >> $GITHUB_OUTPUT          
+          printf 'flux_version=%s\n' "$VERSION" >> "$GITHUB_OUTPUT"
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v8
         with:
