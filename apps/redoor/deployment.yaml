@@ -17,6 +17,7 @@ spec:
       labels:
         app: redoor
     spec:
+      enableServiceLinks: false
       securityContext:
         runAsNonRoot: true
         runAsUser: 10001
