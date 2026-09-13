@@ -1,0 +1,34 @@
+apiVersion: v1
+kind: Secret
+metadata:
+    namespace: default
+    name: redoor-config
+type: Opaque
+stringData:
+    config.toml: ENC[AES256_GCM,data:EQkQAXW57ta53AVJ2V7ECqgtt3J/PBYZUuJM9iHsfxYvCWe00npoj3buCE7tUhuutf09Rv5GyIZQT7BZ+TH4geOUwumauIIjC6L4slULmAXD+X3nO1pvhuhuPs/Nev/DS09Z/VsEHxll3kZi73RyNkaso1/Gk0w3olsl5tspJZjJsdSvdEeG0UAe1VKKp/f+8h/Am/pLIbAsWl32lkB7x2Zq8dyiU80nUnGZ7duYNAorlUsKYXfoKQ3uuQvlEaLlKttPXqW38fkXi63p9I8w+YW5azArrnQyxcMRjeGyyQQdt7BGlBaFqDaTGKPaua/pf2Nzplmq6F3LqewzYa/A/qPFbR7Ikf2tGuNgoEGeScVpHezbMcv4lf2a3Cwdf/UhWv06pM6EpWE0MkxQs3YAiHSfrYUV,iv:kQ6dGury625Sp28dd6iGQsz2XPoMCAQB5+R8RIBtUGQ=,tag:RHxXGfujf2ShvG9hLXvjyw==,type:str]
+sops:
+    lastmodified: "2026-09-13T07:15:02Z"
+    mac: ENC[AES256_GCM,data:xLDAjlNMq/69RH4MFH7LE4JmfbN90dpcMFtEdO31zfnfPsOQNzNcP5lTkKytAuSPz793O9uU1GegJ7xxtjlw3sj7ZoByo9KWKE+ZbMkTMb+dkcF94jyWHYOMOxt7QX0VAjcK6R+DIefe50IH99tZHnKzy65T9DGBie0sW8Q06CM=,iv:+5bdWCs0kPZC8O7/8OLqhxDdKCeGcaEWakKoxoSdjNw=,tag:+Rdarn7L3nq8JZtVaSphLQ==,type:str]
+    pgp:
+        - created_at: "2026-09-13T07:15:02Z"
+          enc: |-
+            -----BEGIN PGP MESSAGE-----
+
+            hQIMA8WjeZLD+fxwAQ//X3R3dlHH6pmRG7enjHRrfG8lcXz9Cy4D5M9vr2rey++6
+            TNfRyRw4pMFieP0abHM46VIearn7D1G3s4hVv2ka7/uWngm9qfbY6qQTl0IzqKT0
+            lA7IxuHu+praHV9i2nKdqnZXOpEXSEbaP5E8AnvpKZeE6w4Q0g1jqMEFF2OhFZpf
+            Mj2DCOHbLUP39P1zGkZG8b/oT2mXAGUnC64x+e0CzdDwIWCE4aixA/aJPyQDtgsK
+            kZDl0MK/+CHj8nkPRb4rnETl9CjvPu5VHXMcktcLKYue9bCZ0wVNCO57PhVO/DAO
+            OGYUf9N1GcfFQ20wQiX8maiymTF6jWke4hfLlwHH4GoQRN+P04f+QDWFt39/4K77
+            28aaSEMUtAteCVnHSPvctk64p2FPZVLKHw8aVrxzQaWe6BnRPh6njpGfOWVvZmSj
+            qM9yFuBI4QKwIUJyjHfGnqamG4NAn8QeeL18qwyrK8AwGT6S2MBuDxllhQRawY6/
+            zlgLZ4iqNwL1sNzJBmygZqDUXHhZ9FFVgoOGcQBc6dyoyZ32eLUg7xnjAHXe3TMc
+            ihpkSrdVHwMl6GaesAKiGVu7lPBCW5gFI7FYQ1XnwMiVarwAsacSrF0e1ve2xRRX
+            ud/7PaRxD69rtHWnwBzCeeFzfKKB4z3/jUdExNN432pMDj8IAh33VkVW9q3+oVTS
+            XgGXVAema3w/0F5cJAd2RbAWiVwwXe6ZNKxTtdZHLYCf2WIT8w5fz5hLuNj0e7Hd
+            XZ1BpYv0B76pSWhDFZadyW15iEj/KeoxqVTp5+pX6CV5Rzs45+rWrsoHu8uhmD8=
+            =Vm+o
+            -----END PGP MESSAGE-----
+          fp: 3536F7F9345D96C86FB7F9CD21FAFEE575B18815
+    encrypted_regex: ^(data|stringData)$
+    version: 3.11.0

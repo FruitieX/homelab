@@ -5,6 +5,7 @@ resources:
   - mosquitto.yaml
   - postgres.yaml
   - add-bot.yaml
+  - redoor.yaml
   - homectl.yaml
   - ingress-proxy.yaml
   - lifx-mqtt.yaml

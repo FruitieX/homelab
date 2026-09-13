@@ -1,0 +1,77 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redoor
+  namespace: default
+  annotations:
+    secret.reloader.stakater.com/reload: "redoor-config"
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: redoor
+  template:
+    metadata:
+      labels:
+        app: redoor
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        fsGroup: 10001
+        seccompProfile:
+          type: RuntimeDefault
+      terminationGracePeriodSeconds: 30
+      containers:
+        - name: redoor
+          image: ghcr.io/fruitiex/redoor:main@sha256:9ea907d694916a2a6258f835f921d82c24ca0fc76550a8358ff788705a50c6de
+          ports:
+            - name: http
+              containerPort: 7666
+          env:
+            - name: TZ
+              value: Europe/Helsinki
+          volumeMounts:
+            - name: redoor-data
+              mountPath: /home/redoor/.local/share/redoor
+            - name: redoor-config
+              mountPath: /etc/redoor/config.toml
+              subPath: config.toml
+              readOnly: true
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+          readinessProbe:
+            tcpSocket:
+              port: http
+            initialDelaySeconds: 2
+            periodSeconds: 5
+            timeoutSeconds: 2
+            failureThreshold: 12
+          livenessProbe:
+            tcpSocket:
+              port: http
+            initialDelaySeconds: 15
+            periodSeconds: 10
+            timeoutSeconds: 2
+            failureThreshold: 6
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+      volumes:
+        - name: redoor-data
+          persistentVolumeClaim:
+            claimName: redoor-data
+        - name: redoor-config
+          secret:
+            secretName: redoor-config
+            defaultMode: 0400
