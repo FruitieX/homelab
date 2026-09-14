@@ -10,7 +10,6 @@ resources:
   - envoy-gateway.yaml
   - metallb.yaml
   - metrics-server.yaml
-  - nfs-subdir-external-provisioner.yaml
   - prometheus-community.yaml
   - reloader.yaml
   - influxdata.yaml

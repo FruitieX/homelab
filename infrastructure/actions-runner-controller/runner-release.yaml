@@ -4,7 +4,7 @@ metadata:
   name: homelab-runners
   namespace: arc-runners
 spec:
-  interval: 99999h
+  interval: 30m
   timeout: 10m
   dependsOn:
     - name: actions-runner-controller

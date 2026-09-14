@@ -4,7 +4,7 @@ metadata:
   name: csi-driver-nfs
   namespace: kube-system
 spec:
-  interval: 99999h
+  interval: 30m
   timeout: 3m
   chart:
     spec:

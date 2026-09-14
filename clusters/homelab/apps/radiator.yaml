@@ -4,7 +4,7 @@ metadata:
   name: radiator
   namespace: flux-system
 spec:
-  interval: 99999h
+  interval: 30m
   timeout: 5m
   retryInterval: 10s
   sourceRef:

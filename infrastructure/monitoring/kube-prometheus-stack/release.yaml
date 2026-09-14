@@ -4,7 +4,7 @@ metadata:
   name: kube-prometheus-stack
   namespace: kube-prometheus-stack
 spec:
-  interval: 99999h
+  interval: 30m
   timeout: 5m
   chart:
     spec:

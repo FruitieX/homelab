@@ -13,7 +13,7 @@ In summary, the homelab is built up using:
 - [Flux CD](https://fluxcd.io/) reconciling cluster configuration from this git repo
 - [MetalLB](https://metallb.universe.tf/) & [external-dns](https://github.com/kubernetes-sigs/external-dns) expose apps on separate IP addresses with associated DNS records
 - [Envoy Gateway](https://gateway.envoyproxy.io/) & [cert-manager](https://cert-manager.io/) route subdomain HTTP requests with auto-renewing [Let's Encrypt](https://letsencrypt.org/) certificates
-- [nfs-subdir-external-provisioner](https://github.com/kubernetes-sigs/nfs-subdir-external-provisioner) & [synology-csi](https://github.com/SynologyOpenSource/synology-csi) provide persistent storage on NAS
+- [csi-driver-nfs](https://github.com/kubernetes-csi/csi-driver-nfs) & [synology-csi](https://github.com/SynologyOpenSource/synology-csi) provide persistent storage on the NAS
 - [kube-prometheus-stack](https://github.com/prometheus-operator/kube-prometheus) provides detailed metrics
 
 [More detailed writeup](/docs/components.md)

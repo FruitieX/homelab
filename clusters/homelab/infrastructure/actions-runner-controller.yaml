@@ -3,7 +3,7 @@ kind: Kustomization
 metadata:
   name: actions-runner-controller
 spec:
-  interval: 99999h
+  interval: 30m
   timeout: 10m
   retryInterval: 10s
   sourceRef:
