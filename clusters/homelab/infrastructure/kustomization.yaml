@@ -6,6 +6,7 @@ resources:
   - cert-manager.yaml
   - notification-receiver.yaml
   - notification-provider.yaml
+  - cloudnative-pg.yaml
   - synology-csi.yaml
   - csi-driver-nfs.yaml
   - crds.yaml
