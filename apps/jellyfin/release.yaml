@@ -4,7 +4,7 @@ metadata:
   name: jellyfin
   namespace: default
 spec:
-  interval: 99999h
+  interval: 30m
   timeout: 5m
   chart:
     spec:

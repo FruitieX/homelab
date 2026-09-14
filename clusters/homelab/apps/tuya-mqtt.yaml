@@ -3,7 +3,7 @@ kind: Kustomization
 metadata:
   name: tuya-mqtt
 spec:
-  interval: 99999h
+  interval: 30m
   timeout: 3m
   retryInterval: 10s
   sourceRef:

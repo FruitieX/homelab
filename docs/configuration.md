@@ -208,20 +208,14 @@ creating and mounting iSCSI targets from a Synology NAS.
   - Check in the Synology NAS' SAN Manager if the iSCSI targets & LUNs get created, if not then there may be some authentication/permission problems with your Synology user account.
   - More info: https://github.com/SynologyOpenSource/synology-csi
 
-## nfs-subdir-external-provisioner
+## NFS storage
 
-You can also opt to use NFS with [nfs-subdir-external-provisioner](https://github.com/kubernetes-sigs/nfs-subdir-external-provisioner) instead of iSCSI. It's a bit easier to configure,
-however there may be various pitfalls involved especially if used as storage for
-database servers.
+NFS storage is provided by [csi-driver-nfs](https://github.com/kubernetes-csi/csi-driver-nfs) and is the default StorageClass for this cluster. The `nfs-csi` StorageClass is configured in [/infrastructure/storage/csi-driver-nfs/storage-class.yaml](/infrastructure/storage/csi-driver-nfs/storage-class.yaml).
 
 - Configure your NFS server to allow connections from the IP address range that your cluster nodes use.
-
-- Edit [/infrastructure/storage/nfs-subdir-external-provisioner/release.yaml](/infrastructure/storage/nfs-subdir-external-provisioner/release.yaml) to match your NFS server setup
-
-  - Change `nfs.server` so it points at your NAS hostname or IP address
-  - Change `nfs.path` to the path you want to mount on your NAS
-
-- Add `nfs-subdir-external-provisioner.yaml` back in [/clusters/homelab/infrastructure/kustomization.yaml](/clusters/homelab/infrastructure/kustomization.yaml). Commit and push.
+- Adjust the `server` and `share` parameters in the StorageClass to match your NAS setup.
+- PVCs that omit `storageClassName` use `nfs-csi`; specify `storageClassName: nfs-csi` explicitly when the storage choice should be obvious from the workload manifest.
+- Use `kubectl get pvc` and `kubectl get pv` to list PersistentVolumeClaims and PersistentVolumes respectively.
 
 ## Apps
 

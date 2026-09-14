@@ -21,4 +21,3 @@ resources:
   - influxdb.yaml
   - grafana.yaml
   - monitoring-loki.yaml
-  # - nfs-subdir-external-provisioner.yaml

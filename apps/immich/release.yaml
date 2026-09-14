@@ -4,7 +4,7 @@ metadata:
   name: immich
   namespace: default
 spec:
-  interval: 99999h
+  interval: 30m
   timeout: 15m
   chart:
     spec:

@@ -53,9 +53,10 @@ I make use of the following pieces of software and infrastructure:
   - Envoy Gateway will check the `Host` HTTP header and proxy the request to the `podinfo` service
 - All subdomains get auto-renewing Let's Encrypt certificates
 
-### nfs-subdir-external-provisioner, synology-csi
+### csi-driver-nfs, synology-csi
 
-- iSCSI/NFS mounts on separate NAS for persistent storage
+- NFS and iSCSI mounts on a separate NAS provide persistent storage
+  - NFS is the default StorageClass for the current workloads
   - Nothing of value resides on the compute nodes' disks and as such they can be considered "throwaways"
 
 ### kube-prometheus-stack

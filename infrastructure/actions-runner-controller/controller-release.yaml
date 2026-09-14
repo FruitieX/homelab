@@ -4,7 +4,7 @@ metadata:
   name: actions-runner-controller
   namespace: arc-systems
 spec:
-  interval: 99999h
+  interval: 30m
   timeout: 5m
   chart:
     spec:
