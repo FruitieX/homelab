@@ -1,0 +1,35 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: add-bot-rs-runners
+  namespace: arc-runners
+spec:
+  interval: 99999h
+  timeout: 10m
+  dependsOn:
+    - name: actions-runner-controller
+      namespace: arc-systems
+  chart:
+    spec:
+      chart: gha-runner-scale-set
+      version: 0.14.2
+      sourceRef:
+        kind: HelmRepository
+        name: actions-runner-controller
+        namespace: flux-system
+  values:
+    githubConfigUrl: https://github.com/FruitieX/add-bot-rs
+    githubConfigSecret: github-actions-runner
+
+    # Workflows should use: runs-on: add-bot-rs
+    runnerScaleSetName: add-bot-rs
+    scaleSetLabels:
+      - add-bot-rs
+
+    # Keep one warm runner for fast image builds and allow one concurrent build.
+    minRunners: 1
+    maxRunners: 2
+
+    # Docker builds require the privileged DinD runner mode.
+    containerMode:
+      type: dind

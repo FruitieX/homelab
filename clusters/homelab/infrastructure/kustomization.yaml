@@ -3,6 +3,7 @@ kind: Kustomization
 namespace: flux-system
 resources:
   - sources.yaml
+  - actions-runner-controller.yaml
   - cert-manager.yaml
   - notification-receiver.yaml
   - notification-provider.yaml

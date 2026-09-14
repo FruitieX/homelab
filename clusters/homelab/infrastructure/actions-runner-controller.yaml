@@ -1,0 +1,20 @@
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: actions-runner-controller
+spec:
+  interval: 99999h
+  timeout: 10m
+  retryInterval: 10s
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+  path: ./infrastructure/actions-runner-controller
+  prune: true
+  wait: true
+  dependsOn:
+    - name: sources
+  decryption:
+    provider: sops
+    secretRef:
+      name: sops-gpg
