@@ -28,7 +28,7 @@ spec:
       terminationGracePeriodSeconds: 30
       containers:
         - name: redoor
-          image: ghcr.io/fruitiex/redoor:main@sha256:798d2c36322a8a9fc6a1228f89f19dff19859c33b114c506376a10c34f284f10
+          image: ghcr.io/esamattis/redoor:0.1.32@sha256:1ede6eeb5aa7f655256260b2eff60a5225611669af3cc55793e3e7c90ec6fddd
           ports:
             - name: http
               containerPort: 7666
