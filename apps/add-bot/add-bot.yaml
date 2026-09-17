@@ -34,6 +34,9 @@ spec:
           command: ["add-bot"]
           args: ["--tz", "Europe/Helsinki"]
           workingDir: /app
+          env:
+            - name: ADD_BOT_LEETIFY_MATCH_CACHE_PATH
+              value: /app/cache/leetify-matches
           volumeMounts:
             - mountPath: /app
               name: add-bot-data
