@@ -34,7 +34,7 @@ spec:
               value: /app/ui/dist
           resources:
             limits:
-              memory: 256Mi
+              memory: 512Mi
               cpu: 500m
           ports:
             - name: http
