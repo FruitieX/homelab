@@ -32,24 +32,6 @@ spec:
               value: /app/Settings.toml
             - name: HOMECTL_UI_DIST_DIR
               value: /app/ui/dist
-            - name: HOMECTL_ASSISTANT_BASE_URL
-              value: https://opencode.ai/zen/go/v1
-            - name: HOMECTL_ASSISTANT_MODEL
-              value: deepseek-v4.1-flash
-            - name: HOMECTL_ASSISTANT_REASONING_EFFORT
-              value: high
-            - name: HOMECTL_ASSISTANT_MAX_TOKENS
-              value: "8192"
-            - name: HOMECTL_ASSISTANT_TIMEOUT_MS
-              value: "120000"
-            - name: HOMECTL_ASSISTANT_TIMEZONE
-              value: Europe/Helsinki
-            - name: HOMECTL_ASSISTANT_API_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: homectl-server-env
-                  key: HOMECTL_ASSISTANT_API_KEY
-                  optional: true
           resources:
             limits:
               memory: 512Mi
