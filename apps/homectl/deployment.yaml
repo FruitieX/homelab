@@ -33,7 +33,7 @@ spec:
             - name: HOMECTL_UI_DIST_DIR
               value: /app/ui/dist
             - name: HOMECTL_ASSISTANT_BASE_URL
-              value: https://opencode.ai/zen/v1
+              value: https://opencode.ai/zen/go/v1
             - name: HOMECTL_ASSISTANT_MODEL
               value: deepseek-v4.1-flash
             - name: HOMECTL_ASSISTANT_REASONING_EFFORT
