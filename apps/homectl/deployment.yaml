@@ -19,7 +19,7 @@ spec:
     spec:
       containers:
         - name: homectl
-          image: ghcr.io/fruitiex/homectl:main@sha256:7af83e19f2116a7763f82a7c97c62a8c5d8e2d4e3b02361e19ef7095ae71623e
+          image: ghcr.io/fruitiex/homectl:main@sha256:13ee2c659e8c376f6258231f4e3810abea9bd46c4a614881102678f47ec09010
           envFrom:
             - secretRef:
                 name: homectl-server-env
