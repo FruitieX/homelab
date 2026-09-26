@@ -15,6 +15,7 @@ spec:
   wait: true
   dependsOn:
     - name: envoy-gateway-config
+    - name: csi-driver-nfs
     - name: synology-csi
   decryption:
     provider: sops
