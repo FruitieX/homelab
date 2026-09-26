@@ -7,6 +7,7 @@ resources:
   - add-bot.yaml
   - redoor.yaml
   - homectl.yaml
+  - open-webui.yaml
   - ingress-proxy.yaml
   - lifx-mqtt.yaml
   - tuya-mqtt.yaml

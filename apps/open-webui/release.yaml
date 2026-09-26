@@ -1,0 +1,94 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: open-webui
+  namespace: default
+spec:
+  interval: 30m
+  timeout: 15m
+  chart:
+    spec:
+      chart: open-webui
+      version: 16.6.0
+      sourceRef:
+        kind: HelmRepository
+        name: open-webui
+        namespace: flux-system
+  values:
+    workload:
+      kind: Deployment
+    strategy:
+      type: Recreate
+    replicaCount: 1
+    image:
+      repository: ghcr.io/open-webui/open-webui
+      tag: 0.11.4
+      pullPolicy: IfNotPresent
+    resources:
+      requests:
+        cpu: 250m
+        memory: 512Mi
+      limits:
+        cpu: 1
+        memory: 2Gi
+    livenessProbe:
+      httpGet:
+        path: /health
+        port: http
+      periodSeconds: 10
+      timeoutSeconds: 5
+      failureThreshold: 3
+    readinessProbe:
+      httpGet:
+        path: /health/db
+        port: http
+      periodSeconds: 10
+      timeoutSeconds: 5
+      failureThreshold: 6
+    startupProbe:
+      httpGet:
+        path: /health
+        port: http
+      periodSeconds: 10
+      timeoutSeconds: 5
+      failureThreshold: 30
+    serviceAccount:
+      automountServiceAccountToken: false
+    ollama:
+      enabled: false
+    pipelines:
+      enabled: false
+    tika:
+      enabled: false
+    terminals:
+      enabled: false
+    websocket:
+      enabled: true
+      manager: ""
+      redis:
+        enabled: false
+    persistence:
+      enabled: true
+      size: 2Gi
+      accessModes:
+        - ReadWriteOnce
+      storageClass: syno-storage
+      provider: local
+    service:
+      type: ClusterIP
+      port: 80
+      containerPort: 8080
+    ingress:
+      enabled: false
+    enableOpenaiApi: true
+    openaiBaseApiUrl: http://192.168.1.248:8642/v1
+    openaiApiKeyExistingSecret: open-webui-secrets
+    openaiApiKeyExistingSecretKey: API_SERVER_KEY
+    extraEnvVars:
+      - name: WEBUI_URL
+        value: https://open-webui.fruitiex.org
+      - name: WEBUI_SECRET_KEY
+        valueFrom:
+          secretKeyRef:
+            name: open-webui-secrets
+            key: WEBUI_SECRET_KEY

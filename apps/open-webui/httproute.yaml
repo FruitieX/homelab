@@ -1,0 +1,32 @@
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: open-webui
+  namespace: default
+spec:
+  parentRefs:
+    - name: private
+      namespace: envoy-gateway-system
+      sectionName: https
+  hostnames:
+    - open-webui.fruitiex.org
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /api/chat/completions
+        - path:
+            type: PathPrefix
+            value: /ws
+      backendRefs:
+        - name: open-webui
+          port: 80
+      timeouts:
+        request: 0s
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /
+      backendRefs:
+        - name: open-webui
+          port: 80
