@@ -69,10 +69,7 @@ spec:
         enabled: false
     persistence:
       enabled: true
-      size: 2Gi
-      accessModes:
-        - ReadWriteOnce
-      storageClass: syno-storage
+      existingClaim: open-webui-nfs
       provider: local
     service:
       type: ClusterIP
