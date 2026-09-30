@@ -9,5 +9,7 @@ pkgs.mkShell {
     fluxcd
     talosctl
     pre-commit
+    (python3.withPackages (ps: [ ps.pyyaml ]))
+    kustomize
   ];
 }

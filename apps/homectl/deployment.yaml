@@ -40,6 +40,22 @@ spec:
             - name: http
               containerPort: 45289
           workingDir: /app
+          startupProbe:
+            httpGet:
+              path: /health/live
+              port: http
+            periodSeconds: 5
+            failureThreshold: 60
+          readinessProbe:
+            httpGet:
+              path: /health/ready
+              port: http
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /health/live
+              port: http
+            periodSeconds: 10
 
       initContainers:
         - name: wait-for-mqtt-broker

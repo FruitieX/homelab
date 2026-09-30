@@ -1,0 +1,14 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - deployment.yaml
+  - rbac.yaml
+configMapGenerator:
+  - name: deployment-notifier-code
+    namespace: flux-system
+    files:
+      - notifier.py
+  - name: deployment-notifier-config
+    namespace: flux-system
+    files:
+      - services.json

@@ -1,0 +1,22 @@
+{
+  "interval_seconds": 30,
+  "architecture": "amd64",
+  "services": [
+    {
+      "name": "add-bot",
+      "kustomization": "add-bot",
+      "namespace": "default",
+      "deployment": "add-bot",
+      "container": "add-bot",
+      "repository": "FruitieX/add-bot-rs"
+    },
+    {
+      "name": "homectl",
+      "kustomization": "homectl",
+      "namespace": "default",
+      "deployment": "homectl",
+      "container": "homectl",
+      "repository": "FruitieX/homectl"
+    }
+  ]
+}

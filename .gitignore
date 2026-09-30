@@ -7,3 +7,4 @@
 /bootstrap/github-deploy.key
 /bootstrap/github-deploy.key.pub
 .decrypted~*
+__pycache__/

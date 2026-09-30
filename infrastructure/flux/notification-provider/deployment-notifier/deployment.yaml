@@ -1,0 +1,88 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: deployment-notifier-data
+  namespace: flux-system
+spec:
+  storageClassName: nfs-csi
+  accessModes: [ReadWriteOnce]
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: deployment-notifier
+  namespace: flux-system
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: deployment-notifier
+  template:
+    metadata:
+      labels:
+        app: deployment-notifier
+    spec:
+      serviceAccountName: deployment-notifier
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: notifier
+          image: python:3.13-slim
+          command: [python, -B, /code/notifier.py]
+          env:
+            - name: DISCORD_WEBHOOK_URL
+              valueFrom:
+                secretKeyRef:
+                  name: discord-webhook-url
+                  key: address
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: [ALL]
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+            limits:
+              cpu: 100m
+              memory: 96Mi
+          startupProbe:
+            exec:
+              command: [python, -c, "from pathlib import Path; assert Path('/data/heartbeat').exists()"]
+            periodSeconds: 10
+            failureThreshold: 30
+          livenessProbe:
+            exec:
+              command: [python, -c, "import time; from pathlib import Path; assert time.time()-float(Path('/data/heartbeat').read_text())<180"]
+            periodSeconds: 30
+            failureThreshold: 3
+          volumeMounts:
+            - name: code
+              mountPath: /code
+              readOnly: true
+            - name: config
+              mountPath: /config
+              readOnly: true
+            - name: data
+              mountPath: /data
+      volumes:
+        - name: code
+          configMap:
+            name: deployment-notifier-code
+        - name: config
+          configMap:
+            name: deployment-notifier-config
+        - name: data
+          persistentVolumeClaim:
+            claimName: deployment-notifier-data

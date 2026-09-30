@@ -6,5 +6,5 @@ resources:
   - alert.yaml
   - discord-webhook-url.yaml
   - provider.yaml
-
+  - deployment-notifier
 
