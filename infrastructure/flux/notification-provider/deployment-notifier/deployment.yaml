@@ -60,11 +60,14 @@ spec:
           startupProbe:
             exec:
               command: [python, -c, "from pathlib import Path; assert Path('/data/heartbeat').exists()"]
+            # Python startup exceeds the default 1s timeout at the 100m CPU limit.
+            timeoutSeconds: 5
             periodSeconds: 10
             failureThreshold: 30
           livenessProbe:
             exec:
               command: [python, -c, "import time; from pathlib import Path; assert time.time()-float(Path('/data/heartbeat').read_text())<180"]
+            timeoutSeconds: 5
             periodSeconds: 30
             failureThreshold: 3
           volumeMounts:
