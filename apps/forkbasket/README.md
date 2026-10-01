@@ -47,6 +47,14 @@ Take a consistent full database backup using `kubectl exec -n default deploy/for
 
 Initial verification passed: Flux Ready, healthy pod, bound PVC, accepted private HTTPRoute, trusted HTTPS, DNS pointing to the private gateway, mobile first-owner setup without browser errors, and HTTP 404 through the public gateway.
 
+## Public ingress — 2026-10-01
+
+At the user's request, revision `856cd81` attached the existing HTTPS route to both gateways and excluded it from external-dns. Flux reached Ready/Healthy at that revision at 19:35:05 UTC; both route parents are Accepted with ResolvedRefs. External-dns deleted the previously managed private A record and its ownership TXT record at 19:36:17 UTC. Public DNS now follows the existing wildcard to the WAN address; recursive resolvers can retain the previous private record for its remaining 300-second TTL. Router port forwarding and certificates already existed and needed no change.
+
+Requests through the public gateway, private gateway and public WAN address all passed trusted TLS and returned 200 for the frontend and readiness. Anonymous account/state/SSE/AI configuration/icon-job/image/backup requests returned 401; cross-origin writes returned 403. Initial setup remains complete. WAN HTTP redirects to HTTPS with 301. The existing application image, NFS data, origin, accounts, sessions and personal companion pairing were unchanged; the companion service remains active without restarts. The application repository's deployment template and current documentation now match this route.
+
+A fresh mobile Chromium profile forced through the WAN address loaded the sign-in screen without JavaScript errors, confirmed a secure context and standalone PWA manifest, and received 401 for anonymous household state. This was a WAN/hairpin check from Pear, not a physical phone test on cellular.
+
 ## Personal Hermes companion — 2026-10-01
 
 The application now supports a personal companion on Pear that polls its existing private HTTPS origin. No additional ingress, inbound agent port or OAuth secret was added to Kubernetes. The scoped worker token is stored only as a hash in SQLite and as a mode-0600 pairing file in the dedicated personal Hermes profile. The household uses `gpt-6-luna` with `xhigh` reasoning and `gpt-image-2-medium` for native images. ChatGPT credentials remain on Pear.
