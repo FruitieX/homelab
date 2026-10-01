@@ -1,0 +1,82 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: forkbasket
+  annotations:
+    secret.reloader.stakater.com/reload: forkbasket-server-env
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: forkbasket
+  template:
+    metadata:
+      labels:
+        app: forkbasket
+    spec:
+      imagePullSecrets:
+        - name: ghcr-credentials
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        fsGroup: 10001
+        fsGroupChangePolicy: OnRootMismatch
+      terminationGracePeriodSeconds: 30
+      containers:
+        - name: forkbasket
+          image: ghcr.io/fruitiex/forkbasket:main@sha256:673c7c6897e1bb268938497f3b46f637d017d010660df295579c9e4759b4023b
+          imagePullPolicy: Always
+          envFrom:
+            - secretRef:
+                name: forkbasket-server-env
+          env:
+            - name: FORKBASKET_ORIGIN
+              value: https://forkbasket.fruitiex.org
+            - name: RUST_LOG
+              value: forkbasket_api=info
+          ports:
+            - name: http
+              containerPort: 8080
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: [ALL]
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: '2'
+              memory: 1Gi
+          volumeMounts:
+            - name: data
+              mountPath: /data
+            - name: tmp
+              mountPath: /tmp
+          startupProbe:
+            httpGet:
+              path: /api/ready
+              port: http
+            periodSeconds: 2
+            failureThreshold: 60
+          readinessProbe:
+            httpGet:
+              path: /api/ready
+              port: http
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /api/health
+              port: http
+            periodSeconds: 10
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: forkbasket-data
+        - name: tmp
+          emptyDir:
+            sizeLimit: 128Mi
