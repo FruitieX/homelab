@@ -8,6 +8,7 @@ resources:
   - redoor.yaml
   - homectl.yaml
   - forkbasket.yaml
+  - chores.yaml
   - open-webui.yaml
   - ingress-proxy.yaml
   - lifx-mqtt.yaml

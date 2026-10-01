@@ -1,0 +1,81 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: chores
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: chores
+  template:
+    metadata:
+      labels:
+        app: chores
+    spec:
+      imagePullSecrets:
+        - name: ghcr-credentials
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        fsGroup: 10001
+        fsGroupChangePolicy: OnRootMismatch
+      terminationGracePeriodSeconds: 30
+      containers:
+        - name: chores
+          image: ghcr.io/fruitiex/chores:ce6e187961869a1b320c7692377e1d9d79cf8dc8@sha256:5a19a186ac7da47e846b151f441c62b39a6dcbacdca9573fbd5b02a0b37f1083
+          imagePullPolicy: Always
+          env:
+            - name: CHORES_ORIGIN
+              value: https://chores.fruitiex.org
+            - name: CHORES_SQLITE_JOURNAL_MODE
+              value: DELETE
+            - name: RUST_LOG
+              value: chores_api=info
+          ports:
+            - name: http
+              containerPort: 8080
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: [ALL]
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: '1'
+              memory: 512Mi
+          volumeMounts:
+            - name: data
+              mountPath: /data
+            - name: tmp
+              mountPath: /tmp
+          startupProbe:
+            httpGet:
+              path: /api/ready
+              port: http
+            periodSeconds: 2
+            failureThreshold: 60
+          readinessProbe:
+            httpGet:
+              path: /api/ready
+              port: http
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /api/health
+              port: http
+            periodSeconds: 10
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: chores-data-nfs
+        - name: tmp
+          emptyDir:
+            sizeLimit: 128Mi
