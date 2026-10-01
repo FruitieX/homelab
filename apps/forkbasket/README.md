@@ -1,6 +1,6 @@
 # ForkBasket
 
-Private family shopping, recipes and lunch planning at **https://forkbasket.fruitiex.org**. Deployed on 2026-10-01 through Flux, using the private Envoy HTTPS gateway at `192.168.11.99`. The public gateway has no ForkBasket route.
+Family shopping, recipes and lunch planning at **https://forkbasket.fruitiex.org**. The HTTPS route attaches to both the public Envoy gateway (`192.168.11.1`, reached through the router's existing WAN port forwarding) and private gateway (`192.168.11.99`). Public DNS uses the existing `*.fruitiex.org` wildcard CNAME to `fruitiex.org`; the route is excluded from external-dns so it does not publish the gateways' LAN addresses. External-dns removes its previously managed private A record during reconciliation. Existing accounts are required for household data and images.
 
 The pod uses the existing `ghcr-credentials` pull secret, UID/GID 10001, a read-only root filesystem and one replica with Recreate. The image is pinned to a tested release digest in `deployment.yaml`.
 
@@ -12,7 +12,7 @@ Server setup and provider-encryption secrets are SOPS-encrypted in `secret.sops.
 
 ## First login
 
-Open the private HTTPS site from your LAN or a VPN that can reach the private gateway. Create the owner account with the setup token, save the recovery code, and invite other family accounts from Settings. No accounts have been created automatically.
+Open the HTTPS site and sign in with your existing account. LAN/VPN access is no longer required. Initial setup is already complete; a new installation requires creating the owner account with the setup token, saving the recovery code, and inviting other family accounts from Settings. No accounts are created automatically.
 
 To read only the setup token in a private local terminal:
 
@@ -67,7 +67,7 @@ Follow-up source `d317ad3` clears the restored item's entire pantry entry when m
 
 The follow-up passed complete application CI/deployment run `36902783617` and homelab receiver `36905089102`. Revision `da1109f` pins `d317ad38a99322a5783562ec35745be0d0bfebc8@sha256:6dc36b5a5a4ead1a3386e993e21896e928fe968c071c9776c7ed0fbe5650ed7a`. Flux reached Ready/Healthy at that revision at 18:14:20 UTC, with one ready replica. Private HTTPS readiness returns 200, account setup remains complete, anonymous state access returns 401, and the served versioned frontend contains the retry and protected Settings flows. The post-rollout private companion check passed model discovery and chat with `gpt-6-luna` / `xhigh`; its user service remains active. No shopping, recipe or meal-plan data was changed by deployment checks. Refresh/reopen all app tabs to pick up the new service-worker version before retrying old queued pantry changes.
 
-Production PWA verification confirms a standalone manifest, 192/512 PNG icons, accessible precached assets, an activated service worker and no Chromium installability errors with a disposable persistent profile. Android users can install through Chrome → Add to home screen → Install while connected to the LAN/VPN; a physical Android installation was not tested.
+Production PWA verification confirms a standalone manifest, 192/512 PNG icons, accessible precached assets, an activated service worker and no Chromium installability errors with a disposable persistent profile. Android users can install through Chrome → Add to home screen → Install. With the public ingress, synchronization also works outside the LAN/VPN; a physical Android installation was not tested.
 
 ## Automatic and bulk item icons — 2026-10-01
 

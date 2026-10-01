@@ -2,8 +2,14 @@ apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
   name: forkbasket
+  annotations:
+    # Use the existing public wildcard DNS instead of publishing gateway LAN IPs.
+    external-dns.alpha.kubernetes.io/exclude: "true"
 spec:
   parentRefs:
+    - name: public
+      namespace: envoy-gateway-system
+      sectionName: https
     - name: private
       namespace: envoy-gateway-system
       sectionName: https
