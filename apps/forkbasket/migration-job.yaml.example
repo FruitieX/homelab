@@ -1,0 +1,57 @@
+# One-time maintenance job; deliberately excluded from kustomization.yaml.
+# Stop the Deployment and create forkbasket-nfs-migration-script first.
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: forkbasket-nfs-migration
+  namespace: default
+spec:
+  backoffLimit: 0
+  template:
+    spec:
+      restartPolicy: Never
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        fsGroup: 10001
+        fsGroupChangePolicy: OnRootMismatch
+      containers:
+        - name: migrate
+          image: python:3.13-slim
+          command: [python3, /scripts/migrate-to-nfs.py]
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: [ALL]
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              memory: 1Gi
+          volumeMounts:
+            - name: source
+              mountPath: /source
+              readOnly: true
+            - name: target
+              mountPath: /target
+            - name: script
+              mountPath: /scripts
+              readOnly: true
+            - name: temporary
+              mountPath: /tmp
+      volumes:
+        - name: source
+          persistentVolumeClaim:
+            claimName: forkbasket-data
+            readOnly: true
+        - name: target
+          persistentVolumeClaim:
+            claimName: forkbasket-data-nfs
+        - name: script
+          configMap:
+            name: forkbasket-nfs-migration-script
+        - name: temporary
+          emptyDir: {}
