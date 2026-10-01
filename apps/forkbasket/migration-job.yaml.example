@@ -11,6 +11,8 @@ spec:
     spec:
       restartPolicy: Never
       securityContext:
+        seccompProfile:
+          type: RuntimeDefault
         runAsNonRoot: true
         runAsUser: 10001
         runAsGroup: 10001

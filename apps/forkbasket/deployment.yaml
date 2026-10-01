@@ -19,6 +19,8 @@ spec:
       imagePullSecrets:
         - name: ghcr-credentials
       securityContext:
+        seccompProfile:
+          type: RuntimeDefault
         runAsNonRoot: true
         runAsUser: 10001
         runAsGroup: 10001
@@ -27,7 +29,7 @@ spec:
       terminationGracePeriodSeconds: 30
       containers:
         - name: forkbasket
-          image: ghcr.io/fruitiex/forkbasket:main@sha256:673c7c6897e1bb268938497f3b46f637d017d010660df295579c9e4759b4023b
+          image: ghcr.io/fruitiex/forkbasket:296304a7cd3d177531cbe6d661b98d10ff5646e2@sha256:62bd4dee085a306ad7a847106143ead873a4f6cdc8f86bd6449b954411716f5b
           imagePullPolicy: Always
           envFrom:
             - secretRef:
@@ -35,6 +37,8 @@ spec:
           env:
             - name: FORKBASKET_ORIGIN
               value: https://forkbasket.fruitiex.org
+            - name: FORKBASKET_SQLITE_JOURNAL_MODE
+              value: DELETE
             - name: RUST_LOG
               value: forkbasket_api=info
           ports:
@@ -76,7 +80,7 @@ spec:
       volumes:
         - name: data
           persistentVolumeClaim:
-            claimName: forkbasket-data
+            claimName: forkbasket-data-nfs
         - name: tmp
           emptyDir:
             sizeLimit: 128Mi
