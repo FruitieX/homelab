@@ -7,6 +7,10 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: homelab-image-updates
+  cancel-in-progress: false
+
 jobs:
   update:
     runs-on: ubuntu-latest
@@ -17,6 +21,7 @@ jobs:
         env:
           IMAGE: ${{ github.event.client_payload.image }}
           DIGEST: ${{ github.event.client_payload.digest }}
+          REVISION: ${{ github.event.client_payload.revision }}
         run: |
           # Normalize image name to lowercase (GHCR is case-insensitive,
           # but github.repository preserves casing)
@@ -34,7 +39,16 @@ jobs:
           fi
 
           # Find files containing this image reference
-          FILES=$(grep -rl "$IMAGE" apps/ || true)
+          if [[ "$IMAGE" == ghcr.io/fruitiex/forkbasket ]]; then
+            if [[ ! "$REVISION" =~ ^[a-f0-9]{40}$ ]]; then
+              echo '::error::ForkBasket requires the tested source revision.'
+              exit 1
+            fi
+            # Update only the live image, preserving historical README digests.
+            FILES=apps/forkbasket/deployment.yaml
+          else
+            FILES=$(grep -rl "$IMAGE" apps/ || true)
+          fi
 
           if [[ -z "$FILES" ]]; then
             echo "::error::No files found matching image: $IMAGE"
@@ -47,6 +61,10 @@ jobs:
           # Replace the digest (or add one if missing) for this image
           # Handles both "image:tag@sha256:..." and "image:tag" (no digest) formats
           for file in $FILES; do
+            if [[ "$IMAGE" == ghcr.io/fruitiex/forkbasket ]]; then
+              sed -i -E "s|^([[:space:]]*image:[[:space:]]*)ghcr\\.io/fruitiex/forkbasket:[a-zA-Z0-9._-]+(@sha256:[a-f0-9]+)?[[:space:]]*$|\\1${IMAGE}:${REVISION}@${DIGEST}|" "$file"
+              continue
+            fi
             # Escape dots and slashes in image name for sed
             ESCAPED_IMAGE=$(echo "$IMAGE" | sed 's/[.\/]/\\&/g')
             sed -i -E "s|(${ESCAPED_IMAGE}:[a-zA-Z0-9._-]+)(@sha256:[a-f0-9]+)?|\1@${DIGEST}|g" "$file"

@@ -28,6 +28,10 @@ The shopping list defaults to one tile grid in store aisle order. Settings → S
 
 ## Operations
 
+ForkBasket's application CI is configured to deploy every successfully validated and published main build through this repository's `image-update` dispatch workflow, following add-bot's existing pattern. The payload includes the immutable registry digest and tested source SHA. The receiver updates only the image in `deployment.yaml`, commits it, and Flux deploys it; historical migration records below remain unchanged. Image-update jobs are serialized to avoid competing Git pushes. PRs and release tags do not deploy, and the sender skips older main revisions.
+
+The application repository must have a `HOMELAB_DISPATCH_TOKEN` Actions secret containing a fine-grained PAT restricted to this homelab repository with Contents read/write. The receiver needs no additional secret: it commits with its built-in `GITHUB_TOKEN`. Until the sender secret is configured, ForkBasket CI warns and skips deployment while still publishing the image. Token activation and direct transfer from 1Password are documented in [the application deployment guide](https://github.com/FruitieX/forkbasket/blob/main/docs/DEPLOYMENT.md). Confirm the application CI deployment job, this repository's image-update run, and Flux Ready before considering automatic deployment active.
+
 ```sh
 export KUBECONFIG="$PWD/kubeconfig"
 flux reconcile kustomization forkbasket
@@ -54,7 +58,7 @@ Historical procedure for a fresh migration, with an empty destination claim and 
 
 The script refuses to overwrite a nonempty destination, including a previous migration. Never rerun it against the active NFS database. The old claim has since been deleted. For recovery, stop the app and restore a consistent database backup with its matching SOPS encryption key.
 
-The cutover copier verified identical content hash `babef21cd8e3a29fbb6671aa5f6c7492a855cdc253e0f8cb89dcecf9f58a577e`: one household, two accounts, two sessions, 14 events and 14 idempotent operations. Both full integrity checks passed. A separate private `pre-nfs-2026-10-01.sqlite3` backup was copied too. The active release is `296304a7cd3d177531cbe6d661b98d10ff5646e2`, digest `sha256:62bd4dee085a306ad7a847106143ead873a4f6cdc8f86bd6449b954411716f5b`; its complete CI validation and registry publication passed before cutover.
+The cutover copier verified identical content hash `babef21cd8e3a29fbb6671aa5f6c7492a855cdc253e0f8cb89dcecf9f58a577e`: one household, two accounts, two sessions, 14 events and 14 idempotent operations. Both full integrity checks passed. A separate private `pre-nfs-2026-10-01.sqlite3` backup was copied too. The cutover release was `296304a7cd3d177531cbe6d661b98d10ff5646e2`, digest `sha256:62bd4dee085a306ad7a847106143ead873a4f6cdc8f86bd6449b954411716f5b`; its complete CI validation and registry publication passed before cutover. See `deployment.yaml` for the current release.
 
 Post-cutover verification passed: Flux resumed and Ready on `3ba43a7`, one healthy pod using the exact image digest, a bound NFS CSI volume, private HTTPS readiness, preserved account setup and a mobile browser without runtime errors. A consistent backup from the running app passed integrity checks, confirmed DELETE journaling, and still matched the complete cutover hash above. `/data` contains the private database and pre-migration backup, with no WAL/SHM files. The public gateway continues to have no ForkBasket route.
 
