@@ -47,6 +47,14 @@ Take a consistent full database backup using `kubectl exec -n default deploy/for
 
 Initial verification passed: Flux Ready, healthy pod, bound PVC, accepted private HTTPRoute, trusted HTTPS, DNS pointing to the private gateway, mobile first-owner setup without browser errors, and HTTP 404 through the public gateway.
 
+## Personal Hermes companion — 2026-10-01
+
+The application now supports a personal companion on Pear that polls its existing private HTTPS origin. No additional ingress, inbound agent port or OAuth secret was added to Kubernetes. The scoped worker token is stored only as a hash in SQLite and as a mode-0600 pairing file in the dedicated personal Hermes profile. The household uses `gpt-6-luna` with `xhigh` reasoning and `gpt-image-2-medium` for native images. ChatGPT credentials remain on Pear.
+
+Source `bfafba0` passed full CI/container checks and automatically deployed digest `sha256:2b5017604a326d627385b4f48ec761653d91f401b7770533065e284304c80cc9` in revision `a74b8ce`. Flux reported Ready/Healthy with one ready replica. The real HTTPS queue check confirmed native model discovery, chat and a private generated image; unauthenticated image access is denied. A consistent pre-upgrade database backup is `/data/before-hermes-companion-20261001.sqlite3`. This release migrates the database to schema version 2; restore that backup before reverting to a version that only understands schema 1.
+
+The user service is defined in the private NixOS repository and activated via Home Manager. Switching Pear's NixOS generation makes the new unit part of system boot activation. See the private application's [companion guide](https://github.com/FruitieX/forkbasket/blob/main/docs/HERMES-COMPANION.md) for pairing, revocation, worker operation and the native-auth support boundary. AI suggestions retain the app's existing review step; these connection checks did not alter shopping items, recipes or meal plans.
+
 ## NFS migration — 2026-10-01
 
 The old claim could not have its storage class changed in place, so migration used a new claim. The one-time helper files are available in Git history at `3ba43a7` and were retired when the old storage was removed. The script copied a stopped source volume into temporary local storage, recovered any remaining WAL records there, made a SQLite online backup to the empty NFS destination, enabled DELETE journaling, and compared schema/content hashes and row counts for every table. It also copied ancillary application files; ext4 `lost+found` and obsolete WAL/SHM files were excluded. Both source and destination passed full integrity checks. Destination files are owned by UID/GID 10001, and the database is mode 0600. The source mounted read-only and was never altered by the copier.
