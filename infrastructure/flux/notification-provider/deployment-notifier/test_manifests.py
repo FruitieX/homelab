@@ -40,8 +40,16 @@ class ManifestTests(unittest.TestCase):
         for service in services:
             self.assertIn(service["deployment"], permissions[(service["namespace"], "deployments")])
             self.assertIn(service["kustomization"], permissions[("flux-system", "kustomizations")])
+            if service.get("registry_secret"):
+                self.assertIn(service["registry_secret"], permissions[(service["namespace"], "secrets")])
             flux = yaml.safe_load((ROOT / "clusters/homelab/apps" / (service["kustomization"] + ".yaml")).read_text())
             self.assertTrue(flux["spec"]["wait"])
+        for (namespace, kind), names in permissions.items():
+            field = {"deployments": "deployment", "kustomizations": "kustomization",
+                     "secrets": "registry_secret"}[kind]
+            expected = {s[field] for s in services if field in s
+                        and ("flux-system" if kind == "kustomizations" else s["namespace"]) == namespace}
+            self.assertEqual(names, expected)
         for binding in (r for r in resources if r["kind"] == "RoleBinding"):
             self.assertEqual(binding["subjects"][0]["namespace"], "flux-system")
             self.assertTrue(any(r["metadata"]["name"] == binding["roleRef"]["name"]

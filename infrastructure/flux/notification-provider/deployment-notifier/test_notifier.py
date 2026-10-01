@@ -1,3 +1,4 @@
+import base64
 import copy
 import json
 from pathlib import Path
@@ -59,7 +60,7 @@ class LifecycleTests(unittest.TestCase):
         self.metadata_images = []
 
     def make_notifier(self):
-        def labels(image):
+        def labels(image, service):
             self.metadata_images.append(image)
             if self.labels_error:
                 raise TimeoutError()
@@ -107,6 +108,21 @@ class LifecycleTests(unittest.TestCase):
         self.make_notifier().check(SERVICE)
         self.assertEqual(len(self.sent), 1)
 
+    def test_full_sha_tag_supplies_revision_when_oci_label_is_missing(self):
+        worker = self.make_notifier()
+        worker.labels = lambda image, service: {}
+        self.image = IMAGE.replace(":main@", ":" + "1" * 40 + "@")
+        worker.check(SERVICE)
+        self.assertEqual(worker.state["add-bot"]["revision"], "1" * 40)
+        self.image = NEW_IMAGE.replace(":main@", ":" + "2" * 40 + "@")
+        worker.check(SERVICE)
+        self.assertEqual(worker.state["add-bot"]["revision"], "2" * 40)
+        self.assertEqual(self.sent[0]["embeds"][0]["fields"][0]["value"], "2222222")
+        worker.labels = lambda image, service: {"org.opencontainers.image.revision": "3" * 40}
+        self.image = self.image.replace("b" * 64, "c" * 64)
+        worker.check(SERVICE)
+        self.assertEqual(worker.state["add-bot"]["revision"], "3" * 40)
+
     def test_unready_or_unavailable_metadata_is_not_announced(self):
         worker = self.make_notifier()
         worker.check(SERVICE)
@@ -124,8 +140,8 @@ class LifecycleTests(unittest.TestCase):
         self.image = NEW_IMAGE
         original = worker.labels
 
-        def racing_labels(image):
-            result = original(image)
+        def racing_labels(image, service):
+            result = original(image, service)
             self.image = None
             return result
 
@@ -150,6 +166,39 @@ class MetadataTests(unittest.TestCase):
         self.assertEqual(notifier.image_labels(IMAGE, "amd64")["org.opencontainers.image.revision"], "1234567")
         self.assertTrue(request.call_args_list[1].args[0].endswith("sha256:" + "a" * 64))
         self.assertTrue(request.call_args_list[2].args[0].endswith("sha256:amd"))
+        self.assertEqual(request.call_args_list[0].kwargs["headers"], {})
+
+    @patch("notifier.request_json")
+    def test_private_image_authenticates_token_exchange_only(self, request):
+        request.side_effect = [
+            {"token": "pull-token"},
+            {"config": {"digest": "sha256:config"}},
+            {"config": {"Labels": {"org.opencontainers.image.revision": "1234567"}}},
+        ]
+        labels = notifier.image_labels(IMAGE, "amd64", ("user", "private-token"))
+        self.assertEqual(labels["org.opencontainers.image.revision"], "1234567")
+        expected = "Basic " + base64.b64encode(b"user:private-token").decode()
+        self.assertEqual(request.call_args_list[0].kwargs["headers"], {"Authorization": expected})
+        for call in request.call_args_list[1:]:
+            self.assertEqual(call.kwargs["headers"]["Authorization"], "Bearer pull-token")
+
+    def test_registry_secret_is_optional_and_reread_for_rotation(self):
+        kube = object.__new__(notifier.Kubernetes)
+        service = {"namespace": "default", "registry_secret": "ghcr-credentials"}
+        with patch.object(kube, "get") as get:
+            self.assertIsNone(kube.registry_credentials({"namespace": "default"}))
+            get.assert_not_called()
+            for password in ("first:token", "rotated-token"):
+                auth = base64.b64encode(("user:" + password).encode()).decode()
+                config = {"auths": {"ghcr.io": {"auth": auth}}}
+                get.return_value = {"data": {".dockerconfigjson":
+                    base64.b64encode(json.dumps(config).encode()).decode()}}
+                self.assertEqual(kube.registry_credentials(service), ("user", password))
+                get.assert_called_with("/api/v1/namespaces/default/secrets/ghcr-credentials")
+            config = {"auths": {"ghcr.io": {"username": "user", "password": "token"}}}
+            get.return_value = {"data": {".dockerconfigjson":
+                base64.b64encode(json.dumps(config).encode()).decode()}}
+            self.assertEqual(kube.registry_credentials(service), ("user", "token"))
 
     @patch("notifier.request_json")
     def test_rollback_fetches_deployed_commit_instead_of_forward_changelog(self, request):

@@ -17,6 +17,15 @@
       "deployment": "homectl",
       "container": "homectl",
       "repository": "FruitieX/homectl"
+    },
+    {
+      "name": "forkbasket",
+      "kustomization": "forkbasket",
+      "namespace": "default",
+      "deployment": "forkbasket",
+      "container": "forkbasket",
+      "repository": "FruitieX/forkbasket",
+      "registry_secret": "ghcr-credentials"
     }
   ]
 }

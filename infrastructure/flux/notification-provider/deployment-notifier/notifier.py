@@ -3,6 +3,7 @@
 Only Python's standard library is needed. Run one replica with persistent state.
 """
 
+import base64
 import datetime
 import json
 import logging
@@ -90,15 +91,32 @@ class Kubernetes:
             return None
         return {"image": image, "flux_revision": flux["status"].get("lastAppliedRevision", "")}
 
+    def registry_credentials(self, service):
+        """Read the workload's existing pull secret, including credential rotation."""
+        if not service.get("registry_secret"):
+            return None
+        secret = self.get("/api/v1/namespaces/" + service["namespace"]
+                          + "/secrets/" + service["registry_secret"])
+        config = json.loads(base64.b64decode(secret["data"][".dockerconfigjson"]))
+        entry = config["auths"]["ghcr.io"]
+        if entry.get("auth"):
+            username, password = base64.b64decode(entry["auth"], validate=True).decode().split(":", 1)
+            return username, password
+        return entry["username"], entry["password"]
 
-def image_labels(image, architecture):
+
+def image_labels(image, architecture, credentials=None):
     """Resolve the pinned GHCR digest, including multi-platform image indexes."""
     match = re.fullmatch(r"ghcr.io/([a-z0-9._/-]+)(?::[^@/]+)?@(sha256:[a-f0-9]{64})", image)
     if not match:
         return {}  # Other registries still get digest-based success messages.
     repository, digest = match.groups()
     query = urlencode({"service": "ghcr.io", "scope": f"repository:{repository}:pull"})
-    token = request_json("https://ghcr.io/token?" + query)["token"]
+    login_headers = {}
+    if credentials:
+        auth = base64.b64encode(":".join(credentials).encode()).decode()
+        login_headers["Authorization"] = "Basic " + auth
+    token = request_json("https://ghcr.io/token?" + query, headers=login_headers)["token"]
     headers = {"Authorization": "Bearer " + token, "Accept": ACCEPT}
     base = "https://ghcr.io/v2/" + repository
     manifest = request_json(base + "/manifests/" + digest, headers=headers)
@@ -199,8 +217,11 @@ class Notifier:
         previous = self.state.get(name)
         if previous and current["image"].split("@")[1] == previous["image"].split("@")[1]:
             return
-        labels = self.labels(current["image"])
-        current["revision"] = labels.get("org.opencontainers.image.revision", "")
+        labels = self.labels(current["image"], service)
+        # Some CI builds tag images with the full source SHA but omit OCI labels.
+        sha_tag = re.search(r":([a-f0-9]{40})@sha256:", current["image"])
+        current["revision"] = (labels.get("org.opencontainers.image.revision")
+                               or (sha_tag.group(1) if sha_tag else ""))
         current["version"] = labels.get("org.opencontainers.image.version", "")
         # main is a moving tag, not a useful release version.
         if current["version"] in ("main", "master", "latest"):
@@ -235,7 +256,8 @@ def main():
         raise ValueError("Discord webhook requires HTTPS")
     kube = Kubernetes()
     notifier = Notifier("/data/state.json", kube.snapshot,
-                        lambda image: image_labels(image, config.get("architecture", "amd64")),
+                        lambda image, service: image_labels(
+                            image, config.get("architecture", "amd64"), kube.registry_credentials(service)),
                         github_details, lambda payload: send_discord(webhook, payload))
     stop = threading.Event()
     for sig in (signal.SIGTERM, signal.SIGINT):
