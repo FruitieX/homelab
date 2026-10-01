@@ -32,6 +32,8 @@ ForkBasket's application CI is configured to deploy every successfully validated
 
 The application repository must have a `HOMELAB_DISPATCH_TOKEN` Actions secret containing a fine-grained PAT restricted to this homelab repository with Contents read/write. The receiver needs no additional secret: it commits with its built-in `GITHUB_TOKEN`. Until the sender secret is configured, ForkBasket CI warns and skips deployment while still publishing the image. Token activation and direct transfer from 1Password are documented in [the application deployment guide](https://github.com/FruitieX/forkbasket/blob/main/docs/DEPLOYMENT.md). Confirm the application CI deployment job, this repository's image-update run, and Flux Ready before considering automatic deployment active.
 
+Automatic deployment is active and was verified on 2026-10-01. The dispatch secret was installed directly from the user's scoped 1Password service account. ForkBasket's deployment job for tested main release `cfba1c4` dispatched successfully, receiver run `36860915497` committed its source tag and digest in `dcfe140`, and Flux automatically reached Ready/Healthy at that commit. The running pod used digest `sha256:b524336ceca98ad39d9b37413187c3cecef0ec4f90f508d80ac8941a7120cf74`, with one ready replica and the existing NFS claim. This release includes the desktop settings layout fix. Future successful main builds follow the same path.
+
 ```sh
 export KUBECONFIG="$PWD/kubeconfig"
 flux reconcile kustomization forkbasket
