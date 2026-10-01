@@ -29,7 +29,7 @@ spec:
       terminationGracePeriodSeconds: 30
       containers:
         - name: forkbasket
-          image: ghcr.io/fruitiex/forkbasket:b3e8d7d9fded18f0a34a01191972074e7716df8f@sha256:d9f4c609b563cc3c9b7ff1bc5bcb309fcc129860984928098cbe250c5f5a087b
+          image: ghcr.io/fruitiex/forkbasket:3e1c970f55e523b50d84ed3f3de535df2d824ac4@sha256:c01a9d8d07842178d4fba8b03f89896e74ed8699ad4d5e86262d1d129dcde9b8
           imagePullPolicy: Always
           envFrom:
             - secretRef:
