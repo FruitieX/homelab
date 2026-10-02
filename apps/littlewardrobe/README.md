@@ -33,9 +33,9 @@ curl --fail https://littlewardrobe.fruitiex.org/api/ready
 
 Take a consistent full database backup using `kubectl exec -n default deploy/littlewardrobe -- littlewardrobe-api --backup /data/backup-YYYY-MM-DD.sqlite3`, choosing a new filename each time. Copy it off the PVC and retain the matching encryption secret. The command uses SQLite's backup API and refuses an existing destination. Settings also supports a household JSON backup with clothing photos and provenance. Stop the app before restoring the complete database; preserve UID/GID permissions and restore the matching encryption key. [Deployment and recovery guide](https://github.com/FruitieX/littlewardrobe/blob/main/docs/DEPLOYMENT.md).
 
-## Verified rollout — 2026-10-02
+## Verified initial rollout — 2026-10-02
 
-Homelab revision `273db55` deployed successfully through Flux. `littlewardrobe` is Ready/Healthy with one ready replica running the exact pinned digest above; the NFS claim is Bound and retained. Private HTTPRoute conditions are Accepted and ResolvedRefs. External-dns created the private A record at 05:25:48 UTC, and normal DNS now resolves to `192.168.11.99`.
+Homelab revision `273db55` deployed successfully through Flux. `littlewardrobe` is Ready/Healthy with one ready replica running the initial immutable release; the NFS claim is Bound and retained. Private HTTPRoute conditions are Accepted and ResolvedRefs. External-dns created the private A record at 05:25:48 UTC, and normal DNS now resolves to `192.168.11.99`.
 
 Trusted HTTPS frontend/readiness passed through normal DNS and the private gateway. The public gateway (`192.168.11.1`) and WAN (`91.159.199.233`) both returned HTTP 404 for this hostname. Anonymous household state, AI configuration, photos and SSE returned 401; a cross-origin write returned 403. Fresh mobile and desktop Chromium sessions loaded the first-owner setup screen without JavaScript errors or horizontal overflow, with a secure context, standalone manifest/icons and an activated service worker. These were browser checks from Pear, not a physical phone installation.
 
@@ -80,3 +80,11 @@ browser suite against its packaged non-root container. A consistent pre-upgrade
 backup is `/data/pre-visual-20261002.sqlite3`, including the new AI pairing.
 The immutable image above is the approved release; private routing, storage,
 accounts and provider settings are preserved.
+
+Homelab revision `9fdc66e` reconciled successfully. Flux is Ready/Healthy and
+the running image ID matches the new digest. The private HTTPRoute remains
+Accepted/ResolvedRefs. Fresh 390px and 1440px HTTPS browsers verified the new
+theme, headings, icons, manifest and active service worker without page errors
+or overflow. Production model discovery/chat passed again after rollout.
+Pear is running the built NixOS generation with the companion enabled for
+boot; both family workers are active and no system/user units are failed.
