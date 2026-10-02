@@ -1,5 +1,20 @@
 # ForkBasket
 
+## Hermes host migration — 2026-10-02
+
+The paired personal `forkbasket` Hermes profile and its OAuth/pairing credentials
+now run on **Honeydew** (`192.168.1.158`). Pear's worker is stopped and disabled,
+and its profile is archived outside the live profiles directory. Honeydew's
+declarative `forkbasket-companion.service` retains the existing sandbox.
+The worker polls this app's existing HTTPS URL; no application deployment,
+pairing-token rotation, or inbound worker port was needed.
+
+Production `forkbasket-api --check-companion --image` passed model discovery,
+`gpt-6-luna` / `xhigh` chat, and native image generation through the actual queue.
+The image is an unattached private test artifact; shopping/recipes/meal plans
+were not changed. Use `systemctl --user status forkbasket-companion` on Honeydew
+for current operations. Earlier Pear-specific records below are historical.
+
 Family shopping, recipes and lunch planning at **https://forkbasket.fruitiex.org**. The HTTPS route attaches to both the public Envoy gateway (`192.168.11.1`, reached through the router's existing WAN port forwarding) and private gateway (`192.168.11.99`). Public DNS uses the existing `*.fruitiex.org` wildcard CNAME to `fruitiex.org`; the route is excluded from external-dns so it does not publish the gateways' LAN addresses. External-dns removes its previously managed private A record during reconciliation. Existing accounts are required for household data and images.
 
 The pod uses the existing `ghcr-credentials` pull secret, UID/GID 10001, a read-only root filesystem and one replica with Recreate. The image is pinned to a tested release digest in `deployment.yaml`.

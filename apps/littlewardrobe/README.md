@@ -43,9 +43,9 @@ The running process and database are owned by UID/GID 10001; the database is mod
 
 ## Personal AI connection — 2026-10-02
 
-The owner has created the family, and the app is paired to Pear's dedicated
+The owner has created the family, and the app is paired to Honeydew's dedicated
 `littlewardrobe` Hermes profile. Its independent mode-0600 pairing file and
-personal login stay on Pear. The cluster stores only the revocable
+personal login stay on Honeydew. The cluster stores only the revocable
 household-scoped worker-token digest, provider settings and encrypted
 provider-secret storage.
 `littlewardrobe-companion.service` is declared in the private NixOS repository
@@ -60,7 +60,7 @@ Example, size 98. Anonymous access to the generated test image returned 401.
 No inventory or listing was created. A consistent pre-pairing database backup
 is `/data/pre-companion-20261002.sqlite3`; retain the matching encryption key.
 
-Check or restart the outbound worker on Pear:
+Check or restart the outbound worker on Honeydew:
 
 ```sh
 systemctl --user status littlewardrobe-companion
@@ -88,3 +88,14 @@ theme, headings, icons, manifest and active service worker without page errors
 or overflow. Production model discovery/chat passed again after rollout.
 Pear is running the built NixOS generation with the companion enabled for
 boot; both family workers are active and no system/user units are failed.
+
+## Hermes host migration — 2026-10-02
+
+The existing personal profile, OAuth login and pairing file were transferred
+intact to Honeydew (`192.168.1.158`) with the companion scripts and declarative
+sandboxed user service. Pear's worker is stopped/disabled and its profile
+archived outside the active directory. Outbound HTTPS polling uses the same
+origin and token, so the application Deployment and household settings needed
+no change. The production `littlewardrobe-api --check-companion --image` passed
+model discovery, `gpt-6-luna` / `xhigh` chat and private native image generation
+on Honeydew. No clothing inventory or listing was created.

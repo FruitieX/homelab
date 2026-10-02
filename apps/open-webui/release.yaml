@@ -78,7 +78,7 @@ spec:
     ingress:
       enabled: false
     enableOpenaiApi: true
-    openaiBaseApiUrl: http://192.168.1.248:8642/v1
+    openaiBaseApiUrl: http://192.168.1.158:8642/v1
     openaiApiKeyExistingSecret: open-webui-secrets
     openaiApiKeyExistingSecretKey: API_SERVER_KEY
     extraEnvVars:
