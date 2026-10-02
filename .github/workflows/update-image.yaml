@@ -66,7 +66,7 @@ jobs:
           # Handles both "image:tag@sha256:..." and "image:tag" (no digest) formats
           for file in $FILES; do
             if [[ "$IMAGE" == ghcr.io/fruitiex/forkbasket || "$IMAGE" == ghcr.io/fruitiex/littlecupboard ]]; then
-              sed -i -E "s|^([[:space:]]*image:[[:space:]]*)ghcr\\.io/fruitiex/forkbasket:[a-zA-Z0-9._-]+(@sha256:[a-f0-9]+)?[[:space:]]*$|\\1${IMAGE}:${REVISION}@${DIGEST}|" "$file"
+              sed -i -E "s~^([[:space:]]*image:[[:space:]]*)ghcr\\.io/fruitiex/(forkbasket|littlecupboard):[a-zA-Z0-9._-]+(@sha256:[a-f0-9]+)?[[:space:]]*$~\\1${IMAGE}:${REVISION}@${DIGEST}~" "$file"
               continue
             fi
             # Escape dots and slashes in image name for sed
