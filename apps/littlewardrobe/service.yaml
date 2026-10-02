@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: littlewardrobe
+spec:
+  selector:
+    app: littlewardrobe
+  ports:
+    - name: http
+      port: 8080
+      targetPort: http

@@ -1,0 +1,86 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: littlewardrobe
+  annotations:
+    secret.reloader.stakater.com/reload: littlewardrobe-server-env
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: littlewardrobe
+  template:
+    metadata:
+      labels:
+        app: littlewardrobe
+    spec:
+      imagePullSecrets:
+        - name: ghcr-credentials
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        fsGroup: 10001
+        fsGroupChangePolicy: OnRootMismatch
+      terminationGracePeriodSeconds: 30
+      containers:
+        - name: littlewardrobe
+          image: ghcr.io/fruitiex/littlewardrobe:c4cb95e665056248e18aafd7d31cfc53726f4d57@sha256:1bc82975fe97a170ac5ee206a1caf25a01b9ea5f9df5828f785601f154dcca54
+          imagePullPolicy: Always
+          envFrom:
+            - secretRef:
+                name: littlewardrobe-server-env
+          env:
+            - name: LITTLEWARDROBE_ORIGIN
+              value: https://littlewardrobe.fruitiex.org
+            - name: LITTLEWARDROBE_SQLITE_JOURNAL_MODE
+              value: DELETE
+            - name: RUST_LOG
+              value: littlewardrobe_api=info
+          ports:
+            - name: http
+              containerPort: 8080
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: [ALL]
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: '2'
+              memory: 1Gi
+          volumeMounts:
+            - name: data
+              mountPath: /data
+            - name: tmp
+              mountPath: /tmp
+          startupProbe:
+            httpGet:
+              path: /api/ready
+              port: http
+            periodSeconds: 2
+            failureThreshold: 60
+          readinessProbe:
+            httpGet:
+              path: /api/ready
+              port: http
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /api/health
+              port: http
+            periodSeconds: 10
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: littlewardrobe-data-nfs
+        - name: tmp
+          emptyDir:
+            sizeLimit: 128Mi
