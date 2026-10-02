@@ -66,7 +66,20 @@ jobs:
           # Handles both "image:tag@sha256:..." and "image:tag" (no digest) formats
           for file in $FILES; do
             if [[ "$IMAGE" == ghcr.io/fruitiex/forkbasket || "$IMAGE" == ghcr.io/fruitiex/littlecupboard ]]; then
-              sed -i -E "s~^([[:space:]]*image:[[:space:]]*)ghcr\\.io/fruitiex/(forkbasket|littlecupboard):[a-zA-Z0-9._-]+(@sha256:[a-f0-9]+)?[[:space:]]*$~\\1${IMAGE}:${REVISION}@${DIGEST}~" "$file"
+              python3 - "$file" "$IMAGE" "$REVISION" "$DIGEST" <<PY_IMAGE
+          import re, sys
+          from pathlib import Path
+          path = Path(sys.argv[1])
+          image, revision, digest = sys.argv[2:]
+          text, count = re.subn(
+              r"^([ \t]*image:[ \t]*)ghcr[.]io/fruitiex/(?:forkbasket|littlecupboard):[a-zA-Z0-9._-]+(?:@sha256:[a-f0-9]+)?[ \t]*$",
+              lambda match: f"{match[1]}{image}:{revision}@{digest}",
+              path.read_text(), flags=re.MULTILINE,
+          )
+          if count != 1:
+              raise SystemExit("Expected exactly one LittleCupboard image reference")
+          path.write_text(text)
+          PY_IMAGE
               continue
             fi
             # Escape dots and slashes in image name for sed
