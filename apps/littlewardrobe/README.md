@@ -33,4 +33,10 @@ curl --fail https://littlewardrobe.fruitiex.org/api/ready
 
 Take a consistent full database backup using `kubectl exec -n default deploy/littlewardrobe -- littlewardrobe-api --backup /data/backup-YYYY-MM-DD.sqlite3`, choosing a new filename each time. Copy it off the PVC and retain the matching encryption secret. The command uses SQLite's backup API and refuses an existing destination. Settings also supports a household JSON backup with clothing photos and provenance. Stop the app before restoring the complete database; preserve UID/GID permissions and restore the matching encryption key. [Deployment and recovery guide](https://github.com/FruitieX/littlewardrobe/blob/main/docs/DEPLOYMENT.md).
 
-Initial rollout and private/public ingress verification are in progress.
+## Verified rollout — 2026-10-02
+
+Homelab revision `273db55` deployed successfully through Flux. `littlewardrobe` is Ready/Healthy with one ready replica running the exact pinned digest above; the NFS claim is Bound and retained. Private HTTPRoute conditions are Accepted and ResolvedRefs. External-dns created the private A record at 05:25:48 UTC, and normal DNS now resolves to `192.168.11.99`.
+
+Trusted HTTPS frontend/readiness passed through normal DNS and the private gateway. The public gateway (`192.168.11.1`) and WAN (`91.159.199.233`) both returned HTTP 404 for this hostname. Anonymous household state, AI configuration, photos and SSE returned 401; a cross-origin write returned 403. Fresh mobile and desktop Chromium sessions loaded the first-owner setup screen without JavaScript errors or horizontal overflow, with a secure context, standalone manifest/icons and an activated service worker. These were browser checks from Pear, not a physical phone installation.
+
+The running process and database are owned by UID/GID 10001; the database is mode 0600. A consistent initial backup at `/data/initial-deployment-2026-10-02.sqlite3` passed full SQLite integrity checks and confirmed DELETE journaling. The initial database has zero users and households. Create the first owner using the instructions above; provider configuration remains an owner setup step. No production family accounts or clothing data were created during verification.
