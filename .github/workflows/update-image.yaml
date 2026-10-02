@@ -39,13 +39,17 @@ jobs:
           fi
 
           # Find files containing this image reference
-          if [[ "$IMAGE" == ghcr.io/fruitiex/forkbasket ]]; then
+          if [[ "$IMAGE" == ghcr.io/fruitiex/forkbasket || "$IMAGE" == ghcr.io/fruitiex/littlecupboard ]]; then
             if [[ ! "$REVISION" =~ ^[a-f0-9]{40}$ ]]; then
-              echo '::error::ForkBasket requires the tested source revision.'
+              echo '::error::LittleCupboard requires the tested source revision.'
               exit 1
             fi
             # Update only the live image, preserving historical README digests.
-            FILES=apps/forkbasket/deployment.yaml
+            if [[ -f apps/littlecupboard/deployment.yaml ]]; then
+              FILES=apps/littlecupboard/deployment.yaml
+            else
+              FILES=apps/forkbasket/deployment.yaml
+            fi
           else
             FILES=$(grep -rl "$IMAGE" apps/ || true)
           fi
@@ -61,7 +65,7 @@ jobs:
           # Replace the digest (or add one if missing) for this image
           # Handles both "image:tag@sha256:..." and "image:tag" (no digest) formats
           for file in $FILES; do
-            if [[ "$IMAGE" == ghcr.io/fruitiex/forkbasket ]]; then
+            if [[ "$IMAGE" == ghcr.io/fruitiex/forkbasket || "$IMAGE" == ghcr.io/fruitiex/littlecupboard ]]; then
               sed -i -E "s|^([[:space:]]*image:[[:space:]]*)ghcr\\.io/fruitiex/forkbasket:[a-zA-Z0-9._-]+(@sha256:[a-f0-9]+)?[[:space:]]*$|\\1${IMAGE}:${REVISION}@${DIGEST}|" "$file"
               continue
             fi
