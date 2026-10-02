@@ -369,7 +369,7 @@ spec:
     spec:
       containers:
         - name: postgres
-          image: postgres:18@sha256:7341002d2b8c7c5bdd7542a671a95b36196c0b5b888daf454ae4fc33ba5346d7
+          image: postgres:18@sha256:0377e72c5289ed2f98cf61b1a9c2db9eb9d300317fe14244492fbc94343b3d04
           imagePullPolicy: IfNotPresent
           ports:
             - name: postgres
