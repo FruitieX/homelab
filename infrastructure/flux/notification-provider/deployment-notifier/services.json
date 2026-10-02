@@ -19,12 +19,12 @@
       "repository": "FruitieX/homectl"
     },
     {
-      "name": "forkbasket",
+      "name": "littlecupboard",
       "kustomization": "forkbasket",
       "namespace": "default",
-      "deployment": "forkbasket",
-      "container": "forkbasket",
-      "repository": "FruitieX/forkbasket",
+      "deployment": "littlecupboard",
+      "container": "littlecupboard",
+      "repository": "FruitieX/littlecupboard",
       "registry_secret": "ghcr-credentials"
     }
   ]

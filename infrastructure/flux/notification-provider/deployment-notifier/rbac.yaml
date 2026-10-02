@@ -12,7 +12,7 @@ metadata:
 rules:
   - apiGroups: [apps]
     resources: [deployments]
-    resourceNames: [add-bot, homectl, forkbasket]
+    resourceNames: [add-bot, homectl, littlecupboard]
     verbs: [get]
   - apiGroups: [""]
     resources: [secrets]

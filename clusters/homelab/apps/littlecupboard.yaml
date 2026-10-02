@@ -10,7 +10,7 @@ spec:
   sourceRef:
     kind: GitRepository
     name: flux-system
-  path: ./apps/forkbasket
+  path: ./apps/littlecupboard
   prune: true
   wait: true
   dependsOn:

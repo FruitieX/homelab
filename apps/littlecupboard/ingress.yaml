@@ -1,7 +1,7 @@
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
-  name: forkbasket
+  name: littlecupboard
   annotations:
     # Use the existing public wildcard DNS instead of publishing gateway LAN IPs.
     external-dns.alpha.kubernetes.io/exclude: "true"
@@ -14,6 +14,7 @@ spec:
       namespace: envoy-gateway-system
       sectionName: https
   hostnames:
+    - littlecupboard.fruitiex.org
     - forkbasket.fruitiex.org
   rules:
     - matches:
@@ -21,7 +22,7 @@ spec:
             type: PathPrefix
             value: /
       backendRefs:
-        - name: forkbasket
+        - name: littlecupboard
           port: 8080
       timeouts:
         request: 0s

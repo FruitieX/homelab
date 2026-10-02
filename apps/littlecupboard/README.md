@@ -1,25 +1,25 @@
-# ForkBasket
+# LittleCupboard
 
 ## Hermes host migration — 2026-10-02
 
 The paired personal `forkbasket` Hermes profile and its OAuth/pairing credentials
 now run on **Honeydew** (`192.168.1.158`). Pear's worker is stopped and disabled,
 and its profile is archived outside the live profiles directory. Honeydew's
-declarative `forkbasket-companion.service` retains the existing sandbox.
+declarative `littlecupboard-companion.service` retains the existing sandbox.
 The worker polls this app's existing HTTPS URL; no application deployment,
 pairing-token rotation, or inbound worker port was needed.
 
 Production `forkbasket-api --check-companion --image` passed model discovery,
 `gpt-6-luna` / `xhigh` chat, and native image generation through the actual queue.
 The image is an unattached private test artifact; shopping/recipes/meal plans
-were not changed. Use `systemctl --user status forkbasket-companion` on Honeydew
+were not changed. Use `systemctl --user status littlecupboard-companion` on Honeydew
 for current operations. Earlier Pear-specific records below are historical.
 
-Family shopping, recipes and lunch planning at **https://forkbasket.fruitiex.org**. The HTTPS route attaches to both the public Envoy gateway (`192.168.11.1`, reached through the router's existing WAN port forwarding) and private gateway (`192.168.11.99`). Public DNS uses the existing `*.fruitiex.org` wildcard CNAME to `fruitiex.org`; the route is excluded from external-dns so it does not publish the gateways' LAN addresses. External-dns removes its previously managed private A record during reconciliation. Existing accounts are required for household data and images.
+Family shopping, recipes and lunch planning at **https://littlecupboard.fruitiex.org**. The HTTPS route attaches to both the public Envoy gateway (`192.168.11.1`, reached through the router's existing WAN port forwarding) and private gateway (`192.168.11.99`). Public DNS uses the existing `*.fruitiex.org` wildcard CNAME to `fruitiex.org`; the route is excluded from external-dns so it does not publish the gateways' LAN addresses. External-dns removes its previously managed private A record during reconciliation. Existing accounts are required for household data and images.
 
 The pod uses the existing `ghcr-credentials` pull secret, UID/GID 10001, a read-only root filesystem and one replica with Recreate. The image is pinned to a tested release digest in `deployment.yaml`.
 
-Active storage is the 5 GiB `forkbasket-data-nfs` claim using `nfs-csi`, mounted at `/data`. On **nectarine.internal.fruitiex.org**, the directory is **`/volume3/homelab/forkbasket-data-nfs`**. The app database is `forkbasket.sqlite3`; accounts, shopping/meal state, recipes, images and encrypted AI credentials are inside it. NFSv4.1 uses hard mounts with locking enabled. `FORKBASKET_SQLITE_JOURNAL_MODE=DELETE` selects rollback journaling and synchronous EXTRA; WAL is unsuitable for NFS. The NAS must honor file locks and durable sync operations.
+Active storage is the 5 GiB `forkbasket-data-nfs` claim using `nfs-csi`, mounted at `/data`. On **nectarine.internal.fruitiex.org**, the directory is **`/volume3/homelab/forkbasket-data-nfs`**. The app database is `forkbasket.sqlite3`; accounts, shopping/meal state, recipes, images and encrypted AI credentials are inside it. NFSv4.1 uses hard mounts with locking enabled. `LITTLECUPBOARD_SQLITE_JOURNAL_MODE=DELETE` selects rollback journaling and synchronous EXTRA; WAL is unsuitable for NFS. The NAS must honor file locks and durable sync operations.
 
 The previous `forkbasket-data` iSCSI claim and its Synology LUN were removed at the user's request after the migration was verified. Only the active NFS claim remains, with Flux pruning disabled and a Retain reclaim policy. A private pre-migration database backup remains on NFS. Keep regular backups of the active NFS database and its matching SOPS secret.
 
@@ -34,7 +34,7 @@ To read only the setup token in a private local terminal:
 ```sh
 cd ~/homelab
 nix-shell
-sops --decrypt --extract '["stringData"]["FORKBASKET_SETUP_TOKEN"]' apps/forkbasket/secret.sops.yaml
+sops --decrypt --extract '["stringData"]["FORKBASKET_SETUP_TOKEN"]' apps/littlecupboard/secret.sops.yaml
 ```
 
 Configure favorite stores/aisle order and add family recipes in the app. The AI assistant stays hidden until an OpenAI-compatible endpoint/model is enabled in Settings; provider configuration is deliberately left to the owner.
@@ -43,9 +43,9 @@ The shopping list defaults to one tile grid in store aisle order. Settings → S
 
 ## Operations
 
-ForkBasket's application CI is configured to deploy every successfully validated and published main build through this repository's `image-update` dispatch workflow, following add-bot's existing pattern. The payload includes the immutable registry digest and tested source SHA. The receiver updates only the image in `deployment.yaml`, commits it, and Flux deploys it; historical migration records below remain unchanged. Image-update jobs are serialized to avoid competing Git pushes. PRs and release tags do not deploy, and the sender skips older main revisions.
+LittleCupboard's application CI is configured to deploy every successfully validated and published main build through this repository's `image-update` dispatch workflow, following add-bot's existing pattern. The payload includes the immutable registry digest and tested source SHA. The receiver updates only the image in `deployment.yaml`, commits it, and Flux deploys it; historical migration records below remain unchanged. Image-update jobs are serialized to avoid competing Git pushes. PRs and release tags do not deploy, and the sender skips older main revisions.
 
-The application repository must have a `HOMELAB_DISPATCH_TOKEN` Actions secret containing a fine-grained PAT restricted to this homelab repository with Contents read/write. The receiver needs no additional secret: it commits with its built-in `GITHUB_TOKEN`. Until the sender secret is configured, ForkBasket CI warns and skips deployment while still publishing the image. Token activation and direct transfer from 1Password are documented in [the application deployment guide](https://github.com/FruitieX/forkbasket/blob/main/docs/DEPLOYMENT.md). Confirm the application CI deployment job, this repository's image-update run, and Flux Ready before considering automatic deployment active.
+The application repository must have a `HOMELAB_DISPATCH_TOKEN` Actions secret containing a fine-grained PAT restricted to this homelab repository with Contents read/write. The receiver needs no additional secret: it commits with its built-in `GITHUB_TOKEN`. Until the sender secret is configured, LittleCupboard CI warns and skips deployment while still publishing the image. Token activation and direct transfer from 1Password are documented in [the application deployment guide](https://github.com/FruitieX/littlecupboard/blob/main/docs/DEPLOYMENT.md). Confirm the application CI deployment job, this repository's image-update run, and Flux Ready before considering automatic deployment active.
 
 Automatic deployment is active and was verified on 2026-10-01. The dispatch secret was installed directly from the user's scoped 1Password service account. ForkBasket's deployment job for tested main release `cfba1c4` dispatched successfully, receiver run `36860915497` committed its source tag and digest in `dcfe140`, and Flux automatically reached Ready/Healthy at that commit. The running pod used digest `sha256:b524336ceca98ad39d9b37413187c3cecef0ec4f90f508d80ac8941a7120cf74`, with one ready replica and the existing NFS claim. This release includes the desktop settings layout fix. Future successful main builds follow the same path.
 
@@ -53,12 +53,12 @@ Automatic deployment is active and was verified on 2026-10-01. The dispatch secr
 export KUBECONFIG="$PWD/kubeconfig"
 flux reconcile kustomization forkbasket
 kubectl get kustomization forkbasket -n flux-system
-kubectl get pods -n default -l app=forkbasket
+kubectl get pods -n default -l app=littlecupboard
 kubectl get pvc forkbasket-data-nfs -n default
-curl --fail https://forkbasket.fruitiex.org/api/ready
+curl --fail https://littlecupboard.fruitiex.org/api/ready
 ```
 
-Take a consistent full database backup using `kubectl exec -n default deploy/forkbasket -- forkbasket-api --backup /data/backup-2026-10-01.sqlite3`, choosing a unique filename each time, then copy it off the PVC with `kubectl cp`. The command refuses to overwrite an existing destination. Household-only backups/restoration are also available in Settings. Full recovery and upgrades are documented in [the application deployment guide](https://github.com/FruitieX/forkbasket/blob/main/docs/DEPLOYMENT.md).
+Take a consistent full database backup using `kubectl exec -n default deploy/littlecupboard -- littlecupboard-api --backup /data/backup-2026-10-01.sqlite3`, choosing a unique filename each time, then copy it off the PVC with `kubectl cp`. The command refuses to overwrite an existing destination. Household-only backups/restoration are also available in Settings. Full recovery and upgrades are documented in [the application deployment guide](https://github.com/FruitieX/littlecupboard/blob/main/docs/DEPLOYMENT.md).
 
 Initial verification passed: Flux Ready, healthy pod, bound PVC, accepted private HTTPRoute, trusted HTTPS, DNS pointing to the private gateway, mobile first-owner setup without browser errors, and HTTP 404 through the public gateway.
 
@@ -152,3 +152,9 @@ The cutover copier verified identical content hash `babef21cd8e3a29fbb6671aa5f6c
 Post-cutover verification passed: Flux resumed and Ready on `3ba43a7`, one healthy pod using the exact image digest, a bound NFS CSI volume, private HTTPS readiness, preserved account setup and a mobile browser without runtime errors. A consistent backup from the running app passed integrity checks, confirmed DELETE journaling, and still matched the complete cutover hash above. `/data` contains the private database and pre-migration backup, with no WAL/SHM files. The public gateway continues to have no ForkBasket route.
 
 At the user's subsequent request, the old storage was retired after confirming the deployment uses NFS and no pod/VolumeAttachment references the old volume. Only PV `pvc-7f4a4516-00ac-4e89-b937-a2783dd4f885` was changed from Retain to Delete; the NFS PV and cluster storage classes were unchanged. Deleting the old claim caused Synology CSI to delete LUN `6d7aceac-164e-4e4c-a00a-bb0718c22eb8`, with the provisioner recording `volume deleted` and `persistentvolume deleted succeeded` at 2026-10-01 10:40:08 UTC. Both old Kubernetes resources are absent; the NFS claim is Bound, the app is ready over HTTPS, and Flux is Ready on retirement revision `e6a6c89`.
+
+## LittleCupboard rebrand — 2026-10-02
+
+Canonical URL: https://littlecupboard.fruitiex.org. The former forkbasket.fruitiex.org hostname stays routed for existing devices to finish synchronizing. Sign in at the new origin using existing accounts and reinstall PWAs from there; site-local pending operations are not transferred across origins.
+
+Deployment, Service, HTTPRoute and container are renamed to littlecupboard; images come from ghcr.io/fruitiex/littlecupboard and the GitHub repository is FruitieX/littlecupboard. Keep the Flux Kustomization name forkbasket so its managed inventory follows the move to apps/littlecupboard without competing reconcilers. The existing encrypted Secret forkbasket-server-env and NFS claim forkbasket-data-nfs stay intact, with data at /volume3/homelab/forkbasket-data-nfs and the same /data/forkbasket.sqlite3. New environment keys take precedence and the server accepts legacy FORKBASKET keys. Before switching the renamed Deployment onto the claim, stop the previous Deployment and wait for its pod to exit; SQLite must have only one server. Rollout validation is in progress.

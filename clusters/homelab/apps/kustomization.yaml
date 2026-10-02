@@ -7,7 +7,7 @@ resources:
   - add-bot.yaml
   - redoor.yaml
   - homectl.yaml
-  - forkbasket.yaml
+  - littlecupboard.yaml
   - littlewardrobe.yaml
   - chores.yaml
   - open-webui.yaml

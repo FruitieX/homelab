@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: forkbasket
+  name: littlecupboard
   annotations:
     secret.reloader.stakater.com/reload: forkbasket-server-env
 spec:
@@ -10,11 +10,11 @@ spec:
     type: Recreate
   selector:
     matchLabels:
-      app: forkbasket
+      app: littlecupboard
   template:
     metadata:
       labels:
-        app: forkbasket
+        app: littlecupboard
     spec:
       imagePullSecrets:
         - name: ghcr-credentials
@@ -28,19 +28,21 @@ spec:
         fsGroupChangePolicy: OnRootMismatch
       terminationGracePeriodSeconds: 30
       containers:
-        - name: forkbasket
+        - name: littlecupboard
           image: ghcr.io/fruitiex/littlecupboard:a13e7930f4adfdd995695d4e6f6164577e20ac29@sha256:6341bbb53be22cbf255f808b38a52266047940b848454edd522a6e7b6d948226
           imagePullPolicy: Always
           envFrom:
             - secretRef:
                 name: forkbasket-server-env
           env:
-            - name: FORKBASKET_ORIGIN
+            - name: LITTLECUPBOARD_ORIGIN
+              value: https://littlecupboard.fruitiex.org
+            - name: LITTLECUPBOARD_LEGACY_ORIGINS
               value: https://forkbasket.fruitiex.org
-            - name: FORKBASKET_SQLITE_JOURNAL_MODE
+            - name: LITTLECUPBOARD_SQLITE_JOURNAL_MODE
               value: DELETE
             - name: RUST_LOG
-              value: forkbasket_api=info
+              value: littlecupboard_api=info
           ports:
             - name: http
               containerPort: 8080
