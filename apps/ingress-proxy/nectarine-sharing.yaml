@@ -1,0 +1,39 @@
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: EnvoyExtensionPolicy
+metadata:
+  name: nectarine-sharing-upload
+  namespace: ingress-proxy
+spec:
+  targetRefs:
+    - group: gateway.networking.k8s.io
+      kind: HTTPRoute
+      name: nectarine
+  lua:
+    - type: Inline
+      inline: |
+        -- File Station's desktop multipart uploader omits the sharing header.
+        -- Recover it from the upload URL; DSM still validates the sharing session.
+        -- Do not read/buffer the body, which can contain multi-gigabyte files.
+        function envoy_on_request(handle)
+          local headers = handle:headers()
+          if headers:get(":method") ~= "POST" or headers:get("x-syno-sharing") then
+            return
+          end
+          local path, query = (headers:get(":path") or ""):match("^([^?]+)%?(.*)$")
+          if path ~= "/webapi/entry.cgi" or not query then
+            return
+          end
+          local params = {}
+          for key, value in query:gmatch("([^&=]+)=([^&]*)") do
+            if params[key] then
+              return
+            end
+            params[key] = value
+          end
+          if params.api == "SYNO.FileStation.Upload" and params.method == "upload"
+              and params.version == "2" and params._sharing_id
+              and #params._sharing_id <= 128
+              and params._sharing_id:match("^[A-Za-z0-9_-]+$") then
+            headers:add("x-syno-sharing", params._sharing_id)
+          end
+        end

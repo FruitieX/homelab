@@ -4,3 +4,4 @@ resources:
   - ./http-routes.yaml
   - ./namespace.yaml
   - ./backends.yaml
+  - ./nectarine-sharing.yaml
