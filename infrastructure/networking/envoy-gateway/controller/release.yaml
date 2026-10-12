@@ -53,5 +53,7 @@ spec:
       envoyGateway:
         extensionApis:
           enableBackend: true
+          # Required by Nectarine's sharing-upload header workaround.
+          enableLua: true
         gateway:
           controllerName: gateway.envoyproxy.io/gatewayclass-controller
