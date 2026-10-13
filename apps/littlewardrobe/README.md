@@ -2,7 +2,7 @@
 
 Private family clothing inventory at **https://littlewardrobe.fruitiex.org**, available through the LAN/VPN. The HTTPS HTTPRoute attaches only to the private Envoy gateway (`192.168.11.99`). External-dns manages the private A record. The public gateway has no route for this application.
 
-The deployment pins the tested application source `756b262359e344cbeb52757ca4d7f492ce1b53ef` and image digest `sha256:5f0460674bae51c2d20e1301decbbcdaf4ba66d0a2128c01a1f5374076bd296e`. Application CI `36976223456` passed all checks, including the complete production browser suite against the packaged container. Image access uses the existing `ghcr-credentials` secret. Updates require changing the pinned image through Git; this app has no automatic homelab dispatch configured.
+The deployment pins the tested application source `fe05d38aeab58ee0a0bab29a1f7194f59e762ebc` and image digest `sha256:9fd22a232fe14ddd2cfae76307400fe6fc2dd4c7393eb2d86a88b122fc4d9f08`. Application CI `38425275235` passed all checks, including the complete production browser suite against the packaged container. Image access uses the existing `ghcr-credentials` secret. Updates require changing the pinned image through Git; this app has no automatic homelab dispatch configured.
 
 One replica with Recreate runs as UID/GID 10001 with a read-only root, runtime-default seccomp, temporary writable storage and startup/readiness/liveness probes. Data persists on the retained 5 GiB `littlewardrobe-data-nfs` claim (`nfs-csi`), backed by `/volume3/homelab/littlewardrobe-data-nfs` on `nectarine.internal.fruitiex.org`. `LITTLEWARDROBE_SQLITE_JOURNAL_MODE=DELETE` enables rollback journaling with synchronous EXTRA for the NFS volume. Keep one replica and preserve working NFS locks and durable writes.
 
@@ -99,3 +99,7 @@ origin and token, so the application Deployment and household settings needed
 no change. The production `littlewardrobe-api --check-companion --image` passed
 model discovery, `gpt-6-luna` / `xhigh` chat and private native image generation
 on Honeydew. No clothing inventory or listing was created.
+
+## Photo suggestion repair — 2026-10-13
+
+Source `fe05d38` constrains AI category, size system, season and condition to valid clothing choices and clarifies unknown values. It repairs an empty-season response that previously produced a misleading child/location/date error. Production original photos passed a native AI recheck with the corrected schema, and CI passed the complete production browser and packaged-container suites. A consistent pre-upgrade backup is `/data/pre-photo-fix-20261013.sqlite3`. The user has authorized checked updates to this existing private instance; routing remains LAN/VPN only.
