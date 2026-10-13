@@ -30,7 +30,7 @@ spec:
     spec:
       containers:
         - name: add-bot
-          image: ghcr.io/fruitiex/add-bot-rs:main@sha256:7fd61999e75f8d5444a8833cab8c0fc2d0fd43c39410ae52520b60b36e8f0519
+          image: ghcr.io/fruitiex/add-bot-rs:main@sha256:7169a5e71fabb0fe77fa14a94f3871889889ccd38f5ce57d547aad902c472282
           command: ["add-bot"]
           args: ["--tz", "Europe/Helsinki"]
           workingDir: /app
