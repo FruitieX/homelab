@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kubedash
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kubedash
+  template:
+    metadata:
+      labels:
+        app: kubedash
+    spec:
+      serviceAccountName: kubedash
+      imagePullSecrets:
+        - name: ghcr-credentials
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+      containers:
+        - name: kubedash
+          image: ghcr.io/fruitiex/kubedash:main@sha256:56c79d550204cca855c657f3fe249d6760afcaf0ae9fe762fd834d379c1278fc
+          env:
+            - name: TZ
+              value: Europe/Helsinki
+            - name: RUST_LOG
+              value: kubedash=info
+          ports:
+            - name: http
+              containerPort: 8080
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: [ALL]
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+            limits:
+              memory: 256Mi
+          readinessProbe:
+            httpGet:
+              path: /api/health
+              port: http
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /api/health
+              port: http
+            periodSeconds: 20

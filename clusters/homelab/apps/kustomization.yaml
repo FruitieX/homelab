@@ -28,6 +28,7 @@ resources:
   - bambuddy.yaml
   - spliit.yaml
   - radiator.yaml
+  - kubedash.yaml
   # - paperless-ngx.yaml
 # - adb-mqtt.yaml
 # - hue-mqtt.yaml
