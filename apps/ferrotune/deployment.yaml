@@ -44,6 +44,8 @@ spec:
               value: Europe/Helsinki
             - name: PORT
               value: "4040"
+            - name: FERROTUNE_FEEDBACK_URL
+              value: https://feedback.fruitiex.org
             - name: FERROTUNE_PORT
               value: "4040"
             - name: FERROTUNE_DB_MAX_CONNECTIONS
