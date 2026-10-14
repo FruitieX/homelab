@@ -1,0 +1,20 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: default
+resources:
+  - deployment.yaml
+  - service.yaml
+  - ingress.yaml
+  - pvc-nfs.yaml
+  - secret.sops.yaml
+  - widget-injection.yaml
+configMapGenerator:
+  - name: feedback-hub-apps
+    files:
+      - apps.toml
+  # Shared Lua for the per-route widget injection policies.
+  - name: feedback-widget-lua
+    files:
+      - lua=widget-injection.lua
+generatorOptions:
+  disableNameSuffixHash: true

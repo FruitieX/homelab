@@ -29,6 +29,8 @@ resources:
   - spliit.yaml
   - radiator.yaml
   - kubedash.yaml
+  - feedback-hub.yaml
+  - busmap.yaml
   # - paperless-ngx.yaml
 # - adb-mqtt.yaml
 # - hue-mqtt.yaml

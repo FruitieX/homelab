@@ -1,0 +1,70 @@
+# App registry for feedback-hub: tells agents where each app's code lives.
+# `checkout` is the path on the agent machine (worker default: ~/<id>).
+
+[[apps]]
+id = "ferrotune"
+name = "Ferrotune (web)"
+repo = "git@github.com:FruitieX/ferrotune.git"
+checkout = "~/ferrotune"
+hosts = ["ferrotune.fruitiex.org"]
+notes = "Rust server in src/, Vite/React web client in client/."
+
+[[apps]]
+id = "ferrotune-android"
+name = "Ferrotune (Android)"
+repo = "git@github.com:FruitieX/ferrotune.git"
+checkout = "~/ferrotune"
+notes = "Native Kotlin/Jetpack Compose app in android/. Feedback comes from the in-app feedback screen."
+
+[[apps]]
+id = "homectl"
+repo = "git@github.com:FruitieX/homectl.git"
+checkout = "~/homectl"
+hosts = ["homectl.fruitiex.org"]
+notes = "Rust server in server/, web UI in ui/."
+
+[[apps]]
+id = "littlecupboard"
+name = "Little Cupboard"
+repo = "git@github.com:FruitieX/littlecupboard.git"
+checkout = "~/littlecupboard"
+hosts = ["littlecupboard.fruitiex.org"]
+
+[[apps]]
+id = "littlewardrobe"
+name = "Little Wardrobe"
+repo = "git@github.com:FruitieX/littlewardrobe.git"
+checkout = "~/littlewardrobe"
+hosts = ["littlewardrobe.fruitiex.org"]
+
+[[apps]]
+id = "busmap"
+repo = "git@github.com:FruitieX/busmap.git"
+checkout = "~/busmap"
+hosts = ["busmap.fruitiex.org"]
+notes = "Private VPN-only deployment of the public busmap.netlify.app; fixes ship to both."
+
+[[apps]]
+id = "chores"
+repo = "git@github.com:FruitieX/chores.git"
+checkout = "~/chores"
+hosts = ["chores.fruitiex.org"]
+
+[[apps]]
+id = "kubedash"
+repo = "git@github.com:FruitieX/kubedash.git"
+checkout = "~/kubedash"
+hosts = ["kubedash.fruitiex.org"]
+
+[[apps]]
+id = "photoframe"
+name = "photoframe-rs"
+repo = "git@github.com:FruitieX/photoframe-rs.git"
+checkout = "~/photoframe-rs"
+hosts = ["photoframe.fruitiex.org"]
+
+[[apps]]
+id = "feedback-hub"
+repo = "git@github.com:FruitieX/feedback-hub.git"
+checkout = "~/feedback-hub"
+hosts = ["feedback.fruitiex.org"]

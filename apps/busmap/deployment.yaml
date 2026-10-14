@@ -1,0 +1,54 @@
+# Private, VPN-only build of busmap (public site: busmap.netlify.app). The
+# gateway injects the feedback-hub widget here; see apps/feedback-hub.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: busmap
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: busmap
+  template:
+    metadata:
+      labels:
+        app: busmap
+    spec:
+      imagePullSecrets:
+        - name: ghcr-credentials
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
+        runAsNonRoot: true
+        runAsUser: 101
+        runAsGroup: 101
+      containers:
+        - name: busmap
+          image: ghcr.io/fruitiex/busmap:main
+          imagePullPolicy: Always
+          ports:
+            - name: http
+              containerPort: 8080
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: [ALL]
+          resources:
+            requests:
+              cpu: 5m
+              memory: 16Mi
+            limits:
+              memory: 64Mi
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+            periodSeconds: 10
+      volumes:
+        - name: tmp
+          emptyDir:
+            sizeLimit: 16Mi

@@ -1,0 +1,174 @@
+# Injects the feedback-hub widget into HTML pages of these routes, for LAN/VPN
+# clients only (see widget-injection.lua). To opt an app in, add a policy here
+# and an entry to apps.toml. A route can only have one EnvoyExtensionPolicy.
+---
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: EnvoyExtensionPolicy
+metadata:
+  name: feedback-widget-ferrotune
+spec:
+  targetRefs:
+    - group: gateway.networking.k8s.io
+      kind: HTTPRoute
+      name: ferrotune
+  lua:
+    - type: ValueRef
+      valueRef:
+        group: ""
+        kind: ConfigMap
+        name: feedback-widget-lua
+      filterContext:
+        app: ferrotune
+        hub: https://feedback.fruitiex.org
+---
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: EnvoyExtensionPolicy
+metadata:
+  name: feedback-widget-homectl
+spec:
+  targetRefs:
+    - group: gateway.networking.k8s.io
+      kind: HTTPRoute
+      name: homectl
+  lua:
+    - type: ValueRef
+      valueRef:
+        group: ""
+        kind: ConfigMap
+        name: feedback-widget-lua
+      filterContext:
+        app: homectl
+        hub: https://feedback.fruitiex.org
+---
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: EnvoyExtensionPolicy
+metadata:
+  name: feedback-widget-littlecupboard
+spec:
+  targetRefs:
+    - group: gateway.networking.k8s.io
+      kind: HTTPRoute
+      name: littlecupboard
+  lua:
+    - type: ValueRef
+      valueRef:
+        group: ""
+        kind: ConfigMap
+        name: feedback-widget-lua
+      filterContext:
+        app: littlecupboard
+        hub: https://feedback.fruitiex.org
+---
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: EnvoyExtensionPolicy
+metadata:
+  name: feedback-widget-littlewardrobe
+spec:
+  targetRefs:
+    - group: gateway.networking.k8s.io
+      kind: HTTPRoute
+      name: littlewardrobe
+  lua:
+    - type: ValueRef
+      valueRef:
+        group: ""
+        kind: ConfigMap
+        name: feedback-widget-lua
+      filterContext:
+        app: littlewardrobe
+        hub: https://feedback.fruitiex.org
+---
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: EnvoyExtensionPolicy
+metadata:
+  name: feedback-widget-busmap
+spec:
+  targetRefs:
+    - group: gateway.networking.k8s.io
+      kind: HTTPRoute
+      name: busmap
+  lua:
+    - type: ValueRef
+      valueRef:
+        group: ""
+        kind: ConfigMap
+        name: feedback-widget-lua
+      filterContext:
+        app: busmap
+        hub: https://feedback.fruitiex.org
+---
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: EnvoyExtensionPolicy
+metadata:
+  name: feedback-widget-chores
+spec:
+  targetRefs:
+    - group: gateway.networking.k8s.io
+      kind: HTTPRoute
+      name: chores
+  lua:
+    - type: ValueRef
+      valueRef:
+        group: ""
+        kind: ConfigMap
+        name: feedback-widget-lua
+      filterContext:
+        app: chores
+        hub: https://feedback.fruitiex.org
+---
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: EnvoyExtensionPolicy
+metadata:
+  name: feedback-widget-kubedash
+spec:
+  targetRefs:
+    - group: gateway.networking.k8s.io
+      kind: HTTPRoute
+      name: kubedash
+  lua:
+    - type: ValueRef
+      valueRef:
+        group: ""
+        kind: ConfigMap
+        name: feedback-widget-lua
+      filterContext:
+        app: kubedash
+        hub: https://feedback.fruitiex.org
+---
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: EnvoyExtensionPolicy
+metadata:
+  name: feedback-widget-photoframe-rs
+spec:
+  targetRefs:
+    - group: gateway.networking.k8s.io
+      kind: HTTPRoute
+      name: photoframe-rs
+  lua:
+    - type: ValueRef
+      valueRef:
+        group: ""
+        kind: ConfigMap
+        name: feedback-widget-lua
+      filterContext:
+        app: photoframe
+        hub: https://feedback.fruitiex.org
+---
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: EnvoyExtensionPolicy
+metadata:
+  name: feedback-widget-feedback-hub
+spec:
+  targetRefs:
+    - group: gateway.networking.k8s.io
+      kind: HTTPRoute
+      name: feedback-hub
+  lua:
+    - type: ValueRef
+      valueRef:
+        group: ""
+        kind: ConfigMap
+        name: feedback-widget-lua
+      filterContext:
+        app: feedback-hub
+        hub: https://feedback.fruitiex.org

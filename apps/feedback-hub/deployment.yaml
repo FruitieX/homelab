@@ -1,0 +1,82 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: feedback-hub
+  annotations:
+    secret.reloader.stakater.com/reload: feedback-hub-env
+    configmap.reloader.stakater.com/reload: feedback-hub-apps
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: feedback-hub
+  template:
+    metadata:
+      labels:
+        app: feedback-hub
+    spec:
+      imagePullSecrets:
+        - name: ghcr-credentials
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        fsGroup: 10001
+        fsGroupChangePolicy: OnRootMismatch
+      containers:
+        - name: feedback-hub
+          image: ghcr.io/fruitiex/feedback-hub:main@sha256:c21994eb53e263ec5151af19ba6c49d8e286470030efb3305693250e6d7ea924
+          imagePullPolicy: Always
+          envFrom:
+            - secretRef:
+                name: feedback-hub-env
+          env:
+            - name: FEEDBACK_HUB_ALLOWED_ORIGINS
+              value: https://*.fruitiex.org,http://localhost:*
+            - name: FEEDBACK_HUB_APPS_FILE
+              value: /config/apps.toml
+            - name: FEEDBACK_HUB_SQLITE_JOURNAL_MODE
+              value: DELETE
+            - name: RUST_LOG
+              value: feedback_hub=info
+          ports:
+            - name: http
+              containerPort: 8080
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: [ALL]
+          resources:
+            requests:
+              cpu: 20m
+              memory: 32Mi
+            limits:
+              memory: 256Mi
+          volumeMounts:
+            - name: data
+              mountPath: /data
+            - name: config
+              mountPath: /config
+              readOnly: true
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            periodSeconds: 30
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: feedback-hub-data-nfs
+        - name: config
+          configMap:
+            name: feedback-hub-apps
