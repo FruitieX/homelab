@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: llm-wiki-web
+spec:
+  selector:
+    app: llm-wiki-web
+  ports:
+    - name: http
+      port: 8080
+      targetPort: http

@@ -9,6 +9,7 @@ resources:
   - homectl.yaml
   - littlecupboard.yaml
   - littlewardrobe.yaml
+  - llm-wiki-web.yaml
   - chores.yaml
   - open-webui.yaml
   - ingress-proxy.yaml

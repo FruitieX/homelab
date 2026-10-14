@@ -1,0 +1,107 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: llm-wiki-web
+  annotations:
+    secret.reloader.stakater.com/reload: llm-wiki-web
+spec:
+  # One writer per git clone.
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: llm-wiki-web
+  template:
+    metadata:
+      labels:
+        app: llm-wiki-web
+    spec:
+      imagePullSecrets:
+        - name: ghcr-credentials
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        fsGroup: 10001
+        fsGroupChangePolicy: OnRootMismatch
+      terminationGracePeriodSeconds: 30
+      containers:
+        - name: llm-wiki-web
+          image: ghcr.io/fruitiex/llm-wiki-web:f9b207b0684e261c50541c1f63accc0de38f3b45@sha256:632292ee780e866005ce0d8fe5a93cef851837fd7f6eb6cc4993b93686e1d9f5
+          imagePullPolicy: Always
+          env:
+            - name: LLM_WIKI_ORIGIN
+              value: https://llm-wiki.fruitiex.org
+            - name: LLM_WIKI_REPO_URL
+              value: git@github.com:FruitieX/llm-wiki.git
+            - name: LLM_WIKI_BRANCH
+              value: main
+            - name: LLM_WIKI_SSH_KEY_FILE
+              value: /secrets/deploy-key
+            - name: LLM_WIKI_GIT_NAME
+              value: Rasmus Lövegren
+            - name: LLM_WIKI_GIT_EMAIL
+              value: rasmus@lovegren.fi
+            - name: LLM_WIKI_SETUP_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: llm-wiki-web
+                  key: LLM_WIKI_SETUP_TOKEN
+            - name: RUST_LOG
+              value: llm_wiki_web=info
+          ports:
+            - name: http
+              containerPort: 8080
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: [ALL]
+          resources:
+            requests:
+              cpu: 50m
+              memory: 96Mi
+            limits:
+              cpu: '1'
+              memory: 512Mi
+          volumeMounts:
+            - name: data
+              mountPath: /data
+            - name: tmp
+              mountPath: /tmp
+            - name: deploy-key
+              mountPath: /secrets
+              readOnly: true
+          startupProbe:
+            httpGet:
+              path: /api/ready
+              port: http
+            periodSeconds: 2
+            failureThreshold: 90
+          readinessProbe:
+            httpGet:
+              path: /api/ready
+              port: http
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /api/health
+              port: http
+            periodSeconds: 10
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: llm-wiki-web-data-nfs
+        - name: tmp
+          emptyDir:
+            sizeLimit: 256Mi
+        - name: deploy-key
+          secret:
+            secretName: llm-wiki-web
+            defaultMode: 0440
+            items:
+              - key: deploy-key
+                path: deploy-key
