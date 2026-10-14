@@ -9,11 +9,20 @@ spec:
   chart:
     spec:
       chart: metrics-server
-      version: "*"
+      version: 3.14.0
       sourceRef:
         kind: HelmRepository
         name: metrics-server
         namespace: flux-system
   values:
+    args:
+      # Talos kubelets serve self-signed certificates by default.
+      - --kubelet-insecure-tls
     apiService:
       insecureSkipTLSVerify: true
+    resources:
+      requests:
+        cpu: 20m
+        memory: 64Mi
+      limits:
+        memory: 256Mi

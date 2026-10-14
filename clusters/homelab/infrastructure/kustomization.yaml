@@ -21,3 +21,4 @@ resources:
   - influxdb.yaml
   - grafana.yaml
   - monitoring-loki.yaml
+  - metrics-server.yaml
