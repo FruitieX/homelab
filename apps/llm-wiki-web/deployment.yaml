@@ -50,6 +50,15 @@ spec:
                 secretKeyRef:
                   name: llm-wiki-web
                   key: LLM_WIKI_SETUP_TOKEN
+            # The owner's Hermes agent (OpenAI-compatible API on honeydew)
+            # writes commit subjects; it accepts the cluster's node subnet.
+            - name: LLM_WIKI_AI_URL
+              value: http://192.168.1.158:8642/v1
+            - name: LLM_WIKI_AI_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: llm-wiki-web
+                  key: LLM_WIKI_AI_KEY
             - name: RUST_LOG
               value: llm_wiki_web=info
           ports:

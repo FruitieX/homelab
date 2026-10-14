@@ -3,7 +3,7 @@
 Private reading and editing app for the owner's wiki at **https://llm-wiki.fruitiex.org**, on the private Envoy gateway only (LAN/VPN). Source and design: [FruitieX/llm-wiki-web](https://github.com/FruitieX/llm-wiki-web).
 
 - One replica (`Recreate`): the pod owns a git clone of `FruitieX/llm-wiki` on the `llm-wiki-web-data-nfs` claim and pushes the owner's edits to `main`.
-- `secret.sops.yaml` holds the GitHub deploy key (write access to `FruitieX/llm-wiki`, titled "llm-wiki-web (homelab)") and the first-login setup token.
+- `secret.sops.yaml` holds the GitHub deploy key (write access to `FruitieX/llm-wiki`, titled "llm-wiki-web (homelab)"), the first-login setup token, and the Hermes API key (the same one Open WebUI uses) for AI-written commit subjects.
 - CI in the app repository dispatches `image-update`, which pins the tested digest in `deployment.yaml`.
 
 First sign-in: read the setup token in your own terminal, open the site and choose a password.
