@@ -28,6 +28,18 @@ local function looks_like_page(path)
   return last == "" or last:match("%.html?$") ~= nil or not last:find(".", 1, true)
 end
 
+-- Runs before the app's own scripts: WebGL canvases (maps, Pixi floorplans) keep
+-- their pixels so the widget's page snapshot can read them. Keep the `__fhGl`
+-- flag in sync with preserveWebGlBuffers() in feedback-hub's widget.ts.
+local EARLY_PATCH = [==[<script>(function(){var w=window,p=HTMLCanvasElement.prototype,g=p.getContext;if(w.__fhGl)return;w.__fhGl=1;p.getContext=function(t,a){if(/webgl/.test(t))a=Object.assign({},a,{preserveDrawingBuffer:true});return g.call(this,t,a)}})();</script>]==]
+
+local function after_head_open(html)
+  local _, e = html:find("<head>", 1, true)
+  if not e then _, e = html:find("<[Hh][Ee][Aa][Dd]%s[^>]*>") end
+  if not e then _, e = html:find("<HEAD>", 1, true) end
+  return e
+end
+
 function envoy_on_request(handle)
   local headers = handle:headers()
   if headers:get(":method") ~= "GET" or headers:get("upgrade") then return end
@@ -64,6 +76,8 @@ function envoy_on_response(handle)
   local at = html:find("</head>", 1, true) or html:find("</HEAD>", 1, true)
     or html:find("</body>", 1, true) or html:find("</BODY>", 1, true)
   local out = at and (html:sub(1, at - 1) .. tag .. html:sub(at)) or (html .. tag)
+  local head = after_head_open(out)
+  out = head and (out:sub(1, head) .. EARLY_PATCH .. out:sub(head + 1)) or (EARLY_PATCH .. out)
   body:setBytes(out)
   -- body() yields, which invalidates the earlier headers handle.
   headers = handle:headers()
