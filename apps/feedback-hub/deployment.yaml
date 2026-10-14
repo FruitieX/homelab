@@ -29,7 +29,7 @@ spec:
         fsGroupChangePolicy: OnRootMismatch
       containers:
         - name: feedback-hub
-          image: ghcr.io/fruitiex/feedback-hub:main@sha256:fbb30f32cbb7d1160ea35ab598afe98cbcddc93ef8eec3f066693b52110a4afa
+          image: ghcr.io/fruitiex/feedback-hub:main@sha256:22c46a24d496eaf4c578c5c5141627f55b346016f98f7a592965d4cce6aff79e
           imagePullPolicy: Always
           envFrom:
             - secretRef:
