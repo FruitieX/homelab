@@ -84,6 +84,10 @@ jobs:
             fi
             # Escape dots and slashes in image name for sed
             ESCAPED_IMAGE=$(echo "$IMAGE" | sed 's/[.\/]/\\&/g')
+            # Images tagged with a commit SHA get the new source revision as tag
+            if [[ "$REVISION" =~ ^[a-f0-9]{40}$ ]]; then
+              sed -i -E "s|(${ESCAPED_IMAGE}):[a-f0-9]{40}(@sha256:[a-f0-9]+)?|\1:${REVISION}@${DIGEST}|g" "$file"
+            fi
             sed -i -E "s|(${ESCAPED_IMAGE}:[a-zA-Z0-9._-]+)(@sha256:[a-f0-9]+)?|\1@${DIGEST}|g" "$file"
           done
 
@@ -101,4 +105,12 @@ jobs:
           git add -A
           git diff --cached --quiet && echo "No changes to commit" && exit 0
           git commit -m "chore: update ${SHORT_IMAGE} to ${SHORT_DIGEST}"
-          git push
+
+          # Someone else may have pushed in the meantime, rebase and retry
+          for attempt in 1 2 3 4 5; do
+            git push && exit 0
+            sleep $((attempt * 5))
+            git pull --rebase
+          done
+          echo "::error::Could not push image update"
+          exit 1
