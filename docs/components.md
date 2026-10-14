@@ -4,9 +4,9 @@ I make use of the following pieces of software and infrastructure:
 
 ### Hardware
 
-- Minisforum UM580 (Ryzen 7 5800H)
+- Three independent Proxmox mini PCs (Ryzen 7 5800H, Ryzen 7 6800H, Intel N150) running the Talos VMs
 - Synology DS420+ NAS
-- UniFi Dream Machine router + various UniFi switches and access points
+- UniFi Cloud Gateway Fiber + various UniFi switches and access points
 
 ### Kubernetes
 
