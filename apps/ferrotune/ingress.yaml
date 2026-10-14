@@ -18,3 +18,5 @@ spec:
       backendRefs:
         - name: ferrotune-service
           port: 4040
+      timeouts:
+        request: 0s
