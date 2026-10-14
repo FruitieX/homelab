@@ -30,8 +30,7 @@ resources:
   - radiator.yaml
   - kubedash.yaml
   - feedback-hub.yaml
-  # Enable once ghcr.io/fruitiex/busmap exists (needs the VITE_DIGITRANSIT_API_KEY secret in FruitieX/busmap).
-  # - busmap.yaml
+  - busmap.yaml
   # - paperless-ngx.yaml
 # - adb-mqtt.yaml
 # - hue-mqtt.yaml
