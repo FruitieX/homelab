@@ -29,6 +29,8 @@ spec:
               value: Europe/Helsinki
             - name: RUST_LOG
               value: kubedash=info
+            - name: KUBEDASH_PROMETHEUS_URL
+              value: http://kube-prometheus-stack-prometheus.kube-prometheus-stack.svc:9090
           ports:
             - name: http
               containerPort: 8080

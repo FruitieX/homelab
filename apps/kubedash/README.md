@@ -8,7 +8,9 @@ and can rollout-restart workloads or delete pods. Source:
 kubedash has no login of its own, so its HTTPRoute attaches only to the
 **private** Envoy gateway (LAN/VPN). Never add a public route. The `kubedash`
 ClusterRole is read-only except for `patch` on Deployments, StatefulSets and
-DaemonSets (restart) and `delete` on pods.
+DaemonSets (restart), `delete` on pods, and `patch` on Flux Kustomizations,
+HelmReleases and sources (reconcile requests). Current CPU/memory comes from
+metrics-server. Usage history comes from the in-cluster Prometheus.
 
 Pushes to kubedash `main` publish a new image. The repo's
 `HOMELAB_DISPATCH_TOKEN` secret then triggers `update-image.yaml` here, which
