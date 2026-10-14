@@ -7,8 +7,11 @@ on:
 permissions:
   contents: write
 
+# A single shared group would only keep one pending run, silently dropping
+# updates when several images are dispatched at once. Group per image
+# instead; pushes from parallel runs are rebased and retried below.
 concurrency:
-  group: homelab-image-updates
+  group: homelab-image-update-${{ github.event.client_payload.image }}
   cancel-in-progress: false
 
 jobs:
