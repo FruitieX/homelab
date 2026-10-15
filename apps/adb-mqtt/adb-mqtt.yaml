@@ -41,7 +41,7 @@ spec:
 
       containers:
         - name: adb-mqtt
-          image: ghcr.io/fruitiex/adb-mqtt:main@sha256:85b8c217065145cef40fa409548df74debe0bf4c5be512c6e13d14fc07375144
+          image: ghcr.io/fruitiex/adb-mqtt:main@sha256:f998a18f8cabce739ed282ccaabb8eeede13d8df073894e55e53bd851a5ba60b
           resources:
             limits:
               memory: 128Mi
