@@ -27,6 +27,6 @@ jobs:
       - uses: actions/setup-python@v6
         with:
           python-version: '3.13'
-      - uses: azure/setup-kubectl@v4
+      - uses: azure/setup-kubectl@v5
       - run: python -m pip install PyYAML==6.0.2
       - run: python -B -m unittest discover -s infrastructure/flux/notification-provider/deployment-notifier -v
