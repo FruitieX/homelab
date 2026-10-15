@@ -11,6 +11,7 @@ resources:
   - littlewardrobe.yaml
   - llm-wiki-web.yaml
   - chores.yaml
+  - steady.yaml
   - open-webui.yaml
   - ingress-proxy.yaml
   - lifx-mqtt.yaml
