@@ -32,6 +32,8 @@ spec:
           env:
             - name: CHORES_ORIGIN
               value: https://chores.fruitiex.org
+            - name: CHORES_FEEDBACK_HUB
+              value: https://feedback.fruitiex.org
             - name: CHORES_SQLITE_JOURNAL_MODE
               value: DELETE
             - name: RUST_LOG
