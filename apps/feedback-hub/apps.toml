@@ -45,6 +45,14 @@ hosts = ["busmap.fruitiex.org"]
 notes = "Public deployment; busmap.netlify.app redirects here."
 
 [[apps]]
+id = "rsfinity"
+name = "rsfinity"
+repo = "git@github.com:FruitieX/rsfinity.git"
+checkout = "~/rsfinity"
+hosts = ["rsfinity.fruitiex.org"]
+notes = "Public deployment."
+
+[[apps]]
 id = "chores"
 repo = "git@github.com:FruitieX/chores.git"
 checkout = "~/chores"

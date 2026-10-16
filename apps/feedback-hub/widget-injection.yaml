@@ -100,6 +100,25 @@ spec:
 apiVersion: gateway.envoyproxy.io/v1alpha1
 kind: EnvoyExtensionPolicy
 metadata:
+  name: feedback-widget-rsfinity
+spec:
+  targetRefs:
+    - group: gateway.networking.k8s.io
+      kind: HTTPRoute
+      name: rsfinity
+  lua:
+    - type: ValueRef
+      valueRef:
+        group: ""
+        kind: ConfigMap
+        name: feedback-widget-lua
+      filterContext:
+        app: rsfinity
+        hub: https://feedback.fruitiex.org
+---
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: EnvoyExtensionPolicy
+metadata:
   name: feedback-widget-chores
 spec:
   targetRefs:

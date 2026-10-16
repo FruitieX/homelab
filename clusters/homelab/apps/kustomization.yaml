@@ -33,6 +33,7 @@ resources:
   - kubedash.yaml
   - feedback-hub.yaml
   - busmap.yaml
+  - rsfinity.yaml
   # - paperless-ngx.yaml
 # - adb-mqtt.yaml
 # - hue-mqtt.yaml
