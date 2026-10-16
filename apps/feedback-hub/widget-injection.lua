@@ -2,8 +2,8 @@
 -- apps. Parameterized per route through filterContext: { app = "...", hub = "https://..." }.
 --
 -- Only GET page loads from private (LAN/VPN) clients are touched. For those the
--- request's Accept-Encoding is dropped so the HTML arrives uncompressed and can
--- be rewritten; assets and API calls are left alone and never buffered.
+-- request's Accept-Encoding and conditional headers are dropped so the HTML
+-- arrives whole and uncompressed and can be rewritten; assets and API calls are left alone and never buffered.
 
 local function is_private(address)
   if not address then return false end
@@ -54,6 +54,10 @@ function envoy_on_request(handle)
   end
   if not is_private(handle:streamInfo():downstreamDirectRemoteAddress()) then return end
   headers:remove("accept-encoding")
+  -- Always fetch the full page: a 304 can't be rewritten, so a browser holding a
+  -- copy from before injection (or from another network) would keep it forever.
+  headers:remove("if-none-match")
+  headers:remove("if-modified-since")
   handle:streamInfo():dynamicMetadata():set("feedback.widget", "app", app)
   handle:streamInfo():dynamicMetadata():set("feedback.widget", "hub", hub)
 end

@@ -64,6 +64,13 @@ checkout = "~/photoframe-rs"
 hosts = ["photoframe.fruitiex.org"]
 
 [[apps]]
+id = "steady"
+name = "Steady"
+repo = "git@github.com:FruitieX/steady.git"
+checkout = "~/steady"
+hosts = ["steady.fruitiex.org"]
+
+[[apps]]
 id = "feedback-hub"
 repo = "git@github.com:FruitieX/feedback-hub.git"
 checkout = "~/feedback-hub"

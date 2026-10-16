@@ -157,6 +157,25 @@ spec:
 apiVersion: gateway.envoyproxy.io/v1alpha1
 kind: EnvoyExtensionPolicy
 metadata:
+  name: feedback-widget-steady
+spec:
+  targetRefs:
+    - group: gateway.networking.k8s.io
+      kind: HTTPRoute
+      name: steady
+  lua:
+    - type: ValueRef
+      valueRef:
+        group: ""
+        kind: ConfigMap
+        name: feedback-widget-lua
+      filterContext:
+        app: steady
+        hub: https://feedback.fruitiex.org
+---
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: EnvoyExtensionPolicy
+metadata:
   name: feedback-widget-feedback-hub
 spec:
   targetRefs:
