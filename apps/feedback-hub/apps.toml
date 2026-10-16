@@ -42,7 +42,7 @@ id = "busmap"
 repo = "git@github.com:FruitieX/busmap.git"
 checkout = "~/busmap"
 hosts = ["busmap.fruitiex.org"]
-notes = "Private VPN-only deployment of the public busmap.netlify.app; fixes ship to both."
+notes = "Public deployment; busmap.netlify.app redirects here."
 
 [[apps]]
 id = "chores"
