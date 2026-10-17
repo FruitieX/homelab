@@ -514,7 +514,7 @@ spec:
             runAsNonRoot: true
       containers:
         - name: radiator
-          image: radiatorsoftware/radiator-server:nightly@sha256:5f0466466d3f8e3546ea3535d047c28d48f89e3d951e114410aab04bb9f8411a
+          image: radiatorsoftware/radiator-server:nightly@sha256:700299469c575c5c3c589be13b96fcc29b2a6d64dc44cbdf06dbe2134c71c857
           imagePullPolicy: IfNotPresent
           securityContext:
             runAsUser: 1000
