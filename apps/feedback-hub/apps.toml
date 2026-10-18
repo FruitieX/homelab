@@ -5,7 +5,7 @@
 id = "ferrotune"
 name = "Ferrotune (web)"
 repo = "git@github.com:FruitieX/ferrotune.git"
-checkout = "~/ferrotune"
+checkout = "~/projects/ferrotune"
 hosts = ["ferrotune.fruitiex.org"]
 notes = "Rust server in src/, Vite/React web client in client/."
 
@@ -13,13 +13,13 @@ notes = "Rust server in src/, Vite/React web client in client/."
 id = "ferrotune-android"
 name = "Ferrotune (Android)"
 repo = "git@github.com:FruitieX/ferrotune.git"
-checkout = "~/ferrotune"
+checkout = "~/projects/ferrotune"
 notes = "Native Kotlin/Jetpack Compose app in android/. Feedback comes from the in-app feedback screen."
 
 [[apps]]
 id = "homectl"
 repo = "git@github.com:FruitieX/homectl.git"
-checkout = "~/homectl"
+checkout = "~/projects/homectl"
 hosts = ["homectl.fruitiex.org"]
 notes = "Rust server in server/, web UI in ui/."
 
@@ -27,20 +27,20 @@ notes = "Rust server in server/, web UI in ui/."
 id = "littlecupboard"
 name = "Little Cupboard"
 repo = "git@github.com:FruitieX/littlecupboard.git"
-checkout = "~/littlecupboard"
+checkout = "~/projects/littlecupboard"
 hosts = ["littlecupboard.fruitiex.org"]
 
 [[apps]]
 id = "littlewardrobe"
 name = "Little Wardrobe"
 repo = "git@github.com:FruitieX/littlewardrobe.git"
-checkout = "~/littlewardrobe"
+checkout = "~/projects/littlewardrobe"
 hosts = ["littlewardrobe.fruitiex.org"]
 
 [[apps]]
 id = "busmap"
 repo = "git@github.com:FruitieX/busmap.git"
-checkout = "~/busmap"
+checkout = "~/projects/busmap"
 hosts = ["busmap.fruitiex.org"]
 notes = "Public deployment; busmap.netlify.app redirects here."
 
@@ -48,38 +48,38 @@ notes = "Public deployment; busmap.netlify.app redirects here."
 id = "rsfinity"
 name = "rsfinity"
 repo = "git@github.com:FruitieX/rsfinity.git"
-checkout = "~/rsfinity"
+checkout = "~/projects/rsfinity"
 hosts = ["rsfinity.fruitiex.org"]
 notes = "Public deployment."
 
 [[apps]]
 id = "chores"
 repo = "git@github.com:FruitieX/chores.git"
-checkout = "~/chores"
+checkout = "~/projects/chores"
 hosts = ["chores.fruitiex.org"]
 
 [[apps]]
 id = "kubedash"
 repo = "git@github.com:FruitieX/kubedash.git"
-checkout = "~/kubedash"
+checkout = "~/projects/kubedash"
 hosts = ["kubedash.fruitiex.org"]
 
 [[apps]]
 id = "photoframe"
 name = "photoframe-rs"
 repo = "git@github.com:FruitieX/photoframe-rs.git"
-checkout = "~/photoframe-rs"
+checkout = "~/projects/photoframe-rs"
 hosts = ["photoframe.fruitiex.org"]
 
 [[apps]]
 id = "steady"
 name = "Steady"
 repo = "git@github.com:FruitieX/steady.git"
-checkout = "~/steady"
+checkout = "~/projects/steady"
 hosts = ["steady.fruitiex.org"]
 
 [[apps]]
 id = "feedback-hub"
 repo = "git@github.com:FruitieX/feedback-hub.git"
-checkout = "~/feedback-hub"
+checkout = "~/projects/feedback-hub"
 hosts = ["feedback.fruitiex.org"]

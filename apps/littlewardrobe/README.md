@@ -13,7 +13,7 @@ The new family starts empty. Create the first owner, save the recovery code, the
 Read only the setup token in your own private local terminal:
 
 ```sh
-cd ~/homelab
+cd ~/projects/homelab
 nix-shell
 sops --decrypt --extract '["stringData"]["LITTLEWARDROBE_SETUP_TOKEN"]' apps/littlewardrobe/secret.sops.yaml
 ```

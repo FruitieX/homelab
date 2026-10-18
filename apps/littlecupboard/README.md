@@ -32,7 +32,7 @@ Open the HTTPS site and sign in with your existing account. LAN/VPN access is no
 To read only the setup token in a private local terminal:
 
 ```sh
-cd ~/homelab
+cd ~/projects/homelab
 nix-shell
 sops --decrypt --extract '["stringData"]["FORKBASKET_SETUP_TOKEN"]' apps/littlecupboard/secret.sops.yaml
 ```
