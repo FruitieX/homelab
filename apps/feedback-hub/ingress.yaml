@@ -17,3 +17,6 @@ spec:
       backendRefs:
         - name: feedback-hub
           port: 8080
+      timeouts:
+        # The triage UI's change stream (/api/changes) is long-lived.
+        request: 0s
