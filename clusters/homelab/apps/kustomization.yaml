@@ -12,6 +12,7 @@ resources:
   - llm-wiki-web.yaml
   - chores.yaml
   - steady.yaml
+  - stretch.yaml
   - open-webui.yaml
   - ingress-proxy.yaml
   - lifx-mqtt.yaml

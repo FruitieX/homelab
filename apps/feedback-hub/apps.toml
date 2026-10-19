@@ -79,6 +79,13 @@ checkout = "~/projects/steady"
 hosts = ["steady.fruitiex.org"]
 
 [[apps]]
+id = "stretch"
+name = "Stretch"
+repo = "git@github.com:FruitieX/stretch.git"
+checkout = "~/projects/stretch"
+hosts = ["stretch.fruitiex.org"]
+
+[[apps]]
 id = "feedback-hub"
 repo = "git@github.com:FruitieX/feedback-hub.git"
 checkout = "~/projects/feedback-hub"

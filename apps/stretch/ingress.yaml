@@ -1,0 +1,22 @@
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: stretch
+spec:
+  parentRefs:
+    - name: private
+      namespace: envoy-gateway-system
+      sectionName: https
+  hostnames:
+    - stretch.fruitiex.org
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /
+      backendRefs:
+        - name: stretch
+          port: 8080
+      # /api/live is a long-lived server-sent events stream.
+      timeouts:
+        request: 0s

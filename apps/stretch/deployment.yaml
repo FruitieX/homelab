@@ -1,0 +1,79 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: stretch
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: stretch
+  template:
+    metadata:
+      labels:
+        app: stretch
+    spec:
+      imagePullSecrets:
+        - name: ghcr-credentials
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        fsGroup: 10001
+        fsGroupChangePolicy: OnRootMismatch
+      terminationGracePeriodSeconds: 30
+      containers:
+        - name: stretch
+          image: ghcr.io/fruitiex/stretch:a924f914e174f426ac59f8fea1f650516bd3eb1d@sha256:6c32a20ae72eb090922491495615fe6919960fbd02c6ee265c9f1e234b067684
+          imagePullPolicy: Always
+          env:
+            - name: STRETCH_SQLITE_JOURNAL_MODE
+              value: DELETE
+            - name: RUST_LOG
+              value: stretch_api=info
+          ports:
+            - name: http
+              containerPort: 8080
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: [ALL]
+          resources:
+            requests:
+              cpu: 20m
+              memory: 64Mi
+            limits:
+              cpu: 500m
+              memory: 256Mi
+          volumeMounts:
+            - name: data
+              mountPath: /data
+            - name: tmp
+              mountPath: /tmp
+          startupProbe:
+            httpGet:
+              path: /api/ready
+              port: http
+            periodSeconds: 2
+            failureThreshold: 60
+          readinessProbe:
+            httpGet:
+              path: /api/ready
+              port: http
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /api/health
+              port: http
+            periodSeconds: 10
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: stretch-data-nfs
+        - name: tmp
+          emptyDir:
+            sizeLimit: 128Mi
