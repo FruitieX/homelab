@@ -21,7 +21,7 @@ spec:
 
       containers:
         - name: twinkly-mqtt
-          image: ghcr.io/fruitiex/twinkly-mqtt:main@sha256:adf9c7e5a33fc9cd18a0d153baf3c9834c7ee5278e27bf4b12f65faa0fb80812
+          image: ghcr.io/fruitiex/twinkly-mqtt:main@sha256:eee0618941ad2e0a7aba1f489368584da56dabef4084705f785ea39c3172a0b3
           resources:
             limits:
               memory: 128Mi
