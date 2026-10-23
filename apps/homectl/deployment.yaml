@@ -32,6 +32,18 @@ spec:
               value: /app/Settings.toml
             - name: HOMECTL_UI_DIST_DIR
               value: /app/ui/dist
+            # Sign-in with Pocket ID; client secret and machine tokens are in
+            # homectl-server-env (HOMECTL_OIDC_CLIENT_SECRET, HOMECTL_API_TOKENS).
+            - name: HOMECTL_OIDC_ISSUER
+              value: https://id.fruitiex.org
+            - name: HOMECTL_OIDC_CLIENT_ID
+              value: homectl
+            - name: HOMECTL_PUBLIC_URL
+              value: https://homectl.fruitiex.org
+            - name: HOMECTL_OIDC_ALLOWED_GROUPS
+              value: family
+            - name: HOMECTL_OIDC_ADMIN_GROUPS
+              value: admins
           resources:
             limits:
               memory: 512Mi
