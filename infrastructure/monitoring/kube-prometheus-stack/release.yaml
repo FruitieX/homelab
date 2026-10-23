@@ -217,6 +217,9 @@ spec:
         probeSelectorNilUsesHelmValues: false
         ruleSelectorNilUsesHelmValues: false
         scrapeConfigSelectorNilUsesHelmValues: false
+        # The chart only renders these when set explicitly (default null).
+        scrapeConfigSelector: {}
+        scrapeConfigNamespaceSelector: {}
         retention: 90d
         retentionSize: "100GB"
         storageSpec:
