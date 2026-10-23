@@ -41,6 +41,15 @@ spec:
               value: /config/apps.toml
             - name: FEEDBACK_HUB_SQLITE_JOURNAL_MODE
               value: DELETE
+            - name: FEEDBACK_HUB_PUBLIC_URL
+              value: https://feedback.fruitiex.org
+            # Passkey sign-in through Pocket ID; the client secret is in feedback-hub-env.
+            - name: FEEDBACK_HUB_OIDC_ISSUER
+              value: https://id.fruitiex.org
+            - name: FEEDBACK_HUB_OIDC_CLIENT_ID
+              value: feedback-hub
+            - name: FEEDBACK_HUB_OIDC_ALLOWED_GROUPS
+              value: admins
             - name: RUST_LOG
               value: feedback_hub=info
           ports:
