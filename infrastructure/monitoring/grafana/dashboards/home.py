@@ -36,6 +36,11 @@ def _set(names):
     return "[" + ", ".join(f'"{k}"' for k in names) + "]"
 
 
+def _ids(names):
+    """device_id filter InfluxDB can push down to storage (contains() cannot)."""
+    return " or ".join(f'r.device_id == "{k}"' for k in names)
+
+
 def ble(field, names, every="v.windowPeriod", start="v.timeRangeStart", stop="v.timeRangeStop", fn="mean"):
     """One series per place; both BLE gateways report each sensor, mean merges them."""
     return f'''
@@ -44,7 +49,7 @@ names = {_dict(names)}
 from(bucket: "home")
   |> range(start: {start}, stop: {stop})
   |> filter(fn: (r) => r._measurement == "mqtt_consumer" and r._field == "{field}")
-  |> filter(fn: (r) => contains(value: r.device_id, set: {_set(names)}))
+  |> filter(fn: (r) => {_ids(names)})
   |> map(fn: (r) => ({{_time: r._time, _value: float(v: r._value), place: dict.get(dict: names, key: r.device_id, default: r.device_id)}}))
   |> group(columns: ["place"])
   |> aggregateWindow(every: {every}, fn: {fn}, createEmpty: false)
@@ -211,8 +216,8 @@ def climate_dashboard():
                      legend="right", legend_calcs=["min", "max", "lastNotNull"]), 16, 9)
     d.add(table("Today", [flux(TZ + ble("tempc", INDOOR, start="today()", stop="now()", every="10m"))],
                 unit="celsius", decimals=1, display_name=BY_PLACE,
-                transformations=[reduce_rows(["min", "max", "lastNotNull"]),
-                                 organize(rename={"Field": "Room", "Min": "Low", "Max": "High", "Last *": "Now"})],
+                transformations=[reduce_rows(["min", "max"]),
+                                 organize(rename={"Field": "Room", "Min": "Low", "Max": "High"})],
                 sort=("Room", False)), 8, 9)
     d.add(timeseries("Relative humidity", [flux(ble("hum", INDOOR))], unit="humidity", decimals=0, fill=0,
                      display_name=BY_PLACE, overrides=fixed_colors(dict(zip(INDOOR.values(), SLOTS))),
@@ -264,7 +269,7 @@ names = {_dict(ALL_BLE)}
 ble = from(bucket: "home")
   |> range(start: -14d)
   |> filter(fn: (r) => r._measurement == "mqtt_consumer" and r._field == "batt")
-  |> filter(fn: (r) => contains(value: r.device_id, set: {_set(ALL_BLE)}))
+  |> filter(fn: (r) => {_ids(ALL_BLE)})
   |> group(columns: ["device_id"]) |> last()
   |> map(fn: (r) => ({{device: dict.get(dict: names, key: r.device_id, default: r.device_id), kind: "SwitchBot (BLE)", battery: float(v: r._value), seen: r._time}}))
 zigbee = from(bucket: "home")
@@ -289,7 +294,7 @@ union(tables: [ble, zigbee])
                             custom__cellOptions={"type": "color-text"}),
                     by_name("device", displayName="Device"),
                     by_name("kind", displayName="Type"),
-                ]), 14, 16)
+                ], transformations=[organize(order=["device", "kind", "battery", "seen", "hours"])]), 14, 16)
     d.add(stat("Below 20 %", [flux(battery_q + '\n  |> filter(fn: (r) => r.battery < 20.0) |> count(column: "battery")')],
                graph=False, thr=thresholds(GOOD, (1, WARN)), nulls="0", desc="Devices to swap batteries in soon."), 5, 4)
     d.add(stat("Silent for 24 h+", [flux(battery_q + '\n  |> filter(fn: (r) => r.hours > 24.0) |> count(column: "hours")')],
@@ -335,7 +340,7 @@ def overview_house(d):
                unit="celsius", decimals=1, graph=False, thr=thresholds(GOOD, (-15, WARN), (-10, BAD))), 3, 4)
     d.add(stat("Low batteries", [flux(f'''from(bucket: "home")
   |> range(start: -3d)
-  |> filter(fn: (r) => r._measurement == "mqtt_consumer" and ((r._field == "batt" and contains(value: r.device_id, set: {_set(ALL_BLE)}))
+  |> filter(fn: (r) => r._measurement == "mqtt_consumer" and ((r._field == "batt" and ({_ids(ALL_BLE)}))
       or (r._field == "battery" and r.integration_id == "zigbee2mqtt")))
   |> group(columns: ["device_id"]) |> last()
   |> group() |> filter(fn: (r) => float(v: r._value) < 20.0) |> count()''')], graph=False,

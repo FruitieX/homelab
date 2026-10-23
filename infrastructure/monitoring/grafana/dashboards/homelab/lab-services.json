@@ -55,8 +55,8 @@
     "hide": false,
     "iconColor": "#9085e9",
     "name": "Deploys",
-    "expr": "max by (namespace, owner_name) ((time() - kube_replicaset_created{namespace=~\"default\"} < 90) * on (namespace, replicaset) group_left (owner_name) kube_replicaset_owner{owner_kind=\"Deployment\"})",
-    "step": "60s",
+    "expr": "max by (namespace, owner_name) ((time() - kube_replicaset_created{namespace=~\"default\"} < 120) * on (namespace, replicaset) group_left (owner_name) kube_replicaset_owner{owner_kind=\"Deployment\"})",
+    "step": "2m",
     "titleFormat": "Rollout",
     "textFormat": "{{owner_name}} rolled out",
     "tagKeys": "namespace"
@@ -909,9 +909,9 @@
       "type": "loki",
       "uid": "loki"
      },
-     "expr": "topk(15, sum by (host) (count_over_time({namespace=\"envoy-gateway-system\", container=\"envoy\"} |= \"authority\" | json host=`[\":authority\"]` | host=~`(.+\\.)?(fruitiex\\.org|lovegren\\.fi|xn--lvegren-90a\\.fi)` [$__range])))",
+     "expr": "sum by (host) (count_over_time({namespace=\"envoy-gateway-system\", container=\"envoy\"} |= \"authority\" | json host=`[\":authority\"]` | host=~`(.+\\.)?(fruitiex\\.org|lovegren\\.fi|xn--lvegren-90a\\.fi)` [$__auto]))",
      "legendFormat": "{{host}}",
-     "queryType": "instant",
+     "queryType": "range",
      "refId": "A"
     }
    ],
@@ -924,7 +924,6 @@
       "mode": "fixed",
       "fixedColor": "#3987e5"
      },
-     "displayName": "${__field.labels.host}",
      "thresholds": {
       "mode": "absolute",
       "steps": [
@@ -943,7 +942,7 @@
       "lastNotNull"
      ],
      "fields": "",
-     "values": false
+     "values": true
     },
     "displayMode": "basic",
     "orientation": "horizontal",
@@ -959,6 +958,29 @@
     "type": "loki",
     "uid": "loki"
    },
+   "transformations": [
+    {
+     "id": "reduce",
+     "options": {
+      "reducers": [
+       "sum"
+      ],
+      "mode": "seriesToRows",
+      "includeTimeField": false
+     }
+    },
+    {
+     "id": "sortBy",
+     "options": {
+      "sort": [
+       {
+        "field": "Total",
+        "desc": true
+       }
+      ]
+     }
+    }
+   ],
    "id": 14,
    "gridPos": {
     "h": 9,
@@ -1043,7 +1065,7 @@
       "type": "loki",
       "uid": "loki"
      },
-     "expr": "quantile_over_time(0.95, {namespace=\"envoy-gateway-system\", container=\"envoy\"} |= \"authority\" | json host=`[\":authority\"]`, duration | host=~`(.+\\.)?(fruitiex\\.org|lovegren\\.fi|xn--lvegren-90a\\.fi)` | unwrap duration [$__auto]) by (host)",
+     "expr": "quantile_over_time(0.95, {namespace=\"envoy-gateway-system\", container=\"envoy\"} |= \"authority\" | json host=`[\":authority\"]`, duration | host=~`(.+\\.)?(fruitiex\\.org|lovegren\\.fi|xn--lvegren-90a\\.fi)` | duration < 60000 | unwrap duration [$__auto]) by (host)",
      "legendFormat": "{{host}}",
      "queryType": "range",
      "refId": "A"
@@ -1093,7 +1115,7 @@
     "type": "loki",
     "uid": "loki"
    },
-   "description": "Total request time at the gateway; long-lived streams (SSE, WebSockets, video) inflate it.",
+   "description": "Request time at the gateway, ignoring requests over 60 s (SSE, WebSockets and video streams).",
    "id": 16,
    "gridPos": {
     "h": 8,
@@ -1298,14 +1320,14 @@
        "uid": true
       },
       "indexByName": {
-       "Kind": 0,
-       "Namespace": 1,
-       "Name": 2,
-       "Ready": 3,
-       "Revision": 4,
-       "App version": 5,
-       "Source": 6,
-       "Suspended": 7
+       "customresource_kind": 0,
+       "exported_namespace": 1,
+       "name": 2,
+       "ready": 3,
+       "revision": 4,
+       "chart_app_version": 5,
+       "source_name": 6,
+       "suspended": 7
       }
      }
     }
@@ -1558,12 +1580,17 @@
        "prometheus": true,
        "service": true,
        "job": true,
-       "uid": true
+       "uid": true,
+       "instance": true,
+       "pod": true,
+       "gateway": true,
+       "homelab": true,
+       "exported_namespace": true
       },
       "indexByName": {
-       "Alert": 0,
-       "Severity": 1,
-       "Namespace": 2
+       "alertname": 0,
+       "severity": 1,
+       "namespace": 2
       }
      }
     }

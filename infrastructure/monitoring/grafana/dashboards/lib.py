@@ -332,8 +332,8 @@ class Dashboard:
 def deploy_annotation(namespace="default"):
     return {
         "datasource": PROM, "enable": True, "hide": False, "iconColor": SLOTS[6], "name": "Deploys",
-        "expr": (f'max by (namespace, owner_name) ((time() - kube_replicaset_created{{namespace=~"{namespace}"}} < 90) '
+        "expr": (f'max by (namespace, owner_name) ((time() - kube_replicaset_created{{namespace=~"{namespace}"}} < 120) '
                  '* on (namespace, replicaset) group_left (owner_name) kube_replicaset_owner{owner_kind="Deployment"})'),
-        "step": "60s", "titleFormat": "Rollout", "textFormat": "{{owner_name}} rolled out",
+        "step": "2m", "titleFormat": "Rollout", "textFormat": "{{owner_name}} rolled out",
         "tagKeys": "namespace",
     }

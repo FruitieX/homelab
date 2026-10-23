@@ -2,7 +2,7 @@
 
 import home
 from lib import (BAD, GOOD, LOKI, MUTED, SLOTS, WARN, Dashboard, barchart, bargauge, by_name, deploy_annotation,
-                 fixed_colors, labels_to_fields, logs, loki, merge, organize, prom, sort_by, sql, stat,
+                 fixed_colors, labels_to_fields, logs, loki, merge, organize, prom, reduce_rows, sort_by, sql, stat,
                  state_timeline, status_history, table, thresholds, timeseries, value_map)
 
 UP_DOWN = value_map([(1, "Up", GOOD), (0, "Down", BAD)])
@@ -64,17 +64,17 @@ def services_dashboard():
                      legend_calcs=["sum"], desc="Requests through the public and private gateways per interval. "
                                                  "LAN clients that talk to MetalLB addresses directly (Jellyfin) are not counted."),
           16, 9)
-    d.add(bargauge("Requests in range", [loki(f'topk(15, sum by (host) (count_over_time({ENVOY} {OURS} [$__range])))',
-                                              legend="{{host}}", instant=True)],
-                   unit="short", decimals=0, display_name="${__field.labels.host}",
-                   color={"mode": "fixed", "fixedColor": SLOTS[0]}), 8, 9)
+    d.add(bargauge("Requests in range", [loki(f'sum by (host) (count_over_time({ENVOY} {OURS} [$__auto]))',
+                                              legend="{{host}}")],
+                   unit="short", decimals=0, values=True, color={"mode": "fixed", "fixedColor": SLOTS[0]},
+                   transformations=[reduce_rows(["sum"]), sort_by("Total", desc=True)]), 8, 9)
     d.add(timeseries("Server errors (5xx) per app", [loki(
         f'sum by (host) (count_over_time({ENVOY}, response_code {OURS} | response_code >= 500 [$__auto]))',
         legend="{{host}}")], unit="short", bars=True, stack=True, legend="right"), 12, 8)
     d.add(timeseries("p95 latency per app", [loki(
-        f'quantile_over_time(0.95, {ENVOY}, duration {OURS} | unwrap duration [$__auto]) by (host)',
+        f'quantile_over_time(0.95, {ENVOY}, duration {OURS} | duration < 60000 | unwrap duration [$__auto]) by (host)',
         legend="{{host}}")], unit="ms", fill=0, legend="right",
-        desc="Total request time at the gateway; long-lived streams (SSE, WebSockets, video) inflate it."), 12, 8)
+        desc="Request time at the gateway, ignoring requests over 60 s (SSE, WebSockets and video streams)."), 12, 8)
     d.add(timeseries("Data served per app", [loki(
         f'sum by (host) (sum_over_time({ENVOY}, bytes_sent {OURS} | unwrap bytes_sent [$__auto]))',
         legend="{{host}}")], unit="bytes", bars=True, stack=True, legend="right"), 24, 8)
@@ -88,7 +88,8 @@ def services_dashboard():
                     rename={"customresource_kind": "Kind", "exported_namespace": "Namespace", "name": "Name",
                             "ready": "Ready", "revision": "Revision", "suspended": "Suspended",
                             "source_name": "Source", "chart_app_version": "App version"},
-                    order=["Kind", "Namespace", "Name", "Ready", "Revision", "App version", "Source", "Suspended"])],
+                    order=["customresource_kind", "exported_namespace", "name", "ready", "revision",
+                           "chart_app_version", "source_name", "suspended"])],
                 overrides=[by_name("Ready", mappings=value_map([("True", "Ready", GOOD), ("False", "Not ready", BAD)]),
                                    custom__cellOptions={"type": "color-text"})],
                 sort=("Ready", False)), 14, 12)
@@ -102,9 +103,9 @@ def services_dashboard():
                                        instant=True, fmt="table")],
                 transformations=[organize(
                     exclude=["Time", "Value", "__name__", "alertstate", "container", "endpoint", "prometheus",
-                             "service", "job", "uid"],
+                             "service", "job", "uid", "instance", "pod", "gateway", "homelab", "exported_namespace"],
                     rename={"alertname": "Alert", "severity": "Severity", "namespace": "Namespace"},
-                    order=["Alert", "Severity", "Namespace"])],
+                    order=["alertname", "severity", "namespace"])],
                 overrides=[by_name("Severity", custom__cellOptions={"type": "color-text"},
                                    mappings=value_map([("critical", "critical", BAD), ("warning", "warning", WARN),
                                                        ("info", "info", MUTED)]))]), 24, 7)
@@ -167,7 +168,7 @@ def workloads_dashboard():
         'kube_pod_container_status_last_terminated_reason == 1', instant=True, fmt="table")],
         transformations=[organize(exclude=["Time", "Value", "__name__", "endpoint", "instance", "job", "service", "uid"],
                                   rename={"namespace": "Namespace", "pod": "Pod", "container": "Container",
-                                          "reason": "Reason"}, order=["Namespace", "Pod", "Container", "Reason"])],
+                                          "reason": "Reason"}, order=["namespace", "pod", "container", "reason"])],
         overrides=[by_name("Reason", custom__cellOptions={"type": "color-text"},
                            mappings=value_map([("OOMKilled", "OOMKilled", BAD), ("Error", "Error", WARN),
                                                ("Completed", "Completed", MUTED)]))]), 12, 8)
