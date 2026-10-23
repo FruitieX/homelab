@@ -4,7 +4,7 @@ import json
 
 PROM = {"type": "prometheus", "uid": "prometheus"}
 LOKI = {"type": "loki", "uid": "loki"}
-INFLUX = {"type": "influxdb", "uid": "influxdb"}
+INFLUX = {"type": "influxdb", "uid": "influxdb-home"}
 PG = {db: {"type": "grafana-postgresql-datasource", "uid": f"pg-{db}"} for db in ("ferrotune", "homectl", "immich")}
 
 # Categorical slots, in fixed order (validated for adjacent-pair CVD

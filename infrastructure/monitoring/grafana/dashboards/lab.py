@@ -306,8 +306,8 @@ def hardware_dashboard():
                      overrides=fixed_colors({"Used": SLOTS[0], "Capacity": MUTED}),
                      desc="The homelab NFS share (all nfs-csi volumes share it)."), 8, 6)
     d.add(timeseries("NAS network", [
-        prom('sum(rate(ifHCInOctets{job="nas-snmp", ifName=~"eth.*|bond.*|ovs_.*"}[$__rate_interval])) * 8', legend="In"),
-        prom('sum(rate(ifHCOutOctets{job="nas-snmp", ifName=~"eth.*|bond.*|ovs_.*"}[$__rate_interval])) * 8', legend="Out")],
+        prom('sum(rate(ifHCInOctets{job="nas-snmp", ifName=~"eth.*|bond.*|ovs_.*"}[10m])) * 8', legend="In"),
+        prom('sum(rate(ifHCOutOctets{job="nas-snmp", ifName=~"eth.*|bond.*|ovs_.*"}[10m])) * 8', legend="Out")],
         unit="bps", fill=0, overrides=fixed_colors({"In": SLOTS[0], "Out": SLOTS[1]})), 8, 6)
     return d
 
@@ -544,7 +544,7 @@ GROUP BY 1 ORDER BY 2 DESC, 3 DESC''')], overrides=[by_name("Last evaluated", un
 
 def overview_dashboard():
     d = Dashboard("overview", "Overview", folder="", tags=["overview"], time="now-24h",
-                  annotations=[deploy_annotation()],
+                  annotations=[deploy_annotation() | {"enable": False}],
                   description="The house and the homelab at a glance. Click a tile or use the links above for detail.")
     d.row("House")
     home.overview_house(d)
