@@ -65,6 +65,10 @@ spec:
             capabilities:
               drop:
                 - ALL
+              # /coredns carries this file capability; without it in the
+              # bounding set exec fails. Port 1053 doesn't need it.
+              add:
+                - NET_BIND_SERVICE
           resources:
             requests:
               memory: 32Mi
