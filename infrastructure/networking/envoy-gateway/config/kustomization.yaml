@@ -5,3 +5,5 @@ resources:
   - envoy-proxies.yaml
   - gateways.yaml
   - redirects.yaml
+  - pocket-id-gateway.sops.yaml
+  - pocket-id-gateway-grant.yaml

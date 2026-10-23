@@ -12,6 +12,10 @@ spec:
     name: flux-system
   path: ./infrastructure/networking/envoy-gateway/config
   prune: true
+  decryption:
+    provider: sops
+    secretRef:
+      name: sops-gpg
   wait: true
   dependsOn:
     - name: envoy-gateway

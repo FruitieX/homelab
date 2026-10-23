@@ -6,4 +6,5 @@ resources:
   - namespace.yaml
   - release.yaml
   - httproute.yaml
+  - pocket-id-auth.yaml
   # - telegraf.yaml

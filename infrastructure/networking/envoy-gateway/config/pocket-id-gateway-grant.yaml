@@ -1,0 +1,21 @@
+# Lets the per-route Pocket ID SecurityPolicies read the shared client secret.
+apiVersion: gateway.networking.k8s.io/v1beta1
+kind: ReferenceGrant
+metadata:
+  name: pocket-id-gateway-secret
+  namespace: envoy-gateway-system
+spec:
+  from:
+    - group: gateway.envoyproxy.io
+      kind: SecurityPolicy
+      namespace: default
+    - group: gateway.envoyproxy.io
+      kind: SecurityPolicy
+      namespace: kube-prometheus-stack
+    - group: gateway.envoyproxy.io
+      kind: SecurityPolicy
+      namespace: influxdb
+  to:
+    - group: ""
+      kind: Secret
+      name: pocket-id-gateway

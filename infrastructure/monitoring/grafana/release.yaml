@@ -17,6 +17,32 @@ spec:
   values:
     ingress:
       enabled: false
+    # Sign-in through Pocket ID (admins group only); the local admin stays
+    # reachable at /login?disableAutoLogin.
+    envFromSecret: grafana-oidc
+    grafana.ini:
+      server:
+        root_url: https://grafana.fruitiex.org
+      auth:
+        oauth_auto_login: true
+        signout_redirect_url: https://id.fruitiex.org/api/oidc/end-session
+      auth.generic_oauth:
+        enabled: true
+        name: Pocket ID
+        client_id: grafana
+        scopes: openid profile email groups
+        auth_url: https://id.fruitiex.org/authorize
+        token_url: https://id.fruitiex.org/api/oidc/token
+        api_url: https://id.fruitiex.org/api/oidc/userinfo
+        use_pkce: true
+        allow_sign_up: true
+        login_attribute_path: preferred_username
+        name_attribute_path: name
+        email_attribute_path: email
+        groups_attribute_path: groups
+        allowed_groups: admins
+        role_attribute_path: contains(groups[*], 'admins') && 'GrafanaAdmin' || 'Viewer'
+        allow_assign_grafana_admin: true
     persistence:
       type: pvc
       enabled: true

@@ -1,0 +1,26 @@
+# Sign-in through Pocket ID at the gateway (client homelab-gateway, admins only).
+# The shared client secret and its ReferenceGrant live in
+# infrastructure/networking/envoy-gateway/config.
+---
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: SecurityPolicy
+metadata:
+  name: pocket-id-influxdb
+  namespace: influxdb
+spec:
+  targetRefs:
+    - group: gateway.networking.k8s.io
+      kind: HTTPRoute
+      name: influxdb
+  oidc:
+    provider:
+      issuer: https://id.fruitiex.org
+    clientID: homelab-gateway
+    clientSecret:
+      name: pocket-id-gateway
+      namespace: envoy-gateway-system
+    scopes: [openid, profile, email, groups, offline_access]
+    redirectURL: https://influxdb.fruitiex.org/oauth2/callback
+    logoutPath: /oauth2/logout
+    refreshToken: true
+    defaultRefreshTokenTTL: 8760h

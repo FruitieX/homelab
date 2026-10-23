@@ -1,0 +1,33 @@
+apiVersion: v1
+kind: Secret
+metadata:
+    name: pocket-id-gateway
+    namespace: envoy-gateway-system
+stringData:
+    client-secret: ENC[AES256_GCM,data:6mPwFzEGyNs3ZoV3dA+871IHNEpSmA9Kj54+f+Y+Mnc=,iv:3ODNJQNjzLSuoKOXdYaLIUoAnZZ1Y4iUskIgIBsKEik=,tag:6DnvbN2Nswk+CG/zeD4HgQ==,type:str]
+sops:
+    encrypted_regex: ^(data|stringData)$
+    lastmodified: "2026-10-23T10:08:25Z"
+    mac: ENC[AES256_GCM,data:EYa5wPHZd06Mad5pxS0lU1fzdSahkHKAeo4djeH6o/QC8CQbIfapWed4LJqR4B3+DHCO1gjh9Mqu2tltAds1RjGHUuSXomI0+q4Z5RB8j1ErRolVbshHwLCXEd7CnSS8kH+URl3URA0FOZa/IYrZM8i47s03UWIHceHum/RDvc0=,iv:xcd7ZiaRZaGXxGL/YR3z5Dy798LMPzv2pkRuNxxhpZk=,tag:+HzBBUWf2yh8drJqr8XBMQ==,type:str]
+    pgp:
+        - created_at: "2026-10-23T10:08:25Z"
+          enc: |-
+            -----BEGIN PGP MESSAGE-----
+
+            hQIMA8WjeZLD+fxwAQ/8D3PYmvZQkztFW8RAQF9p69j6pynQBCUskyY+2jxx5SXG
+            4oev5yhY2ZpMLt+Jdu2HWuOoxGJOlEd3gzJeEKBUUST7kaAZyYCI9uU10APY4DNz
+            qpdQNcy4+nuKPYB+P2sANWGnWqz4l/YdqDhQZ4PsNB9zUtpaj0Y0aF2fpBuowDiL
+            dypmfWbkeo2hbJnpeWF9E0nbQp3WNix8suEXxxhae/tPpMead3GLVLCdBJJudY48
+            8b64nDW/yywWOpv1PqRM7RVDk513MLVn2TqaCoK4pAalcJAXKGygfGBDdXQ8+juh
+            BBmQrU02CoQcM4+UVqtdcx9GcU2vHq2ixFk03pAVfdD0ap1ynR191Uq6hGfr02k5
+            LelZKFk48ojl/4L5kfzx+s50esxXAeNLFWRZITMZK6CTZA9T4tf+I0MwVCNoIKeq
+            QAHndwWPgxtLDzB6oLMHS6MrTv9/1dKVjBr/Hi1VJnpYuy1eihCewIWCZrEjuhfA
+            N6dM1Umv6/J/GaYTjyZOLwkf2bw6Z21GADwvd+P32MZJxQUelSvMqXdoywe1NtKG
+            UktMKz51zHJJt6oCY+sXrYVH1rogvHXdUKMnEqke3B8BHKPrtd3jLY18xJ9VVtyZ
+            eUGLdGxxpUxy0dVCPWG1fv7nOxPQdyjBxBb6VsnYFKU57f+NDWksUIUagdMBpmXS
+            XgE2qm4Z3HcE9UDgZFFnzY8hRgacdCatt/gggqK/UqLwneZbQwguvAh3wDPdRvHS
+            S+L+NflknzVFkHtYGdxF5MuI5ObuKs3jIrLgLznmdxbUOvoxc7P9QCu7YwTmWfg=
+            =NtyD
+            -----END PGP MESSAGE-----
+          fp: 3536F7F9345D96C86FB7F9CD21FAFEE575B18815
+    version: 3.13.3
