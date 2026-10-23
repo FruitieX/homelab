@@ -1,0 +1,37 @@
+apiVersion: v1
+kind: Secret
+metadata:
+    name: radiator-passpoint-ca-key
+    namespace: default
+    annotations:
+        homelab.fruitiex.org/note: 'Offline root CA of the Passpoint Wi-Fi PKI (signs the radius.fruitiex.org server certificate in radiator-passpoint-tls; embedded in the device profiles). Deliberately not referenced by any kustomization: the CA private key must never be applied to the cluster. Also kept in 1Password as "Radiator Passpoint root CA key". Sign a new server certificate with it offline before radiator-passpoint-tls expires (2028-10-22).'
+type: Opaque
+stringData:
+    ca.key: ENC[AES256_GCM,data:Pb42YEnDHlgVX+xTqWO03YQYglWOP8mqB9phL7Ouqdy2eCiIdblfUd1sMGcjXMeBEUt7E4eA7UVGFHeF7mT0gmxW/u1U1yPnPA+97odX9+ZHV/+F7WtoBO+thDeO7GD5AzZpV8s0t0oAE7koeEdLyE8azvuTt+zmqzqW4epHtqQDxB2dPfp04BC/GvG2HY3eCavra4O2Yrg7CjAvlFSkM5MdyC8JUx0cqGHogWW3kNfKN63oDxtyiwb4c4FRuf8ck2s/oU37jtsJIv0v/wdiBktxuOLCyl+l1N0iH6YrR+2H80s=,iv:r927WvF/ThPoYcmENB2JpoL9zliHyOXVvj2og6kK0Tw=,tag:pMbi0Ra+5bYQMmqadTTplw==,type:str]
+    ca.pem: ENC[AES256_GCM,data:JF9C7/8kUZ0ddx/ZStNsGypuG4KMjG8gM2tyToZXaOAsepxnFDbkV1CKDHqlddfzRojnghY6aec3JTrByFHd1wwEZozA813/65W/hWSvD6lGopNJcO/kRyXc0cSEPMd1Da5aasWttzUuaSw46j1H4nQmDsu3iuxj/GuE5Yi18zAwdIR9VnNW277xw8z90WulQmWC4Pwr3hdDq2DueNKc7RbasUGgUTUuxPslvRVydnhq/nmWUeT9KWR8eE6L3TzpJusQKbrjgIGFc5m8nGEP+LE818ph2nr/cIg1JQfW+T7GUT/ODD82OMYcklWoCiISflxawA7ZY6drMzd3KTCItkLa8XXRc2SzXkHLhkucjVTqzfdDZevQtSPusVep9fpQcW/wowhqUjYubGhyjHLPBp/Bk7xxo/OhWBAxvKeiyfZjEwfaBOHSjbEahh22Cp2V0rfowinBoLe5WSsRIRXfyi84YCHdYCbJgFXLmPOQqrOTmeihHSVUKv1faJ9gKcPOFkgTKt7Uc8iDz+LLjaKjugqg9ObvFz7c2Uy5vOgLunkJqg/UbqlyE89NPcD4GcR7AfqjKydvsY5kPgDHRfblg4k8GMVpQ4HLpThoftL2wf9yhlFR42VuLq0XvT4j3m8N1z/nezXKH1zatalLqPezXaefshCVcqc2QTUf9VLLACa4nYKKv2vOveQVc8/4e020Odud8g9OV7RQ76ExFaq410JCnXEGzZ4jrKVHXLud3O5kPQ706biQhq/xswjF6Dgc2I71KpsAlI4gAYUSmBfh73Njetwjs3w/Zikg+PvozD6X2gM+7zT8CI+XNNm59KvKzSI/PPTV73eOFcBFjXwZOusZWyjAPfbnc8uBjZaqkEZChKl0mEXg6V8rhZ2XqQf3A+Wg1mYnVEroxE4b736AGg==,iv:o3RjVsMkSDJF38ZeMXLDA1sNpUrQKUnTHJ5/cOhKsZo=,tag:nkaCvfYqoYg3zp4OwpAP7Q==,type:str]
+sops:
+    encrypted_regex: ^(data|stringData)$
+    lastmodified: "2026-10-23T18:14:42Z"
+    mac: ENC[AES256_GCM,data:sFSB4+cvw8mZ1uF9n/J18JhyofQhoreVeyh+iTQdOdv1S/dKGCXpCKzsNcd0khZswTLDc0PMjGNbEcVjQVRPBpAPLTczTG8Ls1leTWb0kSLOLDTEY8bJcjRD5AXv2Jz5Y+jSVwbAJjrNUnbruBMKHjkGZ+CYHTLUtaUuoCg5wdU=,iv:jmLUVUOvfc8/56sWHCn7iDvAi7XSE4FiMl7Qq9fX/Yk=,tag:bl+snX18LvIBYV+F1KZbTQ==,type:str]
+    pgp:
+        - created_at: "2026-10-23T18:14:42Z"
+          enc: |-
+            -----BEGIN PGP MESSAGE-----
+
+            hQIMA8WjeZLD+fxwAQ//T+KhkEXqgZaaLEDJ1ZB8iubNuIl9lJKjSIWTWSZEyWXG
+            Sl2mtDeD+8Jxp0aLEc1j11kpwJDjDYCMAMch5VeYP6ISl3b83jOLM5jDEpr3o2xx
+            4YBXZE0sEoPleDcLhCmTC22MHaFrWwcTuyP/dGyPtw72q4HzgwkVAF8ACTgqKfnj
+            /Kaf9qyKo7CWqPM3VYfcyFPClnLZE3MYCvn/9SXui/sflczuEcNLz1d7Bv4ci4GB
+            wh7UbEAK4sH8B3YA1TX4JBEoSXidtjOcipaopXocrCddqcMTslS1xG94cy5cFEsC
+            K6dfCktzabvwgIoto6J7QIdd4Xl7x8Zu2RWwVgxEc2T6CMSbtYZFfvxjyrfENKHe
+            RXjBULhPIY3C8CjkOgn0z4ECyCw1L4oljBoqmlHaM0OVPUKfPKubgOS/Y0mvIp9j
+            9eUwmTimTm2iSFTA1LmJofJm1ejWtAwJdToMIMSF9CJQAAmwhvynlcvKDYEm0gbX
+            3N+Qm4gdW+RPkLTpFXtkrmUEMvRmJPdGCylI9nQ/ipqFgNtJh0LL+J3VZqoqJbuB
+            sm/btvdcBzln4YVbOg3gGpDMAHXYf2Ommqwr+XufczCrJwE5d/s+U8FNlneLSJDz
+            DRgvowB2Yt4j34UYaCa0mc/OhH+TScY8BKmARC+PW3V09MmDvRqH7vzw7CWQAZzS
+            XgHj8IWEQpoqvhxIQ9dEufinDpKBv2JNeB6v2fWRjapFcWQnL+ZDnmFynvJ5XqVO
+            sZ8GBze0rUKjbzB7knnzRgw1miXB4sJy6cb5foZJn9y9mdiVj9LnHUSAImgz3bw=
+            =TdtU
+            -----END PGP MESSAGE-----
+          fp: 3536F7F9345D96C86FB7F9CD21FAFEE575B18815
+    version: 3.13.3

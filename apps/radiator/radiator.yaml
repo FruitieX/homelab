@@ -236,6 +236,21 @@ data:
             clients "RADIUS_CLIENTS";
         }
     }
+  passpoint-certificates.radconf: |
+    # Private Wi-Fi PKI for the Passpoint SSID (wifi-provisioning.radconf). The
+    # root CA is embedded in the device profiles; its key is kept offline
+    # (apps/radiator/pki/ca-key.sops.yaml, not applied). The server certificate
+    # has CN and DNS SAN radius.fruitiex.org: Android suffix-matches the DNS SAN
+    # against the profile FQDN fruitiex.org, iOS matches TLSTrustedServerNames.
+    certificates {
+        x509 "PASSPOINT_SERVER_CERT" {
+            # Leaf first, then any intermediates; Radiator sends the whole file.
+            filename "/var/lib/radiator/passpoint/tls/server.pem";
+        }
+        key "PASSPOINT_SERVER_KEY" {
+            filename "/var/lib/radiator/passpoint/tls/server.key";
+        }
+    }
   radius-policy.radconf: |
     aaa {
         policy "RADIUS_AUTH" {
@@ -243,65 +258,65 @@ data:
                 radius.request.code == radius.ACCESS_REQUEST;
             }
 
-            # RADIUS MAC authentication on the open portal SSID (wifi-portal.radconf).
-            # Handlers match in order, so this must stay before the EAP handler.
-            #   unknown device -> VLAN 80 "Wi-Fi portal" (walled garden + captive portal)
-            #   guest device   -> VLAN 81 "Wi-Fi guests" (internet only)
-            #   member device  -> no VLAN: the SSID's own network (Default LAN)
-            handler "PORTAL_MAC_AUTH" {
+            # Passpoint SSID: EAP-TTLS/PAP with per-device credentials issued at
+            # https://wifi.fruitiex.org (wifi-provisioning.radconf). Handlers
+            # match in order, so keep this before the existing EAP handler.
+            handler "PASSPOINT" {
                 conditions all {
                     # UniFi sends Called-Station-Id as "<BSSID>:<SSID>".
                     radius.request.attr.Called-Station-Id == /:dragonfruit-radiator$/;
-                    # MAC auth only; EAP on any SSID stays with the EAP handler.
-                    radius.request.attr.EAP-Message == none;
                 }
 
                 @execute {
-                    vars.mac = radius.request.attr.Calling-Station-Id | normalize_mac;
-                    vars.csid = radius.request.attr.Calling-Station-Id;
-                    vars.nas_ip = "%{radius.request.attr.NAS-IP-Address}";
-                    # The AP's DynAuth dispatcher routes Disconnect-Requests by
-                    # NAS-Identifier (the BSSID without separators).
-                    vars.nas_id = radius.request.attr.NAS-Identifier;
-                    vars.session_vlan = "80";
+                    eap {
+                        eap_ttls {
+                            tls {
+                                certificate "PASSPOINT_SERVER_CERT";
+                                certificate_key "PASSPOINT_SERVER_KEY";
+                                require_client_certificate false;
+                            }
 
-                    until end {
-                        backend {
-                            name "radiatordb";
-                            query "FIND_WIFI_DEVICE";
+                            @authentication {
+                                # Android always sends anonymous@<realm> outside
+                                # the tunnel; the Apple profile sets the same.
+                                if all {
+                                    root.eap.identity != "anonymous@fruitiex.org";
+                                } then {
+                                    reject "Unexpected outer identity";
+                                }
+
+                                backend {
+                                    name "radiatordb";
+                                    query "FIND_WIFI_CREDENTIAL";
+                                }
+
+                                if all {
+                                    vars.revoked == true;
+                                } then {
+                                    reject "Credential revoked";
+                                }
+
+                                # Compares with the stored {argon2} hash.
+                                pap;
+                            }
+
+                            @authorization {
+                                # TTLS pipelines run in the tunnel's child context:
+                                # write the outer Access-Accept through root.
+                                # Members get the SSID's own network (Default
+                                # LAN), so no VLAN attributes.
+                                if all {
+                                    vars.vlan != "lan";
+                                } then {
+                                    root.radius.reply.attr.Tunnel-Type:1 = "VLAN";
+                                    root.radius.reply.attr.Tunnel-Medium-Type:1 = "Ether_802";
+                                    root.radius.reply.attr.Tunnel-Private-Group-Id:1 = vars.vlan;
+                                }
+                                # Bounds how long a revoked device stays connected.
+                                root.radius.reply.attr.Session-Timeout = 28800;
+                            }
                         }
-                        ignore;
                     }
-
-                    if all {
-                        vars.device_user == any;
-                    } then {
-                        vars.session_vlan = "81";
-                    }
-                    if all {
-                        vars.device_kind == "member";
-                    } then {
-                        vars.session_vlan = "lan";
-                    }
-
-                    # Remember the AP and VLAN for a later Disconnect-Request.
-                    until end {
-                        try backend {
-                            name "radiatordb";
-                            query "SAVE_WIFI_SESSION";
-                        }
-                        ignore;
-                    }
-
-                    if all {
-                        vars.session_vlan != "lan";
-                    } then {
-                        radius.reply.attr.Tunnel-Type:1 = "VLAN";
-                        radius.reply.attr.Tunnel-Medium-Type:1 = "Ether_802";
-                        radius.reply.attr.Tunnel-Private-Group-Id:1 = vars.session_vlan;
-                    }
-
-                    accept;
                 }
 
                 @final-execute {
@@ -371,80 +386,104 @@ data:
                 }
             }
 
-            # Wi-Fi portal (wifi-portal.radconf): devices allowed on the portal
-            # SSID. kind "member" gets the LAN, anything else the guest VLAN.
-            query "FIND_WIFI_DEVICE" {
-                collection "wifi_devices";
-                key vars.mac;
+            # Passpoint EAP-TTLS/PAP credentials, one per device
+            # (wifi-provisioning.radconf). The key is the random username in the
+            # device's profile, i.e. the inner EAP identity.
+            query "FIND_WIFI_CREDENTIAL" {
+                collection "wifi_credentials";
+                key aaa.identity;
 
                 mapping {
-                    vars.device_user = doc | jsonpath("$.user");
-                    vars.device_kind = doc | jsonpath("$.kind");
+                    user.username = key[0];
+                    user.password = doc | jsonpath("$.password_hash");
+                    vars.password_hash = doc | jsonpath("$.password_hash");
+                    vars.owner = doc | jsonpath("$.owner");
+                    vars.kind = doc | jsonpath("$.kind");
+                    vars.approved_by = doc | jsonpath("$.approved_by");
+                    vars.device_name = doc | jsonpath("$.device_name");
+                    vars.vlan = doc | jsonpath("$.vlan");
+                    vars.created = doc | jsonpath("$.created");
+                    vars.revoked = doc | jsonpath("$.revoked");
                 }
             }
 
-            put "SAVE_MEMBER_DEVICE" {
-                collection "wifi_devices";
-                key vars.mac;
+            # Issue. "expire" is the credential lifetime for members and guests
+            # alike: afterwards the document isn't returned and authentication
+            # fails.
+            put "SAVE_WIFI_CREDENTIAL" {
+                collection "wifi_credentials";
+                key vars.username;
                 expire 365d;
 
                 bindings {
-                    user = vars.sso_user;
-                    kind = "member";
-                    name = vars.device_name;
-                    registered = datetime.timestamp.utc;
+                    password_hash = vars.password_hash;
+                    owner = vars.owner;
+                    kind = vars.kind;
+                    approved_by = vars.approved_by;
+                    device_name = vars.device_name;
+                    vlan = vars.vlan;
+                    created = vars.created;
+                    revoked = vars.revoked;
                 }
             }
 
-            put "SAVE_GUEST_DEVICE" {
-                collection "wifi_devices";
-                key vars.mac;
-                expire 365d;
+            # Revoke: keep the record (marked revoked) for 30 days for auditing.
+            put "REVOKE_WIFI_CREDENTIAL" {
+                collection "wifi_credentials";
+                key vars.username;
+                expire 30d;
 
                 bindings {
-                    user = "guest";
-                    kind = "guest";
-                    name = vars.device_name;
-                    approved_by = vars.sso_user;
-                    registered = datetime.timestamp.utc;
+                    password_hash = vars.password_hash;
+                    owner = vars.owner;
+                    kind = vars.kind;
+                    approved_by = vars.approved_by;
+                    device_name = vars.device_name;
+                    vlan = vars.vlan;
+                    created = vars.created;
+                    revoked = true;
+                    revoked_by = vars.sso_user;
                 }
             }
 
-            # The AP and VLAN of each portal SSID device's latest authentication,
-            # for the Disconnect-Request.
-            query "FIND_WIFI_SESSION" {
-                collection "wifi_sessions";
-                key vars.mac;
+            query "LIST_WIFI_CREDENTIALS" {
+                collection "wifi_credentials";
+                where {
+                    owner == vars.owner;
+                }
 
                 mapping {
-                    vars.nas_ip = doc | jsonpath("$.nas_ip");
-                    vars.nas_id = doc | jsonpath("$.nas_id");
-                    vars.csid = doc | jsonpath("$.csid");
-                    vars.session_vlan = doc | jsonpath("$.vlan");
+                    vars.list_username = key[0];
+                    vars.list_device_name = doc | jsonpath("$.device_name");
+                    vars.list_created = doc | jsonpath("$.created");
+                    vars.list_revoked = doc | jsonpath("$.revoked");
                 }
             }
 
-            put "SAVE_WIFI_SESSION" {
-                collection "wifi_sessions";
-                key vars.mac;
-                expire 1d;
+            # Admin page: every credential, newest first.
+            query "LIST_ALL_WIFI_CREDENTIALS" {
+                collection "wifi_credentials";
 
-                bindings {
-                    nas_ip = vars.nas_ip;
-                    nas_id = vars.nas_id;
-                    csid = vars.csid;
-                    vlan = vars.session_vlan;
+                mapping {
+                    vars.list_username = key[0];
+                    vars.list_owner = doc | jsonpath("$.owner");
+                    vars.list_kind = doc | jsonpath("$.kind");
+                    vars.list_approved_by = doc | jsonpath("$.approved_by");
+                    vars.list_device_name = doc | jsonpath("$.device_name");
+                    vars.list_created = doc | jsonpath("$.created");
+                    vars.list_revoked = doc | jsonpath("$.revoked");
                 }
             }
 
-            # Pending guest approvals, keyed by the token in the guest's QR code.
+            # Guest requests, keyed by the token in the guest's QR code:
+            # pending -> approved (by an admin) -> issued (profile downloaded).
             query "FIND_GUEST_REQUEST" {
                 collection "wifi_guest_requests";
                 key vars.token;
 
                 mapping {
-                    vars.mac = doc | jsonpath("$.mac");
-                    vars.device_name = doc | jsonpath("$.name");
+                    vars.request_status = doc | jsonpath("$.status");
+                    vars.approved_by = doc | jsonpath("$.approved_by");
                     vars.requested = doc | jsonpath("$.requested");
                 }
             }
@@ -455,34 +494,9 @@ data:
                 expire 30m;
 
                 bindings {
-                    mac = vars.mac;
-                    name = vars.device_name;
-                    requested = datetime.timestamp.utc;
-                }
-            }
-
-            # Browser handoffs from the captive window, keyed by token.
-            query "FIND_HANDOFF" {
-                collection "wifi_handoffs";
-                key vars.token;
-
-                mapping {
-                    vars.mac = doc | jsonpath("$.mac");
-                    vars.device_name = doc | jsonpath("$.name");
-                    vars.handoff_used = doc | jsonpath("$.used");
-                }
-            }
-
-            put "SAVE_HANDOFF" {
-                collection "wifi_handoffs";
-                key vars.token;
-                expire 10m;
-
-                bindings {
-                    mac = vars.mac;
-                    name = vars.device_name;
-                    used = vars.handoff_used;
-                    updated = datetime.timestamp.utc;
+                    status = vars.request_status;
+                    approved_by = vars.approved_by;
+                    requested = vars.requested;
                 }
             }
 
@@ -510,9 +524,9 @@ data:
                 }
             }
 
-            collection "wifi_devices" {
-                name "Wi-Fi devices";
-                description "Devices allowed on the Wi-Fi portal SSID (member: LAN, guest: guest VLAN). Delete a row to revoke.";
+            collection "wifi_credentials" {
+                name "Wi-Fi credentials";
+                description "Per-device Passpoint credentials (member: LAN, guest: VLAN 81). Revoke at https://wifi.fruitiex.org/admin.";
 
                 roles {
                     read "admin";
@@ -521,13 +535,19 @@ data:
 
                 key {
                     field {
-                        name "MAC";
+                        name "Username";
                         type text;
                     }
                 }
 
-                field "user" {
-                    name "User";
+                field "password_hash" {
+                    name "Password hash";
+                    type password;
+                    masked true;
+                }
+
+                field "owner" {
+                    name "Owner";
                     type text;
                 }
 
@@ -536,8 +556,55 @@ data:
                     type text;
                 }
 
-                field "name" {
-                    name "Device name";
+                field "approved_by" {
+                    name "Approved by";
+                    type text;
+                }
+
+                field "device_name" {
+                    name "Device";
+                    type text;
+                }
+
+                field "vlan" {
+                    name "VLAN";
+                    type text;
+                }
+
+                field "created" {
+                    name "Created";
+                    type text;
+                }
+
+                field "revoked" {
+                    name "Revoked";
+                    type boolean;
+                    default false;
+                }
+
+                field "revoked_by" {
+                    name "Revoked by";
+                    type text;
+                }
+            }
+
+            collection "wifi_guest_requests" {
+                name "Wi-Fi guest requests";
+                description "Guest approvals in progress (expire after 30 minutes)";
+
+                roles {
+                    read "admin";
+                }
+
+                key {
+                    field {
+                        name "Token";
+                        type text;
+                    }
+                }
+
+                field "status" {
+                    name "Status";
                     type text;
                 }
 
@@ -546,111 +613,8 @@ data:
                     type text;
                 }
 
-                field "registered" {
-                    name "Registered";
-                    type text;
-                }
-            }
-
-            collection "wifi_sessions" {
-                name "Wi-Fi sessions";
-                description "AP and VLAN of each portal SSID device's latest authentication";
-
-                roles {
-                    read "admin";
-                }
-
-                key {
-                    field {
-                        name "MAC";
-                        type text;
-                    }
-                }
-
-                field "nas_ip" {
-                    name "AP IP address";
-                    type text;
-                }
-
-                field "nas_id" {
-                    name "NAS-Identifier";
-                    type text;
-                }
-
-                field "csid" {
-                    name "Calling-Station-Id";
-                    type text;
-                }
-
-                field "vlan" {
-                    name "VLAN";
-                    type text;
-                }
-            }
-
-            collection "wifi_guest_requests" {
-                name "Wi-Fi guest requests";
-                description "Pending guest approvals (expire after 30 minutes)";
-
-                roles {
-                    read "admin";
-                }
-
-                key {
-                    field {
-                        name "Token";
-                        type text;
-                    }
-                }
-
-                field "mac" {
-                    name "MAC";
-                    type text;
-                }
-
-                field "name" {
-                    name "Device name";
-                    type text;
-                }
-
                 field "requested" {
                     name "Requested";
-                    type text;
-                }
-            }
-
-            collection "wifi_handoffs" {
-                name "Wi-Fi handoffs";
-                description "Single-use browser sign-in links from the captive window (expire after 10 minutes)";
-
-                roles {
-                    read "admin";
-                }
-
-                key {
-                    field {
-                        name "Token";
-                        type text;
-                    }
-                }
-
-                field "mac" {
-                    name "MAC";
-                    type text;
-                }
-
-                field "name" {
-                    name "Device name";
-                    type text;
-                }
-
-                field "used" {
-                    name "Used";
-                    type text;
-                }
-
-                field "updated" {
-                    name "Updated";
                     type text;
                 }
             }
@@ -666,58 +630,42 @@ data:
             }
         }
     }
-  wifi-portal.radconf: |
-    # Wi-Fi captive portal for the open SSID "dragonfruit-radiator".
+  wifi-provisioning.radconf: |
+    # Passpoint onboarding for the SSID "dragonfruit-radiator" at
+    # https://wifi.fruitiex.org (public and private gateway, apps/radiator/sso.yaml).
     #
-    # RADIUS MAC authentication (radius-policy.radconf) puts unknown devices in
-    # VLAN 80 "Wi-Fi portal", a walled garden whose DNS (apps/walled-garden-dns)
-    # sends every name except id/wifi.fruitiex.org to the CAPTIVE listener below,
-    # which redirects OS captive-portal probes to https://wifi.fruitiex.org/.
+    # Envoy runs the Pocket ID sign-in (client radiator-wifi, group family) for
+    # everything except /guest*, and forwards x-sso-user / x-sso-groups plus the
+    # proxy secret. Radiator issues a random per-device EAP-TTLS/PAP credential
+    # (argon2-hashed in RadiatorDB wifi_credentials, 365 days) and returns it as an
+    # Android Passpoint config or an Apple configuration profile. The phone can be
+    # on any network, including mobile data.
     #
-    # Behind the private gateway (sso.yaml), wifi.fruitiex.org serves:
-    #   /               landing page (public)
-    #   /signin         Pocket ID sign-in (client radiator-wifi, group family):
-    #                   registers the device as a member (LAN) for 365 days
-    #   /guest          guest request with a QR code (public); the page polls
-    #                   /guest/status and calls /activate once approved
-    #   /approve        admin approval behind Pocket ID (group admins): registers
-    #                   the device as a guest (VLAN 81, internet only) for 365 days
-    #   /activate       Disconnect-Request for the caller's own device if it is
-    #                   registered but still in the portal VLAN (public)
-    #   /captive-api    RFC 8908 Captive Portal API (DHCP option 114 on VLAN 80),
-    #                   answered by Envoy, not Radiator (sso.yaml)
-    #   /handoff        single-use sign-in link for captive windows without
-    #                   passkeys (Android's WebView); the user opens
-    #                   https://wifi-signin.fruitiex.org/signin?h=<token> in a
-    #                   browser (public gateway, so it works over mobile data too)
+    #   /                     your devices, add this device (family only)
+    #   /profile/android|apple  issue a member credential (Default LAN)
+    #   /revoke               revoke one of your own devices
+    #   /admin                admins: every credential, revoke any
+    #   /approve?t=           admins: approve a guest request (from its QR code)
+    #   /guest                public: guest request with a QR code; once an admin
+    #                         approves, the page offers the profile downloads
+    #   /guest/profile/android|apple?t=  issue a guest credential (VLAN 81), once
     #
-    # The device is found by its walled-garden IP (x-portal-client-ip, set by
-    # Envoy from the TCP peer address) through the UniFi Network API. The AP that
-    # authenticated it is taken from wifi_sessions in RadiatorDB.
+    # Revocation takes effect at the next authentication; Session-Timeout (8 h,
+    # radius-policy.radconf) bounds how long a revoked device stays connected.
 
     clients {
         http "PORTAL_PROXY" {
             # Envoy Gateway data plane (pod network). Requests must also carry
-            # the proxy secret the gateway injects.
-            client "PRIVATE_GATEWAY" {
+            # the proxy secret the gateways inject.
+            client "GATEWAYS" {
                 source {
                     ip 10.244.0.0/16;
-                }
-            }
-        }
-
-        http "PORTAL_DEVICES" {
-            # Walled-garden VLAN 80.
-            client "PORTAL_VLAN" {
-                source {
-                    ip 192.168.80.0/24;
                 }
             }
         }
     }
 
     servers {
-        # Behind https://wifi.fruitiex.org on the private gateway.
         http "PORTAL" {
             listen {
                 protocol tcp;
@@ -728,111 +676,14 @@ data:
             populate_aaa_headers false;
             default_headers {
                 "Cache-Control" "no-store";
-            }
-        }
-
-        # Answers captive-portal probes from the walled garden with a redirect.
-        http "CAPTIVE" {
-            listen {
-                protocol tcp;
-                ip 0.0.0.0;
-                port 8080;
-            }
-            clients "PORTAL_DEVICES";
-            populate_aaa_headers false;
-            default_headers {
-                "Cache-Control" "no-store";
-            }
-        }
-    }
-
-    # LOCAL-TEST-DROP-START
-    certificates {
-        # The console's self-signed certificate (ConfigMap unifi-console-cert).
-        # Its SAN has unifi.local, mapped to 192.168.1.1 with a pod hostAlias.
-        x509 "UNIFI_CONSOLE_CERT" {
-            filename "/etc/radiator/unifi/console.pem";
-        }
-    }
-    # LOCAL-TEST-DROP-END
-
-    backends {
-        # UniFi Network Integration API, key "UniFi homelab API key" in 1Password.
-        http "UNIFI" {
-            url "https://unifi.local";
-
-            authentication header {
-                name "X-API-KEY";
-                value env.UNIFI_API_KEY;
-            }
-
-            # LOCAL-TEST-DROP-START
-            tls {
-                server_ca_certificate "UNIFI_CONSOLE_CERT";
-            }
-            # LOCAL-TEST-DROP-END
-
-            get "FIND_CLIENT" {
-                # Site "Default" (GET /proxy/network/integration/v1/sites).
-                path "/proxy/network/integration/v1/sites/88f7af54-98f8-306a-a1c7-c9349722b1f6/clients";
-
-                bindings query {
-                    filter "ipAddress.eq('%{vars.client_ip}')";
-                }
-
-                mapping json {
-                    vars.unifi_mac = "$.data[0].macAddress";
-                    vars.unifi_name = "$.data[0].name";
-                }
-            }
-        }
-
-        # One DynAuth backend per access point (the AP is the NAS for SSID MAC
-        # auth). The AP accepts Disconnect-Requests only from the RADIUS server
-        # address in the UniFi RADIUS profile (192.168.11.98): a UniFi source NAT
-        # rule ("radiator-das") rewrites the node address of these packets.
-        radius "AP_DOWNSTAIRS_DAS" {
-            server "AP_DOWNSTAIRS" {
-                secret env.RADIUS_SHARED_SECRET;
-                connect {
-                    protocol udp;
-                    host "192.168.1.235";
-                    port 3799;
-                }
-            }
-
-            query "DISCONNECT" {
-                bindings {
-                    radius.request.code = radius.DISCONNECT_REQUEST;
-                    radius.request.attr.NAS-Identifier = vars.nas_id;
-                    radius.request.attr.Calling-Station-Id = vars.csid;
-                }
-            }
-        }
-
-        radius "AP_STORAGE_DAS" {
-            server "AP_STORAGE" {
-                secret env.RADIUS_SHARED_SECRET;
-                connect {
-                    protocol udp;
-                    host "192.168.1.191";
-                    port 3799;
-                }
-            }
-
-            query "DISCONNECT" {
-                bindings {
-                    radius.request.code = radius.DISCONNECT_REQUEST;
-                    radius.request.attr.NAS-Identifier = vars.nas_id;
-                    radius.request.attr.Calling-Station-Id = vars.csid;
-                }
+                "X-Content-Type-Options" "nosniff";
             }
         }
     }
 
     scripts {
-        # Server-side QR code (SVG) for vars.qr_text -> vars.qr_svg. The walled
-        # garden has no internet, so the guest page can't load a QR library.
+        # Server-side QR code (SVG) for vars.qr_text -> vars.qr_svg, so the guest
+        # page needs no external script.
         lua "QR_SVG" {
             content """
                 -- Minimal QR code encoder (Luau: bit32, no bitwise operators) (byte mode, error correction level L, versions 1-5,
@@ -1076,6 +927,12 @@ data:
                 .btn2{display:block;box-sizing:border-box;width:100%;margin-top:12px;padding:15px;border:1.5px solid var(--accent);border-radius:14px;background:transparent;color:var(--fg);font:600 17px/1.2 inherit;text-decoration:none;cursor:pointer}
                 .link{box-sizing:border-box;width:100%;margin:4px 0 12px;padding:12px;border:1px solid var(--muted);border-radius:10px;background:var(--bg);color:var(--fg);font:15px/1.3 ui-monospace,monospace;-webkit-user-select:all;user-select:all}
                 ol{margin:0 0 16px;padding-left:22px;text-align:left;color:var(--muted)}
+                .field{box-sizing:border-box;width:100%;margin:0 0 12px;padding:14px;border:1px solid var(--muted);border-radius:12px;background:var(--bg);color:var(--fg);font:17px/1.2 inherit}
+                h2{margin:28px 0 8px;font-size:18px;text-align:left}
+                .list{margin:0;padding:0;list-style:none;text-align:left}
+                .list li{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 0;border-top:1px solid var(--bg)}
+                .list small{color:var(--muted)}
+                .small{padding:8px 12px;border:1px solid var(--muted);border-radius:10px;background:transparent;color:var(--fg);font:15px inherit;cursor:pointer}
                 .quiet{display:inline-block;margin-top:22px;color:var(--muted);font-size:15px}
                 .qr{display:block;width:100%;max-width:260px;margin:4px auto 12px;border-radius:12px}
                 .meta{font-size:14px;color:var(--muted);word-break:break-all}
@@ -1091,558 +948,419 @@ data:
                 """;
         }
 
-        # Device of the current request: walled-garden IP -> MAC via UniFi.
-        @pipeline "FIND_PORTAL_DEVICE" {
-            # Set by the private gateway from the TCP peer address (sso.yaml), so
-            # clients can't choose it.
-            vars.client_ip = http.header.x-portal-client-ip;
-
-            backend {
-                name "UNIFI";
-                query "FIND_CLIENT";
-            }
-
+        @pipeline "SSO_IDENTITY" {
+            vars.sso_user = http.header.x-sso-user;
+            # Envoy sends array claims as Base64 of the JSON array.
+            vars.groups = http.header.x-sso-groups | base64_decode | string | json | jsonpath("$[*]");
+            vars.is_admin = "no";
             if all {
-                vars.unifi_mac == any;
+                vars.groups == "admins";
             } then {
-                vars.mac = vars.unifi_mac | normalize_mac;
-                vars.device_name = vars.unifi_name | default("");
-            } else {
-                reject "UniFi does not know a client with IP %{vars.client_ip}";
+                vars.is_admin = "yes";
             }
         }
 
-        # UniFi learns a new device's IP a few seconds after it joins, so a failed
-        # IP -> MAC lookup right after joining is usually temporary. Instead of a
-        # dead end, show "Finishing up..." and reload the same URL (the gateway's
-        # sign-in cookie survives, so /signin doesn't restart the Pocket ID flow)
-        # every 2.5 s for about 30 s, then show the error with "Try again".
-        @pipeline "DEVICE_PENDING_PAGE" {
+        # Needs vars.owner, vars.kind, vars.vlan and vars.approved_by. Sets
+        # vars.username and vars.password for the profile.
+        @pipeline "ISSUE_WIFI_CREDENTIAL" {
+            # Form bodies don't decode "+" to a space.
+            vars.device_name = http.request.device_name | default("Device") | split("+") | join(" ") | substring(0, 40);
+            vars.username = "d%{util.rand.10}";
+            vars.password = "%{util.rand.24}";
+            vars.password_hash = vars.password | password_hash("argon2");
+            vars.created = datetime.timestamp.utc | timestamp_format;
+            vars.revoked = false;
+            # Public: Base64 of the DER root CA (ConfigMap radiator-passpoint-ca).
+            vars.ca_der_b64 = env.PASSPOINT_CA_DER_B64;
+
+            backend {
+                name "radiatordb";
+                query "SAVE_WIFI_CREDENTIAL";
+            }
+        }
+
+        # Android: Base64 of a multipart/mixed message with the Passpoint R1
+        # PerProviderSubscription MO and the root CA. Android matches the FQDN
+        # against the AP's ANQP domain list and suffix-matches the RADIUS server
+        # certificate's DNS SAN. Do not add AAAServerTrustedNames: it makes
+        # Android ignore the CA below and use the system store.
+        @pipeline "ANDROID_PROFILE_RESPONSE" {
+            vars.pps = """
+                <MgmtTree xmlns="syncml:dmddf1.2">
+                  <VerDTD>1.2</VerDTD>
+                  <Node>
+                    <NodeName>PerProviderSubscription</NodeName>
+                    <RTProperties><Type><DDFName>urn:wfa:mo:hotspot2dot0-perprovidersubscription:1.0</DDFName></Type></RTProperties>
+                    <Node>
+                      <NodeName>i001</NodeName>
+                      <Node>
+                        <NodeName>HomeSP</NodeName>
+                        <Node><NodeName>FriendlyName</NodeName><Value>dragonfruit Wi-Fi</Value></Node>
+                        <Node><NodeName>FQDN</NodeName><Value>fruitiex.org</Value></Node>
+                      </Node>
+                      <Node>
+                        <NodeName>Credential</NodeName>
+                        <Node><NodeName>Realm</NodeName><Value>fruitiex.org</Value></Node>
+                        <Node>
+                          <NodeName>UsernamePassword</NodeName>
+                          <Node><NodeName>Username</NodeName><Value>%{vars.username}</Value></Node>
+                          <Node><NodeName>Password</NodeName><Value>%{vars.password | base64_encode}</Value></Node>
+                          <Node>
+                            <NodeName>EAPMethod</NodeName>
+                            <Node><NodeName>EAPType</NodeName><Value>21</Value></Node>
+                            <Node><NodeName>InnerMethod</NodeName><Value>PAP</Value></Node>
+                          </Node>
+                        </Node>
+                      </Node>
+                    </Node>
+                  </Node>
+                </MgmtTree>
+                """;
+
+            vars.boundary = "fruitiex-%{util.rand.8}";
+            vars.mime = """
+                Content-Type: multipart/mixed; boundary=%{vars.boundary}
+                Content-Transfer-Encoding: base64
+
+                --%{vars.boundary}
+                Content-Type: application/x-passpoint-profile
+                Content-Transfer-Encoding: base64
+
+                %{vars.pps | base64_encode}
+                --%{vars.boundary}
+                Content-Type: application/x-x509-ca-cert
+                Content-Transfer-Encoding: base64
+
+                %{vars.ca_der_b64}
+                --%{vars.boundary}--
+                """;
+
             http.status = http.OK;
+            http.json = false;
+            http.response_header.Content-Type = "application/x-wifi-config";
+            http.response_header.Content-Disposition = "attachment; filename=\"dragonfruit-wifi.config\"";
+            http.response = vars.mime | base64_encode;
+        }
+
+        # Apple: unsigned configuration profile (iOS shows "Unverified" but
+        # installs it).
+        @pipeline "APPLE_PROFILE_RESPONSE" {
+            vars.ca_uuid = util.uuid4;
+            vars.wifi_uuid = util.uuid4;
+            vars.profile_uuid = util.uuid4;
+
+            http.status = http.OK;
+            http.json = false;
+            http.response_header.Content-Type = "application/x-apple-aspen-config";
+            http.response_header.Content-Disposition = "attachment; filename=\"dragonfruit-wifi.mobileconfig\"";
             http.response = """
-                %{vars.page_head}
-                <style>
-                .spin{width:36px;height:36px;margin:8px auto 16px;border:4px solid var(--bg);border-top-color:var(--accent);border-radius:50%;animation:s 0.9s linear infinite}
-                @keyframes s{to{transform:rotate(360deg)}}
-                </style>
-                <div id="wait">
-                <div class="spin" role="status" aria-label="Loading"></div>
-                <h1>Finishing up...</h1>
-                <p>Your device is joining the network. This takes a few seconds.</p>
-                </div>
-                <div id="fail" hidden>
-                <h1>Device not found</h1>
-                <p>Reconnect to the Wi-Fi network and try again.</p>
-                <a class="btn" id="again" href="#">Try again</a>
-                </div>
-                <script>
-                (function(){
-                  var u = new URL(location.href), n = parseInt(u.searchParams.get("try") || "0", 10) || 0;
-                  u.searchParams.delete("try");
-                  document.getElementById("again").href = u.pathname + u.search;
-                  if (n < 12) {
-                    u.searchParams.set("try", String(n + 1));
-                    setTimeout(function(){ location.replace(u.pathname + u.search); }, 2500);
-                  } else {
-                    document.getElementById("wait").hidden = true;
-                    document.getElementById("fail").hidden = false;
-                  }
-                })();
-                </script>
-                %{vars.page_foot}
+                <?xml version="1.0" encoding="UTF-8"?>
+                <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+                <plist version="1.0">
+                <dict>
+                  <key>PayloadContent</key>
+                  <array>
+                    <dict>
+                      <key>PayloadType</key><string>com.apple.security.root</string>
+                      <key>PayloadIdentifier</key><string>org.fruitiex.wifi.%{vars.username}.ca</string>
+                      <key>PayloadUUID</key><string>%{vars.ca_uuid}</string>
+                      <key>PayloadVersion</key><integer>1</integer>
+                      <key>PayloadDisplayName</key><string>fruitiex Wi-Fi Root CA</string>
+                      <key>PayloadContent</key><data>%{vars.ca_der_b64}</data>
+                    </dict>
+                    <dict>
+                      <key>PayloadType</key><string>com.apple.wifi.managed</string>
+                      <key>PayloadIdentifier</key><string>org.fruitiex.wifi.%{vars.username}.passpoint</string>
+                      <key>PayloadUUID</key><string>%{vars.wifi_uuid}</string>
+                      <key>PayloadVersion</key><integer>1</integer>
+                      <key>PayloadDisplayName</key><string>dragonfruit Wi-Fi</string>
+                      <key>IsHotspot</key><true/>
+                      <key>DomainName</key><string>fruitiex.org</string>
+                      <key>NAIRealmNames</key><array><string>fruitiex.org</string></array>
+                      <key>DisplayedOperatorName</key><string>dragonfruit</string>
+                      <key>ServiceProviderRoamingEnabled</key><false/>
+                      <key>AutoJoin</key><true/>
+                      <key>EncryptionType</key><string>WPA2</string>
+                      <key>EAPClientConfiguration</key>
+                      <dict>
+                        <key>AcceptEAPTypes</key><array><integer>21</integer></array>
+                        <key>TTLSInnerAuthentication</key><string>PAP</string>
+                        <key>UserName</key><string>%{vars.username}</string>
+                        <key>UserPassword</key><string>%{vars.password}</string>
+                        <key>OuterIdentity</key><string>anonymous@fruitiex.org</string>
+                        <key>TLSTrustedServerNames</key><array><string>radius.fruitiex.org</string></array>
+                        <key>PayloadCertificateAnchorUUID</key><array><string>%{vars.ca_uuid}</string></array>
+                      </dict>
+                    </dict>
+                  </array>
+                  <key>PayloadType</key><string>Configuration</string>
+                  <key>PayloadIdentifier</key><string>org.fruitiex.wifi.%{vars.username}</string>
+                  <key>PayloadUUID</key><string>%{vars.profile_uuid}</string>
+                  <key>PayloadVersion</key><integer>1</integer>
+                  <key>PayloadDisplayName</key><string>dragonfruit Wi-Fi (%{vars.device_name | xml_escape})</string>
+                  <key>PayloadRemovalDisallowed</key><false/>
+                </dict>
+                </plist>
                 """;
         }
 
-        @pipeline "DISCONNECT_DEVICE" {
-            if all {
-                vars.nas_ip == "192.168.1.235";
-            } then {
-                backend {
-                    name "AP_DOWNSTAIRS_DAS";
-                    query "DISCONNECT";
-                }
-            } else if all {
-                vars.nas_ip == "192.168.1.191";
-            } then {
-                backend {
-                    name "AP_STORAGE_DAS";
-                    query "DISCONNECT";
-                }
-            } else {
-                reject "No DynAuth backend for AP %{vars.nas_ip}";
-            }
-        }
-
-        # Disconnects vars.mac if it is registered but its latest authentication
-        # put it in the portal VLAN, so it reconnects into its new VLAN.
-        @pipeline "KICK_IF_IN_PORTAL" {
-            backend {
-                name "radiatordb";
-                query "FIND_WIFI_DEVICE";
-            }
-            backend {
-                name "radiatordb";
-                query "FIND_WIFI_SESSION";
-            }
-            if all {
-                vars.session_vlan == "80";
-            } then {
-                invoke "DISCONNECT_DEVICE";
-            } else {
-                ignore;
-            }
-        }
-
-        policy "WIFI_CAPTIVE_REDIRECT" {
-            conditions all {
-                aaa.protocol == protocol.HTTP;
-                http.server == "CAPTIVE";
-            }
-
-            handler "REDIRECT" {
-                @execute {
-                    http.status = http.FOUND;
-                    http.response_header.Location = "https://wifi.fruitiex.org/";
-                    http.response = none;
-                    accept;
-                }
-            }
+        @pipeline "FORBIDDEN_PAGE" {
+            http.status = http.FORBIDDEN;
+            http.response = """
+                %{vars.page_head}
+                <h1>Not allowed</h1>
+                <p>%{vars.forbidden_reason}</p>
+                %{vars.page_foot}
+                """;
         }
 
         policy "WIFI_PORTAL" {
             conditions all {
                 aaa.protocol == protocol.HTTP;
                 http.server == "PORTAL";
-                # Only requests through the private gateway. Without the length
-                # guard an unset variable would match a missing header.
+                # Only requests through the gateways. Without the length guard an
+                # unset variable would match a missing header.
                 env.RADIATOR_PROXY_SECRET == /^.{32,}$/;
                 http.header.x-radiator-proxy-secret == env.RADIATOR_PROXY_SECRET;
             }
 
-            handler "LANDING" {
+            handler "HOME" {
                 conditions all {
                     http.method == "GET";
                     http.path == "/";
+                    http.header.x-sso-user == any;
                 }
 
                 @execute {
                     invoke "PAGE";
+                    invoke "SSO_IDENTITY";
                     http.json = false;
-                    http.status = http.OK;
-                    http.response = """
-                        %{vars.page_head}
-                        <h1>dragonfruit Wi-Fi</h1>
-                        <p>Sign in to get on the network.</p>
-                        <a class="btn" id="a1" href="/signin">Sign in with passkey</a>
-                        <a class="btn2" id="a2" href="/handoff">Continue in browser</a>
-                        <a class="quiet" href="/guest">Guest access</a>
-                        <script>
-                        // Android's captive-portal WebView ("; wv)") has no passkeys:
-                        // lead with the browser handoff there.
-                        if (/; wv\)/.test(navigator.userAgent)) {
-                          var a1 = document.getElementById("a1"), a2 = document.getElementById("a2");
-                          a1.href = "/handoff"; a1.textContent = "Continue in browser";
-                          a2.href = "/signin"; a2.textContent = "Sign in here";
-                        }
-                        </script>
-                        %{vars.page_foot}
-                        """;
-                    accept;
-                }
-            }
+                    vars.owner = vars.sso_user;
+                    vars.rows = "";
 
-            # Browser handoff for captive windows without passkeys (Android's
-            # CaptivePortalLogin WebView can't open the browser itself). Creates a
-            # single-use token bound to this device's MAC; the user opens
-            # https://wifi-signin.fruitiex.org/signin?h=<token> in a real browser,
-            # which also works over mobile data (public gateway).
-            handler "HANDOFF" {
-                conditions all {
-                    http.method == "GET";
-                    http.path == "/handoff";
-                }
-
-                @execute {
-                    invoke "PAGE";
-                    http.json = false;
-
-                    until reject {
-                        invoke "FIND_PORTAL_DEVICE";
-                    } when reject {
-                        accept;
-                        invoke "DEVICE_PENDING_PAGE";
-                        reject;
-                    }
-
-                    vars.token = "%{context.id}";
-                    vars.handoff_used = "no";
-                    backend {
-                        name "radiatordb";
-                        query "SAVE_HANDOFF";
-                    }
-                    vars.handoff_url = "https://wifi-signin.fruitiex.org/signin?h=%{vars.token}";
-
-                    http.status = http.OK;
-                    http.response = """
-                        %{vars.page_head}
-                        <h1 id="h">Continue in your browser</h1>
-                        <div id="steps">
-                        <p>This window can't use passkeys.</p>
-                        <ol>
-                        <li>Copy the link.</li>
-                        <li>Open Chrome or Safari and paste it into the address bar.</li>
-                        <li>Sign in with your passkey, then come back here.</li>
-                        </ol>
-                        <input class="link" id="u" readonly value="%{vars.handoff_url}" aria-label="Sign-in link">
-                        <button class="btn" id="c" type="button">Copy link</button>
-                        <p class="meta">Code %{vars.token | substring(0, 4)} &middot; valid for 10 minutes</p>
-                        </div>
-                        <p id="s" hidden>You're in, reconnecting...</p>
-                        <script>
-                        (function(){
-                          var t = "%{vars.token}", u = document.getElementById("u"), c = document.getElementById("c");
-                          function copied(){ c.textContent = "Copied"; setTimeout(function(){ c.textContent = "Copy link"; }, 2500); }
-                          function legacy(){ u.focus(); u.select(); u.setSelectionRange(0, u.value.length); try { if (document.execCommand("copy")) copied(); } catch (e) {} }
-                          c.addEventListener("click", function(){
-                            if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(u.value).then(copied, legacy);
-                            else legacy();
-                          });
-                          u.addEventListener("focus", function(){ u.select(); });
-                          function poll(){
-                            fetch("/handoff/status?t=" + t, {cache: "no-store"}).then(function(r){ return r.json(); }).then(function(j){
-                              if (j.status === "done") {
-                                document.getElementById("steps").remove();
-                                document.getElementById("h").textContent = "Signed in";
-                                document.getElementById("s").hidden = false;
-                              } else if (j.status === "expired") {
-                                location.reload();
-                              } else setTimeout(poll, 2000);
-                            }).catch(function(){ setTimeout(poll, 2000); });
-                          }
-                          setTimeout(poll, 2000);
-                        })();
-                        </script>
-                        %{vars.page_foot}
-                        """;
-                    accept;
-                }
-            }
-
-            handler "HANDOFF_STATUS" {
-                conditions all {
-                    http.method == "GET";
-                    http.path == "/handoff/status";
-                    http.query.t == any;
-                }
-
-                @execute {
-                    vars.token = http.query.t;
-                    http.status = http.OK;
-                    http.response.status = "pending";
-
+                    # A user without devices gets a reject from the query.
                     until end {
                         backend {
                             name "radiatordb";
-                            query "FIND_HANDOFF";
+                            query "LIST_WIFI_CREDENTIALS";
+                            @each {
+                                if all {
+                                    vars.list_revoked != true;
+                                } then {
+                                    vars.rows += """
+                                        <li><span>%{vars.list_device_name | xml_escape}<br><small>added %{vars.list_created | substring(0, 10)}</small></span>
+                                        <form method="post" action="/revoke"><input type="hidden" name="device" value="%{vars.list_username | xml_escape}"><button class="small" type="submit">Remove</button></form></li>
+                                        """;
+                                }
+                            }
                         }
-                    } when accept {
-                        if all {
-                            vars.handoff_used == "yes";
-                        } then {
-                            http.response.status = "done";
-                        }
-                    } else {
+                    } when reject {
                         accept;
-                        http.response.status = "expired";
                     }
-                    accept;
-                }
-            }
 
-            # Sign-in through a handoff link (wifi-signin.fruitiex.org on the
-            # public gateway, or wifi.fruitiex.org): the device comes from the
-            # token, not from the client IP.
-            handler "SIGNIN_HANDOFF" {
-                conditions all {
-                    http.method == "GET";
-                    http.path == "/signin";
-                    http.header.x-sso-user == any;
-                    http.query.h == any;
-                }
-
-                @execute {
-                    invoke "PAGE";
-                    http.json = false;
-                    vars.sso_user = http.header.x-sso-user;
-                    vars.groups = http.header.x-sso-groups | base64_decode | string | json | jsonpath("$[*]");
-                    vars.token = http.query.h;
+                    vars.admin_link = "";
+                    if all {
+                        vars.is_admin == "yes";
+                    } then {
+                        vars.admin_link = """<a class="quiet" href="/admin">All devices and guests</a>""";
+                    }
 
                     if none {
                         vars.groups == "family";
                     } then {
-                        http.status = http.FORBIDDEN;
-                        http.response = """
-                            %{vars.page_head}
-                            <h1>Not allowed</h1>
-                            <p>This account can't use the Wi-Fi network. Ask the host for guest access.</p>
-                            %{vars.page_foot}
-                            """;
+                        vars.forbidden_reason = "This account can't add devices to the Wi-Fi network.";
+                        invoke "FORBIDDEN_PAGE";
                         reject;
                     }
+
+                    http.status = http.OK;
+                    http.response = """
+                        %{vars.page_head}
+                        <h1>dragonfruit Wi-Fi</h1>
+                        <p>Add this phone or computer. It then joins the Wi-Fi by itself, at home only.</p>
+                        <form method="post">
+                        <input class="field" name="device_name" required maxlength="40" placeholder="Device name, e.g. Pixel" aria-label="Device name">
+                        <button class="btn" formaction="/profile/android" type="submit">Add Android device</button>
+                        <button class="btn2" formaction="/profile/apple" type="submit">Add iPhone, iPad or Mac</button>
+                        </form>
+                        <h2>Your devices</h2>
+                        <ul class="list">%{vars.rows | join("")}</ul>
+                        %{vars.admin_link}
+                        %{vars.page_foot}
+                        """;
+                    accept;
+                }
+            }
+
+            handler "MEMBER_PROFILE" {
+                conditions all {
+                    http.method == "POST";
+                    http.path == /^\/profile\/(android|apple)$/;
+                    http.header.x-sso-user == any;
+                }
+
+                @execute {
+                    invoke "PAGE";
+                    invoke "SSO_IDENTITY";
+                    http.json = false;
+
+                    if none {
+                        vars.groups == "family";
+                    } then {
+                        vars.forbidden_reason = "This account can't add devices to the Wi-Fi network.";
+                        invoke "FORBIDDEN_PAGE";
+                        reject;
+                    }
+
+                    vars.owner = vars.sso_user;
+                    vars.kind = "member";
+                    vars.approved_by = vars.sso_user;
+                    # Members: the SSID's own network, the Default LAN.
+                    vars.vlan = "lan";
+                    invoke "ISSUE_WIFI_CREDENTIAL";
+
+                    if all {
+                        http.path == "/profile/android";
+                    } then {
+                        invoke "ANDROID_PROFILE_RESPONSE";
+                    } else {
+                        invoke "APPLE_PROFILE_RESPONSE";
+                    }
+                    accept;
+                }
+            }
+
+            # Owners revoke their own devices; admins revoke any (/admin/revoke).
+            handler "REVOKE" {
+                conditions all {
+                    http.method == "POST";
+                    http.path == /^\/(admin\/)?revoke$/;
+                    http.header.x-sso-user == any;
+                    http.request.device == any;
+                }
+
+                @execute {
+                    invoke "PAGE";
+                    invoke "SSO_IDENTITY";
+                    http.json = false;
+                    vars.username = http.request.device;
+                    aaa.identity = vars.username;
 
                     until end {
                         backend {
                             name "radiatordb";
-                            query "FIND_HANDOFF";
+                            query "FIND_WIFI_CREDENTIAL";
                         }
                     } when reject {
                         accept;
                         http.status = http.NOT_FOUND;
                         http.response = """
                             %{vars.page_head}
-                            <h1>Link expired</h1>
-                            <p>Go back to the Wi-Fi window and tap &ldquo;Continue in browser&rdquo; again.</p>
+                            <h1>Device not found</h1>
+                            <p><a href="/">Back</a></p>
                             %{vars.page_foot}
                             """;
                         reject;
                     }
 
-                    if all {
-                        vars.handoff_used == "yes";
+                    if any {
+                        vars.owner == vars.sso_user;
+                        vars.is_admin == "yes";
                     } then {
-                        http.status = http.CONFLICT;
-                        http.response = """
-                            %{vars.page_head}
-                            <h1>Link already used</h1>
-                            <p>This sign-in link works once. If the Wi-Fi isn't connected yet, tap &ldquo;Continue in browser&rdquo; again.</p>
-                            %{vars.page_foot}
-                            """;
-                        reject;
-                    }
-
-                    backend {
-                        name "radiatordb";
-                        query "SAVE_MEMBER_DEVICE";
-                    }
-                    vars.handoff_used = "yes";
-                    backend {
-                        name "radiatordb";
-                        query "SAVE_HANDOFF";
-                    }
-                    # Disconnect only while the device is still in the portal VLAN.
-                    until end {
-                        try invoke "KICK_IF_IN_PORTAL";
-                        ignore;
-                    }
-
-                    http.status = http.OK;
-                    http.response = """
-                        %{vars.page_head}
-                        <h1>You're in, %{vars.sso_user | xml_escape}</h1>
-                        <p>Your device is reconnecting to dragonfruit Wi-Fi. You can close this tab.</p>
-                        %{vars.page_foot}
-                        """;
-                    accept;
-                }
-            }
-
-            # Member sign-in. Envoy has already run the Pocket ID flow for this
-            # path and forwards the identity (client radiator-wifi, family only).
-            handler "SIGNIN" {
-                conditions all {
-                    http.method == "GET";
-                    http.path == "/signin";
-                    http.header.x-sso-user == any;
-                }
-
-                @execute {
-                    invoke "PAGE";
-                    http.json = false;
-                    vars.sso_user = http.header.x-sso-user;
-                    # Envoy sends array claims as Base64 of the JSON array.
-                    vars.groups = http.header.x-sso-groups | base64_decode | string | json | jsonpath("$[*]");
-
-                    if all {
-                        vars.groups == "family";
-                    } then {
-                        until reject {
-                            invoke "FIND_PORTAL_DEVICE";
-                            backend {
-                                name "radiatordb";
-                                query "SAVE_MEMBER_DEVICE";
-                            }
-                        } when reject {
-                            # Starts with the reject: accept first so the
-                            # response is set, then reject again.
-                            accept;
-                            invoke "DEVICE_PENDING_PAGE";
-                            reject;
+                        backend {
+                            name "radiatordb";
+                            query "REVOKE_WIFI_CREDENTIAL";
                         }
-
-                        # Render first: the Disconnect closes the portal window.
-                        http.status = http.OK;
-                        http.response = """
-                            %{vars.page_head}
-                            <h1>You're in, %{vars.sso_user | xml_escape}</h1>
-                            <p id="s">Reconnecting to the network...</p>
-                            <script>setTimeout(function(){fetch("/activate",{method:"POST"})},1500)</script>
-                            %{vars.page_foot}
-                            """;
-                        accept;
                     } else {
-                        http.status = http.FORBIDDEN;
-                        http.response = """
-                            %{vars.page_head}
-                            <h1>Not allowed</h1>
-                            <p>This account can't use the Wi-Fi network.</p>
-                            <a class="btn" href="/guest">Ask for guest access</a>
-                            %{vars.page_foot}
-                            """;
+                        vars.forbidden_reason = "You can only remove your own devices.";
+                        invoke "FORBIDDEN_PAGE";
                         reject;
                     }
-                }
-            }
 
-            # Called by the result pages. Only disconnects the caller's own
-            # device, and only if it is registered and still in the portal VLAN.
-            handler "ACTIVATE" {
-                conditions all {
-                    http.method == "POST";
-                    http.path == "/activate";
-                }
-
-                @execute {
-                    until end {
-                        try invoke "FIND_PORTAL_DEVICE";
-                        try invoke "KICK_IF_IN_PORTAL";
-                        ignore;
+                    http.status = http.SEE_OTHER;
+                    http.response_header.Location = "/";
+                    if all {
+                        http.path == "/admin/revoke";
+                    } then {
+                        http.response_header.Location = "/admin";
                     }
-                    http.status = http.NO_CONTENT;
                     http.response = none;
                     accept;
                 }
             }
 
-            handler "GUEST" {
+            handler "ADMIN" {
                 conditions all {
                     http.method == "GET";
-                    http.path == "/guest";
+                    http.path == "/admin";
+                    http.header.x-sso-user == any;
                 }
 
                 @execute {
                     invoke "PAGE";
+                    invoke "SSO_IDENTITY";
                     http.json = false;
 
-                    until reject {
-                        invoke "FIND_PORTAL_DEVICE";
-                    } when reject {
-                        accept;
-                        invoke "DEVICE_PENDING_PAGE";
+                    if all {
+                        vars.is_admin != "yes";
+                    } then {
+                        vars.forbidden_reason = "Only admins can see all devices.";
+                        invoke "FORBIDDEN_PAGE";
                         reject;
                     }
 
-                    # The random 64-bit context id names the request.
-                    vars.token = "%{context.id}";
-                    backend {
-                        name "radiatordb";
-                        query "SAVE_GUEST_REQUEST";
+                    vars.rows = "";
+                    until end {
+                        backend {
+                            name "radiatordb";
+                            query "LIST_ALL_WIFI_CREDENTIALS";
+                            @each {
+                                if all {
+                                    vars.list_revoked != true;
+                                } then {
+                                    vars.rows += """
+                                        <li><span>%{vars.list_device_name | xml_escape}<br><small>%{vars.list_kind | default("") | xml_escape}: %{vars.list_owner | default("") | xml_escape}, approved by %{vars.list_approved_by | default("") | xml_escape}, %{vars.list_created | substring(0, 10)}</small></span>
+                                        <form method="post" action="/admin/revoke"><input type="hidden" name="device" value="%{vars.list_username | xml_escape}"><button class="small" type="submit">Revoke</button></form></li>
+                                        """;
+                                }
+                            }
+                        }
+                    } when reject {
+                        accept;
                     }
-                    vars.qr_text = "https://wifi.fruitiex.org/approve?t=%{vars.token}";
-                    script "QR_SVG";
 
                     http.status = http.OK;
                     http.response = """
                         %{vars.page_head}
-                        <h1>Guest access</h1>
-                        <p id="s">Show this code to your host. They scan it with their phone to let you in.</p>
-                        <div id="q">%{vars.qr_svg}</div>
-                        <p class="meta">Code %{vars.token | substring(0, 4)}</p>
-                        <script>
-                        (function(){
-                          var t="%{vars.token}";
-                          function poll(){
-                            fetch("/guest/status?t="+t,{cache:"no-store"}).then(function(r){return r.json()}).then(function(j){
-                              if(j.status==="approved"){
-                                document.getElementById("q").remove();
-                                document.querySelector(".meta").remove();
-                                document.querySelector("h1").textContent="Approved";
-                                document.getElementById("s").textContent="Approved, reconnecting...";
-                                setTimeout(function(){fetch("/activate",{method:"POST"})},1500);
-                              } else if(j.status==="expired"){location.reload()}
-                              else setTimeout(poll,3000);
-                            }).catch(function(){setTimeout(poll,3000)});
-                          }
-                          setTimeout(poll,3000);
-                        })();
-                        </script>
+                        <h1>All Wi-Fi devices</h1>
+                        <p>Guests: show them https://wifi.fruitiex.org/guest and scan their code.</p>
+                        <ul class="list">%{vars.rows | join("")}</ul>
+                        <a class="quiet" href="/">Back</a>
                         %{vars.page_foot}
                         """;
                     accept;
                 }
             }
 
-            handler "GUEST_STATUS" {
-                conditions all {
-                    http.method == "GET";
-                    http.path == "/guest/status";
-                    http.query.t == any;
-                }
-
-                @execute {
-                    vars.token = http.query.t;
-                    http.status = http.OK;
-                    http.response.status = "pending";
-
-                    until end {
-                        backend {
-                            name "radiatordb";
-                            query "FIND_GUEST_REQUEST";
-                        }
-                    } when accept {
-                        until end {
-                            backend {
-                                name "radiatordb";
-                                query "FIND_WIFI_DEVICE";
-                            }
-                        } when accept {
-                            http.response.status = "approved";
-                        } else {
-                            accept;
-                        }
-                    } else {
-                        accept;
-                        http.response.status = "expired";
-                    }
-                    accept;
-                }
-            }
-
-            # Approval pages: Envoy has run the Pocket ID flow for /approve; only
-            # admins may approve.
+            # Admins approve a guest request by scanning its QR code.
             handler "APPROVE" {
                 conditions all {
-                    http.path == /^\/approve/;
+                    http.path == "/approve";
                     http.header.x-sso-user == any;
                     http.query.t == any;
                 }
 
                 @execute {
                     invoke "PAGE";
+                    invoke "SSO_IDENTITY";
                     http.json = false;
-                    vars.sso_user = http.header.x-sso-user;
-                    vars.groups = http.header.x-sso-groups | base64_decode | string | json | jsonpath("$[*]");
                     vars.token = http.query.t;
 
-                    if none {
-                        vars.groups == "admins";
+                    if all {
+                        vars.is_admin != "yes";
                     } then {
-                        http.status = http.FORBIDDEN;
-                        http.response = """
-                            %{vars.page_head}
-                            <h1>Not allowed</h1>
-                            <p>Only admins can approve guests.</p>
-                            %{vars.page_foot}
-                            """;
+                        vars.forbidden_reason = "Only admins can approve guests.";
+                        invoke "FORBIDDEN_PAGE";
                         reject;
                     }
 
@@ -1663,60 +1381,199 @@ data:
                         reject;
                     }
 
-                    vars.device = "%{vars.device_name | xml_escape} %{vars.mac}";
-
                     if all {
-                        http.method == "GET";
-                        http.path == "/approve";
+                        vars.request_status != "pending";
                     } then {
                         http.status = http.OK;
                         http.response = """
                             %{vars.page_head}
+                            <h1>Already approved</h1>
+                            <p>Approved by %{vars.approved_by | default("") | xml_escape}.</p>
+                            %{vars.page_foot}
+                            """;
+                        accept;
+                    } else if all {
+                        http.method == "POST";
+                    } then {
+                        vars.request_status = "approved";
+                        vars.approved_by = vars.sso_user;
+                        backend {
+                            name "radiatordb";
+                            query "SAVE_GUEST_REQUEST";
+                        }
+                        http.status = http.OK;
+                        http.response = """
+                            %{vars.page_head}
+                            <h1>Guest approved</h1>
+                            <p>Their phone now offers the Wi-Fi profile download. It works for a year; revoke it any time under <a href="/admin">All devices</a>.</p>
+                            %{vars.page_foot}
+                            """;
+                        accept;
+                    } else {
+                        http.status = http.OK;
+                        http.response = """
+                            %{vars.page_head}
                             <h1>Let this guest in?</h1>
-                            <p>The device gets internet access on the guest network for a year.</p>
-                            <p class="meta">%{vars.device}<br>Code %{vars.token | substring(0, 4)}</p>
+                            <p>They get internet access on the guest network for a year.</p>
+                            <p class="meta">Code %{vars.token | substring(0, 4)}, requested %{vars.requested | substring(11, 16)} UTC</p>
                             <form method="post" action="/approve?t=%{vars.token | url_escape}">
                             <button class="btn" type="submit">Approve guest</button>
                             </form>
                             %{vars.page_foot}
                             """;
                         accept;
-                    } else if all {
-                        http.method == "POST";
-                        http.path == "/approve";
-                    } then {
+                    }
+                }
+            }
+
+            # Public (no sign-in): guest request with a QR code for an admin.
+            handler "GUEST" {
+                conditions all {
+                    http.method == "GET";
+                    http.path == "/guest";
+                }
+
+                @execute {
+                    invoke "PAGE";
+                    http.json = false;
+
+                    # The random 64-bit context id names the request.
+                    vars.token = "%{context.id}";
+                    vars.request_status = "pending";
+                    vars.approved_by = "";
+                    vars.requested = datetime.timestamp.utc | timestamp_format;
+                    backend {
+                        name "radiatordb";
+                        query "SAVE_GUEST_REQUEST";
+                    }
+                    vars.qr_text = "https://wifi.fruitiex.org/approve?t=%{vars.token}";
+                    script "QR_SVG";
+
+                    http.status = http.OK;
+                    http.response = """
+                        %{vars.page_head}
+                        <h1>Guest Wi-Fi</h1>
+                        <div id="q">
+                        <p>Show this code to your host. They scan it with their phone to let you in.</p>
+                        %{vars.qr_svg}
+                        <p class="meta">Code %{vars.token | substring(0, 4)}</p>
+                        </div>
+                        <div id="ok" hidden>
+                        <p>Approved. Add the Wi-Fi to this device; it then joins by itself.</p>
+                        <form method="post">
+                        <input class="field" name="device_name" maxlength="40" placeholder="Device name (optional)" aria-label="Device name">
+                        <button class="btn" formaction="/guest/profile/android?t=%{vars.token}" type="submit">Add Android device</button>
+                        <button class="btn2" formaction="/guest/profile/apple?t=%{vars.token}" type="submit">Add iPhone, iPad or Mac</button>
+                        </form>
+                        </div>
+                        <script>
+                        (function(){
+                          var t = "%{vars.token}";
+                          function poll(){
+                            fetch("/guest/status?t=" + t, {cache: "no-store"}).then(function(r){ return r.json(); }).then(function(j){
+                              if (j.status === "approved") {
+                                document.getElementById("q").hidden = true;
+                                document.getElementById("ok").hidden = false;
+                              } else if (j.status === "expired") {
+                                location.reload();
+                              } else if (j.status === "pending") {
+                                setTimeout(poll, 3000);
+                              }
+                            }).catch(function(){ setTimeout(poll, 3000); });
+                          }
+                          setTimeout(poll, 3000);
+                        })();
+                        </script>
+                        %{vars.page_foot}
+                        """;
+                    accept;
+                }
+            }
+
+            handler "GUEST_STATUS" {
+                conditions all {
+                    http.method == "GET";
+                    http.path == "/guest/status";
+                    http.query.t == any;
+                }
+
+                @execute {
+                    vars.token = http.query.t;
+                    http.status = http.OK;
+                    http.response.status = "expired";
+
+                    until end {
                         backend {
                             name "radiatordb";
-                            query "SAVE_GUEST_DEVICE";
+                            query "FIND_GUEST_REQUEST";
                         }
-                        http.status = http.OK;
+                    } when accept {
+                        http.response.status = vars.request_status;
+                    } else {
+                        accept;
+                    }
+                    accept;
+                }
+            }
+
+            # Public: issues the guest credential once the request is approved.
+            # Single use: the request is then marked "issued".
+            handler "GUEST_PROFILE" {
+                conditions all {
+                    http.method == "POST";
+                    http.path == /^\/guest\/profile\/(android|apple)$/;
+                    http.query.t == any;
+                }
+
+                @execute {
+                    invoke "PAGE";
+                    http.json = false;
+                    vars.token = http.query.t;
+
+                    until end {
+                        backend {
+                            name "radiatordb";
+                            query "FIND_GUEST_REQUEST";
+                        }
+                    } when reject {
+                        accept;
+                        vars.request_status = "expired";
+                    }
+
+                    if all {
+                        vars.request_status != "approved";
+                    } then {
+                        http.status = http.FORBIDDEN;
                         http.response = """
                             %{vars.page_head}
-                            <h1>Guest approved</h1>
-                            <p>Their device reconnects to the guest network in a moment.</p>
-                            <p class="meta">%{vars.device}</p>
-                            <script>setTimeout(function(){fetch("/approve/kick?t=%{vars.token | url_escape}",{method:"POST"})},15000)</script>
+                            <h1>Not available</h1>
+                            <p>This code isn't approved, has expired or was already used. Open the guest page again for a new code.</p>
                             %{vars.page_foot}
                             """;
-                        accept;
-                    } else if all {
-                        # Fallback if the guest closed their page: disconnect the
-                        # device unless it already left the portal VLAN.
-                        http.method == "POST";
-                        http.path == "/approve/kick";
-                    } then {
-                        until end {
-                            try invoke "KICK_IF_IN_PORTAL";
-                            ignore;
-                        }
-                        http.status = http.NO_CONTENT;
-                        http.response = none;
-                        accept;
-                    } else {
-                        http.status = http.NOT_FOUND;
-                        http.response = "Not found";
                         reject;
                     }
+
+                    # Mark it used first, so a second download can't race it.
+                    vars.request_status = "issued";
+                    backend {
+                        name "radiatordb";
+                        query "SAVE_GUEST_REQUEST";
+                    }
+
+                    vars.owner = "guest";
+                    vars.kind = "guest";
+                    # VLAN 81 "Wi-Fi guests": internet only.
+                    vars.vlan = "81";
+                    invoke "ISSUE_WIFI_CREDENTIAL";
+
+                    if all {
+                        http.path == "/guest/profile/android";
+                    } then {
+                        invoke "ANDROID_PROFILE_RESPONSE";
+                    } else {
+                        invoke "APPLE_PROFILE_RESPONSE";
+                    }
+                    accept;
                 }
             }
 
@@ -1728,7 +1585,7 @@ data:
                     http.response = """
                         %{vars.page_head}
                         <h1>Not found</h1>
-                        <p><a href="/">Back to the Wi-Fi sign-in</a></p>
+                        <p><a href="/">dragonfruit Wi-Fi</a></p>
                         %{vars.page_foot}
                         """;
                     reject;
@@ -1736,7 +1593,7 @@ data:
             }
         }
 
-        # Requests without the gateway's proxy secret.
+        # Requests without the gateways' proxy secret.
         policy "WIFI_PORTAL_DENIED" {
             conditions all {
                 aaa.protocol == protocol.HTTP;
@@ -1754,37 +1611,17 @@ data:
         }
     }
 ---
-# Self-signed certificate of the UniFi console (192.168.1.1, SAN unifi.local),
-# pinned by the UNIFI backend in wifi-portal.radconf. Refresh it when the
-# console renews it (expires 2027-05-11):
-#   openssl s_client -connect 192.168.1.1:443 </dev/null | openssl x509
+# Public root CA of the Passpoint Wi-Fi PKI, embedded in the device profiles
+# (wifi-provisioning.radconf). The server certificate and key are in
+# radiator-passpoint-tls; the CA key is offline (pki/ca-key.sops.yaml).
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: unifi-console-cert
+  name: radiator-passpoint-ca
   namespace: default
 data:
-  console.pem: |
-    -----BEGIN CERTIFICATE-----
-    MIIDNTCCAh2gAwIBAgIJaYvKQwa/GvU3MA0GCSqGSIb3DQEBCwUAMBYxFDASBgNV
-    BAMTC3VuaWZpLmxvY2FsMB4XDTI1MDIwNTIxMzg1NVoXDTI3MDUxMTIxMzg1NVow
-    FjEUMBIGA1UEAxMLdW5pZmkubG9jYWwwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAw
-    ggEKAoIBAQCmzOy58Yexq87Sfd4+8iLVIyD1TdYNJWxCntWg2NYjnFndiOlh6m+H
-    cEkgR8CwyWwXzX/V12pPfAlYnEvBhsdhbzNFqToiVl60GAVcbF/NMA2+wgpVVHah
-    yE5x4j+DFDFTQE9g5hC64UkjWKnopYdSzf/5UgMTSeGdxZOEzJywrP/4phhwEB7y
-    yLxU4SF5txVqJ5WaPy9VB8/GFXOZA+upWMooe+ZCF9rctlb9Nte1T6z9WkCMy972
-    XNOY+VsoTIppiWs9SAe1oz19k0PIZvu/qELt3aSpqliKzL/hKq/aayA3Cv3HnSKs
-    8p+Gy2c67a4g0uaV2GTjz7+soMaRAMQNAgMBAAGjgYUwgYIwCwYDVR0PBAQDAgL0
-    MDEGA1UdJQQqMCgGCCsGAQUFBwMBBggrBgEFBQcDAgYIKwYBBQUHAwMGCCsGAQUF
-    BwMIMEAGA1UdEQQ5MDeCC3VuaWZpLmxvY2Fsgglsb2NhbGhvc3SCBVs6OjFdhwR/
-    AAABhxD+gAAAAAAAAAAAAAAAAAABMA0GCSqGSIb3DQEBCwUAA4IBAQAYbBSHNmY8
-    ROgDyDxxJUhZbCbDo5O/iYYvJjCz33MS6nBCLcogmQtGghaaMJdCuRlHPOy3G5CM
-    WjZlLvSGeZgjsvytPSy7XxuHAE0sV8P8GK1LKJ2La91Xrlr1Nxn77dV7SzzUpmSV
-    nR8HUvFDmTXzktJia8whEcZNHH9MXtzymbCPo69vNUNb1PjeLoNoIuCiYsqoZ2ys
-    W9rsXXm7a7tQ1b6CUY1r9QvV1tFdfMZIhqGay723DQudjDiQEVlJveXWeiz1wEGS
-    AtHK/k9+6Y4MqDIfA+BmB/zhpKu1Mi/oCxwZtMeaQ3yZWKwU0iUNQGrkWmn6OrgS
-    DrUBKdPyf31T
-    -----END CERTIFICATE-----
+  # openssl x509 -in ca.pem -outform DER | base64 -w0
+  der-b64: MIIB0DCCAXagAwIBAgIUImNrSZ/75gkb4S298Far0QUNY38wCgYIKoZIzj0EAwIwNDEfMB0GA1UEAwwWZnJ1aXRpZXggV2ktRmkgUm9vdCBDQTERMA8GA1UECgwIZnJ1aXRpZXgwHhcNMjYxMDIzMTgxMzU5WhcNMzYxMDIzMTgxMzU5WjA0MR8wHQYDVQQDDBZmcnVpdGlleCBXaS1GaSBSb290IENBMREwDwYDVQQKDAhmcnVpdGlleDBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABJ2sZSO2oZm0cl+MGFL7JvbtQKllmuyxRarXJgBaVuoOBHZhC3nVOzcjuOpbuHp8aplYd+oaZ/RCdRTUkJzr+9GjZjBkMB8GA1UdIwQYMBaAFMh6QkUB8fTZMo9khJ+TyqoWeLjbMBIGA1UdEwEB/wQIMAYBAf8CAQAwDgYDVR0PAQH/BAQDAgEGMB0GA1UdDgQWBBTIekJFAfH02TKPZISfk8qqFni42zAKBggqhkjOPQQDAgNIADBFAiBP0zIEjPYfGexCBfEbNQ4sL2go5hGmcmb/zcTxsSTeUgIhAJe0UbyU7Pfo2MfmawMQ+q/Ssvbd2axwCvzHbExJxxxT
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
@@ -1926,7 +1763,7 @@ spec:
       port: 8443
       targetPort: 8443
 ---
-# Wi-Fi portal behind https://wifi.fruitiex.org (sso.yaml).
+# Passpoint onboarding behind https://wifi.fruitiex.org (sso.yaml).
 apiVersion: v1
 kind: Service
 metadata:
@@ -1940,28 +1777,6 @@ spec:
       protocol: TCP
       port: 8088
       targetPort: 8088
----
-# Captive-portal probe redirect for the walled-garden VLAN 80
-# (apps/walled-garden-dns resolves every other name here).
-apiVersion: v1
-kind: Service
-metadata:
-  name: radiator-captive
-  namespace: default
-  annotations:
-    metallb.universe.tf/loadBalancerIPs: 192.168.11.95
-    external-dns.alpha.kubernetes.io/exclude: "true"
-spec:
-  type: LoadBalancer
-  # Keeps the device address visible to Radiator's CAPTIVE client list.
-  externalTrafficPolicy: Local
-  selector:
-    app: radiator
-  ports:
-    - name: captive-http
-      protocol: TCP
-      port: 80
-      targetPort: 8080
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -1982,11 +1797,6 @@ spec:
     spec:
       securityContext:
         runAsNonRoot: true
-      # The UniFi console's self-signed certificate is issued to unifi.local.
-      hostAliases:
-        - ip: 192.168.1.1
-          hostnames:
-            - unifi.local
       initContainers:
         - name: initialize-config
           image: busybox:1.38.0@sha256:fd7dc98638c8e305f4dc34e979f1c0fdfdcaeb0fbf8fcff77ae834b6da3d7e6e
@@ -1995,13 +1805,13 @@ spec:
             - -c
           args:
             - >-
-              if [ ! -f /var/lib/radiator/.bootstrap-complete-v11 ]; then
+              if [ ! -f /var/lib/radiator/.bootstrap-complete-v12 ]; then
                 rm -f /var/lib/radiator/*.radconf /var/lib/radiator/..data;
                 rm -rf /var/lib/radiator/..20*;
                 for config in /bootstrap/*.radconf; do
                   cp -L "$config" "/var/lib/radiator/$(basename "$config")";
                 done;
-                touch /var/lib/radiator/.bootstrap-complete-v11;
+                touch /var/lib/radiator/.bootstrap-complete-v12;
               fi;
               mkdir -p /var/lib/radiator/licenses /var/lib/radiator/tmp /var/lib/radiator/management/tls/certs /var/lib/radiator/management/tls/keys /var/log/radiator;
               chown -R 1000:1000 /var/lib/radiator /var/log/radiator;
@@ -2066,12 +1876,12 @@ spec:
                 secretKeyRef:
                   name: radiator-proxy-secret
                   key: credential
-            # UniFi Network API (Wi-Fi portal: device IP -> MAC).
-            - name: UNIFI_API_KEY
+            # Public root CA for the Passpoint device profiles.
+            - name: PASSPOINT_CA_DER_B64
               valueFrom:
-                secretKeyRef:
-                  name: radiator-secrets
-                  key: UNIFI_API_KEY
+                configMapKeyRef:
+                  name: radiator-passpoint-ca
+                  key: der-b64
           ports:
             - name: management
               containerPort: 8443
@@ -2088,9 +1898,6 @@ spec:
             - name: portal
               containerPort: 8088
               protocol: TCP
-            - name: captive
-              containerPort: 8080
-              protocol: TCP
           volumeMounts:
             - name: radiator-config
               mountPath: /var/lib/radiator
@@ -2105,8 +1912,8 @@ spec:
               readOnly: true
             - name: radiator-logs
               mountPath: /var/log/radiator
-            - name: unifi-console-cert
-              mountPath: /etc/radiator/unifi
+            - name: passpoint-tls
+              mountPath: /var/lib/radiator/passpoint/tls
               readOnly: true
           livenessProbe:
             httpGet:
@@ -2157,9 +1964,9 @@ spec:
             claimName: radiator-config
         - name: radiator-logs
           emptyDir: {}
-        - name: unifi-console-cert
-          configMap:
-            name: unifi-console-cert
+        - name: passpoint-tls
+          secret:
+            secretName: radiator-passpoint-tls
 ---
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute

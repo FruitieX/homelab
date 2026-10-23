@@ -1,10 +1,10 @@
-# Pocket ID sign-in at the private gateway for the Radiator management UI
-# (radiator.fruitiex.org) and the Wi-Fi captive portal (wifi.fruitiex.org).
+# Pocket ID sign-in for the Radiator management UI (radiator.fruitiex.org,
+# private gateway) and the Passpoint Wi-Fi onboarding (wifi.fruitiex.org,
+# public and private gateway).
 #
 # Envoy validates the ID token and forwards x-sso-user / x-sso-groups (the
 # groups header is Base64 of the JSON array, Envoy's format for array claims).
-# Client copies of x-sso-* are removed by the private gateway's
-# ClientTrafficPolicy, and the HTTPRouteFilter injects the proxy secret that
+# Client copies of x-sso-* are removed by both gateways' ClientTrafficPolicies, and the HTTPRouteFilter injects the proxy secret that
 # Radiator checks before trusting the headers (management-auth.radconf).
 # Members of "admins" get full privileges, other users monitor-only.
 ---
@@ -64,17 +64,23 @@ spec:
           - header: x-sso-groups
             claim: groups
 ---
-# Wi-Fi portal, public part: landing page, guest request and status, and
-# /activate (wifi-portal.radconf). x-portal-client-ip is the TCP peer address
-# (the private gateway Service uses externalTrafficPolicy Local), i.e. the
-# device's walled-garden IP; set here so clients can't choose it.
+# Passpoint onboarding (wifi-provisioning.radconf). On both gateways, so
+# phones can add themselves over mobile data; the DNS name is the
+# *.fruitiex.org wildcard (public address), hence no external-dns record.
+# Everything except /guest is behind Pocket ID (client radiator-wifi, group
+# family; Radiator re-checks family, and admins for /admin and /approve).
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
   name: radiator-wifi
   namespace: default
+  annotations:
+    external-dns.alpha.kubernetes.io/exclude: "true"
 spec:
   parentRefs:
+    - name: public
+      namespace: envoy-gateway-system
+      sectionName: https
     - name: private
       namespace: envoy-gateway-system
       sectionName: https
@@ -91,84 +97,24 @@ spec:
             group: gateway.envoyproxy.io
             kind: HTTPRouteFilter
             name: radiator-proxy-secret
-        - type: RequestHeaderModifier
-          requestHeaderModifier:
-            set:
-              - name: x-portal-client-ip
-                value: "%DOWNSTREAM_REMOTE_ADDRESS_WITHOUT_PORT%"
       backendRefs:
         - name: radiator-portal
           port: 8088
 ---
-# RFC 8908 Captive Portal API, answered by Envoy so it never reaches Radiator:
-# Android polls it about once a second while a device is in the portal, and
-# every request would count against the evaluation licence's HTTP allowance.
-# UniFi DHCP option 114 on the "Wi-Fi portal" network (VLAN 80) points here.
-# In the UniFi API the option is a site definition (rest/dhcpoption: code
-# 114, type text) plus, on the "Wi-Fi portal" networkconf, the field
-# dhcpd_user_option_<definition _id> holding the URL. "captive" is always
-# true: only VLAN 80 gets the option, and a stale true elsewhere is harmless.
-#
-# With "captive" true Android skips its probes and, with the
-# x-android-use-custom-tabs opt-in (CaptivePortalLogin module 361335020 or
-# later), opens the portal in a Chrome Custom Tab, where passkeys work. The
-# phone decides: CaptivePortalLogin also needs its captive_portal_custom_tabs
-# flag on, no strict Private DNS, and a default browser that supports
-# network-bound Custom Tabs (Chrome yes, Firefox no); otherwise it uses its
-# WebView, where passkeys fail and the "Continue in browser" handoff is the
-# way in.
-apiVersion: gateway.envoyproxy.io/v1alpha1
-kind: HTTPRouteFilter
-metadata:
-  name: radiator-captive-api
-  namespace: default
-spec:
-  directResponse:
-    statusCode: 200
-    contentType: application/captive+json
-    body:
-      type: Inline
-      inline: '{"captive": true, "user-portal-url": "https://wifi.fruitiex.org/", "x-android-use-custom-tabs": 361335020}'
----
+# Guest requests (/guest, /guest/status, /guest/profile/*) need no sign-in:
+# the guest has no account. An admin approves the request at /approve.
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
-  name: radiator-wifi-captive-api
+  name: radiator-wifi-guest
   namespace: default
   annotations:
-    # The record comes from the radiator-wifi route.
     external-dns.alpha.kubernetes.io/exclude: "true"
 spec:
   parentRefs:
-    - name: private
+    - name: public
       namespace: envoy-gateway-system
       sectionName: https
-  hostnames:
-    - wifi.fruitiex.org
-  rules:
-    - matches:
-        - path:
-            type: Exact
-            value: /captive-api
-      filters:
-        - type: ExtensionRef
-          extensionRef:
-            group: gateway.envoyproxy.io
-            kind: HTTPRouteFilter
-            name: radiator-captive-api
----
-# Wi-Fi portal, signed-in part: member sign-in (/signin) and guest approval
-# (/approve, admins only, checked by Radiator) behind Pocket ID.
-apiVersion: gateway.networking.k8s.io/v1
-kind: HTTPRoute
-metadata:
-  name: radiator-wifi-signin
-  namespace: default
-  annotations:
-    # The record comes from the radiator-wifi route.
-    external-dns.alpha.kubernetes.io/exclude: "true"
-spec:
-  parentRefs:
     - name: private
       namespace: envoy-gateway-system
       sectionName: https
@@ -178,24 +124,13 @@ spec:
     - matches:
         - path:
             type: PathPrefix
-            value: /signin
-        - path:
-            type: PathPrefix
-            value: /approve
-        - path:
-            type: PathPrefix
-            value: /oauth2/
+            value: /guest
       filters:
         - type: ExtensionRef
           extensionRef:
             group: gateway.envoyproxy.io
             kind: HTTPRouteFilter
             name: radiator-proxy-secret
-        - type: RequestHeaderModifier
-          requestHeaderModifier:
-            set:
-              - name: x-portal-client-ip
-                value: "%DOWNSTREAM_REMOTE_ADDRESS_WITHOUT_PORT%"
       backendRefs:
         - name: radiator-portal
           port: 8088
@@ -209,7 +144,7 @@ spec:
   targetRefs:
     - group: gateway.networking.k8s.io
       kind: HTTPRoute
-      name: radiator-wifi-signin
+      name: radiator-wifi
   oidc:
     provider:
       issuer: https://id.fruitiex.org
@@ -219,84 +154,6 @@ spec:
       name: radiator-wifi-oidc
     scopes: [openid, profile, email, groups]
     redirectURL: https://wifi.fruitiex.org/oauth2/callback
-    logoutPath: /oauth2/logout
-    forwardIDToken:
-      header: x-sso-id-token
-  jwt:
-    providers:
-      - name: pocket-id
-        issuer: https://id.fruitiex.org
-        audiences: [radiator-wifi]
-        remoteJWKS:
-          uri: https://id.fruitiex.org/.well-known/jwks.json
-        extractFrom:
-          headers:
-            - name: x-sso-id-token
-        claimToHeaders:
-          - header: x-sso-user
-            claim: preferred_username
-          - header: x-sso-groups
-            claim: groups
----
-# Browser handoff from the captive window (wifi-portal.radconf, /handoff):
-# only /signin (with the ?h= token) and the OIDC callback, on the public
-# gateway, because Android sends browser traffic over mobile data while the
-# Wi-Fi is unvalidated. A separate hostname keeps wifi.fruitiex.org private
-# (its DNS record points at the private gateway); this one uses the
-# *.fruitiex.org wildcard record. The device comes from the token, never
-# from the client address. The public gateway's ClientTrafficPolicy drops
-# client copies of x-sso-*.
-apiVersion: gateway.networking.k8s.io/v1
-kind: HTTPRoute
-metadata:
-  name: radiator-wifi-handoff
-  namespace: default
-  annotations:
-    external-dns.alpha.kubernetes.io/exclude: "true"
-spec:
-  parentRefs:
-    - name: public
-      namespace: envoy-gateway-system
-      sectionName: https
-  hostnames:
-    - wifi-signin.fruitiex.org
-  rules:
-    - matches:
-        - path:
-            type: Exact
-            value: /signin
-        - path:
-            type: PathPrefix
-            value: /oauth2/
-      filters:
-        - type: ExtensionRef
-          extensionRef:
-            group: gateway.envoyproxy.io
-            kind: HTTPRouteFilter
-            name: radiator-proxy-secret
-      backendRefs:
-        - name: radiator-portal
-          port: 8088
----
-apiVersion: gateway.envoyproxy.io/v1alpha1
-kind: SecurityPolicy
-metadata:
-  name: pocket-id-radiator-wifi-handoff
-  namespace: default
-spec:
-  targetRefs:
-    - group: gateway.networking.k8s.io
-      kind: HTTPRoute
-      name: radiator-wifi-handoff
-  oidc:
-    provider:
-      issuer: https://id.fruitiex.org
-    # Same client as wifi.fruitiex.org, restricted to "family" in Pocket ID.
-    clientID: radiator-wifi
-    clientSecret:
-      name: radiator-wifi-oidc
-    scopes: [openid, profile, email, groups]
-    redirectURL: https://wifi-signin.fruitiex.org/oauth2/callback
     logoutPath: /oauth2/logout
     forwardIDToken:
       header: x-sso-id-token

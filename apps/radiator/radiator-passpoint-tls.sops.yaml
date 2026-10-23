@@ -1,0 +1,36 @@
+apiVersion: v1
+kind: Secret
+metadata:
+    name: radiator-passpoint-tls
+    namespace: default
+type: Opaque
+stringData:
+    server.pem: ENC[AES256_GCM,data:xecskGnTXskO/3fRLL/7RIhHNd/ekIhRmQfCGSZHmby2nQ+Rjw8NRWHPyMK0kCqVieWM4Rr+GOT2TgsglEqB7U5j98eAUGzDk7n5a4eyyjnM421Vv0AjCWP/fFa+lNx/v7I+8NF7N8QevZdEjsP8NsqcSpmmOSP9BbjMBLr56ue/MSqUNESUmpXfWT1hC99gIPBNU+tZ8nHIqFC5L/P0xKiUEoGGAE3SuctoZ2oNbqo/K9g78kuK6EfRwbP+RH2hQPJQCFxzAZpccFIBOHJP2RcLnLkjirXNl8t59NksErLbN8tdsmNcoB6hHoWooA3Ie1HvgbSFR350E+1bElBn+3hX1h0Ilh09TAtrGnZ6tXSXSXXNhUlmMWzApHUFy2PROk6naVJ8V8SAGhZ98FG9CbWw+Zyxdtv0CmuAvMrNXdFh6rv3d2UMLxeRfH40d6HGptw/qaSA6U/tWPQeOXuJZRVEsye0Hep4J7mBYPVxJia45sWQIenwdTljdkofqbOnPUxhalmqhUO7H0Xv5Z3UhkQQJ02wAeOIGJepMQ20iZsSjQCpTmPUhQgmplndCWYaepSeVKNUgb/iTXGmdgn5CVvIAo0l3AUV4ly1Pz7bCQWJ+8G+yAeSe4MRM7brt64Sha1emQ/EACRWz3vHVCfP3PtdhBUjxXc9Vt6Kvuy/hbHWNfVdec/GiDkNnZs36pBqv8H73SHvUkJgL3NxTvpWGv5BqZn4X3SeprQuKT63KszYUwlSYuVpkuNjuDQwu6PuUHO0Zx28g2VXv+lxdEfXVBACV3PGh9rYUDAI0nKMpYCLbTCOG+1fiH+eJmQu0qU4CpgiqSBGmlywGvpbZqSn6xdbbCDLAW8n7S1iW7scLmpMrCgRdZvw9DRQDWB0Vt07Hj44479ZLc7w5bw6cqytd2nIAbWUftRf8FUI+dVl4MKEQ6tnNlpASN25HV8DDxxHV7Ev0UQ=,iv:I5mV8cJ9vF77A3NLOKNdFJU0AQwMfUysx212nChKY7E=,tag:EHtUCA6/ghYblPGbjCv9XA==,type:str]
+    server.key: ENC[AES256_GCM,data:89y3X2Om7CgfTquuv3Wl1LZ2sj/A1lMzfSJ9dfExy6Dgj9Msw73ZgDP07mkZwZRerrjcmi+KIbu0ruqUl6GXKKb+ElYmXUXrKBgfabUKv/A8mh8YXp45W65sR45bZF0fRr5gIhlXXy9kPvtrvcnYW3CEiF4Za8bQ+vI+Wnriwmk5F6ILnlunwzUXqk7iMreulrX3JMbq3v5uOJ4HCGyMr71ilwugdtUsLZqt2XCUSCZjiHVISZwQaicF7ENi7EnkmlJJKutyDQsr9HGMdzU/22GeU9qZcdU1e7MCPcItBzKbH0tc0EzkowrBJii86KXGDA==,iv:8AyNP8HzMdEl8hU4bSQCh0CrY0OcqeF+ak5i7A+uiQo=,tag:hwRSqBuzCrrQvGbEPVthag==,type:str]
+    ca.pem: ENC[AES256_GCM,data:93Ja7Ib3LiAwcBgMTEqxkSO1RhfAmPWNrc55uCYrtc5CtJW2jf3urpeKDcvm8APEDfBnjp1NnXMGNmoF0jfSSx9PpFWa1oWNK99KxtZl8O/bczYElqKs8JBbhwgwqtjieH876mgapQLimab34eu2QSwaASno7Dn3uwTg7rwEe5k/8IBBLBEZmAZSgzLdL+q2EbCKYUgp1h4jAIxcoPDW4jUE7IfwXu7X9w1ljEb6P4QgZ+njwlTO13Vv2pr5soLEO01fy0tP+XMlypwPH8QzWE4evhvVtdsjkVBiRCeCkuU7f2bI+i9+CMS+UMCWkX4BEnMBt3dWEobitxbfMrZfxnDbKq73Fq+QSAw7LrbGppi7YPbaH15LrFsROZZjf5jgzBRI5xyDa1mt77D0edjTsxsjjfEyzfw76h/d71Ja3CO7AfWL/7w0eRi067gsBgKnjrEz+Rdw0UNj74rsHwQK0cMD0p3SYQUJw70WauoSAoX/E4NzUZPcU+Bv+R6TuwvNb9jPEZ2KK7KHFxsS5fTdOPP2sAGc1dvK0UowDfWJ18GIGdA7gycZVxyofC3czPu0/qRC5FCIItntqI5Lsbf4bL6nNBEx7Xyqi6Ijxq7pnDB/5lFwWK1NRiJRNKgfix86n/VNRJYRbnhFM+X8+8X9IChn3KgNcvZJ7sbLOTfKtHJMgKDXMOGJ7G2eljAOTD4P+N4n2rjsZKRLtwv+NjH1kZkVqSNq3MA5hW+8YiRwJmq5kDIcWM3I1IMdv8ZWd2xD4bV5XAH2v+ueAcN7FJ/lOQkRngVpAg77W6SskjyEMlh32iW9wfGTQaYOJLDu620heD2GLWNSjXOoqWKIzMuIy0EcPiDpgdi5LggQXkHmIhJRTto62UDCNfFz54zi0vTGQv660Khb+JUWMwXv1k/B6A==,iv:Bz4gegRh77dJwGWVLZlgH+COyiw9ZkiZZEi2/cLrww8=,tag:6Mr1zbHKHYO5hTLsrBCTIA==,type:str]
+sops:
+    encrypted_regex: ^(data|stringData)$
+    lastmodified: "2026-10-23T18:14:42Z"
+    mac: ENC[AES256_GCM,data:Pym9bornycxUdmwZXjyyKz71ltyh6bs88ceCf0+6hmekwe85deGci4usOEGwC3cRRxDYL+uWt7B/HBnVAnQOAiAcvuViUfNNtN7C88/auqWBAEkxYJWrjZT3l5r5foygQ92528RQsLYNjZte3Hm8UIGfoUGpJ09cGNe+8mZSGzc=,iv:10nOqoRcUYM7Bny/mMbX8voqlxFbZ4k5MRQbPH6NDwM=,tag:mGEsXPthHpTewLEvS/WuZw==,type:str]
+    pgp:
+        - created_at: "2026-10-23T18:14:42Z"
+          enc: |-
+            -----BEGIN PGP MESSAGE-----
+
+            hQIMA8WjeZLD+fxwAQ/+OLdaRguO2dNoZeg+r/+udpLFZ1Ckxxc44L94jqnCw/N6
+            oLSMwBi0BdYULhYBmJc+sZbAzXhiYWGSCr+Gjr+xudAGGTfWrFregvRi+T7tmZy+
+            j2uyjitJKpSR0xWH4tNcLp61SUC6Ot6B3f5uDUgeL9SRnCIp1zUsmGHqSrD3EI9/
+            db/xOYA6Ctvlz/d4IbdL8hDt7ZduI36oe6PNPtbFHg19H61nfJX59F/VNR1syPHK
+            mNy+dA1fWE/4/SC8q5n8JlX2BZoeGQsfQnnC9+T+CdV1HXZdVkZKiOVOjoikaC9K
+            ge0UWZhYdPpAPBFSCH3Lor99xtTCU7O1A7PXYM957QWJ4VCJGsEDoe/EdXQRQCQZ
+            roEM3Z1w0556nZvTsJTButO5XkD7jbzopQop4BQK1GEDwSK6uAGgdajgnz29uX7I
+            WsHD7EYczFWs1wwZtsIpuoFDM7PFzt4iWSKcLFQS7XHTnh41ORYq8RHuaUJaE17j
+            bO/8OoXpjQE1QPMfTZtxScYkp0TFkVYQDzFqyf3e6SWJiFcvjse5+o3GgfQXwHTa
+            01aKvTdJb5n8z+KNCG9kPICE8WYlX4PwrT0p7RPs9GN6mkQ/pjHBVpQeVh2Vv/SO
+            SO+85/mdlKNHMVPoOjtAivXZJ4QUBYtAWEL6IIJngzqwkf3VQtOoBSYwRF70T5DS
+            XgEjL0eefU+RMyYh4tiCjNl5njIfJHK7FMdpzKBFymGhLUjo8dOgNwPhMhqxpl1e
+            vaMxx3nLec02Ax90MrToV9dVj4r63OViNb6etzb4glt4hiUcxFRakWcYacdPbrU=
+            =fzKN
+            -----END PGP MESSAGE-----
+          fp: 3536F7F9345D96C86FB7F9CD21FAFEE575B18815
+    version: 3.13.3

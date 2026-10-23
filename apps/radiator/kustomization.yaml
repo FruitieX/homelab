@@ -4,5 +4,6 @@ resources:
   - radiator-secrets.yaml
   - radiator-proxy-secret.sops.yaml
   - radiator-wifi-oidc.sops.yaml
+  - radiator-passpoint-tls.sops.yaml
   - radiator.yaml
   - sso.yaml
