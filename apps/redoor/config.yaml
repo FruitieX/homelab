@@ -5,10 +5,11 @@ metadata:
     name: redoor-config
 type: Opaque
 stringData:
-    config.toml: ENC[AES256_GCM,data:EQkQAXW57ta53AVJ2V7ECqgtt3J/PBYZUuJM9iHsfxYvCWe00npoj3buCE7tUhuutf09Rv5GyIZQT7BZ+TH4geOUwumauIIjC6L4slULmAXD+X3nO1pvhuhuPs/Nev/DS09Z/VsEHxll3kZi73RyNkaso1/Gk0w3olsl5tspJZjJsdSvdEeG0UAe1VKKp/f+8h/Am/pLIbAsWl32lkB7x2Zq8dyiU80nUnGZ7duYNAorlUsKYXfoKQ3uuQvlEaLlKttPXqW38fkXi63p9I8w+YW5azArrnQyxcMRjeGyyQQdt7BGlBaFqDaTGKPaua/pf2Nzplmq6F3LqewzYa/A/qPFbR7Ikf2tGuNgoEGeScVpHezbMcv4lf2a3Cwdf/UhWv06pM6EpWE0MkxQs3YAiHSfrYUV,iv:kQ6dGury625Sp28dd6iGQsz2XPoMCAQB5+R8RIBtUGQ=,tag:RHxXGfujf2ShvG9hLXvjyw==,type:str]
+    config.toml: ENC[AES256_GCM,data:XWZIw+vttXxM933tpBVrQNmyK8j7mpqINY8URrg2SzbCHZY1XwQvnKrM4L9/OfcQf/jmqrSD6Qz7nD/SC4rT8XziBYF9ErnVddQVzW63aAKGLdFBLYtdhaWEZ/nCL/24RTjPM3aOu0lx3a+Y4V9ezeaOizBYzd8PHSKG1yeYw6JY8qhnYZ7Un7dskPQQKfxidUKnr/bArqI/JvEdUgeD5cb5HEV3PAneXLRZ2l9YBWmt3ItEBKe0mybqNNSuASMDRGV5IBgux/yREPA/C0b7hTNHXucKOJyE3YQAfedu6ZV/Yd/pqUgvqtEYIiZboTdXRAQGj9OIZdPqDO3mSIyPekb7L96CPNhCxukszrFcoqema8APv7WRAJWbBX30cLfTEWMxYMDcI7gLHxuU6QnnWtCyoWjoN9VGU11Zf4AVnqBJ5iv4BpbgUPtRurhP5cFe6GUphhIBSP4h+E3kkLLT78MkqXsCk/GRPekqshYgOMTH8h+4fHQ8ZlEBMs80vyfIGaSWXPxfLEfLxn/7Nqsstkbm3UO8EFHcMQ3+Eq4mo5jP6/2vy8gJYwhx/raWvCCM/CaXajWB4vy1ucdilqp8VCa0PWqCBu4FAGweiKgK6RN6irnczXiY3UZbVeGxfj+Fs6B5zAmhJC3bPpee0Risf5826/rki/ZY3NBWi0vnO+X5zT/2+vINe+1hmQUCOGcBhrwoEZLccP6ylorWW90F16fuIEAGcb68+6k1VUshVhO9pj4vz6W05hToF+4b20AW7yqMaJApKjY=,iv:JcROoPiC8ZU1VBJ29DMItvbfgHS3cZ/qTWm95ks1k+A=,tag:hecyTYob89oxA2oKZrjyFw==,type:str]
 sops:
-    lastmodified: "2026-09-13T07:15:02Z"
-    mac: ENC[AES256_GCM,data:xLDAjlNMq/69RH4MFH7LE4JmfbN90dpcMFtEdO31zfnfPsOQNzNcP5lTkKytAuSPz793O9uU1GegJ7xxtjlw3sj7ZoByo9KWKE+ZbMkTMb+dkcF94jyWHYOMOxt7QX0VAjcK6R+DIefe50IH99tZHnKzy65T9DGBie0sW8Q06CM=,iv:+5bdWCs0kPZC8O7/8OLqhxDdKCeGcaEWakKoxoSdjNw=,tag:+Rdarn7L3nq8JZtVaSphLQ==,type:str]
+    encrypted_regex: ^(data|stringData)$
+    lastmodified: "2026-10-23T10:48:51Z"
+    mac: ENC[AES256_GCM,data:cfnr5SP3dKMPFpdbcL1GBL/Grm21yUjsfk5wFtexmRgY+IXz4H+FJIsEkVEXld5BXRgrWoCoWFNtCOf01+Z2zf69JquaTGRpe3aNO1kMGthVDq6W6h+5xuxK/EtPRbhfvatWbKvp1EQYb6so0rrseeA01cZIawDlBLQKoBjU09o=,iv:5sHKiGQ4cwrXLfg+tGND55PkJZeydAmSjxjNbUgAMbQ=,tag:xycb2kWxMzOhS4Jtlyd8Hg==,type:str]
     pgp:
         - created_at: "2026-09-13T07:15:02Z"
           enc: |-
@@ -30,5 +31,4 @@ sops:
             =Vm+o
             -----END PGP MESSAGE-----
           fp: 3536F7F9345D96C86FB7F9CD21FAFEE575B18815
-    encrypted_regex: ^(data|stringData)$
     version: 3.11.0
