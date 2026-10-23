@@ -581,6 +581,7 @@
     "uid": "influxdb-home"
    },
    "description": "Each row is an hour of the day, each column a day; darker is more expensive.",
+   "timeFrom": "30d",
    "interval": "1d",
    "id": 10,
    "gridPos": {
@@ -634,7 +635,8 @@
       "barAlignment": -1,
       "thresholdsStyle": {
        "mode": "off"
-      }
+      },
+      "insertNulls": 3600000
      },
      "unit": "watt",
      "decimals": 0,
@@ -875,7 +877,8 @@
       "barAlignment": -1,
       "thresholdsStyle": {
        "mode": "off"
-      }
+      },
+      "insertNulls": false
      },
      "unit": "kwatth",
      "decimals": 2,
@@ -1048,7 +1051,8 @@
       "barAlignment": -1,
       "thresholdsStyle": {
        "mode": "off"
-      }
+      },
+      "insertNulls": false
      },
      "unit": "currencyEUR",
      "decimals": 2,
@@ -1234,7 +1238,8 @@
       "barAlignment": -1,
       "thresholdsStyle": {
        "mode": "off"
-      }
+      },
+      "insertNulls": 3600000
      },
      "unit": "percent",
      "min": 0,
@@ -1409,7 +1414,8 @@
       "barAlignment": -1,
       "thresholdsStyle": {
        "mode": "off"
-      }
+      },
+      "insertNulls": 3600000
      },
      "unit": "celsius",
      "decimals": 1,
@@ -1521,7 +1527,8 @@
       "barAlignment": -1,
       "thresholdsStyle": {
        "mode": "off"
-      }
+      },
+      "insertNulls": false
      },
      "unit": "litre",
      "decimals": 0,
@@ -1588,7 +1595,8 @@
       "barAlignment": -1,
       "thresholdsStyle": {
        "mode": "off"
-      }
+      },
+      "insertNulls": false
      },
      "unit": "litre",
      "decimals": 0,
@@ -1656,7 +1664,8 @@
       "barAlignment": -1,
       "thresholdsStyle": {
        "mode": "off"
-      }
+      },
+      "insertNulls": false
      },
      "unit": "litre",
      "decimals": 1,

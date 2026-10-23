@@ -863,7 +863,8 @@
       "barAlignment": -1,
       "thresholdsStyle": {
        "mode": "off"
-      }
+      },
+      "insertNulls": 3600000
      },
      "unit": "short",
      "color": {
@@ -999,7 +1000,8 @@
       "barAlignment": -1,
       "thresholdsStyle": {
        "mode": "off"
-      }
+      },
+      "insertNulls": false
      },
      "unit": "short",
      "color": {
@@ -1065,7 +1067,8 @@
       "barAlignment": -1,
       "thresholdsStyle": {
        "mode": "off"
-      }
+      },
+      "insertNulls": 3600000
      },
      "unit": "ms",
      "color": {
@@ -1132,7 +1135,8 @@
       "barAlignment": -1,
       "thresholdsStyle": {
        "mode": "off"
-      }
+      },
+      "insertNulls": false
      },
      "unit": "bytes",
      "color": {
@@ -1348,7 +1352,8 @@
       "barAlignment": -1,
       "thresholdsStyle": {
        "mode": "off"
-      }
+      },
+      "insertNulls": 3600000
      },
      "unit": "s",
      "color": {
@@ -1415,7 +1420,8 @@
       "barAlignment": -1,
       "thresholdsStyle": {
        "mode": "off"
-      }
+      },
+      "insertNulls": false
      },
      "unit": "short",
      "color": {

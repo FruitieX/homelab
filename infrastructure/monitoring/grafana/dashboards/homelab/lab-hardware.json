@@ -315,7 +315,8 @@
       "barAlignment": -1,
       "thresholdsStyle": {
        "mode": "off"
-      }
+      },
+      "insertNulls": 3600000
      },
      "unit": "celsius",
      "decimals": 0,
@@ -429,7 +430,8 @@
       "barAlignment": -1,
       "thresholdsStyle": {
        "mode": "off"
-      }
+      },
+      "insertNulls": 3600000
      },
      "unit": "celsius",
      "decimals": 0,
@@ -543,7 +545,8 @@
       "barAlignment": -1,
       "thresholdsStyle": {
        "mode": "off"
-      }
+      },
+      "insertNulls": 3600000
      },
      "unit": "percentunit",
      "min": 0,
@@ -657,7 +660,8 @@
       "barAlignment": -1,
       "thresholdsStyle": {
        "mode": "off"
-      }
+      },
+      "insertNulls": 3600000
      },
      "unit": "percentunit",
      "min": 0,
@@ -726,7 +730,8 @@
       "barAlignment": -1,
       "thresholdsStyle": {
        "mode": "off"
-      }
+      },
+      "insertNulls": 3600000
      },
      "unit": "bytes",
      "color": {
@@ -804,7 +809,8 @@
       "barAlignment": -1,
       "thresholdsStyle": {
        "mode": "off"
-      }
+      },
+      "insertNulls": 3600000
      },
      "unit": "Bps",
      "color": {
@@ -882,7 +888,8 @@
       "barAlignment": -1,
       "thresholdsStyle": {
        "mode": "off"
-      }
+      },
+      "insertNulls": 3600000
      },
      "unit": "bps",
      "color": {
@@ -1781,7 +1788,8 @@
       "barAlignment": -1,
       "thresholdsStyle": {
        "mode": "off"
-      }
+      },
+      "insertNulls": 3600000
      },
      "unit": "celsius",
      "decimals": 0,
@@ -1937,7 +1945,8 @@
       "barAlignment": -1,
       "thresholdsStyle": {
        "mode": "off"
-      }
+      },
+      "insertNulls": 3600000
      },
      "unit": "bytes",
      "decimals": 1,
@@ -2049,7 +2058,8 @@
       "barAlignment": -1,
       "thresholdsStyle": {
        "mode": "off"
-      }
+      },
+      "insertNulls": 3600000
      },
      "unit": "bps",
      "color": {

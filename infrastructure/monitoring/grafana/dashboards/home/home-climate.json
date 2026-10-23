@@ -315,7 +315,8 @@
       "barAlignment": -1,
       "thresholdsStyle": {
        "mode": "off"
-      }
+      },
+      "insertNulls": 3600000
      },
      "unit": "celsius",
      "decimals": 1,
@@ -575,7 +576,8 @@
       "barAlignment": -1,
       "thresholdsStyle": {
        "mode": "off"
-      }
+      },
+      "insertNulls": 3600000
      },
      "unit": "humidity",
      "decimals": 0,
@@ -747,7 +749,8 @@
       "barAlignment": -1,
       "thresholdsStyle": {
        "mode": "line+area"
-      }
+      },
+      "insertNulls": 3600000
      },
      "unit": "humidity",
      "decimals": 0,
@@ -845,7 +848,8 @@
       "barAlignment": -1,
       "thresholdsStyle": {
        "mode": "off"
-      }
+      },
+      "insertNulls": 3600000
      },
      "unit": "celsius",
      "decimals": 1,
@@ -999,7 +1003,8 @@
       "barAlignment": -1,
       "thresholdsStyle": {
        "mode": "off"
-      }
+      },
+      "insertNulls": 3600000
      },
      "unit": "celsius",
      "decimals": 1,
@@ -1185,7 +1190,8 @@
       "barAlignment": -1,
       "thresholdsStyle": {
        "mode": "off"
-      }
+      },
+      "insertNulls": 3600000
      },
      "unit": "humidity",
      "decimals": 0,

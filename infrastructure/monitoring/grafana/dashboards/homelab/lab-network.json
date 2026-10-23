@@ -502,7 +502,8 @@
       "barAlignment": -1,
       "thresholdsStyle": {
        "mode": "off"
-      }
+      },
+      "insertNulls": 3600000
      },
      "unit": "bps",
      "color": {
@@ -600,7 +601,8 @@
       "barAlignment": -1,
       "thresholdsStyle": {
        "mode": "off"
-      }
+      },
+      "insertNulls": 3600000
      },
      "decimals": 0,
      "color": {
@@ -794,7 +796,8 @@
       "barAlignment": -1,
       "thresholdsStyle": {
        "mode": "off"
-      }
+      },
+      "insertNulls": 3600000
      },
      "unit": "bps",
      "color": {
@@ -938,7 +941,8 @@
       "barAlignment": -1,
       "thresholdsStyle": {
        "mode": "off"
-      }
+      },
+      "insertNulls": 3600000
      },
      "decimals": 0,
      "color": {
@@ -1337,7 +1341,8 @@
       "barAlignment": -1,
       "thresholdsStyle": {
        "mode": "off"
-      }
+      },
+      "insertNulls": 3600000
      },
      "unit": "percentunit",
      "min": 0,
@@ -1405,7 +1410,8 @@
       "barAlignment": -1,
       "thresholdsStyle": {
        "mode": "off"
-      }
+      },
+      "insertNulls": 3600000
      },
      "unit": "watt",
      "decimals": 1,
@@ -1473,7 +1479,8 @@
       "barAlignment": -1,
       "thresholdsStyle": {
        "mode": "off"
-      }
+      },
+      "insertNulls": 3600000
      },
      "unit": "percentunit",
      "max": 1,

@@ -137,6 +137,7 @@ def timeseries(title, targets, *, stack=False, fill=12, bars=False, legend="bott
         "axisBorderShow": False,
         "barAlignment": -1,
         "thresholdsStyle": {"mode": thresholds_style or "off"},
+        "insertNulls": False if bars else 3600000,
     }
     p["options"] = {
         "legend": {"displayMode": "list" if not legend_calcs else "table", "placement": legend,

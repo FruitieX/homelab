@@ -134,7 +134,7 @@ def energy_dashboard():
       hour: if date.hour(t: r._time) < 10 then "0" + string(v: date.hour(t: r._time)) else string(v: date.hour(t: r._time))}))
   |> group(columns: ["hour"])
   |> sort(columns: ["_time"])''')], unit="c/kWh", decimals=1, color={"mode": "continuous-blues"},
-        display_name="${__field.labels.hour}:00", row_height=1, interval="1d",
+        display_name="${__field.labels.hour}:00", row_height=1, interval="1d", time_from="30d",
         desc="Each row is an hour of the day, each column a day; darker is more expensive."), 10, 8)
 
     d.row("Power")
