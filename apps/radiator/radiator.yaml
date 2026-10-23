@@ -1182,7 +1182,10 @@ data:
             # here. With "captive" true Android skips its probes and, with the
             # x-android-use-custom-tabs opt-in (CaptivePortalLogin module
             # 361335020 or later), opens the portal in a Chrome Custom Tab, where
-            # passkeys work.
+            # passkeys work. In the UniFi API the option is a site definition
+            # (rest/dhcpoption: code 114, type text) plus, on the "Wi-Fi portal"
+            # networkconf, the field dhcpd_user_option_<definition _id> holding
+            # the URL.
             handler "CAPTIVE_API" {
                 conditions all {
                     http.method == "GET";
