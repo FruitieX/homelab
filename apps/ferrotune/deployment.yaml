@@ -46,6 +46,20 @@ spec:
               value: "4040"
             - name: FERROTUNE_FEEDBACK_URL
               value: https://feedback.fruitiex.org
+            # Passkey sign-in through Pocket ID (client secret in ferrotune-env)
+            - name: FERROTUNE_PUBLIC_URL
+              value: https://ferrotune.fruitiex.org
+            - name: FERROTUNE_OIDC_ISSUER
+              value: https://id.fruitiex.org
+            - name: FERROTUNE_OIDC_CLIENT_ID
+              value: ferrotune
+            - name: FERROTUNE_OIDC_ALLOWED_GROUPS
+              value: family,kids
+            - name: FERROTUNE_OIDC_ADMIN_GROUP
+              value: admins
+            # Pocket ID user "rasse" is the local "admin" account
+            - name: FERROTUNE_OIDC_USER_MAP
+              value: rasse:admin
             - name: FERROTUNE_PORT
               value: "4040"
             - name: FERROTUNE_DB_MAX_CONNECTIONS
