@@ -223,9 +223,12 @@ spec:
         probeSelectorNilUsesHelmValues: false
         ruleSelectorNilUsesHelmValues: false
         scrapeConfigSelectorNilUsesHelmValues: false
-        # The chart only renders these when set explicitly (default null).
-        scrapeConfigSelector: {}
-        scrapeConfigNamespaceSelector: {}
+        # Match all ScrapeConfigs (in this namespace). An empty {} is dropped
+        # by Helm's merge patch, so use an always-true expression instead.
+        scrapeConfigSelector:
+          matchExpressions:
+            - key: prometheus.io/exclude
+              operator: DoesNotExist
         retention: 90d
         retentionSize: "100GB"
         storageSpec:
