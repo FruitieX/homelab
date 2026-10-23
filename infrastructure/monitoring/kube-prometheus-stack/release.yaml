@@ -14,6 +14,12 @@ spec:
         kind: HelmRepository
         name: prometheus-community
         namespace: flux-system
+  # Keep the monitoring.coreos.com CRDs in step with the operator; Flux skips
+  # CRDs on upgrade by default, which had left them at their 2023 versions.
+  install:
+    crds: CreateReplace
+  upgrade:
+    crds: CreateReplace
   values:
     grafana:
       enabled: false
