@@ -1,0 +1,82 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pocket-id
+  annotations:
+    secret.reloader.stakater.com/reload: pocket-id-env
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: pocket-id
+  template:
+    metadata:
+      labels:
+        app: pocket-id
+    spec:
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
+        runAsNonRoot: true
+        runAsUser: 65532
+        runAsGroup: 65532
+        fsGroup: 65532
+        fsGroupChangePolicy: OnRootMismatch
+      containers:
+        - name: pocket-id
+          image: ghcr.io/pocket-id/pocket-id:v2.18.0-distroless@sha256:138d106737498f6c20d0bec854b872bc77ec520d7a9b54502444a260a49c41cb
+          envFrom:
+            - secretRef:
+                name: pocket-id-env
+          env:
+            - name: APP_URL
+              value: https://id.fruitiex.org
+            - name: TRUST_PROXY
+              value: "true"
+            # SQLite lives on NFS like the other small apps: avoid WAL, whose
+            # shared-memory index does not work over network filesystems.
+            - name: DB_CONNECTION_STRING
+              value: file:data/pocket-id.db?_pragma=journal_mode(DELETE)
+            - name: DISMISS_SQLITE_STORAGE_WARNING
+              value: i accept the risks
+            - name: ANALYTICS_DISABLED
+              value: "true"
+            - name: ALLOW_INSECURE_CALLBACK_URLS
+              value: "false"
+          ports:
+            - name: http
+              containerPort: 1411
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: [ALL]
+          resources:
+            requests:
+              cpu: 20m
+              memory: 64Mi
+            limits:
+              memory: 512Mi
+          volumeMounts:
+            - name: data
+              mountPath: /app/data
+            - name: tmp
+              mountPath: /tmp
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            periodSeconds: 30
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: pocket-id-data-nfs
+        - name: tmp
+          emptyDir: {}

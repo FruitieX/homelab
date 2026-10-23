@@ -1,9 +1,0 @@
----
-apiVersion: source.toolkit.fluxcd.io/v1
-kind: HelmRepository
-metadata:
-  name: geek-cookbook
-  namespace: flux-system
-spec:
-  interval: 24h
-  url: https://geek-cookbook.github.io/charts/

@@ -1,0 +1,27 @@
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: pocket-id
+  annotations:
+    # Use the existing public wildcard DNS instead of publishing gateway LAN IPs.
+    external-dns.alpha.kubernetes.io/exclude: "true"
+spec:
+  # Public so apps on the public gateway (LittleCupboard, Immich, ...) can sign
+  # in from outside the LAN; Pocket ID only accepts passkeys.
+  parentRefs:
+    - name: public
+      namespace: envoy-gateway-system
+      sectionName: https
+    - name: private
+      namespace: envoy-gateway-system
+      sectionName: https
+  hostnames:
+    - id.fruitiex.org
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /
+      backendRefs:
+        - name: pocket-id
+          port: 1411

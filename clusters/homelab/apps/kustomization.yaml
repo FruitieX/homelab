@@ -13,7 +13,6 @@ resources:
   - chores.yaml
   - steady.yaml
   - stretch.yaml
-  - open-webui.yaml
   - ingress-proxy.yaml
   - lifx-mqtt.yaml
   - tuya-mqtt.yaml
@@ -23,9 +22,7 @@ resources:
   - influxdb.yaml
   - jellyfin.yaml
   - immich.yaml
-  #- navidrome.yaml
   - photoframe-rs.yaml
-  #- gonic.yaml
   - ferrotune.yaml
   # - llama-cpp.yaml
   - bambuddy.yaml
@@ -35,6 +32,6 @@ resources:
   - feedback-hub.yaml
   - busmap.yaml
   - rsfinity.yaml
-  # - paperless-ngx.yaml
+  - pocket-id.yaml
 # - adb-mqtt.yaml
 # - hue-mqtt.yaml
