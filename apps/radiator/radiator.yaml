@@ -989,6 +989,8 @@ data:
                 .list li{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 0;border-top:1px solid var(--bg)}
                 .list small{color:var(--muted)}
                 .small{padding:8px 12px;border:1px solid var(--muted);border-radius:10px;background:transparent;color:var(--fg);font:15px inherit;cursor:pointer}
+                .note{padding:10px 12px;border-radius:10px;background:var(--bg);color:var(--fg)}
+                code{font:13px/1.4 ui-monospace,monospace;word-break:break-all}
                 .quiet{display:inline-block;margin-top:22px;color:var(--muted);font-size:15px}
                 .qr{display:block;width:100%;max-width:260px;margin:4px auto 12px;border-radius:12px}
                 .meta{font-size:14px;color:var(--muted);word-break:break-all}
@@ -1160,6 +1162,71 @@ data:
                 """;
         }
 
+        # vars.rows: the signed-in user's devices as <li> elements.
+        @pipeline "OWN_DEVICE_ROWS" {
+            vars.owner = vars.sso_user;
+            vars.rows = "";
+            # A user without devices gets a reject from the query.
+            until end {
+                backend {
+                    name "radiatordb";
+                    query "LIST_WIFI_CREDENTIALS";
+                    @each {
+                        if all {
+                            vars.list_revoked != true;
+                        } then {
+                            vars.rows += """
+                                <li><span>%{vars.list_device_name | xml_escape}<br><small>added %{vars.list_created | substring(0, 10)}</small></span>
+                                <form method="post" action="/revoke"><input type="hidden" name="device" value="%{vars.list_username | xml_escape}"><button class="small" type="submit">Remove</button></form></li>
+                                """;
+                        }
+                    }
+                }
+            } when reject {
+                accept;
+            }
+        }
+
+        # Linux: a NetworkManager keyfile for the SSID itself (NetworkManager has
+        # no Passpoint). The CA is embedded as a blob (DER, Base64).
+        @pipeline "LINUX_PROFILE_RESPONSE" {
+            vars.nm_uuid = util.uuid4;
+            http.status = http.OK;
+            http.json = false;
+            http.response_header.Content-Type = "application/octet-stream";
+            http.response_header.Content-Disposition = "attachment; filename=\"dragonfruit-radiator.nmconnection\"";
+            http.response = """
+                [connection]
+                id=dragonfruit-radiator
+                uuid=%{vars.nm_uuid}
+                type=wifi
+                autoconnect=true
+
+                [wifi]
+                mode=infrastructure
+                ssid=dragonfruit-radiator
+
+                [wifi-security]
+                key-mgmt=wpa-eap
+
+                [802-1x]
+                eap=ttls;
+                anonymous-identity=anonymous@fruitiex.org
+                identity=%{vars.username}
+                password=%{vars.password}
+                phase2-auth=pap
+                ca-cert=data:;base64,%{vars.ca_der_b64}
+                domain-suffix-match=radius.fruitiex.org
+                system-ca-certs=false
+
+                [ipv4]
+                method=auto
+
+                [ipv6]
+                method=auto
+                """;
+        }
+
         @pipeline "FORBIDDEN_PAGE" {
             http.status = http.FORBIDDEN;
             http.response = """
@@ -1191,27 +1258,15 @@ data:
                     invoke "PAGE";
                     invoke "SSO_IDENTITY";
                     http.json = false;
-                    vars.owner = vars.sso_user;
-                    vars.rows = "";
+                    invoke "OWN_DEVICE_ROWS";
 
-                    # A user without devices gets a reject from the query.
-                    until end {
-                        backend {
-                            name "radiatordb";
-                            query "LIST_WIFI_CREDENTIALS";
-                            @each {
-                                if all {
-                                    vars.list_revoked != true;
-                                } then {
-                                    vars.rows += """
-                                        <li><span>%{vars.list_device_name | xml_escape}<br><small>added %{vars.list_created | substring(0, 10)}</small></span>
-                                        <form method="post" action="/revoke"><input type="hidden" name="device" value="%{vars.list_username | xml_escape}"><button class="small" type="submit">Remove</button></form></li>
-                                        """;
-                                }
-                            }
-                        }
-                    } when reject {
-                        accept;
+                    vars.ff_note = "";
+                    if all {
+                        http.header.user-agent == /Android.*Firefox\//;
+                    } then {
+                        # Firefox saves the file instead of handing it to the
+                        # Passpoint installer.
+                        vars.ff_note = """<p class="note">To install on Android, open this page in Chrome.</p>""";
                     }
 
                     vars.admin_link = "";
@@ -1234,13 +1289,36 @@ data:
                         %{vars.page_head}
                         <h1>dragonfruit Wi-Fi</h1>
                         <p>Add this phone or computer. It then joins the Wi-Fi by itself, at home only.</p>
-                        <form method="post">
+                        %{vars.ff_note}
+                        <form method="post" id="add">
                         <input class="field" name="device_name" required maxlength="40" placeholder="Device name, e.g. Pixel" aria-label="Device name">
                         <button class="btn" formaction="/profile/android" type="submit">Add Android device</button>
-                        <button class="btn2" formaction="/profile/apple" type="submit">Add iPhone, iPad or Mac</button>
+                        <button class="btn2" formaction="/profile/apple" type="submit">Add iPhone, iPad or Mac (Passpoint)</button>
+                        <button class="btn2" formaction="/profile/linux" type="submit">Add Linux computer (NetworkManager)</button>
                         </form>
+                        <p class="meta">Linux: then run<br><code>sudo install -m600 ~/Downloads/dragonfruit-radiator.nmconnection /etc/NetworkManager/system-connections/ &amp;&amp; sudo nmcli connection reload</code></p>
                         <h2>Your devices</h2>
-                        <ul class="list">%{vars.rows | join("")}</ul>
+                        <ul class="list" id="devices">%{vars.rows | join("")}</ul>
+                        <script>
+                        // The profile comes back as a download, so the page stays as it
+                        // was: block double taps for a few seconds and refresh the list.
+                        // The form POST itself stays a normal top-level navigation, which
+                        // is what hands application/x-wifi-config to Android's installer.
+                        (function(){
+                          var f = document.getElementById("add"), list = document.getElementById("devices");
+                          f.addEventListener("submit", function(){
+                            var bs = f.querySelectorAll("button"), n = 0;
+                            setTimeout(function(){ bs.forEach(function(b){ b.disabled = true; }); }, 0);
+                            setTimeout(function(){ bs.forEach(function(b){ b.disabled = false; }); }, 5000);
+                            (function refresh(){
+                              fetch("/devices", {cache: "no-store"}).then(function(r){ return r.ok ? r.text() : null; }).then(function(t){
+                                if (t !== null) list.innerHTML = t;
+                              }).catch(function(){});
+                              if (++n < 8) setTimeout(refresh, 1500);
+                            })();
+                          });
+                        })();
+                        </script>
                         %{vars.admin_link}
                         %{vars.page_foot}
                         """;
@@ -1248,10 +1326,28 @@ data:
                 }
             }
 
+            # The device list as an HTML fragment, for the home page's refresh.
+            handler "DEVICES" {
+                conditions all {
+                    http.method == "GET";
+                    http.path == "/devices";
+                    http.header.x-sso-user == any;
+                }
+
+                @execute {
+                    invoke "SSO_IDENTITY";
+                    invoke "OWN_DEVICE_ROWS";
+                    http.json = false;
+                    http.status = http.OK;
+                    http.response = vars.rows | join("");
+                    accept;
+                }
+            }
+
             handler "MEMBER_PROFILE" {
                 conditions all {
                     http.method == "POST";
-                    http.path == /^\/profile\/(android|apple)$/;
+                    http.path == /^\/profile\/(android|apple|linux)$/;
                     http.header.x-sso-user == any;
                 }
 
@@ -1279,6 +1375,10 @@ data:
                         http.path == "/profile/android";
                     } then {
                         invoke "ANDROID_PROFILE_RESPONSE";
+                    } else if all {
+                        http.path == "/profile/linux";
+                    } then {
+                        invoke "LINUX_PROFILE_RESPONSE";
                     } else {
                         invoke "APPLE_PROFILE_RESPONSE";
                     }
@@ -1519,7 +1619,7 @@ data:
                         <form method="post">
                         <input class="field" name="device_name" maxlength="40" placeholder="Device name (optional)" aria-label="Device name">
                         <button class="btn" formaction="/guest/profile/android?t=%{vars.token}" type="submit">Add Android device</button>
-                        <button class="btn2" formaction="/guest/profile/apple?t=%{vars.token}" type="submit">Add iPhone, iPad or Mac</button>
+                        <button class="btn2" formaction="/guest/profile/apple?t=%{vars.token}" type="submit">Add iPhone, iPad or Mac (Passpoint)</button>
                         </form>
                         </div>
                         <script>
@@ -1861,13 +1961,13 @@ spec:
             - -c
           args:
             - >-
-              if [ ! -f /var/lib/radiator/.bootstrap-complete-v13 ]; then
+              if [ ! -f /var/lib/radiator/.bootstrap-complete-v14 ]; then
                 rm -f /var/lib/radiator/*.radconf /var/lib/radiator/..data;
                 rm -rf /var/lib/radiator/..20*;
                 for config in /bootstrap/*.radconf; do
                   cp -L "$config" "/var/lib/radiator/$(basename "$config")";
                 done;
-                touch /var/lib/radiator/.bootstrap-complete-v13;
+                touch /var/lib/radiator/.bootstrap-complete-v14;
               fi;
               mkdir -p /var/lib/radiator/licenses /var/lib/radiator/tmp /var/lib/radiator/management/tls/certs /var/lib/radiator/management/tls/keys /var/log/radiator;
               chown -R 1000:1000 /var/lib/radiator /var/log/radiator;
