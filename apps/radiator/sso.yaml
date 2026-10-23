@@ -180,3 +180,81 @@ spec:
             claim: preferred_username
           - header: x-sso-groups
             claim: groups
+---
+# Browser handoff from the captive window (wifi-portal.radconf, /handoff):
+# only /signin (with the ?h= token) and the OIDC callback, on the public
+# gateway, because Android sends browser traffic over mobile data while the
+# Wi-Fi is unvalidated. A separate hostname keeps wifi.fruitiex.org private
+# (its DNS record points at the private gateway); this one uses the
+# *.fruitiex.org wildcard record. The device comes from the token, never
+# from the client address. The public gateway's ClientTrafficPolicy drops
+# client copies of x-sso-*.
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: radiator-wifi-handoff
+  namespace: default
+  annotations:
+    external-dns.alpha.kubernetes.io/exclude: "true"
+spec:
+  parentRefs:
+    - name: public
+      namespace: envoy-gateway-system
+      sectionName: https
+  hostnames:
+    - wifi-signin.fruitiex.org
+  rules:
+    - matches:
+        - path:
+            type: Exact
+            value: /signin
+        - path:
+            type: PathPrefix
+            value: /oauth2/
+      filters:
+        - type: ExtensionRef
+          extensionRef:
+            group: gateway.envoyproxy.io
+            kind: HTTPRouteFilter
+            name: radiator-proxy-secret
+      backendRefs:
+        - name: radiator-portal
+          port: 8088
+---
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: SecurityPolicy
+metadata:
+  name: pocket-id-radiator-wifi-handoff
+  namespace: default
+spec:
+  targetRefs:
+    - group: gateway.networking.k8s.io
+      kind: HTTPRoute
+      name: radiator-wifi-handoff
+  oidc:
+    provider:
+      issuer: https://id.fruitiex.org
+    # Same client as wifi.fruitiex.org, restricted to "family" in Pocket ID.
+    clientID: radiator-wifi
+    clientSecret:
+      name: radiator-wifi-oidc
+    scopes: [openid, profile, email, groups]
+    redirectURL: https://wifi-signin.fruitiex.org/oauth2/callback
+    logoutPath: /oauth2/logout
+    forwardIDToken:
+      header: x-sso-id-token
+  jwt:
+    providers:
+      - name: pocket-id
+        issuer: https://id.fruitiex.org
+        audiences: [radiator-wifi]
+        remoteJWKS:
+          uri: https://id.fruitiex.org/.well-known/jwks.json
+        extractFrom:
+          headers:
+            - name: x-sso-id-token
+        claimToHeaders:
+          - header: x-sso-user
+            claim: preferred_username
+          - header: x-sso-groups
+            claim: groups

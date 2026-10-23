@@ -21,3 +21,22 @@ spec:
         - x-sso-user
         - x-sso-groups
         - x-sso-id-token
+---
+# Same for the public gateway: wifi-signin.fruitiex.org (apps/radiator/sso.yaml)
+# trusts these headers too.
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: ClientTrafficPolicy
+metadata:
+  name: public-strip-identity-headers
+  namespace: envoy-gateway-system
+spec:
+  targetRefs:
+    - group: gateway.networking.k8s.io
+      kind: Gateway
+      name: public
+  headers:
+    earlyRequestHeaders:
+      remove:
+        - x-sso-user
+        - x-sso-groups
+        - x-sso-id-token

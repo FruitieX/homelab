@@ -461,6 +461,31 @@ data:
                 }
             }
 
+            # Browser handoffs from the captive window, keyed by token.
+            query "FIND_HANDOFF" {
+                collection "wifi_handoffs";
+                key vars.token;
+
+                mapping {
+                    vars.mac = doc | jsonpath("$.mac");
+                    vars.device_name = doc | jsonpath("$.name");
+                    vars.handoff_used = doc | jsonpath("$.used");
+                }
+            }
+
+            put "SAVE_HANDOFF" {
+                collection "wifi_handoffs";
+                key vars.token;
+                expire 10m;
+
+                bindings {
+                    mac = vars.mac;
+                    name = vars.device_name;
+                    used = vars.handoff_used;
+                    updated = datetime.timestamp.utc;
+                }
+            }
+
             collection "users" {
                 name "Users";
                 description "Test user credentials";
@@ -593,6 +618,42 @@ data:
                     type text;
                 }
             }
+
+            collection "wifi_handoffs" {
+                name "Wi-Fi handoffs";
+                description "Single-use browser sign-in links from the captive window (expire after 10 minutes)";
+
+                roles {
+                    read "admin";
+                }
+
+                key {
+                    field {
+                        name "Token";
+                        type text;
+                    }
+                }
+
+                field "mac" {
+                    name "MAC";
+                    type text;
+                }
+
+                field "name" {
+                    name "Device name";
+                    type text;
+                }
+
+                field "used" {
+                    name "Used";
+                    type text;
+                }
+
+                field "updated" {
+                    name "Updated";
+                    type text;
+                }
+            }
         }
     }
   ui.radconf: |
@@ -623,6 +684,12 @@ data:
     #                   the device as a guest (VLAN 81, internet only) for 365 days
     #   /activate       Disconnect-Request for the caller's own device if it is
     #                   registered but still in the portal VLAN (public)
+    #   /captive-api    RFC 8908 Captive Portal API (DHCP option 114 on VLAN 80);
+    #                   opts Android into Chrome Custom Tabs, which have passkeys
+    #   /handoff        single-use sign-in link for captive windows without
+    #                   passkeys (Android's WebView); the user opens
+    #                   https://wifi-signin.fruitiex.org/signin?h=<token> in a
+    #                   browser (public gateway, so it works over mobile data too)
     #
     # The device is found by its walled-garden IP (x-portal-client-ip, set by
     # Envoy from the TCP peer address) through the UniFi Network API. The AP that
@@ -1006,6 +1073,9 @@ data:
                 h1{margin:0 0 8px;font-size:24px;line-height:1.2}
                 p{margin:8px 0 20px;color:var(--muted)}
                 .btn{display:block;box-sizing:border-box;width:100%;padding:16px;border:0;border-radius:14px;background:var(--accent);color:var(--accent-fg);font:600 17px/1.2 inherit;text-decoration:none;cursor:pointer}
+                .btn2{display:block;box-sizing:border-box;width:100%;margin-top:12px;padding:15px;border:1.5px solid var(--accent);border-radius:14px;background:transparent;color:var(--fg);font:600 17px/1.2 inherit;text-decoration:none;cursor:pointer}
+                .link{box-sizing:border-box;width:100%;margin:4px 0 12px;padding:12px;border:1px solid var(--muted);border-radius:10px;background:var(--bg);color:var(--fg);font:15px/1.3 ui-monospace,monospace;-webkit-user-select:all;user-select:all}
+                ol{margin:0 0 16px;padding-left:22px;text-align:left;color:var(--muted)}
                 .quiet{display:inline-block;margin-top:22px;color:var(--muted);font-size:15px}
                 .qr{display:block;width:100%;max-width:260px;margin:4px auto 12px;border-radius:12px}
                 .meta{font-size:14px;color:var(--muted);word-break:break-all}
@@ -1150,8 +1220,219 @@ data:
                         %{vars.page_head}
                         <h1>dragonfruit Wi-Fi</h1>
                         <p>Sign in to get on the network.</p>
-                        <a class="btn" href="/signin">Sign in with passkey</a>
+                        <a class="btn" id="a1" href="/signin">Sign in with passkey</a>
+                        <a class="btn2" id="a2" href="/handoff">Continue in browser</a>
                         <a class="quiet" href="/guest">Guest access</a>
+                        <script>
+                        // Android's captive-portal WebView ("; wv)") has no passkeys:
+                        // lead with the browser handoff there.
+                        if (/; wv\)/.test(navigator.userAgent)) {
+                          var a1 = document.getElementById("a1"), a2 = document.getElementById("a2");
+                          a1.href = "/handoff"; a1.textContent = "Continue in browser";
+                          a2.href = "/signin"; a2.textContent = "Sign in here";
+                        }
+                        </script>
+                        %{vars.page_foot}
+                        """;
+                    accept;
+                }
+            }
+
+            # Browser handoff for captive windows without passkeys (Android's
+            # CaptivePortalLogin WebView can't open the browser itself). Creates a
+            # single-use token bound to this device's MAC; the user opens
+            # https://wifi-signin.fruitiex.org/signin?h=<token> in a real browser,
+            # which also works over mobile data (public gateway).
+            handler "HANDOFF" {
+                conditions all {
+                    http.method == "GET";
+                    http.path == "/handoff";
+                }
+
+                @execute {
+                    invoke "PAGE";
+                    http.json = false;
+
+                    until reject {
+                        invoke "FIND_PORTAL_DEVICE";
+                    } when reject {
+                        accept;
+                        http.status = http.CONFLICT;
+                        http.response = """
+                            %{vars.page_head}
+                            <h1>Device not found</h1>
+                            <p>Reconnect to the Wi-Fi network and try again.</p>
+                            %{vars.page_foot}
+                            """;
+                        reject;
+                    }
+
+                    vars.token = "%{context.id}";
+                    vars.handoff_used = "no";
+                    backend {
+                        name "radiatordb";
+                        query "SAVE_HANDOFF";
+                    }
+                    vars.handoff_url = "https://wifi-signin.fruitiex.org/signin?h=%{vars.token}";
+
+                    http.status = http.OK;
+                    http.response = """
+                        %{vars.page_head}
+                        <h1 id="h">Continue in your browser</h1>
+                        <div id="steps">
+                        <p>This window can't use passkeys.</p>
+                        <ol>
+                        <li>Copy the link.</li>
+                        <li>Open Chrome or Safari and paste it into the address bar.</li>
+                        <li>Sign in with your passkey, then come back here.</li>
+                        </ol>
+                        <input class="link" id="u" readonly value="%{vars.handoff_url}" aria-label="Sign-in link">
+                        <button class="btn" id="c" type="button">Copy link</button>
+                        <p class="meta">Code %{vars.token | substring(0, 4)} &middot; valid for 10 minutes</p>
+                        </div>
+                        <p id="s" hidden>You're in, reconnecting...</p>
+                        <script>
+                        (function(){
+                          var t = "%{vars.token}", u = document.getElementById("u"), c = document.getElementById("c");
+                          function copied(){ c.textContent = "Copied"; setTimeout(function(){ c.textContent = "Copy link"; }, 2500); }
+                          function legacy(){ u.focus(); u.select(); u.setSelectionRange(0, u.value.length); try { if (document.execCommand("copy")) copied(); } catch (e) {} }
+                          c.addEventListener("click", function(){
+                            if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(u.value).then(copied, legacy);
+                            else legacy();
+                          });
+                          u.addEventListener("focus", function(){ u.select(); });
+                          function poll(){
+                            fetch("/handoff/status?t=" + t, {cache: "no-store"}).then(function(r){ return r.json(); }).then(function(j){
+                              if (j.status === "done") {
+                                document.getElementById("steps").remove();
+                                document.getElementById("h").textContent = "Signed in";
+                                document.getElementById("s").hidden = false;
+                              } else if (j.status === "expired") {
+                                location.reload();
+                              } else setTimeout(poll, 2000);
+                            }).catch(function(){ setTimeout(poll, 2000); });
+                          }
+                          setTimeout(poll, 2000);
+                        })();
+                        </script>
+                        %{vars.page_foot}
+                        """;
+                    accept;
+                }
+            }
+
+            handler "HANDOFF_STATUS" {
+                conditions all {
+                    http.method == "GET";
+                    http.path == "/handoff/status";
+                    http.query.t == any;
+                }
+
+                @execute {
+                    vars.token = http.query.t;
+                    http.status = http.OK;
+                    http.response.status = "pending";
+
+                    until end {
+                        backend {
+                            name "radiatordb";
+                            query "FIND_HANDOFF";
+                        }
+                    } when accept {
+                        if all {
+                            vars.handoff_used == "yes";
+                        } then {
+                            http.response.status = "done";
+                        }
+                    } else {
+                        accept;
+                        http.response.status = "expired";
+                    }
+                    accept;
+                }
+            }
+
+            # Sign-in through a handoff link (wifi-signin.fruitiex.org on the
+            # public gateway, or wifi.fruitiex.org): the device comes from the
+            # token, not from the client IP.
+            handler "SIGNIN_HANDOFF" {
+                conditions all {
+                    http.method == "GET";
+                    http.path == "/signin";
+                    http.header.x-sso-user == any;
+                    http.query.h == any;
+                }
+
+                @execute {
+                    invoke "PAGE";
+                    http.json = false;
+                    vars.sso_user = http.header.x-sso-user;
+                    vars.groups = http.header.x-sso-groups | base64_decode | string | json | jsonpath("$[*]");
+                    vars.token = http.query.h;
+
+                    if none {
+                        vars.groups == "family";
+                    } then {
+                        http.status = http.FORBIDDEN;
+                        http.response = """
+                            %{vars.page_head}
+                            <h1>Not allowed</h1>
+                            <p>This account can't use the Wi-Fi network. Ask the host for guest access.</p>
+                            %{vars.page_foot}
+                            """;
+                        reject;
+                    }
+
+                    until end {
+                        backend {
+                            name "radiatordb";
+                            query "FIND_HANDOFF";
+                        }
+                    } when reject {
+                        accept;
+                        http.status = http.NOT_FOUND;
+                        http.response = """
+                            %{vars.page_head}
+                            <h1>Link expired</h1>
+                            <p>Go back to the Wi-Fi window and tap &ldquo;Continue in browser&rdquo; again.</p>
+                            %{vars.page_foot}
+                            """;
+                        reject;
+                    }
+
+                    if all {
+                        vars.handoff_used == "yes";
+                    } then {
+                        http.status = http.CONFLICT;
+                        http.response = """
+                            %{vars.page_head}
+                            <h1>Link already used</h1>
+                            <p>This sign-in link works once. If the Wi-Fi isn't connected yet, tap &ldquo;Continue in browser&rdquo; again.</p>
+                            %{vars.page_foot}
+                            """;
+                        reject;
+                    }
+
+                    backend {
+                        name "radiatordb";
+                        query "SAVE_MEMBER_DEVICE";
+                    }
+                    vars.handoff_used = "yes";
+                    backend {
+                        name "radiatordb";
+                        query "SAVE_HANDOFF";
+                    }
+                    # Disconnect only while the device is still in the portal VLAN.
+                    until end {
+                        try invoke "KICK_IF_IN_PORTAL";
+                        ignore;
+                    }
+
+                    http.status = http.OK;
+                    http.response = """
+                        %{vars.page_head}
+                        <h1>You're in, %{vars.sso_user | xml_escape}</h1>
+                        <p>Your device is reconnecting to dragonfruit Wi-Fi. You can close this tab.</p>
                         %{vars.page_foot}
                         """;
                     accept;
@@ -1719,13 +2000,13 @@ spec:
             - -c
           args:
             - >-
-              if [ ! -f /var/lib/radiator/.bootstrap-complete-v9 ]; then
+              if [ ! -f /var/lib/radiator/.bootstrap-complete-v10 ]; then
                 rm -f /var/lib/radiator/*.radconf /var/lib/radiator/..data;
                 rm -rf /var/lib/radiator/..20*;
                 for config in /bootstrap/*.radconf; do
                   cp -L "$config" "/var/lib/radiator/$(basename "$config")";
                 done;
-                touch /var/lib/radiator/.bootstrap-complete-v9;
+                touch /var/lib/radiator/.bootstrap-complete-v10;
               fi;
               mkdir -p /var/lib/radiator/licenses /var/lib/radiator/tmp /var/lib/radiator/management/tls/certs /var/lib/radiator/management/tls/keys /var/log/radiator;
               chown -R 1000:1000 /var/lib/radiator /var/log/radiator;
