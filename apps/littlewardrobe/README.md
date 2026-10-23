@@ -18,7 +18,7 @@ nix-shell
 sops --decrypt --extract '["stringData"]["LITTLEWARDROBE_SETUP_TOKEN"]' apps/littlewardrobe/secret.sops.yaml
 ```
 
-The setup token and provider encryption key are freshly generated and SOPS-encrypted in `secret.sops.yaml`. Preserve that encryption key with database backups. Configure an API provider or pair the personal Hermes companion after first login; deployment does not copy another app's AI credentials or create a worker. [AI setup](https://github.com/FruitieX/littlewardrobe/blob/main/docs/AI.md).
+The setup token and provider encryption key are freshly generated and SOPS-encrypted in `secret.sops.yaml`. Preserve that encryption key with database backups. Pocket ID passkey sign-in (client `littlewardrobe`, group `family`) uses the non-secret `LITTLEWARDROBE_OIDC_*` variables in `deployment.yaml`; the client secret and the account map `LITTLEWARDROBE_OIDC_USER_MAP` (it contains email addresses) are in the SOPS secret. Email/password sign-in remains available. Configure an API provider or pair the personal Hermes companion after first login; deployment does not copy another app's AI credentials or create a worker. [AI setup](https://github.com/FruitieX/littlewardrobe/blob/main/docs/AI.md).
 
 ## Operations and recovery
 

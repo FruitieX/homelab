@@ -39,6 +39,12 @@ spec:
               value: https://littlewardrobe.fruitiex.org
             - name: LITTLEWARDROBE_SQLITE_JOURNAL_MODE
               value: DELETE
+            - name: LITTLEWARDROBE_OIDC_ISSUER
+              value: https://id.fruitiex.org
+            - name: LITTLEWARDROBE_OIDC_CLIENT_ID
+              value: littlewardrobe
+            - name: LITTLEWARDROBE_OIDC_ALLOWED_GROUPS
+              value: family
             - name: RUST_LOG
               value: littlewardrobe_api=info
           ports:
