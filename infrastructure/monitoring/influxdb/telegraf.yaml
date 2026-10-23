@@ -27,7 +27,9 @@ spec:
       outputs:
         - influxdb_v2:
             urls:
-              - "https://influxdb.fruitiex.org"
+              # In-cluster: the public route sits behind Pocket ID sign-in, which
+              # turns writes into a redirect to the login page.
+              - "http://influxdb-influxdb2.influxdb.svc"
             organization: influxdata
             bucket: home
             token: ${INFLUXDB_TOKEN}
