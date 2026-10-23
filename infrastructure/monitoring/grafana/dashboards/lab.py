@@ -172,11 +172,14 @@ def workloads_dashboard():
         overrides=[by_name("Reason", custom__cellOptions={"type": "color-text"},
                            mappings=value_map([("OOMKilled", "OOMKilled", BAD), ("Error", "Error", WARN),
                                                ("Completed", "Completed", MUTED)]))]), 12, 8)
-    d.add(bargauge("Restarts in the last 24 h", [prom(
-        'sort_desc(sum by (namespace, container) (increase(kube_pod_container_status_restarts_total[24h])) > 0)',
-        legend="{{namespace}}/{{container}}", instant=True)], decimals=0,
-        display_name="${__field.labels.namespace}/${__field.labels.container}",
-        thr=thresholds(WARN, (5, BAD)), nulls="No restarts"), 12, 8)
+    d.add(table("Restarts in the last 24 h", [prom(
+        'sum by (namespace, container) (round(increase(kube_pod_container_status_restarts_total[24h]))) > 0',
+        instant=True, fmt="table")],
+        transformations=[organize(exclude=["Time"], rename={"namespace": "Namespace", "container": "Container",
+                                                            "Value": "Restarts"})],
+        overrides=[by_name("Restarts", decimals=0, thresholds=thresholds(WARN, (5, BAD)),
+                           custom__cellOptions={"type": "color-text"})],
+        sort=("Restarts", True), nulls="No restarts"), 12, 8)
 
     d.row("Nodes")
     node = '* on (instance) group_left (nodename) node_uname_info{job="node-exporter"}'
@@ -193,7 +196,7 @@ def workloads_dashboard():
 SELECT datname AS metric, pg_database_size(datname) AS value
 FROM pg_database WHERE NOT datistemplate AND datname <> 'postgres' ORDER BY 2 DESC''')],
             unit="bytes", decimals=1, values=True, color={"mode": "fixed", "fixedColor": SLOTS[0]},
-            display_name="${__field.displayName}"), 6, 6)
+            display_name="${__data.fields.metric}"), 5, 6)
         d.add(table(f"Activity ({label})", [sql(db, '''
 SELECT datname AS "Database", numbackends AS "Connections",
        round(100.0 * blks_hit / nullif(blks_hit + blks_read, 0), 2) AS "Cache hit %",
@@ -202,7 +205,7 @@ SELECT datname AS "Database", numbackends AS "Connections",
 FROM pg_stat_database WHERE datname IS NOT NULL AND datname NOT IN ('template0', 'template1') ORDER BY 2 DESC''')],
             overrides=[by_name("Temp bytes", unit="bytes"), by_name("Since", unit="dateTimeFromNow"),
                        by_name("Cache hit %", thresholds=thresholds(BAD, (90, WARN), (99, GOOD)),
-                               custom__cellOptions={"type": "color-text"})]), 6, 6)
+                               custom__cellOptions={"type": "color-text"})]), 7, 6)
     d.add(stat("Prometheus TSDB blocks", [prom('prometheus_tsdb_blocks_loaded')], graph=True,
                thr=thresholds(GOOD, (200, WARN), (500, BAD)),
                desc="Healthy compaction keeps this in the tens. Hundreds means compaction is failing."), 6, 5)
@@ -296,7 +299,7 @@ def hardware_dashboard():
         sort=("Disk", False)), 12, 7)
     d.add(timeseries("Disk temperature", [prom(f'diskTemperature{nas}', legend="{{diskID}}")], unit="celsius",
                      decimals=0, fill=0, legend="right"), 12, 7)
-    d.add(bargauge("Storage pools", [prom(f'1 - raidFreeSize{nas} / raidTotalSize{nas}', legend="{{raidName}}",
+    d.add(bargauge("Volumes", [prom('1 - raidFreeSize{job="nas-snmp", raidName=~"Volume.*"} / raidTotalSize{job="nas-snmp", raidName=~"Volume.*"}', legend="{{raidName}}",
                                           instant=True)], unit="percentunit", decimals=1, minv=0, maxv=1,
                    display_name="${__field.labels.raidName}", thr=thresholds(GOOD, (0.8, WARN), (0.9, BAD))), 8, 6)
     d.add(timeseries("Volume 3 used", [prom('max(kubelet_volume_stats_used_bytes{persistentvolumeclaim="postgres-data"})',
@@ -351,10 +354,10 @@ def network_dashboard():
         display_name="${__field.labels.name} · ${__field.labels.ap_name}",
         thr=thresholds(BAD, (-75, WARN), (-67, GOOD))), 8, 10)
     d.add(timeseries("Wi-Fi clients per access point", [prom(
-        'count by (ap_name) (unpoller_client_uptime_seconds{wired="false"})', legend="{{ap_name}}")],
+        'count by (ap_name) (unpoller_client_uptime_seconds{wired="false", ap_name!=""})', legend="{{ap_name}}")],
         decimals=0, fill=0, legend="right"), 8, 10)
     d.add(bargauge("Wi-Fi clients by standard", [prom(
-        'sort_desc(count by (radio_proto) (unpoller_client_uptime_seconds{wired="false"}))', legend="{{radio_proto}}",
+        'sort_desc(count by (radio_proto) (unpoller_client_uptime_seconds{wired="false", radio_proto!=""}))', legend="{{radio_proto}}",
         instant=True)], decimals=0, display_name="${__field.labels.radio_proto}",
         color={"mode": "fixed", "fixedColor": SLOTS[0]},
         mappings=[], desc="ng/g = 2.4 GHz legacy, ac = Wi-Fi 5, ax = Wi-Fi 6, be = Wi-Fi 7."), 8, 10)
@@ -384,7 +387,7 @@ def network_dashboard():
     d.add(timeseries("PoE power by switch", [prom('sum by (name) (unpoller_device_port_poe_watts)', legend="{{name}}")],
                      unit="watt", decimals=1, stack=True, fill=40, gradient="none", legend="right"), 12, 7)
     d.add(timeseries("Wi-Fi experience by access point", [prom(
-        'avg by (ap_name) (unpoller_client_satisfaction_ratio{wired="false"})', legend="{{ap_name}}")],
+        'avg by (ap_name) (unpoller_client_satisfaction_ratio{wired="false", ap_name!=""})', legend="{{ap_name}}")],
         unit="percentunit", maxv=1, fill=0, legend="right",
         desc="UniFi's client satisfaction score, averaged over each AP's clients."), 12, 7)
     return d
@@ -461,7 +464,7 @@ FROM listening_sessions WHERE $__timeFilter(listened_at) GROUP BY 1 ORDER BY 1''
 SELECT a.name AS metric, round(sum(l.duration_seconds) / 3600.0, 1) AS value
 FROM listening_sessions l JOIN songs s ON s.id = l.song_id JOIN artists a ON a.id = s.artist_id
 WHERE $__timeFilter(l.listened_at) GROUP BY 1 ORDER BY 2 DESC LIMIT 12''')],
-        unit="h", decimals=1, values=True, display_name="${__field.displayName}",
+        unit="h", decimals=1, values=True, display_name="${__data.fields.metric}",
         color={"mode": "fixed", "fixedColor": SLOTS[0]}), 6, 8)
     d.add(table("Top songs in range", [sql("ferrotune", '''
 SELECT s.title AS "Song", a.name AS "Artist", count(*) AS "Plays"
@@ -476,9 +479,10 @@ WHERE $__timeFilter(l.listened_at) AND NOT l.skipped GROUP BY 1, 2 ORDER BY 3 DE
     d.add(stat("Library size", [sql("immich", '''
 SELECT sum(e."fileSizeInByte") FROM asset_exif e JOIN asset a ON a.id = e."assetId" WHERE a."deletedAt" IS NULL''')],
         unit="bytes", decimals=1, graph=False), 4, 4)
-    d.add(stat("Added this month", [sql("immich", '''
-SELECT count(*) FROM asset WHERE "createdAt" > date_trunc('month', now()) AND "deletedAt" IS NULL''')],
-        decimals=0, graph=False), 4, 4)
+    d.add(stat("Last upload", [sql("immich", '''
+SELECT extract(epoch FROM now() - max("createdAt")) AS age FROM asset WHERE "deletedAt" IS NULL''')],
+        unit="s", decimals=0, graph=False, thr=thresholds(GOOD, (3 * 86400, WARN), (14 * 86400, BAD)),
+        desc="Time since anything was uploaded. Phones back up daily, so weeks means backups have stopped."), 4, 4)
     d.add(stat("Favourites", [sql("immich", '''SELECT count(*) FROM asset WHERE "isFavorite" AND "deletedAt" IS NULL''')],
                decimals=0, graph=False), 4, 4)
     d.add(stat("People", [sql("immich", '''SELECT count(*) FROM person WHERE name <> '' ''')], decimals=0,
@@ -491,12 +495,12 @@ FROM asset WHERE "deletedAt" IS NULL AND $__timeFilter("fileCreatedAt") GROUP BY
     d.add(bargauge("Cameras", [sql("immich", '''
 SELECT coalesce(nullif(trim(e.make || ' ' || e.model), ''), 'Unknown') AS metric, count(*) AS value
 FROM asset_exif e JOIN asset a ON a.id = e."assetId" WHERE a."deletedAt" IS NULL AND e.model IS NOT NULL
-GROUP BY 1 ORDER BY 2 DESC LIMIT 10''')], decimals=0, values=True, display_name="${__field.displayName}",
+GROUP BY 1 ORDER BY 2 DESC LIMIT 10''')], decimals=0, values=True, display_name="${__data.fields.metric}",
         color={"mode": "fixed", "fixedColor": SLOTS[0]}), 5, 8)
     d.add(bargauge("Places", [sql("immich", '''
 SELECT coalesce(e.city || ', ' || e.country, e.country) AS metric, count(*) AS value
 FROM asset_exif e JOIN asset a ON a.id = e."assetId" WHERE a."deletedAt" IS NULL AND e.country IS NOT NULL
-GROUP BY 1 ORDER BY 2 DESC LIMIT 10''')], decimals=0, values=True, display_name="${__field.displayName}",
+GROUP BY 1 ORDER BY 2 DESC LIMIT 10''')], decimals=0, values=True, display_name="${__data.fields.metric}",
         color={"mode": "fixed", "fixedColor": SLOTS[0]}), 5, 8)
 
     d.row("Home automation (homectl)")
@@ -524,7 +528,7 @@ GROUP BY 1 ORDER BY 2 DESC, 3 DESC''')], overrides=[by_name("Last evaluated", un
     d.add(stat("Time left", [prom('max(bambuddy_print_remaining_seconds)')], unit="s", graph=False), 4, 4)
     d.add(stat("Prints", [prom('sum by (result) (bambuddy_prints_total)', legend="{{result}}")], decimals=0,
                graph=False, text_mode="value_and_name", thr=thresholds(SLOTS[0])), 8, 4)
-    d.add(stat("Filament used", [prom('max(bambuddy_filament_used_grams)')], unit="massg", decimals=0,
+    d.add(stat("Filament used", [prom('max(bambuddy_filament_used_grams)')], unit="massg", decimals=1,
                graph=False), 4, 4)
     d.add(timeseries("Temperatures", [prom('max(bambuddy_nozzle_temp_celsius)', legend="Nozzle"),
                                       prom('max(bambuddy_bed_temp_celsius)', legend="Bed"),

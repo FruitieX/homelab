@@ -1124,7 +1124,7 @@
    }
   },
   {
-   "type": "bargauge",
+   "type": "table",
    "title": "Restarts in the last 24 h",
    "targets": [
     {
@@ -1132,60 +1132,99 @@
       "type": "prometheus",
       "uid": "prometheus"
      },
-     "expr": "sort_desc(sum by (namespace, container) (increase(kube_pod_container_status_restarts_total[24h])) > 0)",
-     "legendFormat": "{{namespace}}/{{container}}",
+     "expr": "sum by (namespace, container) (round(increase(kube_pod_container_status_restarts_total[24h]))) > 0",
+     "legendFormat": "",
      "range": false,
      "instant": true,
+     "format": "table",
      "refId": "A"
     }
    ],
    "fieldConfig": {
     "defaults": {
-     "custom": {},
-     "decimals": 0,
-     "thresholds": {
-      "mode": "absolute",
-      "steps": [
+     "custom": {
+      "align": "auto",
+      "cellOptions": {
+       "type": "auto"
+      },
+      "inspect": false
+     },
+     "noValue": "No restarts"
+    },
+    "overrides": [
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "Restarts"
+      },
+      "properties": [
        {
-        "color": "#e0a100",
-        "value": null
+        "id": "decimals",
+        "value": 0
        },
        {
-        "color": "#e5484d",
-        "value": 5
+        "id": "thresholds",
+        "value": {
+         "mode": "absolute",
+         "steps": [
+          {
+           "color": "#e0a100",
+           "value": null
+          },
+          {
+           "color": "#e5484d",
+           "value": 5
+          }
+         ]
+        }
+       },
+       {
+        "id": "custom.cellOptions",
+        "value": {
+         "type": "color-text"
+        }
        }
       ]
-     },
-     "displayName": "${__field.labels.namespace}/${__field.labels.container}",
-     "noValue": "No restarts",
-     "color": {
-      "mode": "thresholds"
      }
-    },
-    "overrides": []
+    ]
    },
    "options": {
-    "reduceOptions": {
-     "calcs": [
-      "lastNotNull"
+    "showHeader": true,
+    "cellHeight": "sm",
+    "footer": {
+     "show": false,
+     "reducer": [
+      "sum"
      ],
-     "fields": "",
-     "values": false
+     "countRows": false,
+     "fields": ""
     },
-    "displayMode": "basic",
-    "orientation": "horizontal",
-    "showUnfilled": true,
-    "valueMode": "color",
-    "namePlacement": "left",
-    "sizing": "auto",
-    "minVizHeight": 12,
-    "minVizWidth": 8,
-    "maxVizHeight": 28
+    "sortBy": [
+     {
+      "displayName": "Restarts",
+      "desc": true
+     }
+    ]
    },
    "datasource": {
     "type": "prometheus",
     "uid": "prometheus"
    },
+   "transformations": [
+    {
+     "id": "organize",
+     "options": {
+      "renameByName": {
+       "namespace": "Namespace",
+       "container": "Container",
+       "Value": "Restarts"
+      },
+      "excludeByName": {
+       "Time": true
+      }
+     }
+    }
+   ],
    "id": 14,
    "gridPos": {
     "h": 8,
@@ -1384,7 +1423,7 @@
       "mode": "fixed",
       "fixedColor": "#3987e5"
      },
-     "displayName": "${__field.displayName}",
+     "displayName": "${__data.fields.metric}",
      "thresholds": {
       "mode": "absolute",
       "steps": [
@@ -1422,7 +1461,7 @@
    "id": 19,
    "gridPos": {
     "h": 6,
-    "w": 6,
+    "w": 5,
     "x": 0,
     "y": 45
    }
@@ -1533,8 +1572,8 @@
    "id": 20,
    "gridPos": {
     "h": 6,
-    "w": 6,
-    "x": 6,
+    "w": 7,
+    "x": 5,
     "y": 45
    }
   },
@@ -1563,7 +1602,7 @@
       "mode": "fixed",
       "fixedColor": "#3987e5"
      },
-     "displayName": "${__field.displayName}",
+     "displayName": "${__data.fields.metric}",
      "thresholds": {
       "mode": "absolute",
       "steps": [
@@ -1601,7 +1640,7 @@
    "id": 21,
    "gridPos": {
     "h": 6,
-    "w": 6,
+    "w": 5,
     "x": 12,
     "y": 45
    }
@@ -1712,8 +1751,8 @@
    "id": 22,
    "gridPos": {
     "h": 6,
-    "w": 6,
-    "x": 18,
+    "w": 7,
+    "x": 17,
     "y": 45
    }
   },

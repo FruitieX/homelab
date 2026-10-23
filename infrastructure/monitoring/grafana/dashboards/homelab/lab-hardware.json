@@ -1825,14 +1825,14 @@
   },
   {
    "type": "bargauge",
-   "title": "Storage pools",
+   "title": "Volumes",
    "targets": [
     {
      "datasource": {
       "type": "prometheus",
       "uid": "prometheus"
      },
-     "expr": "1 - raidFreeSize{job=\"nas-snmp\"} / raidTotalSize{job=\"nas-snmp\"}",
+     "expr": "1 - raidFreeSize{job=\"nas-snmp\", raidName=~\"Volume.*\"} / raidTotalSize{job=\"nas-snmp\", raidName=~\"Volume.*\"}",
      "legendFormat": "{{raidName}}",
      "range": false,
      "instant": true,

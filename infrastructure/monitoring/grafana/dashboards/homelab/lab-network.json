@@ -916,7 +916,7 @@
       "type": "prometheus",
       "uid": "prometheus"
      },
-     "expr": "count by (ap_name) (unpoller_client_uptime_seconds{wired=\"false\"})",
+     "expr": "count by (ap_name) (unpoller_client_uptime_seconds{wired=\"false\", ap_name!=\"\"})",
      "legendFormat": "{{ap_name}}",
      "range": true,
      "instant": false,
@@ -984,7 +984,7 @@
       "type": "prometheus",
       "uid": "prometheus"
      },
-     "expr": "sort_desc(count by (radio_proto) (unpoller_client_uptime_seconds{wired=\"false\"}))",
+     "expr": "sort_desc(count by (radio_proto) (unpoller_client_uptime_seconds{wired=\"false\", radio_proto!=\"\"}))",
      "legendFormat": "{{radio_proto}}",
      "range": false,
      "instant": true,
@@ -1454,7 +1454,7 @@
       "type": "prometheus",
       "uid": "prometheus"
      },
-     "expr": "avg by (ap_name) (unpoller_client_satisfaction_ratio{wired=\"false\"})",
+     "expr": "avg by (ap_name) (unpoller_client_satisfaction_ratio{wired=\"false\", ap_name!=\"\"})",
      "legendFormat": "{{ap_name}}",
      "range": true,
      "instant": false,

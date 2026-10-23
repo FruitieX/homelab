@@ -414,7 +414,7 @@
       "mode": "fixed",
       "fixedColor": "#3987e5"
      },
-     "displayName": "${__field.displayName}",
+     "displayName": "${__data.fields.metric}",
      "thresholds": {
       "mode": "absolute",
       "steps": [
@@ -714,14 +714,14 @@
   },
   {
    "type": "stat",
-   "title": "Added this month",
+   "title": "Last upload",
    "targets": [
     {
      "datasource": {
       "type": "grafana-postgresql-datasource",
       "uid": "pg-immich"
      },
-     "rawSql": "SELECT count(*) FROM asset WHERE \"createdAt\" > date_trunc('month', now()) AND \"deletedAt\" IS NULL",
+     "rawSql": "SELECT extract(epoch FROM now() - max(\"createdAt\")) AS age FROM asset WHERE \"deletedAt\" IS NULL",
      "format": "table",
      "rawQuery": true,
      "editorMode": "code",
@@ -731,18 +731,27 @@
    "fieldConfig": {
     "defaults": {
      "custom": {},
+     "unit": "s",
      "decimals": 0,
-     "color": {
-      "mode": "thresholds"
-     },
      "thresholds": {
       "mode": "absolute",
       "steps": [
        {
-        "color": "#3987e5",
+        "color": "#3aa655",
         "value": null
+       },
+       {
+        "color": "#e0a100",
+        "value": 259200
+       },
+       {
+        "color": "#e5484d",
+        "value": 1209600
        }
       ]
+     },
+     "color": {
+      "mode": "thresholds"
      }
     },
     "overrides": []
@@ -767,6 +776,7 @@
     "type": "grafana-postgresql-datasource",
     "uid": "pg-immich"
    },
+   "description": "Time since anything was uploaded. Phones back up daily, so weeks means backups have stopped.",
    "id": 13,
    "gridPos": {
     "h": 4,
@@ -1026,7 +1036,7 @@
       "mode": "fixed",
       "fixedColor": "#3987e5"
      },
-     "displayName": "${__field.displayName}",
+     "displayName": "${__data.fields.metric}",
      "thresholds": {
       "mode": "absolute",
       "steps": [
@@ -1093,7 +1103,7 @@
       "mode": "fixed",
       "fixedColor": "#3987e5"
      },
-     "displayName": "${__field.displayName}",
+     "displayName": "${__data.fields.metric}",
      "thresholds": {
       "mode": "absolute",
       "steps": [
@@ -1617,7 +1627,7 @@
     "defaults": {
      "custom": {},
      "unit": "massg",
-     "decimals": 0,
+     "decimals": 1,
      "color": {
       "mode": "thresholds"
      },
