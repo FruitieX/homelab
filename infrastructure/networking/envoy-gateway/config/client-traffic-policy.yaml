@@ -1,0 +1,23 @@
+# Private gateway: drop client-supplied identity headers before any filter
+# runs. Envoy's JWT filter *adds* claim headers (it does not replace them), so
+# without this a client could send its own x-sso-user / x-sso-groups to a
+# backend that trusts them (apps/radiator/sso.yaml).
+#
+# X-Forwarded-For is deliberately left alone: apps rely on Envoy appending the
+# real client address to it (the Service uses externalTrafficPolicy Local).
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: ClientTrafficPolicy
+metadata:
+  name: private-strip-identity-headers
+  namespace: envoy-gateway-system
+spec:
+  targetRefs:
+    - group: gateway.networking.k8s.io
+      kind: Gateway
+      name: private
+  headers:
+    earlyRequestHeaders:
+      remove:
+        - x-sso-user
+        - x-sso-groups
+        - x-sso-id-token

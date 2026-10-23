@@ -1,0 +1,34 @@
+apiVersion: v1
+kind: Secret
+metadata:
+    name: radiator-wifi-oidc
+    namespace: default
+type: Opaque
+stringData:
+    client-secret: ENC[AES256_GCM,data:XSY/pOtIQCWYKOsTmyGkn2+IUd7p6bhOwgDjVmooDMo=,iv:xvhyx/y5Wi/Y668i7985PSo9zAXcYtHWGBCNZCze4sA=,tag:xk8ZAItIDCWhqQgd7zBY3A==,type:str]
+sops:
+    encrypted_regex: ^(data|stringData)$
+    lastmodified: "2026-10-23T11:56:06Z"
+    mac: ENC[AES256_GCM,data:Yw8V5yYQxmqa3rKt/BPsDWIMFLApf+69DN9mSftAbDqZ5xKwQO6bRrE5yaxTsdN8hgQEn9UAP4Yv9qAKn2cASSsba27qUDN3INGw0PZu7PYkSTSfPrmge7YhzHTQLZHJmUdqwOf8a2gu/CUn5wgtUa6gXKWixeS6Cx3boMmnU1k=,iv:4yj6X5xQTOjU6ekPjTd0gCZtyHR2DjtScv3Khj3CtAk=,tag:XyTYWpCBq5jolAxn3rMg6Q==,type:str]
+    pgp:
+        - created_at: "2026-10-23T11:55:19Z"
+          enc: |-
+            -----BEGIN PGP MESSAGE-----
+
+            hQIMA8WjeZLD+fxwAQ//fZarf4JEdawenWMFojdTIvAKRVUkbY7tVL/wte6pfrDg
+            16rjcIOrHZAQSmYF9lgvFlIQ14yjGMleibkGJsOJTyZtYSonvL61lyBkEoQyPCDy
+            U+3MLDBoWR0u3XVmopYvyhzzLs50laF4z+C+rvBeDl7aHTUxTFIQwlkSBkYKbjK5
+            FsU9jPQTX09oKH497+RFpjaIptAmKAK0vCtByL6AJRGa0+k0javpvmzfIth1DmTx
+            o1Jv8Uh+oQ/EeAuWWZVfM1G+k1cuO1/LTUWwZBhLeEUA3NwtNmytFJuCQ1yZ6OqP
+            R4fsK/syktMBMBy5BrEcG+UmQKq1TlWsxwZQo3NlZmj4MiXRG5FUAjDIL+ozM34c
+            2TrRoC5ce7HOnCCg6HRKX/uIiaAyQMI7XcM6oc2afqJtijERUt/mjg1C7lUCVGqA
+            LzeuXwNvB9QaKSBMLIsvAgRn3/JKXNbcjEcDSTeyU0StONQtfBmLEZ7UNolmHNoo
+            mF66ViKhOO8S5MkczaycqUm0EW7EL/mVnjvJ+o3JN17QK/stpiCPYseFFwDOm2ZS
+            iIZYEXiWJAVHWw3XX0/7OvA+RrbYgD0S47ngIClJZPG6a5IVglm/fhRxNR+gVd6A
+            VjRqp8kYW/4TL4qardKgs1iQYL7ed/M9yTb1fTjAtWz0n3wO/2+PZI+h/e46RfrS
+            XAElDBfcpb6N1gs2e6lw5fD7Bk8wt0lR01RT1nr7WcEKQ9de8+VSImDCk3Y3jaBu
+            S/+OoTpCoraGG8UKOJFhxQ+qOhfNQJaep4AJZqJa8qu7rPj63F5tI0hkeQgo
+            =nxWh
+            -----END PGP MESSAGE-----
+          fp: 3536F7F9345D96C86FB7F9CD21FAFEE575B18815
+    version: 3.13.3

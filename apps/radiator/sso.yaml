@@ -1,0 +1,65 @@
+# Pocket ID sign-in at the private gateway for the Radiator management UI
+# (radiator.fruitiex.org).
+#
+# Envoy validates the ID token and forwards x-sso-user / x-sso-groups (the
+# groups header is Base64 of the JSON array, Envoy's format for array claims).
+# Client copies of x-sso-* are removed by the private gateway's
+# ClientTrafficPolicy, and the HTTPRouteFilter injects the proxy secret that
+# Radiator checks before trusting the headers (management-auth.radconf).
+# Members of "admins" get full privileges, other users monitor-only.
+---
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: HTTPRouteFilter
+metadata:
+  name: radiator-proxy-secret
+  namespace: default
+spec:
+  credentialInjection:
+    header: x-radiator-proxy-secret
+    overwrite: true
+    credential:
+      valueRef:
+        name: radiator-proxy-secret
+---
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: SecurityPolicy
+metadata:
+  name: pocket-id-radiator-management
+  namespace: default
+spec:
+  targetRefs:
+    - group: gateway.networking.k8s.io
+      kind: HTTPRoute
+      name: radiator-management
+  oidc:
+    provider:
+      issuer: https://id.fruitiex.org
+    # Shared admins-only gateway client.
+    clientID: homelab-gateway
+    clientSecret:
+      name: pocket-id-gateway
+      namespace: envoy-gateway-system
+    scopes: [openid, profile, email, groups, offline_access]
+    redirectURL: https://radiator.fruitiex.org/oauth2/callback
+    logoutPath: /oauth2/logout
+    refreshToken: true
+    defaultRefreshTokenTTL: 8760h
+    # Raw ID token for the JWT provider below; the OAuth2 filter strips client
+    # copies of this header.
+    forwardIDToken:
+      header: x-sso-id-token
+  jwt:
+    providers:
+      - name: pocket-id
+        issuer: https://id.fruitiex.org
+        audiences: [homelab-gateway]
+        remoteJWKS:
+          uri: https://id.fruitiex.org/.well-known/jwks.json
+        extractFrom:
+          headers:
+            - name: x-sso-id-token
+        claimToHeaders:
+          - header: x-sso-user
+            claim: preferred_username
+          - header: x-sso-groups
+            claim: groups

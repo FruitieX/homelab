@@ -137,6 +137,37 @@ data:
                 http.management == true;
             }
 
+            # Requests through the private gateway after Pocket ID sign-in
+            # (apps/radiator/sso.yaml). The gateway's ClientTrafficPolicy removes
+            # client copies of x-sso-*, the SecurityPolicy adds them from the
+            # validated ID token, and an HTTPRouteFilter injects the proxy secret.
+            handler "SSO" {
+                conditions all {
+                    # Without this guard an unset variable matches a missing header.
+                    env.RADIATOR_PROXY_SECRET == /^.{32,}$/;
+                    http.header.x-radiator-proxy-secret == env.RADIATOR_PROXY_SECRET;
+                    http.header.x-sso-user == any;
+                }
+
+                @execute {
+                    user.username = http.header.x-sso-user;
+                    user.privilege = "monitor";
+
+                    # Envoy sends array claims as Base64 of the JSON array.
+                    vars.groups = http.header.x-sso-groups | base64_decode | string | json | jsonpath("$[*]");
+
+                    if all {
+                        vars.groups == "admins";
+                    } then {
+                        user.privilege = "all";
+                        user.radiatordb_role = "admin";
+                    }
+
+                    accept;
+                }
+            }
+
+            # Break-glass: password users, for example through kubectl port-forward.
             handler "AUTHENTICATION" {
                 @execute {
                     backend {
@@ -477,13 +508,13 @@ spec:
             - -c
           args:
             - >-
-              if [ ! -f /var/lib/radiator/.bootstrap-complete-v6 ]; then
+              if [ ! -f /var/lib/radiator/.bootstrap-complete-v7 ]; then
                 rm -f /var/lib/radiator/*.radconf /var/lib/radiator/..data;
                 rm -rf /var/lib/radiator/..20*;
                 for config in /bootstrap/*.radconf; do
                   cp -L "$config" "/var/lib/radiator/$(basename "$config")";
                 done;
-                touch /var/lib/radiator/.bootstrap-complete-v6;
+                touch /var/lib/radiator/.bootstrap-complete-v7;
               fi;
               mkdir -p /var/lib/radiator/licenses /var/lib/radiator/tmp /var/lib/radiator/management/tls/certs /var/lib/radiator/management/tls/keys /var/log/radiator;
               chown -R 1000:1000 /var/lib/radiator /var/log/radiator;
@@ -542,6 +573,12 @@ spec:
                 secretKeyRef:
                   name: radiator-secrets
                   key: POSTGRES_PASSWORD
+            # Shared with the private gateway's HTTPRouteFilter (sso.yaml).
+            - name: RADIATOR_PROXY_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: radiator-proxy-secret
+                  key: credential
           ports:
             - name: management
               containerPort: 8443
@@ -636,6 +673,12 @@ spec:
         - path:
             type: PathPrefix
             value: /
+      filters:
+        - type: ExtensionRef
+          extensionRef:
+            group: gateway.envoyproxy.io
+            kind: HTTPRouteFilter
+            name: radiator-proxy-secret
       backendRefs:
         - name: radiator-management
           port: 8443

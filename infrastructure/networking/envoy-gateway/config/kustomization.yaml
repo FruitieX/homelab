@@ -7,3 +7,4 @@ resources:
   - redirects.yaml
   - pocket-id-gateway.sops.yaml
   - pocket-id-gateway-grant.yaml
+  - client-traffic-policy.yaml
