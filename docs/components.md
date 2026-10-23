@@ -5,7 +5,7 @@ I make use of the following pieces of software and infrastructure:
 ### Hardware
 
 - Three independent Proxmox mini PCs (Ryzen 7 5800H, Ryzen 7 6800H, Intel N150) running the Talos VMs
-- Synology DS420+ NAS
+- Synology DS923+ NAS
 - UniFi Cloud Gateway Fiber + various UniFi switches and access points
 
 ### Kubernetes
@@ -61,4 +61,4 @@ I make use of the following pieces of software and infrastructure:
 
 ### kube-prometheus-stack
 
-- Detailed Grafana dashboards & metrics
+- Metrics, alerts and dashboards; see [monitoring](monitoring.md)

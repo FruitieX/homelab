@@ -8,13 +8,13 @@ This repo contains a declarative, GitOps definition of my homelab.
 
 In summary, the homelab is built up using:
 
-- [A mini PC](https://store.minisforum.de/collections/alle-produkte-1/products/minisforum-venus-series-um560?variant=41392983572663), [NAS](https://www.synology.com/en-us/support/download/DS420+?version=7.1#system) and some [UniFi](https://eu.store.ui.com/products/unifi-dream-machine) network infrastructure
+- [A mini PC](https://store.minisforum.de/collections/alle-produkte-1/products/minisforum-venus-series-um560?variant=41392983572663), [NAS](https://www.synology.com/en-us/products/DS923+) and some [UniFi](https://eu.store.ui.com/products/unifi-dream-machine) network infrastructure
 - [Kubernetes](https://kubernetes.io/), running on virtual [Talos Linux](https://www.talos.dev/) nodes in [Proxmox VE](https://www.proxmox.com/en/proxmox-ve)
 - [Flux CD](https://fluxcd.io/) reconciling cluster configuration from this git repo
 - [MetalLB](https://metallb.universe.tf/) & [external-dns](https://github.com/kubernetes-sigs/external-dns) expose apps on separate IP addresses with associated DNS records
 - [Envoy Gateway](https://gateway.envoyproxy.io/) & [cert-manager](https://cert-manager.io/) route subdomain HTTP requests with auto-renewing [Let's Encrypt](https://letsencrypt.org/) certificates
 - [csi-driver-nfs](https://github.com/kubernetes-csi/csi-driver-nfs) & [synology-csi](https://github.com/SynologyOpenSource/synology-csi) provide persistent storage on the NAS
-- [kube-prometheus-stack](https://github.com/prometheus-operator/kube-prometheus) provides detailed metrics
+- [kube-prometheus-stack](https://github.com/prometheus-operator/kube-prometheus), Loki and Grafana provide metrics, logs, dashboards and Discord alerts ([monitoring](/docs/monitoring.md))
 
 [More detailed writeup](/docs/components.md)
 
