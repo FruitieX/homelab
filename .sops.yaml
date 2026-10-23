@@ -2,4 +2,8 @@ creation_rules:
   - path_regex: apps/ingress-proxy/.*
     encrypted_regex: "^(hosts?|hostnames?)$"
 
+  # LAN scrape targets: keep host addresses out of the public repo.
+  - path_regex: infrastructure/monitoring/targets/lan\.sops\.yaml$
+    encrypted_regex: "^targets$"
+
   - encrypted_regex: "^(data|stringData)$"

@@ -1,0 +1,266 @@
+# LAN scrape targets (addresses SOPS-encrypted; this repo is public).
+# Proxmox hosts run Debian's prometheus-node-exporter on :9100.
+apiVersion: monitoring.coreos.com/v1alpha1
+kind: ScrapeConfig
+metadata:
+    name: proxmox-node
+    namespace: kube-prometheus-stack
+spec:
+    scrapeInterval: 30s
+    staticConfigs:
+        - labels:
+            host: mango
+          targets:
+            - ENC[AES256_GCM,data:qxF3A2P5NI1wOfFR9E2lSgltTA==,iv:qt9fPxttYTnKEu6EUyXsKgh8dNcUO+cz+4/ltXyzUVo=,tag:ZvItOz0XVdPLBYrZA2M0lQ==,type:str]
+        - labels:
+            host: mandarin
+          targets:
+            - ENC[AES256_GCM,data:o8XfcknfcHlLcaoDyY7ePwicIg==,iv:SmR0dQv6nL3wHEC38Jwr+8HaRb4yOZgYb+tcDKqAEDM=,tag:EFoYybEhTpcaHPUNcbz97Q==,type:str]
+        - labels:
+            host: mulberry
+          targets:
+            - ENC[AES256_GCM,data:d9idipt/0ZgZolItb4JYiQzI,iv:l7IfLIbiU1nYpcyJiSTmf5OT4WSOQLJSFP3rgTWRE8k=,tag:qN2exWrgYKa2mhz+b5wmZg==,type:str]
+    relabelings:
+        - targetLabel: job
+          replacement: proxmox-node
+sops:
+    lastmodified: "2026-10-23T11:29:09Z"
+    mac: ENC[AES256_GCM,data:e3JwCpvucZwQ8357KVPLRHvcr/I9iBBqGfdD/kcyZFtVm13LNWd0iny/90K9nR6TKgaWqHPfycGmYh+S+yH/zjHYcgoOCcdFGD5BU4KaUfc38wHnb7MZ6l0SG2uvRoy8rcdubW2EoMMmY28L45EHQbYgGFlhpNQFocy/7CwMgoc=,iv:xg3o4pDElSSdhrrO/QV2H/7vIj/zNfCBsj5q1fFNc0A=,tag:AOvKLbdgWhBZBW20VcAsuA==,type:str]
+    pgp:
+        - created_at: "2026-10-23T11:29:09Z"
+          enc: |-
+            -----BEGIN PGP MESSAGE-----
+
+            hQIMA8WjeZLD+fxwARAAovHSmKhiN44598yqkyQemNkfJ8TjvjH4+7ZbrE4e/lLj
+            yfRZWIRwykksJbmLtaSWFhr02atjE4nKibqn0N2NpNfvHbMhJhZvwBr944Z/qLGw
+            mvw99Ap6Ym6FOxghw5x88hrjHy3XlEjCxUBNkGSeCpMcRbF2YgLe9zV3VoZL8aRK
+            +G3S0P3Bhqa57ecsAOo5kvoZDZCW5RY5TFyRjeOn9KG9XM2Xt0O07yIzj8J+JQZb
+            Hxu2vC9VZkDNpUAp3zclALwYvJIca1FoOmMYztg433gv5j6pLqmvoBPdUmOn+FFO
+            pgPz1UEITOt1GapvNLpn1QHBzaZa5ambKSQdP+c79xc16oCBz/Yu1OTi7TFsFLua
+            8CI6a2cP9r5SZX1Wib+Bsk71N0xgFRTXblr1mN9vVpDtuVmJbAQSz3Mznj1QSOM3
+            sG2V5EwujyRHVAslxa7W577x/Kv4rSO/RGmVsJK5ExTliqPQ5IBq3VQkzcbAEeEv
+            E6Jqv1z7iGa/TW6QCAl3K2icIOsRoBFvWH9JLuHNuUlNr8RvURgDcIbttVZ1V+u2
+            IWqBURMbKHZdvz7YIYA2OXsxfSfhCkk649S7QqmcdC70RG65lOHBf7ryon0Brv7+
+            L8vNDcdXK6cCYjTN8VLn0IFCHbUbKU04KwBs+K8Bc84C9Wz1CB9yMvvTTl3OTeLS
+            XgFFGEbQcvj9rwXxOY5BQ+Qz4/oDKooMPSljdekUbKpYVr3KDBLnwI1GOK4P1Crr
+            RMEm0WpQNeMN5wJ79HdDhWGKw4rocy5L1irjU426XhKucrL4aIj2gNTWXSMCotE=
+            =RWyG
+            -----END PGP MESSAGE-----
+          fp: 3536F7F9345D96C86FB7F9CD21FAFEE575B18815
+    encrypted_regex: ^targets$
+    version: 3.11.0
+---
+apiVersion: monitoring.coreos.com/v1alpha1
+kind: ScrapeConfig
+metadata:
+    name: proxmox-pve
+    namespace: kube-prometheus-stack
+spec:
+    scrapeInterval: 60s
+    scrapeTimeout: 30s
+    metricsPath: /pve
+    params:
+        cluster:
+            - "1"
+        node:
+            - "1"
+    staticConfigs:
+        - labels:
+            host: mango
+          targets:
+            - ENC[AES256_GCM,data:8bNGs6/bbzuR3Byv8tE=,iv:HwUoL90XpsvR1Z1VPVg9O6MCh3uo8qUX5sjTw/QkVP0=,tag:2bzWv2RnonbV4yHKnIu7SA==,type:str]
+        - labels:
+            host: mandarin
+          targets:
+            - ENC[AES256_GCM,data:KxALmf4RuCyaf7aVImQ=,iv:w8WZp0Tm+3K65vBKKLPLXkwmPLyI9OYkw048HOfRaFc=,tag:XMxnkdjg7czdNKGGDamm8g==,type:str]
+        - labels:
+            host: mulberry
+          targets:
+            - ENC[AES256_GCM,data:eofjqRkWQMztqvwVdA==,iv:WjWhH0GMfaifAsPdaM0BM+grwvfeZR9RcVzNcfAns/E=,tag:pLP6LxOy/ze/CJVfZDcfMA==,type:str]
+    relabelings:
+        - targetLabel: job
+          replacement: proxmox-pve
+        - sourceLabels:
+            - __address__
+          targetLabel: __param_target
+        - sourceLabels:
+            - host
+          targetLabel: __param_module
+        - sourceLabels:
+            - host
+          targetLabel: instance
+        - targetLabel: __address__
+          replacement: pve-exporter.kube-prometheus-stack.svc:9221
+sops:
+    lastmodified: "2026-10-23T11:29:09Z"
+    mac: ENC[AES256_GCM,data:e3JwCpvucZwQ8357KVPLRHvcr/I9iBBqGfdD/kcyZFtVm13LNWd0iny/90K9nR6TKgaWqHPfycGmYh+S+yH/zjHYcgoOCcdFGD5BU4KaUfc38wHnb7MZ6l0SG2uvRoy8rcdubW2EoMMmY28L45EHQbYgGFlhpNQFocy/7CwMgoc=,iv:xg3o4pDElSSdhrrO/QV2H/7vIj/zNfCBsj5q1fFNc0A=,tag:AOvKLbdgWhBZBW20VcAsuA==,type:str]
+    pgp:
+        - created_at: "2026-10-23T11:29:09Z"
+          enc: |-
+            -----BEGIN PGP MESSAGE-----
+
+            hQIMA8WjeZLD+fxwARAAovHSmKhiN44598yqkyQemNkfJ8TjvjH4+7ZbrE4e/lLj
+            yfRZWIRwykksJbmLtaSWFhr02atjE4nKibqn0N2NpNfvHbMhJhZvwBr944Z/qLGw
+            mvw99Ap6Ym6FOxghw5x88hrjHy3XlEjCxUBNkGSeCpMcRbF2YgLe9zV3VoZL8aRK
+            +G3S0P3Bhqa57ecsAOo5kvoZDZCW5RY5TFyRjeOn9KG9XM2Xt0O07yIzj8J+JQZb
+            Hxu2vC9VZkDNpUAp3zclALwYvJIca1FoOmMYztg433gv5j6pLqmvoBPdUmOn+FFO
+            pgPz1UEITOt1GapvNLpn1QHBzaZa5ambKSQdP+c79xc16oCBz/Yu1OTi7TFsFLua
+            8CI6a2cP9r5SZX1Wib+Bsk71N0xgFRTXblr1mN9vVpDtuVmJbAQSz3Mznj1QSOM3
+            sG2V5EwujyRHVAslxa7W577x/Kv4rSO/RGmVsJK5ExTliqPQ5IBq3VQkzcbAEeEv
+            E6Jqv1z7iGa/TW6QCAl3K2icIOsRoBFvWH9JLuHNuUlNr8RvURgDcIbttVZ1V+u2
+            IWqBURMbKHZdvz7YIYA2OXsxfSfhCkk649S7QqmcdC70RG65lOHBf7ryon0Brv7+
+            L8vNDcdXK6cCYjTN8VLn0IFCHbUbKU04KwBs+K8Bc84C9Wz1CB9yMvvTTl3OTeLS
+            XgFFGEbQcvj9rwXxOY5BQ+Qz4/oDKooMPSljdekUbKpYVr3KDBLnwI1GOK4P1Crr
+            RMEm0WpQNeMN5wJ79HdDhWGKw4rocy5L1irjU426XhKucrL4aIj2gNTWXSMCotE=
+            =RWyG
+            -----END PGP MESSAGE-----
+          fp: 3536F7F9345D96C86FB7F9CD21FAFEE575B18815
+    encrypted_regex: ^targets$
+    version: 3.11.0
+---
+apiVersion: monitoring.coreos.com/v1alpha1
+kind: ScrapeConfig
+metadata:
+    name: nas-snmp
+    namespace: kube-prometheus-stack
+spec:
+    scrapeInterval: 2m
+    scrapeTimeout: 90s
+    metricsPath: /snmp
+    params:
+        module:
+            - synology
+            - if_mib
+            - ucd_system_stats
+            - ucd_memory
+            - ucd_la_table
+            - system
+        auth:
+            - nectarine
+    staticConfigs:
+        - labels:
+            host: nectarine
+          targets:
+            - ENC[AES256_GCM,data:vV8Scq2TEdSqY215,iv:JdUganq4UXDo4uQ3RG+x+WzoknAjSPXCAQZNQnX6Hlk=,tag:CVV1sdS1NqwLy573Rg4G/Q==,type:str]
+    relabelings:
+        - targetLabel: job
+          replacement: nas-snmp
+        - sourceLabels:
+            - __address__
+          targetLabel: __param_target
+        - sourceLabels:
+            - host
+          targetLabel: instance
+        - targetLabel: __address__
+          replacement: snmp-exporter.kube-prometheus-stack.svc:9116
+sops:
+    lastmodified: "2026-10-23T11:29:09Z"
+    mac: ENC[AES256_GCM,data:e3JwCpvucZwQ8357KVPLRHvcr/I9iBBqGfdD/kcyZFtVm13LNWd0iny/90K9nR6TKgaWqHPfycGmYh+S+yH/zjHYcgoOCcdFGD5BU4KaUfc38wHnb7MZ6l0SG2uvRoy8rcdubW2EoMMmY28L45EHQbYgGFlhpNQFocy/7CwMgoc=,iv:xg3o4pDElSSdhrrO/QV2H/7vIj/zNfCBsj5q1fFNc0A=,tag:AOvKLbdgWhBZBW20VcAsuA==,type:str]
+    pgp:
+        - created_at: "2026-10-23T11:29:09Z"
+          enc: |-
+            -----BEGIN PGP MESSAGE-----
+
+            hQIMA8WjeZLD+fxwARAAovHSmKhiN44598yqkyQemNkfJ8TjvjH4+7ZbrE4e/lLj
+            yfRZWIRwykksJbmLtaSWFhr02atjE4nKibqn0N2NpNfvHbMhJhZvwBr944Z/qLGw
+            mvw99Ap6Ym6FOxghw5x88hrjHy3XlEjCxUBNkGSeCpMcRbF2YgLe9zV3VoZL8aRK
+            +G3S0P3Bhqa57ecsAOo5kvoZDZCW5RY5TFyRjeOn9KG9XM2Xt0O07yIzj8J+JQZb
+            Hxu2vC9VZkDNpUAp3zclALwYvJIca1FoOmMYztg433gv5j6pLqmvoBPdUmOn+FFO
+            pgPz1UEITOt1GapvNLpn1QHBzaZa5ambKSQdP+c79xc16oCBz/Yu1OTi7TFsFLua
+            8CI6a2cP9r5SZX1Wib+Bsk71N0xgFRTXblr1mN9vVpDtuVmJbAQSz3Mznj1QSOM3
+            sG2V5EwujyRHVAslxa7W577x/Kv4rSO/RGmVsJK5ExTliqPQ5IBq3VQkzcbAEeEv
+            E6Jqv1z7iGa/TW6QCAl3K2icIOsRoBFvWH9JLuHNuUlNr8RvURgDcIbttVZ1V+u2
+            IWqBURMbKHZdvz7YIYA2OXsxfSfhCkk649S7QqmcdC70RG65lOHBf7ryon0Brv7+
+            L8vNDcdXK6cCYjTN8VLn0IFCHbUbKU04KwBs+K8Bc84C9Wz1CB9yMvvTTl3OTeLS
+            XgFFGEbQcvj9rwXxOY5BQ+Qz4/oDKooMPSljdekUbKpYVr3KDBLnwI1GOK4P1Crr
+            RMEm0WpQNeMN5wJ79HdDhWGKw4rocy5L1irjU426XhKucrL4aIj2gNTWXSMCotE=
+            =RWyG
+            -----END PGP MESSAGE-----
+          fp: 3536F7F9345D96C86FB7F9CD21FAFEE575B18815
+    encrypted_regex: ^targets$
+    version: 3.11.0
+---
+apiVersion: monitoring.coreos.com/v1alpha1
+kind: ScrapeConfig
+metadata:
+    name: lan-hosts
+    namespace: kube-prometheus-stack
+spec:
+    scrapeInterval: 60s
+    metricsPath: /probe
+    params:
+        module:
+            - tcp_connect
+    staticConfigs:
+        - labels:
+            host: nectarine
+            service: DSM
+          targets:
+            - ENC[AES256_GCM,data:ptRuWY8Ev0pgAwzhN0Q23X0=,iv:lozFZBjfkESDEVQK9rroGotBBDyb0MyajiZzlVqneCc=,tag:C09Fu82ET+1Ug1eWoevwEw==,type:str]
+        - labels:
+            host: mango
+            service: Proxmox
+          targets:
+            - ENC[AES256_GCM,data:+Rsh93/XwDLJ5b1DkzbfmiQwOw==,iv:ZSxuX+FjBghMY4ei3ihItLvPUo5Q1EvCUmbvPl0nyBE=,tag:HR0KYN9oRZB0oal/49r1fA==,type:str]
+        - labels:
+            host: mandarin
+            service: Proxmox
+          targets:
+            - ENC[AES256_GCM,data:7BXlIrFpx2nizoR+DauQLaizcw==,iv:BRiV7WHUzVSmkhYqfbdpT10MyhQo6B1CbmBk/TJbWRE=,tag:pMT4FbtUYf1ARUFUFxfegw==,type:str]
+        - labels:
+            host: mulberry
+            service: Proxmox
+          targets:
+            - ENC[AES256_GCM,data:PASYosODnOV9Ajo7UyRU6Vrz,iv:eO+4Jfac9JwpVc+APfXF/d+DSq1pfhW21ef+ST8L0w8=,tag:BfKYliIiAi64EpQbiEzdmw==,type:str]
+        - labels:
+            host: gateway
+            service: UniFi
+          targets:
+            - ENC[AES256_GCM,data:AWDOXb4ChEtLhoqdinDE,iv:xaD70eOjggVuoFTJrRVllZXN79AQJgg8hyjan7BoFwY=,tag:wKS2GIQtpTgOpoISsia9FA==,type:str]
+        - labels:
+            host: honeydew
+            service: SSH
+          targets:
+            - ENC[AES256_GCM,data:BzuofDqd/mCChB5kQIm+dw==,iv:SSnchwdIi8zOt9jsz3HybA/ilW1D8egNqMgKhBbnGoU=,tag:x96yFxEgX2OdVnotWYnTeQ==,type:str]
+        - labels:
+            host: zigbee2mqtt
+            service: Zigbee2MQTT
+          targets:
+            - ENC[AES256_GCM,data:OEnbUPXDXTklpdZx3YImrb8=,iv:oXZ1ut4ed4Ckrr9E5lV12J0qgoZ7V7prc+4NAK1xLSM=,tag:/cZD3+opCKY6I+b07EcY+A==,type:str]
+    relabelings:
+        - targetLabel: job
+          replacement: lan-hosts
+        - sourceLabels:
+            - __address__
+          targetLabel: __param_target
+        - sourceLabels:
+            - host
+          targetLabel: instance
+        - targetLabel: __address__
+          replacement: blackbox-exporter.kube-prometheus-stack.svc:9115
+sops:
+    lastmodified: "2026-10-23T11:29:09Z"
+    mac: ENC[AES256_GCM,data:e3JwCpvucZwQ8357KVPLRHvcr/I9iBBqGfdD/kcyZFtVm13LNWd0iny/90K9nR6TKgaWqHPfycGmYh+S+yH/zjHYcgoOCcdFGD5BU4KaUfc38wHnb7MZ6l0SG2uvRoy8rcdubW2EoMMmY28L45EHQbYgGFlhpNQFocy/7CwMgoc=,iv:xg3o4pDElSSdhrrO/QV2H/7vIj/zNfCBsj5q1fFNc0A=,tag:AOvKLbdgWhBZBW20VcAsuA==,type:str]
+    pgp:
+        - created_at: "2026-10-23T11:29:09Z"
+          enc: |-
+            -----BEGIN PGP MESSAGE-----
+
+            hQIMA8WjeZLD+fxwARAAovHSmKhiN44598yqkyQemNkfJ8TjvjH4+7ZbrE4e/lLj
+            yfRZWIRwykksJbmLtaSWFhr02atjE4nKibqn0N2NpNfvHbMhJhZvwBr944Z/qLGw
+            mvw99Ap6Ym6FOxghw5x88hrjHy3XlEjCxUBNkGSeCpMcRbF2YgLe9zV3VoZL8aRK
+            +G3S0P3Bhqa57ecsAOo5kvoZDZCW5RY5TFyRjeOn9KG9XM2Xt0O07yIzj8J+JQZb
+            Hxu2vC9VZkDNpUAp3zclALwYvJIca1FoOmMYztg433gv5j6pLqmvoBPdUmOn+FFO
+            pgPz1UEITOt1GapvNLpn1QHBzaZa5ambKSQdP+c79xc16oCBz/Yu1OTi7TFsFLua
+            8CI6a2cP9r5SZX1Wib+Bsk71N0xgFRTXblr1mN9vVpDtuVmJbAQSz3Mznj1QSOM3
+            sG2V5EwujyRHVAslxa7W577x/Kv4rSO/RGmVsJK5ExTliqPQ5IBq3VQkzcbAEeEv
+            E6Jqv1z7iGa/TW6QCAl3K2icIOsRoBFvWH9JLuHNuUlNr8RvURgDcIbttVZ1V+u2
+            IWqBURMbKHZdvz7YIYA2OXsxfSfhCkk649S7QqmcdC70RG65lOHBf7ryon0Brv7+
+            L8vNDcdXK6cCYjTN8VLn0IFCHbUbKU04KwBs+K8Bc84C9Wz1CB9yMvvTTl3OTeLS
+            XgFFGEbQcvj9rwXxOY5BQ+Qz4/oDKooMPSljdekUbKpYVr3KDBLnwI1GOK4P1Crr
+            RMEm0WpQNeMN5wJ79HdDhWGKw4rocy5L1irjU426XhKucrL4aIj2gNTWXSMCotE=
+            =RWyG
+            -----END PGP MESSAGE-----
+          fp: 3536F7F9345D96C86FB7F9CD21FAFEE575B18815
+    encrypted_regex: ^targets$
+    version: 3.11.0

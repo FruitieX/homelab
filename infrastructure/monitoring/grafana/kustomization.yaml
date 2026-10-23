@@ -5,4 +5,5 @@ resources:
   - namespace.yaml
   - release.yaml
   - httproute.yaml
+  - grafana-datasources.sops.yaml
   - oidc-secret.sops.yaml

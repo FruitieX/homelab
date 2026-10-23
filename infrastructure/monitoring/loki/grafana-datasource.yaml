@@ -6,8 +6,15 @@ metadata:
   labels:
     grafana_datasource: "1"
 data:
-  datasource.yaml: |-
+  # Unique file name: kube-prometheus-stack's datasource ConfigMap already
+  # uses datasource.yaml, and the Grafana sidecar writes both to one folder.
+  loki-datasource.yaml: |-
     apiVersion: 1
+    # The UI-era Loki datasource had a random uid, which made every
+    # provisioning reload fail; recreate it with the stable uid "loki".
+    deleteDatasources:
+      - name: Loki
+        orgId: 1
     datasources:
     - name: "Loki"
       type: loki

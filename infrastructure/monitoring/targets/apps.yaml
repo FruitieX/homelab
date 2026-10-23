@@ -1,0 +1,14 @@
+# Application metrics endpoints.
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: bambuddy
+  namespace: default
+spec:
+  selector:
+    matchLabels:
+      app: bambuddy
+  podMetricsEndpoints:
+    - port: http
+      path: /api/v1/metrics
+      interval: 60s

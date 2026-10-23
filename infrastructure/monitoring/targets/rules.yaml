@@ -1,0 +1,131 @@
+# Curated homelab alerts. Anything labelled homelab="true" is sent to Discord
+# (see alertmanager.config in ../kube-prometheus-stack/release.yaml); the
+# stock kube-prometheus rules only reach Discord when critical.
+# Home sensor alerts (freezer, water leak) live in Grafana alerting because
+# that data is in InfluxDB (../grafana/alerting.sops.yaml).
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: homelab
+  namespace: kube-prometheus-stack
+spec:
+  groups:
+    - name: homelab.availability
+      rules:
+        - alert: AppDown
+          expr: probe_success{job=~"probe/kube-prometheus-stack/apps-.*"} == 0
+          for: 5m
+          labels:
+            homelab: "true"
+            severity: warning
+          annotations:
+            summary: "{{ $labels.instance }} is not answering"
+            description: "The blackbox probe of {{ $labels.instance }} ({{ $labels.gateway }} gateway) has failed for 5 minutes."
+        - alert: ClusterServiceDown
+          expr: probe_success{job="probe/kube-prometheus-stack/cluster-services"} == 0
+          for: 5m
+          labels:
+            homelab: "true"
+            severity: warning
+          annotations:
+            summary: "{{ $labels.instance }} refuses TCP connections"
+        - alert: LanHostDown
+          expr: probe_success{job="lan-hosts"} == 0
+          for: 5m
+          labels:
+            homelab: "true"
+            severity: warning
+          annotations:
+            summary: "{{ $labels.instance }} ({{ $labels.service }}) is unreachable"
+        - alert: TlsCertificateExpiringSoon
+          expr: (probe_ssl_earliest_cert_expiry - time()) / 86400 < 14
+          for: 1h
+          labels:
+            homelab: "true"
+            severity: warning
+          annotations:
+            summary: "TLS certificate for {{ $labels.instance }} expires in {{ $value | humanize }} days"
+            description: "cert-manager should renew 30 days ahead; check the Certificate and the ACME DNS-01 solver."
+    - name: homelab.workloads
+      rules:
+        - alert: FluxReconcileFailing
+          expr: gotk_resource_info{ready="False", suspended!="true"} == 1
+          for: 30m
+          labels:
+            homelab: "true"
+            severity: warning
+          annotations:
+            summary: "Flux {{ $labels.customresource_kind }} {{ $labels.exported_namespace }}/{{ $labels.name }} is not ready"
+        - alert: ContainerCrashLooping
+          expr: increase(kube_pod_container_status_restarts_total[1h]) > 3
+          for: 10m
+          labels:
+            homelab: "true"
+            severity: warning
+          annotations:
+            summary: "{{ $labels.namespace }}/{{ $labels.pod }} ({{ $labels.container }}) restarted {{ $value | humanize }} times in the last hour"
+        - alert: ContainerOOMKilled
+          expr: |
+            increase(kube_pod_container_status_restarts_total[15m]) > 0
+            and on (namespace, pod, container)
+            kube_pod_container_status_last_terminated_reason{reason="OOMKilled"} == 1
+          labels:
+            homelab: "true"
+            severity: warning
+          annotations:
+            summary: "{{ $labels.namespace }}/{{ $labels.pod }} ({{ $labels.container }}) was OOM-killed"
+            description: "Raise its memory limit or find the leak (Homelab → Workloads dashboard)."
+    - name: homelab.hardware
+      rules:
+        - alert: NasVolumeFillingUp
+          expr: |
+            predict_linear(max(kubelet_volume_stats_available_bytes{persistentvolumeclaim="postgres-data"})[7d:1h], 30 * 86400) < 0
+            and max(kubelet_volume_stats_available_bytes{persistentvolumeclaim="postgres-data"}) / max(kubelet_volume_stats_capacity_bytes{persistentvolumeclaim="postgres-data"}) < 0.2
+          for: 6h
+          labels:
+            homelab: "true"
+            severity: warning
+          annotations:
+            summary: "The NAS homelab volume will be full within 30 days at the current rate"
+        - alert: NasDiskUnhealthy
+          expr: diskHealthStatus{job="nas-snmp"} != 1 or diskStatus{job="nas-snmp"} != 1
+          for: 15m
+          labels:
+            homelab: "true"
+            severity: critical
+          annotations:
+            summary: "NAS disk {{ $labels.diskID }} reports status {{ $value }}"
+        - alert: NasRaidDegraded
+          expr: raidStatus{job="nas-snmp"} != 1
+          for: 15m
+          labels:
+            homelab: "true"
+            severity: critical
+          annotations:
+            summary: "NAS {{ $labels.raidName }} is not normal (status {{ $value }})"
+        - alert: NasDiskHot
+          expr: diskTemperature{job="nas-snmp"} > 55
+          for: 30m
+          labels:
+            homelab: "true"
+            severity: warning
+          annotations:
+            summary: "NAS disk {{ $labels.diskID }} is at {{ $value }}°C"
+        - alert: ProxmoxHostHot
+          expr: max by (host) (node_hwmon_temp_celsius{job="proxmox-node", chip=~".*(k10temp|coretemp).*"}) > 90
+          for: 15m
+          labels:
+            homelab: "true"
+            severity: warning
+          annotations:
+            summary: "Proxmox host {{ $labels.host }} CPU is at {{ $value }}°C"
+        - alert: ProxmoxHostDiskFillingUp
+          expr: |
+            node_filesystem_avail_bytes{job="proxmox-node", fstype!~"tmpfs|ramfs|fuse.*"}
+              / node_filesystem_size_bytes{job="proxmox-node", fstype!~"tmpfs|ramfs|fuse.*"} < 0.1
+          for: 1h
+          labels:
+            homelab: "true"
+            severity: warning
+          annotations:
+            summary: "{{ $labels.host }}:{{ $labels.mountpoint }} has under 10% free"

@@ -1,0 +1,19 @@
+# Scrape targets, probes and alert rules beyond the kube-prometheus-stack
+# defaults. Prometheus selects every ServiceMonitor/PodMonitor/Probe/
+# ScrapeConfig/PrometheusRule in the cluster (see the selector settings in
+# ../kube-prometheus-stack/release.yaml).
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - flux.yaml
+  - apps.yaml
+  - blackbox-exporter.yaml
+  - probes.yaml
+  - proxmox.yaml
+  - lan.sops.yaml
+  - pve-exporter.sops.yaml
+  - snmp-exporter.yaml
+  - snmp-exporter.sops.yaml
+  - unpoller.yaml
+  - unpoller.sops.yaml
+  - rules.yaml

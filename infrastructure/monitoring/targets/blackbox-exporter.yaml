@@ -1,0 +1,84 @@
+# Blackbox exporter: HTTP(S) and TCP reachability probes (see probes.yaml).
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: blackbox-exporter
+  namespace: kube-prometheus-stack
+data:
+  blackbox.yml: |
+    modules:
+      # An app is "up" when it answers at all; redirects to Pocket ID and
+      # 401/403 from auth-protected apps count as up.
+      http_up:
+        prober: http
+        timeout: 10s
+        http:
+          preferred_ip_protocol: ip4
+          follow_redirects: false
+          valid_status_codes: [200, 204, 301, 302, 303, 307, 308, 401, 403]
+      tcp_connect:
+        prober: tcp
+        timeout: 5s
+        tcp:
+          preferred_ip_protocol: ip4
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: blackbox-exporter
+  namespace: kube-prometheus-stack
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: blackbox-exporter
+  template:
+    metadata:
+      labels:
+        app: blackbox-exporter
+      annotations:
+        configmap.reloader.stakater.com/reload: blackbox-exporter
+    spec:
+      containers:
+        - name: blackbox-exporter
+          image: quay.io/prometheus/blackbox-exporter:v0.29.1
+          args:
+            - --config.file=/config/blackbox.yml
+          ports:
+            - name: http
+              containerPort: 9115
+          readinessProbe:
+            httpGet:
+              path: /-/healthy
+              port: http
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+            limits:
+              memory: 128Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 65534
+          volumeMounts:
+            - name: config
+              mountPath: /config
+      volumes:
+        - name: config
+          configMap:
+            name: blackbox-exporter
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: blackbox-exporter
+  namespace: kube-prometheus-stack
+spec:
+  selector:
+    app: blackbox-exporter
+  ports:
+    - name: http
+      port: 9115
+      targetPort: http

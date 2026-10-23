@@ -1,0 +1,33 @@
+apiVersion: v1
+kind: Secret
+metadata:
+    name: pve-exporter
+    namespace: kube-prometheus-stack
+stringData:
+    pve.yml: ENC[AES256_GCM,data:AHwjtgC/fGZ5lqxR959j9XRZbMxsKx8ObzZ6YWxaUw95BXDraLj19pi+RtCJUI84uJ/1g+afAyx1Ucfq7WkvhJ6FZI807mbQ5KI6qNiABkwuUEp4ArD5nI4/frH5pt/gb5Ruh8gKG5bWRkEjvZHJu0t2JyZPuQh/+XCtsxeG5KWlOxHwU24xWN1xFChCFSJ/FA0/sEdLun3Vf1iM90bxXjjCjbjcwnwsPMG85GNGzuhciQJ2vAvdIGxLygu1QfqLU3rcv9dVP6nq2k26in4+kCcJ5uI1kDwcMq6JilHDhVI8/41DDZHC7PsX7CjlU1dAfrVR6VQv0V/GbX7W+IV9WxKm5BvUvxwGDGoF3nAmJID0Xt8d4X4NAGekGK4USgF0hQMXFkNHQDaKeMg/w1rwFs/hhTsJ52Q+OAwjwSh7UjEiEfbsfcszk1iLKks+ZU8aE0ricGnrTbN66eAw11KcLqv8Rq7v3cmVMbTl/ROGBpH89zn3QzeBNE2W9zNx,iv:G/IlsxMVPzBlpowP+eXhlkNQQ6zRniAC6rRuOEQih7c=,tag:5kRuRNmM+5xmWERzxpTn7A==,type:str]
+sops:
+    lastmodified: "2026-10-23T11:23:59Z"
+    mac: ENC[AES256_GCM,data:U7p260miypRw3xugcGpEYi6r+gTNbr2r+OMr3jmmxfcmb8hTsaZqvoLfAYGDUAKaX9mwKo3j08XNRjP53uZy3HCo8mHC6oV8jW3QD+gkaXIzU9xw0UWip8/UbZgIEsPHpNJuf+F6OGt0DdOnok310TLQxQ6Vtu5A2rc3tRDjrw4=,iv:U79qzwpNa0i/nh22NjRcHQQ4GO9xsQkAWR8tTiaQ7uo=,tag:qkx7aD2Wo4gQCFsyE3sQ2A==,type:str]
+    pgp:
+        - created_at: "2026-10-23T11:23:59Z"
+          enc: |-
+            -----BEGIN PGP MESSAGE-----
+
+            hQIMA8WjeZLD+fxwAQ//QBUGpiCHu0kBDNyNBH1b8xqmJ1J83hPdajiabcrH6Ss1
+            298o8Uh8h2U5P77AV5BNDjjLNVWXcATjgVL+hyuHhwwFUOnVrh6KVy60+3GD9XNw
+            Ghf1bxocxMdWITRsG2/81GzZ8pR4KpbNZfRXBWwsLof9T7Y16Mk2uTx+VhXIzn5s
+            91Ic5YZYOonhmslJEynkScxtsJWDL/60pAesxakUGdJKZvFxStLAPQ/Pael8KWvR
+            yZKFAT81k9t2OPDEJL6Nr3maj4TpQW4kKnOYkGiBAzPnymVQomQCn9Z5/JL+tRec
+            B5SDmMPB2ctg6n6fGTgVI6YnHt/DsjewAGSv0YO9h8bpeXj8BaZCXBwxE0dofTHu
+            2w710WD59/E8U9t+MDgmolDGDosYRn1MSMhmoDInclxHey33pBk/f5nS9nBWRBJO
+            iwIEAvJ62ks0rx1MU0jGLIeqkER6w09d8V8Dki2QK68vTI7S/4UupTZ6F/Kl/MwI
+            CKKT5FYPEahD1V/WePaedZDKblKGdNSO3jvRaTOCoKHnsYurCJchUBOnozFD4Wf/
+            U9uc6tv9UNY/Rh6wJvLb55qquV/lFbxoNwTMP2CehqwuJ3rzPVktE1KvHUteXf7Q
+            /iAMntXsRo9EW91S30P1EfEa9GBckdk9uOt/M3yEkDXUioSeR+Cues6mNA/0dPLS
+            XgG7jLXypLjrJlKSa6EicbT0CRwwd5K0M0e2L7f2NRGRx2i06XCKcc3a2SKgG06D
+            8bhH6Uu7FPEXsE1d8RR3lGEf7VJZJh/Gv1fxr7HbaisgzzbqnkrwSi+VWqdv7tU=
+            =K5iw
+            -----END PGP MESSAGE-----
+          fp: 3536F7F9345D96C86FB7F9CD21FAFEE575B18815
+    encrypted_regex: ^(data|stringData)$
+    version: 3.11.0

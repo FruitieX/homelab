@@ -1,0 +1,59 @@
+# prometheus-pve-exporter: per-VM CPU/memory/disk/network from the Proxmox
+# API. One module per (unclustered) host, each with its own read-only
+# PVEAuditor token (pve-exporter.sops.yaml). Scrape targets and the hosts'
+# node-exporter (apt prometheus-node-exporter, :9100) are in lan.sops.yaml.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pve-exporter
+  namespace: kube-prometheus-stack
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: pve-exporter
+  template:
+    metadata:
+      labels:
+        app: pve-exporter
+      annotations:
+        secret.reloader.stakater.com/reload: pve-exporter
+    spec:
+      containers:
+        - name: pve-exporter
+          image: prompve/prometheus-pve-exporter:3.10.1
+          args:
+            - --config.file=/config/pve.yml
+          ports:
+            - name: http
+              containerPort: 9221
+          resources:
+            requests:
+              cpu: 10m
+              memory: 48Mi
+            limits:
+              memory: 192Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            runAsNonRoot: true
+            runAsUser: 65534
+          volumeMounts:
+            - name: config
+              mountPath: /config
+      volumes:
+        - name: config
+          secret:
+            secretName: pve-exporter
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: pve-exporter
+  namespace: kube-prometheus-stack
+spec:
+  selector:
+    app: pve-exporter
+  ports:
+    - name: http
+      port: 9221
+      targetPort: http

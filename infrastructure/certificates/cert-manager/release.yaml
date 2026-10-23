@@ -16,6 +16,10 @@ spec:
         namespace: flux-system
   values:
     installCRDs: true
+    prometheus:
+      enabled: true
+      servicemonitor:
+        enabled: true
     podDnsConfig:
       nameservers:
         - "1.1.1.1"

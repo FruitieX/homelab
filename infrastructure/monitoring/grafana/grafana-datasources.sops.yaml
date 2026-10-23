@@ -1,0 +1,35 @@
+apiVersion: v1
+kind: Secret
+metadata:
+    name: grafana-datasources
+    namespace: grafana
+    labels:
+        grafana_datasource: "1"
+stringData:
+    homelab-datasources.yaml: ENC[AES256_GCM,data:ZGS9DO+y2UXq9eLsGzAftIH7h+/lmeqSwPaAXLp3bu2zPSveCmFRq164M2u2wffCaag6zLFb+zdRuwMWSRSl2eFzjAEoc+MARkuMNHBiTyuxnCK9VdLgKaV4qdkVycZJLdZRfuwjvzFoGQGNXrWoTXw8SdF6ZpMunerNU3S+bCW7LKUVnef3bU2XpNNelisXs9AAW5/KfvVIoeDkOYPKJ997yjkhcW/4JyhSdzjng83NGfV349xoTp4+4GQTSirN74zW/b2lfhXok6RwExHu19OipJyujzm6iMliREkBN5x1aYjX73mMLXo6GriMfAATFcxMr0G9cNDxunSA0gSkgTuxz8vAE+SUO7C53w2wWZW1MX0nqIcL/W0hHw6zcW9YqJmEwb9eFLbyJezSdsOfEw4BA+2LZuUxbHLiTZNCFsFnoMPLaEJk3TBz7IcS5Ujs9lGDeBLI1Ay7Lq1rJOrOEI2sxtHIMTjJWB1X4K6xWgzwl4uTuzlCyNZupf3RQp3/vYo6+zjOMlzwrE4omaPyhuzI9WgMB0YQqerSzhPafH6xaXx9GQI5kStCN52V0w76Qa4SI8BSYjEikFEQTdycUVez9usBZzVNJwHlLg/tfiEJ7LALnvQmCeuEi9nSfBmv/e3a4xkkXXz1TzqMUu9EDdTYscaCGl9p28pw4RDaIGisjzdJn9F31b8dHWsNu0nuYc5GuJKEGMF1fjXlB7xYgr27uexR6VeB349hrHAYjW48Gtzdfo9Iw8YI2ii6YzXeGA16nzZGNg9uR8Aisi93Qrihwa49zXvT1oH86H1LJAQfsMRMYSur6paTGq6WHUbXx/gqTXqMB+C/+Dt3G1jL9OblZ6ragNG/gf9J2p9l+21HAckDE98rP/SV0aelV8+h0M6OraxhYLy55YkeEBZDDpVenh6bYxgQuvpb2YiUigdqtAXv9dReFWoqsmFBcYAn9m3DHKzLMcCYKEpH3An/qihAcFAVWWaPP4X2WuKvf8WwjtF0grbgT7gooRKXjaemNIfEvxRPnH1EtF5GT+lJtw9+3flgWMtBvpMxyJj+41FXGNxLqRXzvKK6l+GQ8ln1LQlWILFZmeB4NNLiGN2wlXMcPyyQUB86fUBxsyuay0gCg3ppFmkLc1XujbyKsVYdVKeBPHod4Awgk9sAc1d+NkhiiE+PyiazKEy0WETAsuGyytni9KpoQM4Y8fENYfkbhctq2F+nMZQ2htlolwXzkq+i7EuIqxIm1PclFExuBSjjbhn94wXj7Fbw2/9TW+g7wVY++KZPYDTuevld3Dg9JMQQx+sTClbnr8xiM5qbQtkTtTewubfaQUCmGKZNB5wTglpK4KWI4VoXf17TXgZmKvb5BX3whQQ1MHX09vbVrvPmGoOAMlTESTQAMI/+EugkHgwx5sC20Bg2xf88iH9h/7RiprCKdeOujtepcbb+UhM3MUN+9IFy+xywDY65duW3x7T0w9m6yhxYRO5QgsXAv8CZjXKtXXWWopo8hPRIZwegi5+qWt51yQX5xz4yDVn0EwMuZUFgltSzNjmYAsBVS8fKBLgcebIw1EasPzhpkqO5j7EpLTOYqzNa1vds2ePUwwS7YlRo9O7hup+plj3gQmvlgvPbLeIBt3yqQ4if8ND/735WU7Ja8wA3+iOpzht7LQFABQ==,iv:MHi13ZUW+tQ8raM/E2s5+Aid4vZ8IbE6Fzg2ynme//k=,tag:3CVkUYHBWLQzAudi3CtpDg==,type:str]
+sops:
+    lastmodified: "2026-10-23T11:27:27Z"
+    mac: ENC[AES256_GCM,data:OhYoNjpKyVTOQJB/YpCwMm9SzCQ2mTyBzyqWLgaThv1q9039sPBZd94oacSagkeJWmW5w+x1qpzy8wOYF9seGC9J/FB/CX/YrFnjQjq6Il3OdggkSE0PAl883uj8ricsWMT3N9j9qO+OmQOQaFogaCY+IvLUcCOnF9PqVrzU9ng=,iv:Z7TO3QwJPyaTTLMGQ0xsIBSIsNFRXYU4l2X2+vsQu6k=,tag:wByL2dQs5AeFoE2JI0qb3A==,type:str]
+    pgp:
+        - created_at: "2026-10-23T11:27:27Z"
+          enc: |-
+            -----BEGIN PGP MESSAGE-----
+
+            hQIMA8WjeZLD+fxwARAAkPe3fpnpLE6EYfZd6htaB2TsUVb+mWIFVCd+Ac+Hk+M0
+            qVHlGZhuzbZJqpplCn3E/fAif2fRP/2saZoEEudempxDColrBY7Drt1mUutT/tiH
+            Vqd4+jtGfkYe/8RG2577HU3207QMzvRW/Ven942mkLfSIC+S7RiLENIK6Td+HesT
+            pntkowGMmuWGXzliEL9J4kqyS8rTKcqpRn46lsSQ0kryO76rG4dO6CH8dfVMot6F
+            NEHY+WJHdeUIiwWVxH7v7xkRBFpGOsxFt623hjoyGoV3nEziuPk1goKQrFYN2dc1
+            yp/Y+yk0DM2zOUadJGI5PVo4aHbQEghsxkqd6U7tA4eJXul+2ao1uoU145AHluXR
+            R9+/DyiaKPMwv0zb8Zst86vcuIl5wPzi70m2zhGTNRQPchjvAQElLeoQYgd8cwjL
+            xTUxEVIOhZm+efDtX+BYTXba5KkgymTecxxp/Czld7r/CS1tsq2kYLXA9e17I+lP
+            PUObgPo6c+foUrWY/Yo++Rbz5+a4h8RrLMB3AX9JJ1TxR542P6fwfITZ7A/i140k
+            3O5TzuuwmhxasCMP8LKFswt6nA/n6ZiVE/3TrN94aGMEE4HxTMTDWGGmYq/6m+ec
+            XTuXyTKCqK19OYhh+6GiM5pQ//T7nX6SHxYSFbaZataUwCpDXc0OWCcf91sFnmrS
+            XgFR9F570rtGCuLWiFBq/jDskOZ4JHELX0jYAil5pUKl9ecwq55GpWcsoTM4UCjF
+            s9xZ0rVV0ag99yaHdd29TEBeisF2kDuF1T9QnyjyMuyp4Vr+cKUdqdYnzPH7ZQ4=
+            =d+W/
+            -----END PGP MESSAGE-----
+          fp: 3536F7F9345D96C86FB7F9CD21FAFEE575B18815
+    encrypted_regex: ^(data|stringData)$
+    version: 3.11.0

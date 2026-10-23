@@ -1,0 +1,33 @@
+apiVersion: v1
+kind: Secret
+metadata:
+    name: snmp-exporter
+    namespace: kube-prometheus-stack
+stringData:
+    auth.yml: ENC[AES256_GCM,data:wOG2x3jno/5cx5TOpFlIwYPOZFDB6EMJ0SH3d6blt3pABKXFF+n52Tom7gBpR6w48omRxsVIYIdw+A==,iv:Vc+ILE8JYEIxZQCqB83o9I1nq3eF1Q3Q/vmx7oxyp98=,tag:uOGBgySC1OOG1NpI8/WgPQ==,type:str]
+sops:
+    lastmodified: "2026-10-23T11:24:01Z"
+    mac: ENC[AES256_GCM,data:1wXIoQLZdGpWCt7UIZUpQX78oUw1BwcSxMGHjT0PMgoiMZULwvbiKOau9jq+hH+w+mMuUL7xqeUTef7i3iiqUWASfmViUHJR5hUgk0XVeAiobWmUQz5tss/K4W+k3YTtUvvbjvgJI5sWgsCl+xQBQCLb4NWve/BWxnCuDwWfBHw=,iv:3h6LTWGAM81qPrkz8u4/UoDdkMMXSUJAp5vFONpZneg=,tag:DwSZE0TNjIvAe7EIRBNMAA==,type:str]
+    pgp:
+        - created_at: "2026-10-23T11:24:01Z"
+          enc: |-
+            -----BEGIN PGP MESSAGE-----
+
+            hQIMA8WjeZLD+fxwAQ//ZYijW3K8Y2paZmGb4SeDXDlLut2TNFc/ziQkhmzS2iyY
+            qXdkDHxEu/Zh77dGODGwx7UpE5XDH8Z97T/K5oKRPZN8U3/djG+lkJbChOjqwIUj
+            2fivE2FdoJCc7kfneGeacQDfnKLLc1LVPA09VD0HOcRjrJzbyZt1nKYfpUvM6KnS
+            TQdxBWff2aHfGTqxuTXFPG3E7bhufGcd41GQd1oWfKSTRMJv3yWDHnc3UbTUgzWK
+            phwNcTPyoazOPtOE+EJprj5FnHsoolvOZiz/kXDv78LVwso62zE6hniGJuJvexQs
+            fZeJGdeO70/JP6k/37py3JYLVn+0JbqZiD6K2L75Y7+4L7VtNh/xYvaIuyLVN96H
+            WK4xJkDlSSrHz/+GsGJjIbylf8E9uU+os0R6QLFgkh/5KG/VyHBB6F6drbl70oFa
+            Af4n0GIWlgc26KJyPYacaoOzATXFi7RX4uDZcPtHDiOZP4GOSZ+Was50ybpQwOlM
+            SRHfczq4QlHQnoWKGivHLTw0pNG2RR+7a7bNMlDy5Af9YbYBWhZ2iFaPWYH5j3Hi
+            0dFffrOvX9Nx38oiQAgv9qzW86c2AMUm/PQeZxGh3BRTwiwVJNigGvYWVryd9m2n
+            +/vcR/6nei2XQu0GXKO02LKqQlDeXn87q64PRDBgtCQeTRdvNsdyxgw4gdfn/nTS
+            XgGDHZS0qVwLxmb7Zu+T2YJgJ3amA3yxwFftexsTZfEuDBnQtBYp9hSMe+bQjGq8
+            o9wHEnJH4gIsg359gMiqqJnOwy1mZ9n7Y8NRypVqk31UW2cxx/kWkgpW95Bt9b8=
+            =Usmf
+            -----END PGP MESSAGE-----
+          fp: 3536F7F9345D96C86FB7F9CD21FAFEE575B18815
+    encrypted_regex: ^(data|stringData)$
+    version: 3.11.0

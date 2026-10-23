@@ -3,6 +3,9 @@ kind: HelmRelease
 metadata:
   name: grafana
   namespace: grafana
+  annotations:
+    # Keep Flux from rewriting ${...}/$__env{...} in Grafana settings.
+    kustomize.toolkit.fluxcd.io/substitute: disabled
 spec:
   interval: 30m
   timeout: 5m
@@ -23,6 +26,13 @@ spec:
     grafana.ini:
       server:
         root_url: https://grafana.fruitiex.org
+      dashboards:
+        default_home_dashboard_path: /tmp/dashboards/overview.json
+      date_formats:
+        default_timezone: Europe/Helsinki
+        full_date: YYYY-MM-DD HH:mm:ss
+        interval_hour: DD.MM HH:mm
+        interval_day: DD.MM
       auth:
         oauth_auto_login: true
         signout_redirect_url: https://id.fruitiex.org/api/oidc/end-session
@@ -57,6 +67,12 @@ spec:
       dashboards:
         enabled: true
         searchNamespace: ALL
+        # Dashboards land in the folder named by their grafana_folder
+        # annotation (Home, Homelab, Kubernetes, Loki); the overview has none
+        # and sits at the top level as the home dashboard.
+        folderAnnotation: grafana_folder
+        provider:
+          foldersFromFilesStructure: true
       datasources:
         enabled: true
         searchNamespace: ALL

@@ -1,0 +1,84 @@
+# Reachability, latency and TLS expiry of every public/private app hostname.
+# LAN host probes (NAS, Proxmox, gateway) are in lan.sops.yaml.
+apiVersion: monitoring.coreos.com/v1
+kind: Probe
+metadata:
+  name: apps-public
+  namespace: kube-prometheus-stack
+spec:
+  interval: 60s
+  module: http_up
+  prober:
+    url: blackbox-exporter.kube-prometheus-stack.svc:9115
+  targets:
+    staticConfig:
+      labels:
+        gateway: public
+      static:
+        - https://busmap.fruitiex.org
+        - https://drive.fruitiex.org
+        - https://fruitiex.org
+        - https://id.fruitiex.org
+        - https://immich.fruitiex.org
+        - https://jellyfin.fruitiex.org
+        - https://littlecupboard.fruitiex.org
+        - https://lovegren.fi
+        - https://nectarine.fruitiex.org
+        - https://oriel.fruitiex.org
+        - https://photos.fruitiex.org
+        - https://rsfinity.fruitiex.org
+        - https://spliit.fruitiex.org
+---
+apiVersion: monitoring.coreos.com/v1
+kind: Probe
+metadata:
+  name: apps-private
+  namespace: kube-prometheus-stack
+spec:
+  interval: 60s
+  module: http_up
+  prober:
+    url: blackbox-exporter.kube-prometheus-stack.svc:9115
+  targets:
+    staticConfig:
+      labels:
+        gateway: private
+      static:
+        - https://alertmanager.fruitiex.org
+        - https://bambuddy.fruitiex.org
+        - https://chores.fruitiex.org
+        - https://feedback.fruitiex.org
+        - https://ferrotune.fruitiex.org
+        - https://grafana.fruitiex.org
+        - https://homectl.fruitiex.org
+        - https://influxdb.fruitiex.org
+        - https://kubedash.fruitiex.org
+        - https://littlewardrobe.fruitiex.org
+        - https://llm-wiki.fruitiex.org
+        - https://photoframe.fruitiex.org
+        - https://prometheus.fruitiex.org
+        - https://radiator.fruitiex.org
+        - https://redoor.fruitiex.org
+        - https://steady.fruitiex.org
+        - https://stretch.fruitiex.org
+---
+apiVersion: monitoring.coreos.com/v1
+kind: Probe
+metadata:
+  name: cluster-services
+  namespace: kube-prometheus-stack
+spec:
+  interval: 60s
+  module: tcp_connect
+  prober:
+    url: blackbox-exporter.kube-prometheus-stack.svc:9115
+  targets:
+    staticConfig:
+      labels:
+        kind: service
+      static:
+        - mqtt.default.svc:1883
+        - postgres.default.svc:5432
+        - immich-postgres.default.svc:5432
+        - influxdb-influxdb2.influxdb.svc:80
+        - loki.loki.svc:3100

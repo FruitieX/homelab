@@ -19,10 +19,184 @@ spec:
       enabled: false
       forceDeployDatasources: true
       forceDeployDashboards: true
+      sidecar:
+        dashboards:
+          # Grafana sidecar folder (see ../grafana/release.yaml).
+          annotations:
+            grafana_folder: Kubernetes
+    nodeExporter:
+      operatingSystems:
+        aix:
+          enabled: false
+        darwin:
+          enabled: false
+    # Talos binds these to localhost, so the scrapes (and their alerts and
+    # dashboards) only ever reported "down".
+    kubeControllerManager:
+      enabled: false
+    kubeScheduler:
+      enabled: false
+    kubeProxy:
+      enabled: false
+    kube-state-metrics:
+      # Flux resource state as gotk_resource_info, per the Flux monitoring
+      # guide (https://fluxcd.io/flux/monitoring/metrics/).
+      rbac:
+        extraRules:
+          - apiGroups:
+              - source.toolkit.fluxcd.io
+              - kustomize.toolkit.fluxcd.io
+              - helm.toolkit.fluxcd.io
+            resources:
+              - gitrepositories
+              - ocirepositories
+              - helmrepositories
+              - helmcharts
+              - kustomizations
+              - helmreleases
+            verbs: [list, watch]
+      customResourceState:
+        enabled: true
+        config:
+          spec:
+            resources:
+              - groupVersionKind:
+                  group: kustomize.toolkit.fluxcd.io
+                  version: v1
+                  kind: Kustomization
+                metricNamePrefix: gotk
+                metrics:
+                  - name: resource_info
+                    help: The current state of a Flux Kustomization.
+                    each:
+                      type: Info
+                      info:
+                        labelsFromPath:
+                          name: [metadata, name]
+                    labelsFromPath:
+                      exported_namespace: [metadata, namespace]
+                      ready: [status, conditions, "[type=Ready]", status]
+                      suspended: [spec, suspend]
+                      revision: [status, lastAppliedRevision]
+                      source_name: [spec, sourceRef, name]
+              - groupVersionKind:
+                  group: helm.toolkit.fluxcd.io
+                  version: v2
+                  kind: HelmRelease
+                metricNamePrefix: gotk
+                metrics:
+                  - name: resource_info
+                    help: The current state of a Flux HelmRelease.
+                    each:
+                      type: Info
+                      info:
+                        labelsFromPath:
+                          name: [metadata, name]
+                    labelsFromPath:
+                      exported_namespace: [metadata, namespace]
+                      ready: [status, conditions, "[type=Ready]", status]
+                      suspended: [spec, suspend]
+                      revision: [status, history, "0", chartVersion]
+                      chart_app_version: [status, history, "0", appVersion]
+              - groupVersionKind:
+                  group: source.toolkit.fluxcd.io
+                  version: v1
+                  kind: GitRepository
+                metricNamePrefix: gotk
+                metrics:
+                  - name: resource_info
+                    help: The current state of a Flux GitRepository.
+                    each:
+                      type: Info
+                      info:
+                        labelsFromPath:
+                          name: [metadata, name]
+                    labelsFromPath:
+                      exported_namespace: [metadata, namespace]
+                      ready: [status, conditions, "[type=Ready]", status]
+                      suspended: [spec, suspend]
+                      revision: [status, artifact, revision]
+              - groupVersionKind:
+                  group: source.toolkit.fluxcd.io
+                  version: v1
+                  kind: HelmRepository
+                metricNamePrefix: gotk
+                metrics:
+                  - name: resource_info
+                    help: The current state of a Flux HelmRepository.
+                    each:
+                      type: Info
+                      info:
+                        labelsFromPath:
+                          name: [metadata, name]
+                    labelsFromPath:
+                      exported_namespace: [metadata, namespace]
+                      ready: [status, conditions, "[type=Ready]", status]
+                      suspended: [spec, suspend]
+              - groupVersionKind:
+                  group: source.toolkit.fluxcd.io
+                  version: v1
+                  kind: OCIRepository
+                metricNamePrefix: gotk
+                metrics:
+                  - name: resource_info
+                    help: The current state of a Flux OCIRepository.
+                    each:
+                      type: Info
+                      info:
+                        labelsFromPath:
+                          name: [metadata, name]
+                    labelsFromPath:
+                      exported_namespace: [metadata, namespace]
+                      ready: [status, conditions, "[type=Ready]", status]
+                      suspended: [spec, suspend]
+                      revision: [status, artifact, revision]
     alertmanager:
       ingress:
         enabled: false
+      # Curated homelab alerts and anything critical go to the Discord
+      # channel Flux already reports to; everything else stays in the UI.
+      config:
+        global:
+          resolve_timeout: 5m
+        route:
+          receiver: "null"
+          group_by: [alertname, namespace]
+          group_wait: 30s
+          group_interval: 5m
+          repeat_interval: 12h
+          routes:
+            - receiver: "null"
+              matchers:
+                - alertname =~ "InfoInhibitor|Watchdog"
+            - receiver: discord
+              matchers:
+                - homelab = "true"
+            - receiver: discord
+              matchers:
+                - severity = "critical"
+            - receiver: discord
+              matchers:
+                - alertname =~ "PrometheusTSDBCompactionsFailing|KubePersistentVolumeFillingUp|NodeFilesystemAlmostOutOfSpace"
+        inhibit_rules:
+          - source_matchers: [severity = "critical"]
+            target_matchers: [severity =~ "warning|info"]
+            equal: [namespace, alertname]
+          - source_matchers: [severity = "warning"]
+            target_matchers: [severity = "info"]
+            equal: [namespace, alertname]
+          - source_matchers: [alertname = "InfoInhibitor"]
+            target_matchers: [severity = "info"]
+            equal: [namespace]
+        receivers:
+          - name: "null"
+          - name: discord
+            discord_configs:
+              - webhook_url_file: /etc/alertmanager/secrets/alertmanager-discord/webhook-url
+                send_resolved: true
       alertmanagerSpec:
+        secrets:
+          - alertmanager-discord
         storage:
           volumeClaimTemplate:
             spec:
@@ -36,6 +210,13 @@ spec:
       ingress:
         enabled: false
       prometheusSpec:
+        # Select every monitor/probe/rule in the cluster, not only those
+        # labelled release=kube-prometheus-stack.
+        serviceMonitorSelectorNilUsesHelmValues: false
+        podMonitorSelectorNilUsesHelmValues: false
+        probeSelectorNilUsesHelmValues: false
+        ruleSelectorNilUsesHelmValues: false
+        scrapeConfigSelectorNilUsesHelmValues: false
         retention: 90d
         retentionSize: "100GB"
         storageSpec:

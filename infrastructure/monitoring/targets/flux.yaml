@@ -1,0 +1,22 @@
+# Flux controller metrics (reconcile durations, errors). Per-resource state
+# (gotk_resource_info) comes from kube-state-metrics customResourceState.
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: flux-system
+  namespace: flux-system
+spec:
+  namespaceSelector:
+    matchNames:
+      - flux-system
+  selector:
+    matchExpressions:
+      - key: app
+        operator: In
+        values:
+          - helm-controller
+          - kustomize-controller
+          - notification-controller
+          - source-controller
+  podMetricsEndpoints:
+    - port: http-prom

@@ -1,0 +1,33 @@
+apiVersion: v1
+kind: Secret
+metadata:
+    name: alertmanager-discord
+    namespace: kube-prometheus-stack
+stringData:
+    webhook-url: ENC[AES256_GCM,data:pONhGrE9yZrSWM2BAlkDzRdvigvG2YfoYbr9qHFBVK5SsaXj/U8Z1s86u+EUtOGCQMTeTlFHOatsyCfIQmc0yMnRHH3gkeAB/LPSt0TSLQFXLR3bRp9x12m8XLP86CuFo+LSgm1JrDXf6cTsdJO1bLh4amkV3u3Dgw==,iv:01f5i3hjpO8zftn3/aUdiXXtiRcYTb3xDGcXDIPMhwk=,tag:euE2TbwgtRDPCXHcfK4Ssw==,type:str]
+sops:
+    lastmodified: "2026-10-23T11:25:16Z"
+    mac: ENC[AES256_GCM,data:TXbZTNQYXIggOYI0SJgGeEl8f3LwfvZzMSQUmkJgftFipSPaqdLUDsB3U/l9+xBXvVNmszaCMsWb2uMiEGbbPYKcjaDiHm9Ya9L2Dm6DNE0A6dpkQ//Q/hz8OocIFPJkm3vOzH0FPlK14OBnhWoERhJifbKlAKsFvbnl0UBy2d0=,iv:rzJMvdtgXZ75aJ1Jn80Fz/cfzrQKCOSoJ5vCGn0FFoA=,tag:qK7C05NRRglnowxR0DfQiQ==,type:str]
+    pgp:
+        - created_at: "2026-10-23T11:25:16Z"
+          enc: |-
+            -----BEGIN PGP MESSAGE-----
+
+            hQIMA8WjeZLD+fxwAQ/+IORLLXXJmhbv0n2f2TzYYd4p+NIn2w0WDaDvPHnmaA7q
+            /TysTrkzmc9AJUVicnfRl0/Zl0czqIMo1PD6C1lcKHQRsVxnMfz5Fb4Po1gCxMun
+            5GbGnGa3OsnAjd0mfFIgw0aiIGkO9pCc0azEMY/UOMjH+KyTLxZwdeSgpfv/C8yJ
+            IukcAwoR3yx2en6YP2lpN81fEWMUXxKQSrdTmtPIAEL1N1e5EAaEyB+cAWSEVYl7
+            tXqNaxKjPl920x/wTsNvY8NJwYqZpkK0b5+lwq2k58QWCseyqSAAGER5Sas4QogG
+            HEmpYCxlQGUhke0q71xMd3x1hJRTemTMdosh7k8jTTbIkP0alz5bvQ5DbZKyyQ+H
+            Q+laXoLyIW9eU0hXVw2pkwV3b7kEKmZbSwslSLRhUZ5lfPPIm/SdKm+obiJ8n6aI
+            OFhzr0LIWjqySC4FTjPaaX+jd6g2rhOw7A6CFez7bP0vGCLLTj+4Okuu0dT2gpvs
+            p+mhyB5Ao3bP5iAIwXr7tPpqi4ax64cpj11oPn14biLViHOX0jnOP6kHUU9vUusD
+            YTxcMm45hWmArVDkWpLlq+BcTf+j6gR05RXeOo/CGEWCNhPLyZXgfdlJiyD1E2/t
+            5A1Jp5tLaFAWbZd2xq/4zM/XLNxAEBuPUFD3uqqDZNdjtkI6xVFjLuT30xL3HTnS
+            XAHu0H0vUEfahKKbSA2JB0iGWd3G7mep1uqH71oFIQIALMoTQMZGURBlcVJi+Mot
+            fL9yoY2dAnkxh1b89DYxc1WuLc+i79J1NohmcNsIlJ8nYqjzdKSqnPACTKia
+            =ZIno
+            -----END PGP MESSAGE-----
+          fp: 3536F7F9345D96C86FB7F9CD21FAFEE575B18815
+    encrypted_regex: ^(data|stringData)$
+    version: 3.11.0

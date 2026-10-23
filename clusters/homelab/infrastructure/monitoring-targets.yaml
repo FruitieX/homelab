@@ -1,0 +1,21 @@
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: monitoring-targets
+spec:
+  interval: 30m
+  timeout: 3m
+  retryInterval: 30s
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+  path: ./infrastructure/monitoring/targets
+  prune: true
+  wait: true
+  dependsOn:
+    - name: kube-prometheus-stack
+  decryption:
+    provider: sops
+    secretRef:
+      name: sops-gpg
+  # No postBuild substitution: alert templates use $labels/$value.

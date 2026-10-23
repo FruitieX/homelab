@@ -1,0 +1,60 @@
+# SNMP exporter for the Synology NAS (disk temperature/health/SMART, RAID,
+# fans, interfaces). Uses the image's built-in snmp.yml modules plus the
+# community from snmp-exporter.sops.yaml; the target is in lan.sops.yaml.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: snmp-exporter
+  namespace: kube-prometheus-stack
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: snmp-exporter
+  template:
+    metadata:
+      labels:
+        app: snmp-exporter
+      annotations:
+        secret.reloader.stakater.com/reload: snmp-exporter
+    spec:
+      containers:
+        - name: snmp-exporter
+          image: quay.io/prometheus/snmp-exporter:v0.30.1
+          args:
+            - --config.file=/etc/snmp_exporter/snmp.yml
+            - --config.file=/auth/auth.yml
+          ports:
+            - name: http
+              containerPort: 9116
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+            limits:
+              memory: 128Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 65534
+          volumeMounts:
+            - name: auth
+              mountPath: /auth
+      volumes:
+        - name: auth
+          secret:
+            secretName: snmp-exporter
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: snmp-exporter
+  namespace: kube-prometheus-stack
+spec:
+  selector:
+    app: snmp-exporter
+  ports:
+    - name: http
+      port: 9116
+      targetPort: http

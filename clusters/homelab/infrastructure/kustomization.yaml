@@ -12,6 +12,7 @@ resources:
   - csi-driver-nfs.yaml
   - crds.yaml
   - kube-prometheus-stack.yaml
+  - monitoring-targets.yaml
   - external-dns.yaml
   - envoy-gateway.yaml
   - envoy-gateway-config.yaml

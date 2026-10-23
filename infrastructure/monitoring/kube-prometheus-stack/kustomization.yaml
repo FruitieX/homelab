@@ -6,3 +6,4 @@ resources:
   - release.yaml
   - httproutes.yaml
   - pocket-id-auth.yaml
+  - alertmanager-discord.sops.yaml
