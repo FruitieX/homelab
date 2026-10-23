@@ -243,6 +243,72 @@ data:
                 radius.request.code == radius.ACCESS_REQUEST;
             }
 
+            # RADIUS MAC authentication on the open portal SSID (wifi-portal.radconf).
+            # Handlers match in order, so this must stay before the EAP handler.
+            #   unknown device -> VLAN 80 "Wi-Fi portal" (walled garden + captive portal)
+            #   guest device   -> VLAN 81 "Wi-Fi guests" (internet only)
+            #   member device  -> no VLAN: the SSID's own network (Default LAN)
+            handler "PORTAL_MAC_AUTH" {
+                conditions all {
+                    # UniFi sends Called-Station-Id as "<BSSID>:<SSID>".
+                    radius.request.attr.Called-Station-Id == /:dragonfruit-radiator$/;
+                    # MAC auth only; EAP on any SSID stays with the EAP handler.
+                    radius.request.attr.EAP-Message == none;
+                }
+
+                @execute {
+                    vars.mac = radius.request.attr.Calling-Station-Id | normalize_mac;
+                    vars.csid = radius.request.attr.Calling-Station-Id;
+                    vars.nas_ip = "%{radius.request.attr.NAS-IP-Address}";
+                    # The AP's DynAuth dispatcher routes Disconnect-Requests by
+                    # NAS-Identifier (the BSSID without separators).
+                    vars.nas_id = radius.request.attr.NAS-Identifier;
+                    vars.session_vlan = "80";
+
+                    until end {
+                        backend {
+                            name "radiatordb";
+                            query "FIND_WIFI_DEVICE";
+                        }
+                        ignore;
+                    }
+
+                    if all {
+                        vars.device_user == any;
+                    } then {
+                        vars.session_vlan = "81";
+                    }
+                    if all {
+                        vars.device_kind == "member";
+                    } then {
+                        vars.session_vlan = "lan";
+                    }
+
+                    # Remember the AP and VLAN for a later Disconnect-Request.
+                    until end {
+                        try backend {
+                            name "radiatordb";
+                            query "SAVE_WIFI_SESSION";
+                        }
+                        ignore;
+                    }
+
+                    if all {
+                        vars.session_vlan != "lan";
+                    } then {
+                        radius.reply.attr.Tunnel-Type:1 = "VLAN";
+                        radius.reply.attr.Tunnel-Medium-Type:1 = "Ether_802";
+                        radius.reply.attr.Tunnel-Private-Group-Id:1 = vars.session_vlan;
+                    }
+
+                    accept;
+                }
+
+                @final-execute {
+                    invoke "LOG_AUTHENTICATION";
+                }
+            }
+
             handler "AUTHENTICATION" {
                 @execute {
                     eap {
@@ -305,6 +371,96 @@ data:
                 }
             }
 
+            # Wi-Fi portal (wifi-portal.radconf): devices allowed on the portal
+            # SSID. kind "member" gets the LAN, anything else the guest VLAN.
+            query "FIND_WIFI_DEVICE" {
+                collection "wifi_devices";
+                key vars.mac;
+
+                mapping {
+                    vars.device_user = doc | jsonpath("$.user");
+                    vars.device_kind = doc | jsonpath("$.kind");
+                }
+            }
+
+            put "SAVE_MEMBER_DEVICE" {
+                collection "wifi_devices";
+                key vars.mac;
+                expire 365d;
+
+                bindings {
+                    user = vars.sso_user;
+                    kind = "member";
+                    name = vars.device_name;
+                    registered = datetime.timestamp.utc;
+                }
+            }
+
+            put "SAVE_GUEST_DEVICE" {
+                collection "wifi_devices";
+                key vars.mac;
+                expire 365d;
+
+                bindings {
+                    user = "guest";
+                    kind = "guest";
+                    name = vars.device_name;
+                    approved_by = vars.sso_user;
+                    registered = datetime.timestamp.utc;
+                }
+            }
+
+            # The AP and VLAN of each portal SSID device's latest authentication,
+            # for the Disconnect-Request.
+            query "FIND_WIFI_SESSION" {
+                collection "wifi_sessions";
+                key vars.mac;
+
+                mapping {
+                    vars.nas_ip = doc | jsonpath("$.nas_ip");
+                    vars.nas_id = doc | jsonpath("$.nas_id");
+                    vars.csid = doc | jsonpath("$.csid");
+                    vars.session_vlan = doc | jsonpath("$.vlan");
+                }
+            }
+
+            put "SAVE_WIFI_SESSION" {
+                collection "wifi_sessions";
+                key vars.mac;
+                expire 1d;
+
+                bindings {
+                    nas_ip = vars.nas_ip;
+                    nas_id = vars.nas_id;
+                    csid = vars.csid;
+                    vlan = vars.session_vlan;
+                }
+            }
+
+            # Pending guest approvals, keyed by the token in the guest's QR code.
+            query "FIND_GUEST_REQUEST" {
+                collection "wifi_guest_requests";
+                key vars.token;
+
+                mapping {
+                    vars.mac = doc | jsonpath("$.mac");
+                    vars.device_name = doc | jsonpath("$.name");
+                    vars.requested = doc | jsonpath("$.requested");
+                }
+            }
+
+            put "SAVE_GUEST_REQUEST" {
+                collection "wifi_guest_requests";
+                key vars.token;
+                expire 30m;
+
+                bindings {
+                    mac = vars.mac;
+                    name = vars.device_name;
+                    requested = datetime.timestamp.utc;
+                }
+            }
+
             collection "users" {
                 name "Users";
                 description "Test user credentials";
@@ -328,6 +484,115 @@ data:
                     masked true;
                 }
             }
+
+            collection "wifi_devices" {
+                name "Wi-Fi devices";
+                description "Devices allowed on the Wi-Fi portal SSID (member: LAN, guest: guest VLAN). Delete a row to revoke.";
+
+                roles {
+                    read "admin";
+                    write "admin";
+                }
+
+                key {
+                    field {
+                        name "MAC";
+                        type text;
+                    }
+                }
+
+                field "user" {
+                    name "User";
+                    type text;
+                }
+
+                field "kind" {
+                    name "Kind";
+                    type text;
+                }
+
+                field "name" {
+                    name "Device name";
+                    type text;
+                }
+
+                field "approved_by" {
+                    name "Approved by";
+                    type text;
+                }
+
+                field "registered" {
+                    name "Registered";
+                    type text;
+                }
+            }
+
+            collection "wifi_sessions" {
+                name "Wi-Fi sessions";
+                description "AP and VLAN of each portal SSID device's latest authentication";
+
+                roles {
+                    read "admin";
+                }
+
+                key {
+                    field {
+                        name "MAC";
+                        type text;
+                    }
+                }
+
+                field "nas_ip" {
+                    name "AP IP address";
+                    type text;
+                }
+
+                field "nas_id" {
+                    name "NAS-Identifier";
+                    type text;
+                }
+
+                field "csid" {
+                    name "Calling-Station-Id";
+                    type text;
+                }
+
+                field "vlan" {
+                    name "VLAN";
+                    type text;
+                }
+            }
+
+            collection "wifi_guest_requests" {
+                name "Wi-Fi guest requests";
+                description "Pending guest approvals (expire after 30 minutes)";
+
+                roles {
+                    read "admin";
+                }
+
+                key {
+                    field {
+                        name "Token";
+                        type text;
+                    }
+                }
+
+                field "mac" {
+                    name "MAC";
+                    type text;
+                }
+
+                field "name" {
+                    name "Device name";
+                    type text;
+                }
+
+                field "requested" {
+                    name "Requested";
+                    type text;
+                }
+            }
         }
     }
   ui.radconf: |
@@ -340,6 +605,882 @@ data:
             }
         }
     }
+  wifi-portal.radconf: |
+    # Wi-Fi captive portal for the open SSID "dragonfruit-radiator".
+    #
+    # RADIUS MAC authentication (radius-policy.radconf) puts unknown devices in
+    # VLAN 80 "Wi-Fi portal", a walled garden whose DNS (apps/walled-garden-dns)
+    # sends every name except id/wifi.fruitiex.org to the CAPTIVE listener below,
+    # which redirects OS captive-portal probes to https://wifi.fruitiex.org/.
+    #
+    # Behind the private gateway (sso.yaml), wifi.fruitiex.org serves:
+    #   /               landing page (public)
+    #   /signin         Pocket ID sign-in (client radiator-wifi, group family):
+    #                   registers the device as a member (LAN) for 365 days
+    #   /guest          guest request with a QR code (public); the page polls
+    #                   /guest/status and calls /activate once approved
+    #   /approve        admin approval behind Pocket ID (group admins): registers
+    #                   the device as a guest (VLAN 81, internet only) for 365 days
+    #   /activate       Disconnect-Request for the caller's own device if it is
+    #                   registered but still in the portal VLAN (public)
+    #
+    # The device is found by its walled-garden IP (x-portal-client-ip, set by
+    # Envoy from the TCP peer address) through the UniFi Network API. The AP that
+    # authenticated it is taken from wifi_sessions in RadiatorDB.
+
+    clients {
+        http "PORTAL_PROXY" {
+            # Envoy Gateway data plane (pod network). Requests must also carry
+            # the proxy secret the gateway injects.
+            client "PRIVATE_GATEWAY" {
+                source {
+                    ip 10.244.0.0/16;
+                }
+            }
+        }
+
+        http "PORTAL_DEVICES" {
+            # Walled-garden VLAN 80.
+            client "PORTAL_VLAN" {
+                source {
+                    ip 192.168.80.0/24;
+                }
+            }
+        }
+    }
+
+    servers {
+        # Behind https://wifi.fruitiex.org on the private gateway.
+        http "PORTAL" {
+            listen {
+                protocol tcp;
+                ip 0.0.0.0;
+                port 8088;
+            }
+            clients "PORTAL_PROXY";
+            populate_aaa_headers false;
+            default_headers {
+                "Cache-Control" "no-store";
+            }
+        }
+
+        # Answers captive-portal probes from the walled garden with a redirect.
+        http "CAPTIVE" {
+            listen {
+                protocol tcp;
+                ip 0.0.0.0;
+                port 8080;
+            }
+            clients "PORTAL_DEVICES";
+            populate_aaa_headers false;
+            default_headers {
+                "Cache-Control" "no-store";
+            }
+        }
+    }
+
+    # LOCAL-TEST-DROP-START
+    certificates {
+        # The console's self-signed certificate (ConfigMap unifi-console-cert).
+        # Its SAN has unifi.local, mapped to 192.168.1.1 with a pod hostAlias.
+        x509 "UNIFI_CONSOLE_CERT" {
+            filename "/etc/radiator/unifi/console.pem";
+        }
+    }
+    # LOCAL-TEST-DROP-END
+
+    backends {
+        # UniFi Network Integration API, key "UniFi homelab API key" in 1Password.
+        http "UNIFI" {
+            url "https://unifi.local";
+
+            authentication header {
+                name "X-API-KEY";
+                value env.UNIFI_API_KEY;
+            }
+
+            # LOCAL-TEST-DROP-START
+            tls {
+                server_ca_certificate "UNIFI_CONSOLE_CERT";
+            }
+            # LOCAL-TEST-DROP-END
+
+            get "FIND_CLIENT" {
+                # Site "Default" (GET /proxy/network/integration/v1/sites).
+                path "/proxy/network/integration/v1/sites/88f7af54-98f8-306a-a1c7-c9349722b1f6/clients";
+
+                bindings query {
+                    filter "ipAddress.eq('%{vars.client_ip}')";
+                }
+
+                mapping json {
+                    vars.unifi_mac = "$.data[0].macAddress";
+                    vars.unifi_name = "$.data[0].name";
+                }
+            }
+        }
+
+        # One DynAuth backend per access point (the AP is the NAS for SSID MAC
+        # auth). The AP accepts Disconnect-Requests only from the RADIUS server
+        # address in the UniFi RADIUS profile (192.168.11.98): a UniFi source NAT
+        # rule ("radiator-das") rewrites the node address of these packets.
+        radius "AP_DOWNSTAIRS_DAS" {
+            server "AP_DOWNSTAIRS" {
+                secret env.RADIUS_SHARED_SECRET;
+                connect {
+                    protocol udp;
+                    host "192.168.1.235";
+                    port 3799;
+                }
+            }
+
+            query "DISCONNECT" {
+                bindings {
+                    radius.request.code = radius.DISCONNECT_REQUEST;
+                    radius.request.attr.NAS-Identifier = vars.nas_id;
+                    radius.request.attr.Calling-Station-Id = vars.csid;
+                }
+            }
+        }
+
+        radius "AP_STORAGE_DAS" {
+            server "AP_STORAGE" {
+                secret env.RADIUS_SHARED_SECRET;
+                connect {
+                    protocol udp;
+                    host "192.168.1.191";
+                    port 3799;
+                }
+            }
+
+            query "DISCONNECT" {
+                bindings {
+                    radius.request.code = radius.DISCONNECT_REQUEST;
+                    radius.request.attr.NAS-Identifier = vars.nas_id;
+                    radius.request.attr.Calling-Station-Id = vars.csid;
+                }
+            }
+        }
+    }
+
+    scripts {
+        # Server-side QR code (SVG) for vars.qr_text -> vars.qr_svg. The walled
+        # garden has no internet, so the guest page can't load a QR library.
+        lua "QR_SVG" {
+            content """
+                -- Minimal QR code encoder (Luau: bit32, no bitwise operators) (byte mode, error correction level L, versions 1-5,
+                -- single Reed-Solomon block). Returns an SVG string. No external resources.
+                local band, bor, bxor, lshift, rshift = bit32.band, bit32.bor, bit32.bxor, bit32.lshift, bit32.rshift
+
+                local function qr_svg(text)
+                    -- Data codewords and EC codewords per block for versions 1-5, level L.
+                    local caps = { {19, 7}, {34, 10}, {55, 15}, {80, 20}, {108, 26} }
+                    local ver, ndata, nec
+                    for v = 1, 5 do
+                        if #text + 2 <= caps[v][1] then ver, ndata, nec = v, caps[v][1], caps[v][2]; break end
+                    end
+                    if not ver then return nil end
+
+                    -- Bit stream: mode 0100 (byte), 8-bit length, data, terminator, padding.
+                    local bits = {}
+                    local function put(val, len)
+                        for i = len - 1, 0, -1 do bits[#bits + 1] = band(rshift(val, i), 1) end
+                    end
+                    put(4, 4); put(#text, 8)
+                    for i = 1, #text do put(text:byte(i), 8) end
+                    for _ = 1, math.min(4, ndata * 8 - #bits) do bits[#bits + 1] = 0 end
+                    while #bits % 8 ~= 0 do bits[#bits + 1] = 0 end
+                    local data = {}
+                    for i = 1, #bits, 8 do
+                        local b = 0
+                        for j = 0, 7 do b = bor(lshift(b, 1), bits[i + j]) end
+                        data[#data + 1] = b
+                    end
+                    local pad = { 0xEC, 0x11 }
+                    local p = 1
+                    while #data < ndata do data[#data + 1] = pad[p]; p = 3 - p end
+
+                    -- Reed-Solomon over GF(256) with polynomial 0x11D.
+                    local exp, log = {}, {}
+                    local x = 1
+                    for i = 0, 254 do
+                        exp[i] = x; log[x] = i
+                        x = lshift(x, 1)
+                        if band(x, 0x100) ~= 0 then x = bxor(x, 0x11D) end
+                    end
+                    for i = 255, 511 do exp[i] = exp[i - 255] end
+                    local function mul(a, b)
+                        if a == 0 or b == 0 then return 0 end
+                        return exp[log[a] + log[b]]
+                    end
+                    local gen = { 1 }
+                    for i = 0, nec - 1 do
+                        local ng = {}
+                        for j = 1, #gen + 1 do
+                            ng[j] = bxor(gen[j] or 0, mul(gen[j - 1] or 0, exp[i]))
+                        end
+                        gen = ng
+                    end
+                    local rem = {}
+                    for i = 1, nec do rem[i] = 0 end
+                    for i = 1, ndata do
+                        local f = bxor(data[i], rem[1])
+                        table.remove(rem, 1); rem[nec] = 0
+                        for j = 1, nec do rem[j] = bxor(rem[j], mul(gen[j + 1], f)) end
+                    end
+                    for i = 1, nec do data[#data + 1] = rem[i] end
+
+                    -- Module matrix: m[r][c] = 0/1, f[r][c] = true for function patterns.
+                    local n = 17 + 4 * ver
+                    local m, f = {}, {}
+                    for r = 0, n - 1 do m[r] = {}; f[r] = {} end
+                    local function set(r, c, v) m[r][c] = v; f[r][c] = true end
+                    local function finder(r0, c0)
+                        for dr = -1, 7 do
+                            for dc = -1, 7 do
+                                local r, c = r0 + dr, c0 + dc
+                                if r >= 0 and r < n and c >= 0 and c < n then
+                                    local on = (dr >= 0 and dr <= 6 and (dc == 0 or dc == 6))
+                                        or (dc >= 0 and dc <= 6 and (dr == 0 or dr == 6))
+                                        or (dr >= 2 and dr <= 4 and dc >= 2 and dc <= 4)
+                                    set(r, c, on and 1 or 0)
+                                end
+                            end
+                        end
+                    end
+                    finder(0, 0); finder(0, n - 7); finder(n - 7, 0)
+                    for i = 8, n - 9 do set(6, i, (i + 1) % 2); set(i, 6, (i + 1) % 2) end
+                    if ver >= 2 then
+                        local a = 4 * ver + 10
+                        for dr = -2, 2 do
+                            for dc = -2, 2 do
+                                local on = math.max(math.abs(dr), math.abs(dc)) ~= 1
+                                set(a + dr, a + dc, on and 1 or 0)
+                            end
+                        end
+                    end
+                    set(n - 8, 8, 1) -- dark module
+                    -- Reserve format areas.
+                    for i = 0, 8 do
+                        if not f[8][i] then set(8, i, 0) end
+                        if not f[i][8] then set(i, 8, 0) end
+                    end
+                    for i = 0, 7 do set(8, n - 1 - i, 0); set(n - 1 - i, 8, 0) end
+                    set(n - 8, 8, 1)
+
+                    -- Place data bits in the zigzag order.
+                    local all = {}
+                    for _, b in ipairs(data) do for i = 7, 0, -1 do all[#all + 1] = band(rshift(b, i), 1) end end
+                    local k, up = 1, true
+                    local c = n - 1
+                    while c > 0 do
+                        if c == 6 then c = 5 end
+                        for i = 0, n - 1 do
+                            local r = up and (n - 1 - i) or i
+                            for dc = 0, 1 do
+                                local cc = c - dc
+                                if not f[r][cc] then
+                                    m[r][cc] = all[k] or 0
+                                    k = k + 1
+                                end
+                            end
+                        end
+                        up = not up
+                        c = c - 2
+                    end
+
+                    -- Masks and penalty score; keep the best.
+                    local masks = {
+                        function(r, cc) return (r + cc) % 2 == 0 end,
+                        function(r) return r % 2 == 0 end,
+                        function(_, cc) return cc % 3 == 0 end,
+                        function(r, cc) return (r + cc) % 3 == 0 end,
+                        function(r, cc) return (r // 2 + cc // 3) % 2 == 0 end,
+                        function(r, cc) return (r * cc) % 2 + (r * cc) % 3 == 0 end,
+                        function(r, cc) return ((r * cc) % 2 + (r * cc) % 3) % 2 == 0 end,
+                        function(r, cc) return ((r + cc) % 2 + (r * cc) % 3) % 2 == 0 end,
+                    }
+                    local function format_bits(mask)
+                        local d = bor(8, mask) -- level L = 01
+                        local v = lshift(d, 10)
+                        for i = 14, 10, -1 do
+                            if band(rshift(v, i), 1) == 1 then v = bxor(v, lshift(0x537, i - 10)) end
+                        end
+                        return bxor(bor(lshift(d, 10), v), 0x5412)
+                    end
+                    local function apply(mask)
+                        local g = {}
+                        for r = 0, n - 1 do
+                            g[r] = {}
+                            for cc = 0, n - 1 do
+                                local v = m[r][cc]
+                                if not f[r][cc] and masks[mask + 1](r, cc) then v = 1 - v end
+                                g[r][cc] = v
+                            end
+                        end
+                        local fb = format_bits(mask)
+                        for i = 0, 14 do
+                            local bit = band(rshift(fb, i), 1)
+                            -- Around the top-left finder.
+                            if i < 6 then g[i][8] = bit
+                            elseif i < 8 then g[i + 1][8] = bit
+                            else g[8][14 - i + (i == 8 and 1 or 0)] = bit end
+                            -- Split copy: bottom-left and top-right.
+                            if i < 8 then g[8][n - 1 - i] = bit else g[n - 15 + i][8] = bit end
+                        end
+                        g[n - 8][8] = 1
+                        return g
+                    end
+                    local function penalty(g)
+                        local s = 0
+                        for r = 0, n - 1 do
+                            local run, runr = 1, 1
+                            for cc = 1, n - 1 do
+                                if g[r][cc] == g[r][cc - 1] then run = run + 1 else
+                                    if run >= 5 then s = s + run - 2 end; run = 1 end
+                                if g[cc][r] == g[cc - 1][r] then runr = runr + 1 else
+                                    if runr >= 5 then s = s + runr - 2 end; runr = 1 end
+                            end
+                            if run >= 5 then s = s + run - 2 end
+                            if runr >= 5 then s = s + runr - 2 end
+                        end
+                        local dark = 0
+                        for r = 0, n - 1 do for cc = 0, n - 1 do
+                            dark = dark + g[r][cc]
+                            if r < n - 1 and cc < n - 1 then
+                                local v = g[r][cc]
+                                if v == g[r + 1][cc] and v == g[r][cc + 1] and v == g[r + 1][cc + 1] then s = s + 3 end
+                            end
+                        end end
+                        s = s + 10 * (math.abs(dark * 20 // (n * n) - 10))
+                        return s
+                    end
+                    local best, bestscore
+                    for mask = 0, 7 do
+                        local g = apply(mask)
+                        local sc = penalty(g)
+                        if not bestscore or sc < bestscore then best, bestscore = g, sc end
+                    end
+
+                    -- SVG with a 4-module quiet zone.
+                    local q = 4
+                    local size = n + 2 * q
+                    local parts = {}
+                    for r = 0, n - 1 do
+                        for cc = 0, n - 1 do
+                            if best[r][cc] == 1 then
+                                parts[#parts + 1] = "M" .. (cc + q) .. " " .. (r + q) .. "h1v1h-1z"
+                            end
+                        end
+                    end
+                    return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' .. size .. ' ' .. size
+                        .. '" class="qr" shape-rendering="crispEdges" role="img" aria-label="QR code">'
+                        .. '<rect width="100%" height="100%" fill="#fff"/><path fill="#000" d="'
+                        .. table.concat(parts) .. '"/></svg>'
+                end
+
+                local context, previous = ...
+                local text = context.vars:get("qr_text")
+                local svg = text and qr_svg(text)
+                if svg then context.vars:set("qr_svg", svg) end
+                return previous
+
+                """;
+        }
+    }
+
+    aaa {
+        @pipeline "PAGE" {
+            vars.page_head = """
+                <!doctype html>
+                <html lang="en">
+                <head>
+                <meta charset="utf-8">
+                <meta name="viewport" content="width=device-width,initial-scale=1">
+                <title>dragonfruit Wi-Fi</title>
+                <style>
+                :root{color-scheme:light dark;--fg:#1d1d1f;--bg:#f2f2f7;--card:#fff;--muted:#6e6e73;--accent:#0b7a4b;--accent-fg:#fff}
+                @media (prefers-color-scheme:dark){:root{--fg:#f5f5f7;--bg:#000;--card:#1c1c1e;--muted:#a1a1a6;--accent:#30d158;--accent-fg:#002b15}}
+                body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;background:var(--bg);color:var(--fg);font:17px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+                main{box-sizing:border-box;width:100%;max-width:400px;margin:16px;padding:32px 24px;background:var(--card);border-radius:22px;text-align:center}
+                h1{margin:0 0 8px;font-size:24px;line-height:1.2}
+                p{margin:8px 0 20px;color:var(--muted)}
+                .btn{display:block;box-sizing:border-box;width:100%;padding:16px;border:0;border-radius:14px;background:var(--accent);color:var(--accent-fg);font:600 17px/1.2 inherit;text-decoration:none;cursor:pointer}
+                .quiet{display:inline-block;margin-top:22px;color:var(--muted);font-size:15px}
+                .qr{display:block;width:100%;max-width:260px;margin:4px auto 12px;border-radius:12px}
+                .meta{font-size:14px;color:var(--muted);word-break:break-all}
+                </style>
+                </head>
+                <body>
+                <main>
+                """;
+            vars.page_foot = """
+                </main>
+                </body>
+                </html>
+                """;
+        }
+
+        # Device of the current request: walled-garden IP -> MAC via UniFi.
+        @pipeline "FIND_PORTAL_DEVICE" {
+            # Set by the private gateway from the TCP peer address (sso.yaml), so
+            # clients can't choose it.
+            vars.client_ip = http.header.x-portal-client-ip;
+
+            backend {
+                name "UNIFI";
+                query "FIND_CLIENT";
+            }
+
+            if all {
+                vars.unifi_mac == any;
+            } then {
+                vars.mac = vars.unifi_mac | normalize_mac;
+                vars.device_name = vars.unifi_name | default("");
+            } else {
+                reject "UniFi does not know a client with IP %{vars.client_ip}";
+            }
+        }
+
+        @pipeline "DISCONNECT_DEVICE" {
+            if all {
+                vars.nas_ip == "192.168.1.235";
+            } then {
+                backend {
+                    name "AP_DOWNSTAIRS_DAS";
+                    query "DISCONNECT";
+                }
+            } else if all {
+                vars.nas_ip == "192.168.1.191";
+            } then {
+                backend {
+                    name "AP_STORAGE_DAS";
+                    query "DISCONNECT";
+                }
+            } else {
+                reject "No DynAuth backend for AP %{vars.nas_ip}";
+            }
+        }
+
+        # Disconnects vars.mac if it is registered but its latest authentication
+        # put it in the portal VLAN, so it reconnects into its new VLAN.
+        @pipeline "KICK_IF_IN_PORTAL" {
+            backend {
+                name "radiatordb";
+                query "FIND_WIFI_DEVICE";
+            }
+            backend {
+                name "radiatordb";
+                query "FIND_WIFI_SESSION";
+            }
+            if all {
+                vars.session_vlan == "80";
+            } then {
+                invoke "DISCONNECT_DEVICE";
+            } else {
+                ignore;
+            }
+        }
+
+        policy "WIFI_CAPTIVE_REDIRECT" {
+            conditions all {
+                aaa.protocol == protocol.HTTP;
+                http.server == "CAPTIVE";
+            }
+
+            handler "REDIRECT" {
+                @execute {
+                    http.status = http.FOUND;
+                    http.response_header.Location = "https://wifi.fruitiex.org/";
+                    http.response = none;
+                    accept;
+                }
+            }
+        }
+
+        policy "WIFI_PORTAL" {
+            conditions all {
+                aaa.protocol == protocol.HTTP;
+                http.server == "PORTAL";
+                # Only requests through the private gateway. Without the length
+                # guard an unset variable would match a missing header.
+                env.RADIATOR_PROXY_SECRET == /^.{32,}$/;
+                http.header.x-radiator-proxy-secret == env.RADIATOR_PROXY_SECRET;
+            }
+
+            handler "LANDING" {
+                conditions all {
+                    http.method == "GET";
+                    http.path == "/";
+                }
+
+                @execute {
+                    invoke "PAGE";
+                    http.json = false;
+                    http.status = http.OK;
+                    http.response = """
+                        %{vars.page_head}
+                        <h1>dragonfruit Wi-Fi</h1>
+                        <p>Sign in to get on the network.</p>
+                        <a class="btn" href="/signin">Sign in with passkey</a>
+                        <a class="quiet" href="/guest">Guest access</a>
+                        %{vars.page_foot}
+                        """;
+                    accept;
+                }
+            }
+
+            # Member sign-in. Envoy has already run the Pocket ID flow for this
+            # path and forwards the identity (client radiator-wifi, family only).
+            handler "SIGNIN" {
+                conditions all {
+                    http.method == "GET";
+                    http.path == "/signin";
+                    http.header.x-sso-user == any;
+                }
+
+                @execute {
+                    invoke "PAGE";
+                    http.json = false;
+                    vars.sso_user = http.header.x-sso-user;
+                    # Envoy sends array claims as Base64 of the JSON array.
+                    vars.groups = http.header.x-sso-groups | base64_decode | string | json | jsonpath("$[*]");
+
+                    if all {
+                        vars.groups == "family";
+                    } then {
+                        until reject {
+                            invoke "FIND_PORTAL_DEVICE";
+                            backend {
+                                name "radiatordb";
+                                query "SAVE_MEMBER_DEVICE";
+                            }
+                        } when reject {
+                            # Starts with the reject: accept first so the
+                            # response is set, then reject again.
+                            accept;
+                            http.status = http.CONFLICT;
+                            http.response = """
+                                %{vars.page_head}
+                                <h1>Device not found</h1>
+                                <p>Reconnect to the Wi-Fi network and try again.</p>
+                                %{vars.page_foot}
+                                """;
+                            reject;
+                        }
+
+                        # Render first: the Disconnect closes the portal window.
+                        http.status = http.OK;
+                        http.response = """
+                            %{vars.page_head}
+                            <h1>You're in, %{vars.sso_user | xml_escape}</h1>
+                            <p id="s">Reconnecting to the network...</p>
+                            <script>setTimeout(function(){fetch("/activate",{method:"POST"})},1500)</script>
+                            %{vars.page_foot}
+                            """;
+                        accept;
+                    } else {
+                        http.status = http.FORBIDDEN;
+                        http.response = """
+                            %{vars.page_head}
+                            <h1>Not allowed</h1>
+                            <p>This account can't use the Wi-Fi network.</p>
+                            <a class="btn" href="/guest">Ask for guest access</a>
+                            %{vars.page_foot}
+                            """;
+                        reject;
+                    }
+                }
+            }
+
+            # Called by the result pages. Only disconnects the caller's own
+            # device, and only if it is registered and still in the portal VLAN.
+            handler "ACTIVATE" {
+                conditions all {
+                    http.method == "POST";
+                    http.path == "/activate";
+                }
+
+                @execute {
+                    until end {
+                        try invoke "FIND_PORTAL_DEVICE";
+                        try invoke "KICK_IF_IN_PORTAL";
+                        ignore;
+                    }
+                    http.status = http.NO_CONTENT;
+                    http.response = none;
+                    accept;
+                }
+            }
+
+            handler "GUEST" {
+                conditions all {
+                    http.method == "GET";
+                    http.path == "/guest";
+                }
+
+                @execute {
+                    invoke "PAGE";
+                    http.json = false;
+
+                    until reject {
+                        invoke "FIND_PORTAL_DEVICE";
+                    } when reject {
+                        accept;
+                        http.status = http.CONFLICT;
+                        http.response = """
+                            %{vars.page_head}
+                            <h1>Device not found</h1>
+                            <p>Reconnect to the Wi-Fi network and try again.</p>
+                            %{vars.page_foot}
+                            """;
+                        reject;
+                    }
+
+                    # The random 64-bit context id names the request.
+                    vars.token = "%{context.id}";
+                    backend {
+                        name "radiatordb";
+                        query "SAVE_GUEST_REQUEST";
+                    }
+                    vars.qr_text = "https://wifi.fruitiex.org/approve?t=%{vars.token}";
+                    script "QR_SVG";
+
+                    http.status = http.OK;
+                    http.response = """
+                        %{vars.page_head}
+                        <h1>Guest access</h1>
+                        <p id="s">Show this code to your host. They scan it with their phone to let you in.</p>
+                        <div id="q">%{vars.qr_svg}</div>
+                        <p class="meta">Code %{vars.token | substring(0, 4)}</p>
+                        <script>
+                        (function(){
+                          var t="%{vars.token}";
+                          function poll(){
+                            fetch("/guest/status?t="+t,{cache:"no-store"}).then(function(r){return r.json()}).then(function(j){
+                              if(j.status==="approved"){
+                                document.getElementById("q").remove();
+                                document.querySelector(".meta").remove();
+                                document.querySelector("h1").textContent="Approved";
+                                document.getElementById("s").textContent="Approved, reconnecting...";
+                                setTimeout(function(){fetch("/activate",{method:"POST"})},1500);
+                              } else if(j.status==="expired"){location.reload()}
+                              else setTimeout(poll,3000);
+                            }).catch(function(){setTimeout(poll,3000)});
+                          }
+                          setTimeout(poll,3000);
+                        })();
+                        </script>
+                        %{vars.page_foot}
+                        """;
+                    accept;
+                }
+            }
+
+            handler "GUEST_STATUS" {
+                conditions all {
+                    http.method == "GET";
+                    http.path == "/guest/status";
+                    http.query.t == any;
+                }
+
+                @execute {
+                    vars.token = http.query.t;
+                    http.status = http.OK;
+                    http.response.status = "pending";
+
+                    until end {
+                        backend {
+                            name "radiatordb";
+                            query "FIND_GUEST_REQUEST";
+                        }
+                    } when accept {
+                        until end {
+                            backend {
+                                name "radiatordb";
+                                query "FIND_WIFI_DEVICE";
+                            }
+                        } when accept {
+                            http.response.status = "approved";
+                        } else {
+                            accept;
+                        }
+                    } else {
+                        accept;
+                        http.response.status = "expired";
+                    }
+                    accept;
+                }
+            }
+
+            # Approval pages: Envoy has run the Pocket ID flow for /approve; only
+            # admins may approve.
+            handler "APPROVE" {
+                conditions all {
+                    http.path == /^\/approve/;
+                    http.header.x-sso-user == any;
+                    http.query.t == any;
+                }
+
+                @execute {
+                    invoke "PAGE";
+                    http.json = false;
+                    vars.sso_user = http.header.x-sso-user;
+                    vars.groups = http.header.x-sso-groups | base64_decode | string | json | jsonpath("$[*]");
+                    vars.token = http.query.t;
+
+                    if none {
+                        vars.groups == "admins";
+                    } then {
+                        http.status = http.FORBIDDEN;
+                        http.response = """
+                            %{vars.page_head}
+                            <h1>Not allowed</h1>
+                            <p>Only admins can approve guests.</p>
+                            %{vars.page_foot}
+                            """;
+                        reject;
+                    }
+
+                    until end {
+                        backend {
+                            name "radiatordb";
+                            query "FIND_GUEST_REQUEST";
+                        }
+                    } when reject {
+                        accept;
+                        http.status = http.NOT_FOUND;
+                        http.response = """
+                            %{vars.page_head}
+                            <h1>Request expired</h1>
+                            <p>Ask the guest to open the guest page again for a new code.</p>
+                            %{vars.page_foot}
+                            """;
+                        reject;
+                    }
+
+                    vars.device = "%{vars.device_name | xml_escape} %{vars.mac}";
+
+                    if all {
+                        http.method == "GET";
+                        http.path == "/approve";
+                    } then {
+                        http.status = http.OK;
+                        http.response = """
+                            %{vars.page_head}
+                            <h1>Let this guest in?</h1>
+                            <p>The device gets internet access on the guest network for a year.</p>
+                            <p class="meta">%{vars.device}<br>Code %{vars.token | substring(0, 4)}</p>
+                            <form method="post" action="/approve?t=%{vars.token | url_escape}">
+                            <button class="btn" type="submit">Approve guest</button>
+                            </form>
+                            %{vars.page_foot}
+                            """;
+                        accept;
+                    } else if all {
+                        http.method == "POST";
+                        http.path == "/approve";
+                    } then {
+                        backend {
+                            name "radiatordb";
+                            query "SAVE_GUEST_DEVICE";
+                        }
+                        http.status = http.OK;
+                        http.response = """
+                            %{vars.page_head}
+                            <h1>Guest approved</h1>
+                            <p>Their device reconnects to the guest network in a moment.</p>
+                            <p class="meta">%{vars.device}</p>
+                            <script>setTimeout(function(){fetch("/approve/kick?t=%{vars.token | url_escape}",{method:"POST"})},15000)</script>
+                            %{vars.page_foot}
+                            """;
+                        accept;
+                    } else if all {
+                        # Fallback if the guest closed their page: disconnect the
+                        # device unless it already left the portal VLAN.
+                        http.method == "POST";
+                        http.path == "/approve/kick";
+                    } then {
+                        until end {
+                            try invoke "KICK_IF_IN_PORTAL";
+                            ignore;
+                        }
+                        http.status = http.NO_CONTENT;
+                        http.response = none;
+                        accept;
+                    } else {
+                        http.status = http.NOT_FOUND;
+                        http.response = "Not found";
+                        reject;
+                    }
+                }
+            }
+
+            handler "NOT_FOUND" {
+                @execute {
+                    invoke "PAGE";
+                    http.json = false;
+                    http.status = http.NOT_FOUND;
+                    http.response = """
+                        %{vars.page_head}
+                        <h1>Not found</h1>
+                        <p><a href="/">Back to the Wi-Fi sign-in</a></p>
+                        %{vars.page_foot}
+                        """;
+                    reject;
+                }
+            }
+        }
+
+        # Requests without the gateway's proxy secret.
+        policy "WIFI_PORTAL_DENIED" {
+            conditions all {
+                aaa.protocol == protocol.HTTP;
+                http.server == "PORTAL";
+            }
+
+            handler "DENIED" {
+                @execute {
+                    http.status = http.FORBIDDEN;
+                    http.json = false;
+                    http.response = "Forbidden";
+                    reject;
+                }
+            }
+        }
+    }
+---
+# Self-signed certificate of the UniFi console (192.168.1.1, SAN unifi.local),
+# pinned by the UNIFI backend in wifi-portal.radconf. Refresh it when the
+# console renews it (expires 2027-05-11):
+#   openssl s_client -connect 192.168.1.1:443 </dev/null | openssl x509
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: unifi-console-cert
+  namespace: default
+data:
+  console.pem: |
+    -----BEGIN CERTIFICATE-----
+    MIIDNTCCAh2gAwIBAgIJaYvKQwa/GvU3MA0GCSqGSIb3DQEBCwUAMBYxFDASBgNV
+    BAMTC3VuaWZpLmxvY2FsMB4XDTI1MDIwNTIxMzg1NVoXDTI3MDUxMTIxMzg1NVow
+    FjEUMBIGA1UEAxMLdW5pZmkubG9jYWwwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAw
+    ggEKAoIBAQCmzOy58Yexq87Sfd4+8iLVIyD1TdYNJWxCntWg2NYjnFndiOlh6m+H
+    cEkgR8CwyWwXzX/V12pPfAlYnEvBhsdhbzNFqToiVl60GAVcbF/NMA2+wgpVVHah
+    yE5x4j+DFDFTQE9g5hC64UkjWKnopYdSzf/5UgMTSeGdxZOEzJywrP/4phhwEB7y
+    yLxU4SF5txVqJ5WaPy9VB8/GFXOZA+upWMooe+ZCF9rctlb9Nte1T6z9WkCMy972
+    XNOY+VsoTIppiWs9SAe1oz19k0PIZvu/qELt3aSpqliKzL/hKq/aayA3Cv3HnSKs
+    8p+Gy2c67a4g0uaV2GTjz7+soMaRAMQNAgMBAAGjgYUwgYIwCwYDVR0PBAQDAgL0
+    MDEGA1UdJQQqMCgGCCsGAQUFBwMBBggrBgEFBQcDAgYIKwYBBQUHAwMGCCsGAQUF
+    BwMIMEAGA1UdEQQ5MDeCC3VuaWZpLmxvY2Fsgglsb2NhbGhvc3SCBVs6OjFdhwR/
+    AAABhxD+gAAAAAAAAAAAAAAAAAABMA0GCSqGSIb3DQEBCwUAA4IBAQAYbBSHNmY8
+    ROgDyDxxJUhZbCbDo5O/iYYvJjCz33MS6nBCLcogmQtGghaaMJdCuRlHPOy3G5CM
+    WjZlLvSGeZgjsvytPSy7XxuHAE0sV8P8GK1LKJ2La91Xrlr1Nxn77dV7SzzUpmSV
+    nR8HUvFDmTXzktJia8whEcZNHH9MXtzymbCPo69vNUNb1PjeLoNoIuCiYsqoZ2ys
+    W9rsXXm7a7tQ1b6CUY1r9QvV1tFdfMZIhqGay723DQudjDiQEVlJveXWeiz1wEGS
+    AtHK/k9+6Y4MqDIfA+BmB/zhpKu1Mi/oCxwZtMeaQ3yZWKwU0iUNQGrkWmn6OrgS
+    DrUBKdPyf31T
+    -----END CERTIFICATE-----
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
@@ -481,6 +1622,43 @@ spec:
       port: 8443
       targetPort: 8443
 ---
+# Wi-Fi portal behind https://wifi.fruitiex.org (sso.yaml).
+apiVersion: v1
+kind: Service
+metadata:
+  name: radiator-portal
+  namespace: default
+spec:
+  selector:
+    app: radiator
+  ports:
+    - name: portal
+      protocol: TCP
+      port: 8088
+      targetPort: 8088
+---
+# Captive-portal probe redirect for the walled-garden VLAN 80
+# (apps/walled-garden-dns resolves every other name here).
+apiVersion: v1
+kind: Service
+metadata:
+  name: radiator-captive
+  namespace: default
+  annotations:
+    metallb.universe.tf/loadBalancerIPs: 192.168.11.95
+    external-dns.alpha.kubernetes.io/exclude: "true"
+spec:
+  type: LoadBalancer
+  # Keeps the device address visible to Radiator's CAPTIVE client list.
+  externalTrafficPolicy: Local
+  selector:
+    app: radiator
+  ports:
+    - name: captive-http
+      protocol: TCP
+      port: 80
+      targetPort: 8080
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -500,6 +1678,11 @@ spec:
     spec:
       securityContext:
         runAsNonRoot: true
+      # The UniFi console's self-signed certificate is issued to unifi.local.
+      hostAliases:
+        - ip: 192.168.1.1
+          hostnames:
+            - unifi.local
       initContainers:
         - name: initialize-config
           image: busybox:1.38.0@sha256:fd7dc98638c8e305f4dc34e979f1c0fdfdcaeb0fbf8fcff77ae834b6da3d7e6e
@@ -508,13 +1691,13 @@ spec:
             - -c
           args:
             - >-
-              if [ ! -f /var/lib/radiator/.bootstrap-complete-v7 ]; then
+              if [ ! -f /var/lib/radiator/.bootstrap-complete-v8 ]; then
                 rm -f /var/lib/radiator/*.radconf /var/lib/radiator/..data;
                 rm -rf /var/lib/radiator/..20*;
                 for config in /bootstrap/*.radconf; do
                   cp -L "$config" "/var/lib/radiator/$(basename "$config")";
                 done;
-                touch /var/lib/radiator/.bootstrap-complete-v7;
+                touch /var/lib/radiator/.bootstrap-complete-v8;
               fi;
               mkdir -p /var/lib/radiator/licenses /var/lib/radiator/tmp /var/lib/radiator/management/tls/certs /var/lib/radiator/management/tls/keys /var/log/radiator;
               chown -R 1000:1000 /var/lib/radiator /var/log/radiator;
@@ -579,6 +1762,12 @@ spec:
                 secretKeyRef:
                   name: radiator-proxy-secret
                   key: credential
+            # UniFi Network API (Wi-Fi portal: device IP -> MAC).
+            - name: UNIFI_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: radiator-secrets
+                  key: UNIFI_API_KEY
           ports:
             - name: management
               containerPort: 8443
@@ -591,6 +1780,12 @@ spec:
               protocol: UDP
             - name: radsec
               containerPort: 2083
+              protocol: TCP
+            - name: portal
+              containerPort: 8088
+              protocol: TCP
+            - name: captive
+              containerPort: 8080
               protocol: TCP
           volumeMounts:
             - name: radiator-config
@@ -606,6 +1801,9 @@ spec:
               readOnly: true
             - name: radiator-logs
               mountPath: /var/log/radiator
+            - name: unifi-console-cert
+              mountPath: /etc/radiator/unifi
+              readOnly: true
           livenessProbe:
             httpGet:
               path: /live
@@ -655,6 +1853,9 @@ spec:
             claimName: radiator-config
         - name: radiator-logs
           emptyDir: {}
+        - name: unifi-console-cert
+          configMap:
+            name: unifi-console-cert
 ---
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute

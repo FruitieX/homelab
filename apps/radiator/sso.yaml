@@ -1,5 +1,5 @@
 # Pocket ID sign-in at the private gateway for the Radiator management UI
-# (radiator.fruitiex.org).
+# (radiator.fruitiex.org) and the Wi-Fi captive portal (wifi.fruitiex.org).
 #
 # Envoy validates the ID token and forwards x-sso-user / x-sso-groups (the
 # groups header is Base64 of the JSON array, Envoy's format for array claims).
@@ -53,6 +53,123 @@ spec:
       - name: pocket-id
         issuer: https://id.fruitiex.org
         audiences: [homelab-gateway]
+        remoteJWKS:
+          uri: https://id.fruitiex.org/.well-known/jwks.json
+        extractFrom:
+          headers:
+            - name: x-sso-id-token
+        claimToHeaders:
+          - header: x-sso-user
+            claim: preferred_username
+          - header: x-sso-groups
+            claim: groups
+---
+# Wi-Fi portal, public part: landing page, guest request and status, and
+# /activate (wifi-portal.radconf). x-portal-client-ip is the TCP peer address
+# (the private gateway Service uses externalTrafficPolicy Local), i.e. the
+# device's walled-garden IP; set here so clients can't choose it.
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: radiator-wifi
+  namespace: default
+spec:
+  parentRefs:
+    - name: private
+      namespace: envoy-gateway-system
+      sectionName: https
+  hostnames:
+    - wifi.fruitiex.org
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /
+      filters:
+        - type: ExtensionRef
+          extensionRef:
+            group: gateway.envoyproxy.io
+            kind: HTTPRouteFilter
+            name: radiator-proxy-secret
+        - type: RequestHeaderModifier
+          requestHeaderModifier:
+            set:
+              - name: x-portal-client-ip
+                value: "%DOWNSTREAM_REMOTE_ADDRESS_WITHOUT_PORT%"
+      backendRefs:
+        - name: radiator-portal
+          port: 8088
+---
+# Wi-Fi portal, signed-in part: member sign-in (/signin) and guest approval
+# (/approve, admins only, checked by Radiator) behind Pocket ID.
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: radiator-wifi-signin
+  namespace: default
+  annotations:
+    # The record comes from the radiator-wifi route.
+    external-dns.alpha.kubernetes.io/exclude: "true"
+spec:
+  parentRefs:
+    - name: private
+      namespace: envoy-gateway-system
+      sectionName: https
+  hostnames:
+    - wifi.fruitiex.org
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /signin
+        - path:
+            type: PathPrefix
+            value: /approve
+        - path:
+            type: PathPrefix
+            value: /oauth2/
+      filters:
+        - type: ExtensionRef
+          extensionRef:
+            group: gateway.envoyproxy.io
+            kind: HTTPRouteFilter
+            name: radiator-proxy-secret
+        - type: RequestHeaderModifier
+          requestHeaderModifier:
+            set:
+              - name: x-portal-client-ip
+                value: "%DOWNSTREAM_REMOTE_ADDRESS_WITHOUT_PORT%"
+      backendRefs:
+        - name: radiator-portal
+          port: 8088
+---
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: SecurityPolicy
+metadata:
+  name: pocket-id-radiator-wifi
+  namespace: default
+spec:
+  targetRefs:
+    - group: gateway.networking.k8s.io
+      kind: HTTPRoute
+      name: radiator-wifi-signin
+  oidc:
+    provider:
+      issuer: https://id.fruitiex.org
+    # Dedicated client, restricted to the "family" group in Pocket ID.
+    clientID: radiator-wifi
+    clientSecret:
+      name: radiator-wifi-oidc
+    scopes: [openid, profile, email, groups]
+    redirectURL: https://wifi.fruitiex.org/oauth2/callback
+    logoutPath: /oauth2/logout
+    forwardIDToken:
+      header: x-sso-id-token
+  jwt:
+    providers:
+      - name: pocket-id
+        issuer: https://id.fruitiex.org
+        audiences: [radiator-wifi]
         remoteJWKS:
           uri: https://id.fruitiex.org/.well-known/jwks.json
         extractFrom:

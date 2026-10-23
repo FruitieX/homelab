@@ -28,6 +28,7 @@ resources:
   - bambuddy.yaml
   - spliit.yaml
   - radiator.yaml
+  - walled-garden-dns.yaml
   - kubedash.yaml
   - feedback-hub.yaml
   - busmap.yaml
