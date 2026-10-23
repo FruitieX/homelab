@@ -33,5 +33,6 @@ resources:
   - busmap.yaml
   - rsfinity.yaml
   - pocket-id.yaml
+  - oriel-hub.yaml
 # - adb-mqtt.yaml
 # - hue-mqtt.yaml

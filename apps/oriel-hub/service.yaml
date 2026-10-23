@@ -1,0 +1,29 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: oriel-hub
+spec:
+  selector:
+    app: oriel-hub
+  ports:
+    - name: http
+      port: 8080
+      targetPort: http
+---
+# Relayed oriel connections (UDP); the router forwards WAN UDP 48700 here.
+apiVersion: v1
+kind: Service
+metadata:
+  name: oriel-hub-relay
+  annotations:
+    metallb.universe.tf/loadBalancerIPs: 192.168.11.97
+spec:
+  type: LoadBalancer
+  externalTrafficPolicy: Local
+  selector:
+    app: oriel-hub
+  ports:
+    - name: relay
+      protocol: UDP
+      port: 48700
+      targetPort: relay

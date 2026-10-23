@@ -1,0 +1,86 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: oriel-hub
+  annotations:
+    secret.reloader.stakater.com/reload: oriel-hub-env
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: oriel-hub
+  template:
+    metadata:
+      labels:
+        app: oriel-hub
+    spec:
+      imagePullSecrets:
+        - name: ghcr-credentials
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        fsGroup: 10001
+        fsGroupChangePolicy: OnRootMismatch
+      containers:
+        - name: oriel-hub
+          image: ghcr.io/fruitiex/oriel-hub:main@sha256:f9e66c2d2886ae479780ee93e8d1b1c4b3c980588601c4e4a5347cfe18054586
+          imagePullPolicy: Always
+          envFrom:
+            - secretRef:
+                name: oriel-hub-env
+          env:
+            # Devices log in through Pocket ID (device flow, passkeys); the
+            # client secret is in oriel-hub-env.
+            - name: ORIEL_HUB_OIDC_ISSUER
+              value: https://id.fruitiex.org
+            - name: ORIEL_HUB_OIDC_CLIENT_ID
+              value: oriel
+            - name: ORIEL_HUB_OIDC_ALLOWED_GROUPS
+              value: admins
+            # Relayed connections: UDP through the oriel-hub-relay service,
+            # forwarded from the router's WAN port 48700.
+            - name: ORIEL_HUB_RELAY_BIND
+              value: 0.0.0.0:48700
+            - name: ORIEL_HUB_RELAY_PUBLIC
+              value: oriel.fruitiex.org:48700
+            - name: RUST_LOG
+              value: oriel_hub=info
+          ports:
+            - name: http
+              containerPort: 8080
+            - name: relay
+              containerPort: 48700
+              protocol: UDP
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: [ALL]
+          resources:
+            requests:
+              cpu: 20m
+              memory: 32Mi
+            limits:
+              memory: 256Mi
+          volumeMounts:
+            - name: data
+              mountPath: /data
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            periodSeconds: 30
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: oriel-hub-data-nfs
