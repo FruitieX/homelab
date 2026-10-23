@@ -1,6 +1,8 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
+  annotations:
+    secret.reloader.stakater.com/reload: chores-env
   name: chores
 spec:
   replicas: 1
@@ -38,6 +40,18 @@ spec:
               value: DELETE
             - name: RUST_LOG
               value: chores_api=info
+            # Passkey sign-in through Pocket ID; the client secret is in chores-env.
+            - name: CHORES_OIDC_ISSUER
+              value: https://id.fruitiex.org
+            - name: CHORES_OIDC_CLIENT_ID
+              value: chores
+            - name: CHORES_OIDC_ALLOWED_GROUPS
+              value: family
+            - name: CHORES_OIDC_USER_MAP
+              value: rasse:a,julle:b
+          envFrom:
+            - secretRef:
+                name: chores-env
           ports:
             - name: http
               containerPort: 8080
