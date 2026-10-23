@@ -41,6 +41,12 @@ spec:
               value: https://forkbasket.fruitiex.org
             - name: LITTLECUPBOARD_SQLITE_JOURNAL_MODE
               value: DELETE
+            - name: LITTLECUPBOARD_OIDC_ISSUER
+              value: https://id.fruitiex.org
+            - name: LITTLECUPBOARD_OIDC_CLIENT_ID
+              value: littlecupboard
+            - name: LITTLECUPBOARD_OIDC_ALLOWED_GROUPS
+              value: family
             - name: RUST_LOG
               value: littlecupboard_api=info
           ports:

@@ -23,7 +23,7 @@ Active storage is the 5 GiB `forkbasket-data-nfs` claim using `nfs-csi`, mounted
 
 The previous `forkbasket-data` iSCSI claim and its Synology LUN were removed at the user's request after the migration was verified. Only the active NFS claim remains, with Flux pruning disabled and a Retain reclaim policy. A private pre-migration database backup remains on NFS. Keep regular backups of the active NFS database and its matching SOPS secret.
 
-Server setup and provider-encryption secrets are SOPS-encrypted in `secret.sops.yaml`. Preserve the matching encryption key with database backups. Runtime accounts, recipes, images and provider configuration are stored in SQLite on the PVC.
+Server setup and provider-encryption secrets are SOPS-encrypted in `secret.sops.yaml`. Pocket ID passkey sign-in (client `littlecupboard`, group `family`) uses the non-secret `LITTLECUPBOARD_OIDC_*` variables in `deployment.yaml`; the client secret and the account map `LITTLECUPBOARD_OIDC_USER_MAP` (it contains email addresses) are in the SOPS secret. Email/password sign-in remains available. Preserve the matching encryption key with database backups. Runtime accounts, recipes, images and provider configuration are stored in SQLite on the PVC.
 
 ## First login
 
