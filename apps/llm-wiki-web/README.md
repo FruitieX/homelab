@@ -4,6 +4,7 @@ Private reading and editing app for the owner's wiki at **https://llm-wiki.fruit
 
 - One replica (`Recreate`): the pod owns a git clone of `FruitieX/llm-wiki` on the `llm-wiki-web-data-nfs` claim and pushes the owner's edits to `main`.
 - `secret.sops.yaml` holds the GitHub deploy key (write access to `FruitieX/llm-wiki`, titled "llm-wiki-web (homelab)"), the first-login setup token, and the Hermes API key (the same one Open WebUI uses) for AI-written commit subjects.
+- Sign-in defaults to passkeys through Pocket ID (OIDC client `llm-wiki-web`, restricted to the `admins` group); `LLM_WIKI_OIDC_CLIENT_SECRET` in `secret.sops.yaml` is its client secret (also in 1Password, Agents vault, "Pocket ID OIDC client: llm-wiki-web"). The owner password remains a fallback.
 - CI in the app repository dispatches `image-update`, which pins the tested digest in `deployment.yaml`.
 
 First sign-in: read the setup token in your own terminal, open the site and choose a password.

@@ -59,6 +59,18 @@ spec:
                 secretKeyRef:
                   name: llm-wiki-web
                   key: LLM_WIKI_AI_KEY
+            # Passkey sign-in through Pocket ID (client llm-wiki-web).
+            - name: LLM_WIKI_OIDC_ISSUER
+              value: https://id.fruitiex.org
+            - name: LLM_WIKI_OIDC_CLIENT_ID
+              value: llm-wiki-web
+            - name: LLM_WIKI_OIDC_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: llm-wiki-web
+                  key: LLM_WIKI_OIDC_CLIENT_SECRET
+            - name: LLM_WIKI_OIDC_ALLOWED_GROUPS
+              value: admins
             - name: RUST_LOG
               value: llm_wiki_web=info
           ports:
