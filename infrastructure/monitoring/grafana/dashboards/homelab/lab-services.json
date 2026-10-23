@@ -579,7 +579,7 @@
       "type": "prometheus",
       "uid": "prometheus"
      },
-     "expr": "sort_desc(avg by (app) (avg_over_time(label_replace(probe_duration_seconds{job=~\"probe/kube-prometheus-stack/apps-.*\"}, \"app\", \"$1\", \"instance\", \"https://([^/]+).*\")[$__range])))",
+     "expr": "sort_desc(avg by (app) (label_replace(avg_over_time(probe_duration_seconds{job=~\"probe/kube-prometheus-stack/apps-.*\"}[$__range]), \"app\", \"$1\", \"instance\", \"https://([^/]+).*\")))",
      "legendFormat": "{{app}}",
      "range": false,
      "instant": true,

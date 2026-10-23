@@ -306,8 +306,8 @@ union(tables: [ble, zigbee])
                    desc="Average link quality over the last day (0–255). Under ~40 the device needs a closer router."),
           10, 12)
     d.row("BLE sensors")
-    d.add(timeseries("Sensor batteries", [flux(ble("batt", ALL_BLE, every="6h"))], unit="percent", minv=0, maxv=100,
-                     display_name=BY_PLACE, time_from="90d", fill=0, legend="right"), 24, 9)
+    d.add(timeseries("Sensor batteries", [flux(ble("batt", ALL_BLE, every="12h"))], unit="percent", minv=0, maxv=100,
+                     display_name=BY_PLACE, time_from="30d", fill=0, legend="right"), 24, 9)
     return d
 
 
@@ -334,7 +334,7 @@ def overview_house(d):
     d.add(stat("Freezer", [flux(ble("tempc", {"D43535302778": "Freezer"}, start="-3h", stop="now()") + "\n  |> last()")],
                unit="celsius", decimals=1, graph=False, thr=thresholds(GOOD, (-15, WARN), (-10, BAD))), 3, 4)
     d.add(stat("Low batteries", [flux(f'''from(bucket: "home")
-  |> range(start: -14d)
+  |> range(start: -3d)
   |> filter(fn: (r) => r._measurement == "mqtt_consumer" and ((r._field == "batt" and contains(value: r.device_id, set: {_set(ALL_BLE)}))
       or (r._field == "battery" and r.integration_id == "zigbee2mqtt")))
   |> group(columns: ["device_id"]) |> last()

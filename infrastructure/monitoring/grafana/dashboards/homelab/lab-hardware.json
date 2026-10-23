@@ -2013,7 +2013,7 @@
       "type": "prometheus",
       "uid": "prometheus"
      },
-     "expr": "sum(rate(ifHCInOctets{job=\"nas-snmp\"}[$__rate_interval])) * 8",
+     "expr": "sum(rate(ifHCInOctets{job=\"nas-snmp\", ifName=~\"eth.*|bond.*|ovs_.*\"}[$__rate_interval])) * 8",
      "legendFormat": "In",
      "range": true,
      "instant": false,
@@ -2024,7 +2024,7 @@
       "type": "prometheus",
       "uid": "prometheus"
      },
-     "expr": "sum(rate(ifHCOutOctets{job=\"nas-snmp\"}[$__rate_interval])) * 8",
+     "expr": "sum(rate(ifHCOutOctets{job=\"nas-snmp\", ifName=~\"eth.*|bond.*|ovs_.*\"}[$__rate_interval])) * 8",
      "legendFormat": "Out",
      "range": true,
      "instant": false,

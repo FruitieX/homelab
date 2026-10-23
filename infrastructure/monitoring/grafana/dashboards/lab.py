@@ -41,7 +41,8 @@ def services_dashboard():
                          mappings=UP_DOWN, color={"mode": "thresholds"}, thr=thresholds(BAD, (1, GOOD)),
                          row_height=0.8), 16, 16)
     d.add(bargauge("Response time (avg over range)", [prom(
-        f'sort_desc(avg by (app) (avg_over_time({APPS.format(metric="probe_duration_seconds")}[$__range])))',
+        'sort_desc(avg by (app) (label_replace(avg_over_time(probe_duration_seconds{job=~"probe/kube-prometheus-stack/apps-.*"}[$__range]), '
+        '"app", "$1", "instance", "https://([^/]+).*")))',
         legend="{{app}}", instant=True)], unit="s", decimals=2, display_name="${__field.labels.app}",
         thr=thresholds(GOOD, (0.5, WARN), (2, BAD)), mode="basic"), 8, 16)
     d.add(state_timeline("LAN hosts & core services", [
@@ -305,8 +306,8 @@ def hardware_dashboard():
                      overrides=fixed_colors({"Used": SLOTS[0], "Capacity": MUTED}),
                      desc="The homelab NFS share (all nfs-csi volumes share it)."), 8, 6)
     d.add(timeseries("NAS network", [
-        prom(f'sum(rate(ifHCInOctets{nas}[$__rate_interval])) * 8', legend="In"),
-        prom(f'sum(rate(ifHCOutOctets{nas}[$__rate_interval])) * 8', legend="Out")],
+        prom('sum(rate(ifHCInOctets{job="nas-snmp", ifName=~"eth.*|bond.*|ovs_.*"}[$__rate_interval])) * 8', legend="In"),
+        prom('sum(rate(ifHCOutOctets{job="nas-snmp", ifName=~"eth.*|bond.*|ovs_.*"}[$__rate_interval])) * 8', legend="Out")],
         unit="bps", fill=0, overrides=fixed_colors({"In": SLOTS[0], "Out": SLOTS[1]})), 8, 6)
     return d
 

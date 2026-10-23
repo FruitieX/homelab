@@ -328,7 +328,7 @@
       "type": "influxdb",
       "uid": "influxdb"
      },
-     "query": "import \"timezone\"\noption location = timezone.location(name: \"Europe/Helsinki\")\nimport \"date\"\nenergy = from(bucket: \"home\")\n  |> range(start: date.truncate(t: now(), unit: 1mo), stop: now())\n  |> filter(fn: (r) => r._measurement == \"mqtt_consumer\" and r.integration_id == \"tuya\" and r._field == \"raw_19\")\n  |> map(fn: (r) => ({_time: r._time, _value: float(v: r._value) / 10.0, device: r.name}))\n  |> group(columns: [\"device\"])\n  |> aggregateWindow(every: 1h, fn: mean, createEmpty: false, timeSrc: \"_start\")\nprice = from(bucket: \"nordpool\")\n  |> range(start: date.truncate(t: now(), unit: 1mo), stop: now())\n  |> filter(fn: (r) => r._measurement == \"price\" and r._field == \"price\")\n  |> aggregateWindow(every: 1h, fn: mean, createEmpty: false, timeSrc: \"_start\")\n  |> keep(columns: [\"_time\", \"_value\"])\njoin(tables: {e: energy, p: price}, on: [\"_time\"])\n  |> map(fn: (r) => ({_time: r._time, device: r.device, _value: r._value_e / 1000.0 * r._value_p / 100.0}))\n  |> group(columns: [\"device\"])\n  |> group() |> sum()",
+     "query": "import \"timezone\"\nimport \"date\"\noption location = timezone.location(name: \"Europe/Helsinki\")\nenergy = from(bucket: \"home\")\n  |> range(start: date.truncate(t: now(), unit: 1mo), stop: now())\n  |> filter(fn: (r) => r._measurement == \"mqtt_consumer\" and r.integration_id == \"tuya\" and r._field == \"raw_19\")\n  |> map(fn: (r) => ({_time: r._time, _value: float(v: r._value) / 10.0, device: r.name}))\n  |> group(columns: [\"device\"])\n  |> aggregateWindow(every: 1h, fn: mean, createEmpty: false, timeSrc: \"_start\")\nprice = from(bucket: \"nordpool\")\n  |> range(start: date.truncate(t: now(), unit: 1mo), stop: now())\n  |> filter(fn: (r) => r._measurement == \"price\" and r._field == \"price\")\n  |> aggregateWindow(every: 1h, fn: mean, createEmpty: false, timeSrc: \"_start\")\n  |> keep(columns: [\"_time\", \"_value\"])\njoin(tables: {e: energy, p: price}, on: [\"_time\"])\n  |> map(fn: (r) => ({_time: r._time, device: r.device, _value: r._value_e / 1000.0 * r._value_p / 100.0}))\n  |> group(columns: [\"device\"])\n  |> group() |> sum()",
      "refId": "A"
     }
    ],
@@ -463,7 +463,7 @@
       "type": "influxdb",
       "uid": "influxdb"
      },
-     "query": "import \"timezone\"\noption location = timezone.location(name: \"Europe/Helsinki\")\nimport \"date\"\nfrom(bucket: \"nordpool\")\n  |> range(start: today(), stop: date.add(d: 2d, to: today()))\n  |> filter(fn: (r) => r._measurement == \"price\" and r._field == \"price\")\n  |> aggregateWindow(every: 1h, fn: mean, createEmpty: false, timeSrc: \"_start\")\n  |> keep(columns: [\"_time\", \"_value\"])",
+     "query": "import \"timezone\"\nimport \"date\"\noption location = timezone.location(name: \"Europe/Helsinki\")\nfrom(bucket: \"nordpool\")\n  |> range(start: today(), stop: date.add(d: 2d, to: today()))\n  |> filter(fn: (r) => r._measurement == \"price\" and r._field == \"price\")\n  |> aggregateWindow(every: 1h, fn: mean, createEmpty: false, timeSrc: \"_start\")\n  |> keep(columns: [\"_time\", \"_value\"])",
      "refId": "A"
     }
    ],
@@ -543,7 +543,7 @@
       "type": "influxdb",
       "uid": "influxdb"
      },
-     "query": "import \"timezone\"\noption location = timezone.location(name: \"Europe/Helsinki\")\nimport \"date\"\nfrom(bucket: \"nordpool\")\n  |> range(start: -30d, stop: now())\n  |> filter(fn: (r) => r._measurement == \"price\" and r._field == \"price\")\n  |> aggregateWindow(every: 1h, fn: mean, createEmpty: false, timeSrc: \"_start\")\n  |> keep(columns: [\"_time\", \"_value\"])\n  |> map(fn: (r) => ({_time: date.truncate(t: r._time, unit: 1d), _value: r._value,\n      hour: if date.hour(t: r._time) < 10 then \"0\" + string(v: date.hour(t: r._time)) else string(v: date.hour(t: r._time))}))\n  |> group(columns: [\"hour\"])\n  |> sort(columns: [\"_time\"])",
+     "query": "import \"timezone\"\nimport \"date\"\noption location = timezone.location(name: \"Europe/Helsinki\")\nfrom(bucket: \"nordpool\")\n  |> range(start: -30d, stop: now())\n  |> filter(fn: (r) => r._measurement == \"price\" and r._field == \"price\")\n  |> aggregateWindow(every: 1h, fn: mean, createEmpty: false, timeSrc: \"_start\")\n  |> keep(columns: [\"_time\", \"_value\"])\n  |> map(fn: (r) => ({_time: date.truncate(t: r._time, unit: 1d), _value: r._value,\n      hour: if date.hour(t: r._time) < 10 then \"0\" + string(v: date.hour(t: r._time)) else string(v: date.hour(t: r._time))}))\n  |> group(columns: [\"hour\"])\n  |> sort(columns: [\"_time\"])",
      "refId": "A"
     }
    ],
@@ -787,7 +787,7 @@
       "type": "influxdb",
       "uid": "influxdb"
      },
-     "query": "import \"timezone\"\noption location = timezone.location(name: \"Europe/Helsinki\")\nimport \"date\"\nenergy = from(bucket: \"home\")\n  |> range(start: date.truncate(t: now(), unit: 1mo), stop: now())\n  |> filter(fn: (r) => r._measurement == \"mqtt_consumer\" and r.integration_id == \"tuya\" and r._field == \"raw_19\")\n  |> map(fn: (r) => ({_time: r._time, _value: float(v: r._value) / 10.0, device: r.name}))\n  |> group(columns: [\"device\"])\n  |> aggregateWindow(every: 1h, fn: mean, createEmpty: false, timeSrc: \"_start\")\nprice = from(bucket: \"nordpool\")\n  |> range(start: date.truncate(t: now(), unit: 1mo), stop: now())\n  |> filter(fn: (r) => r._measurement == \"price\" and r._field == \"price\")\n  |> aggregateWindow(every: 1h, fn: mean, createEmpty: false, timeSrc: \"_start\")\n  |> keep(columns: [\"_time\", \"_value\"])\njoin(tables: {e: energy, p: price}, on: [\"_time\"])\n  |> map(fn: (r) => ({_time: r._time, device: r.device, _value: r._value_e / 1000.0 * r._value_p / 100.0}))\n  |> group(columns: [\"device\"])\n  |> sum()",
+     "query": "import \"timezone\"\nimport \"date\"\noption location = timezone.location(name: \"Europe/Helsinki\")\nenergy = from(bucket: \"home\")\n  |> range(start: date.truncate(t: now(), unit: 1mo), stop: now())\n  |> filter(fn: (r) => r._measurement == \"mqtt_consumer\" and r.integration_id == \"tuya\" and r._field == \"raw_19\")\n  |> map(fn: (r) => ({_time: r._time, _value: float(v: r._value) / 10.0, device: r.name}))\n  |> group(columns: [\"device\"])\n  |> aggregateWindow(every: 1h, fn: mean, createEmpty: false, timeSrc: \"_start\")\nprice = from(bucket: \"nordpool\")\n  |> range(start: date.truncate(t: now(), unit: 1mo), stop: now())\n  |> filter(fn: (r) => r._measurement == \"price\" and r._field == \"price\")\n  |> aggregateWindow(every: 1h, fn: mean, createEmpty: false, timeSrc: \"_start\")\n  |> keep(columns: [\"_time\", \"_value\"])\njoin(tables: {e: energy, p: price}, on: [\"_time\"])\n  |> map(fn: (r) => ({_time: r._time, device: r.device, _value: r._value_e / 1000.0 * r._value_p / 100.0}))\n  |> group(columns: [\"device\"])\n  |> sum()",
      "refId": "A"
     }
    ],
@@ -1634,7 +1634,7 @@
       "type": "influxdb",
       "uid": "influxdb"
      },
-     "query": "import \"timezone\"\noption location = timezone.location(name: \"Europe/Helsinki\")\nimport \"date\"\nfrom(bucket: \"home\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"mqtt_consumer\" and r.name == \"watermeter\" and r._field == \"rate\")\n  |> filter(fn: (r) => r._value > -20.0 and r._value < 20.0)\n  |> keep(columns: [\"_time\", \"_value\"])\n  |> filter(fn: (r) => date.hour(t: r._time) >= 2 and date.hour(t: r._time) < 5)\n  |> aggregateWindow(every: 1d, fn: sum, createEmpty: true, timeSrc: \"_start\")",
+     "query": "import \"timezone\"\nimport \"date\"\noption location = timezone.location(name: \"Europe/Helsinki\")\nfrom(bucket: \"home\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"mqtt_consumer\" and r.name == \"watermeter\" and r._field == \"rate\")\n  |> filter(fn: (r) => r._value > -20.0 and r._value < 20.0)\n  |> keep(columns: [\"_time\", \"_value\"])\n  |> filter(fn: (r) => date.hour(t: r._time) >= 2 and date.hour(t: r._time) < 5)\n  |> aggregateWindow(every: 1d, fn: sum, createEmpty: true, timeSrc: \"_start\")",
      "refId": "A"
     }
    ],

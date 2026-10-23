@@ -480,7 +480,7 @@
       "type": "influxdb",
       "uid": "influxdb"
      },
-     "query": "import \"dict\"\nnames = [\"D7353530665A\": \"Living room\", \"D63534385106\": \"Office\", \"D83535301C43\": \"Upstairs office\", \"C76A05062842\": \"Bedroom\", \"D7353530520F\": \"Ada's room\", \"D83431306571\": \"Upstairs bathroom\", \"CE2A82463674\": \"Downstairs bathroom\", \"D83534387029\": \"Front yard\", \"D9353438450D\": \"Backyard\", \"D4343037362D\": \"Patio\", \"C76A03460A73\": \"Storage\", \"C76A0246647E\": \"Car\", \"C76A0306280B\": \"Fridge\", \"D43535302778\": \"Freezer\", \"CE2A83062A34\": \"Filament dryer\", \"C76A00462055\": \"AMS 1\", \"C76A05065C4E\": \"AMS 2\", \"CE2A82463295\": \"Drybox 1\", \"D9343130222A\": \"Drybox 2\", \"CE2A8486490B\": \"Drybox 3\"]\nfrom(bucket: \"home\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"mqtt_consumer\" and r._field == \"batt\")\n  |> filter(fn: (r) => contains(value: r.device_id, set: [\"D7353530665A\", \"D63534385106\", \"D83535301C43\", \"C76A05062842\", \"D7353530520F\", \"D83431306571\", \"CE2A82463674\", \"D83534387029\", \"D9353438450D\", \"D4343037362D\", \"C76A03460A73\", \"C76A0246647E\", \"C76A0306280B\", \"D43535302778\", \"CE2A83062A34\", \"C76A00462055\", \"C76A05065C4E\", \"CE2A82463295\", \"D9343130222A\", \"CE2A8486490B\"]))\n  |> map(fn: (r) => ({_time: r._time, _value: float(v: r._value), place: dict.get(dict: names, key: r.device_id, default: r.device_id)}))\n  |> group(columns: [\"place\"])\n  |> aggregateWindow(every: 6h, fn: mean, createEmpty: false)",
+     "query": "import \"dict\"\nnames = [\"D7353530665A\": \"Living room\", \"D63534385106\": \"Office\", \"D83535301C43\": \"Upstairs office\", \"C76A05062842\": \"Bedroom\", \"D7353530520F\": \"Ada's room\", \"D83431306571\": \"Upstairs bathroom\", \"CE2A82463674\": \"Downstairs bathroom\", \"D83534387029\": \"Front yard\", \"D9353438450D\": \"Backyard\", \"D4343037362D\": \"Patio\", \"C76A03460A73\": \"Storage\", \"C76A0246647E\": \"Car\", \"C76A0306280B\": \"Fridge\", \"D43535302778\": \"Freezer\", \"CE2A83062A34\": \"Filament dryer\", \"C76A00462055\": \"AMS 1\", \"C76A05065C4E\": \"AMS 2\", \"CE2A82463295\": \"Drybox 1\", \"D9343130222A\": \"Drybox 2\", \"CE2A8486490B\": \"Drybox 3\"]\nfrom(bucket: \"home\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"mqtt_consumer\" and r._field == \"batt\")\n  |> filter(fn: (r) => contains(value: r.device_id, set: [\"D7353530665A\", \"D63534385106\", \"D83535301C43\", \"C76A05062842\", \"D7353530520F\", \"D83431306571\", \"CE2A82463674\", \"D83534387029\", \"D9353438450D\", \"D4343037362D\", \"C76A03460A73\", \"C76A0246647E\", \"C76A0306280B\", \"D43535302778\", \"CE2A83062A34\", \"C76A00462055\", \"C76A05065C4E\", \"CE2A82463295\", \"D9343130222A\", \"CE2A8486490B\"]))\n  |> map(fn: (r) => ({_time: r._time, _value: float(v: r._value), place: dict.get(dict: names, key: r.device_id, default: r.device_id)}))\n  |> group(columns: [\"place\"])\n  |> aggregateWindow(every: 12h, fn: mean, createEmpty: false)",
      "refId": "A"
     }
    ],
@@ -530,7 +530,7 @@
     "type": "influxdb",
     "uid": "influxdb"
    },
-   "timeFrom": "90d",
+   "timeFrom": "30d",
    "id": 7,
    "gridPos": {
     "h": 9,
