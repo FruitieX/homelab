@@ -1,0 +1,1512 @@
+{
+ "uid": "lab-network",
+ "title": "Homelab · Network",
+ "description": "UniFi gateway, switches, access points and clients (UniFi Poller).",
+ "tags": [
+  "homelab-nav",
+  "homelab"
+ ],
+ "timezone": "browser",
+ "editable": true,
+ "graphTooltip": 1,
+ "schemaVersion": 39,
+ "time": {
+  "from": "now-24h",
+  "to": "now"
+ },
+ "refresh": "1m",
+ "fiscalYearStartMonth": 0,
+ "liveNow": false,
+ "weekStart": "monday",
+ "links": [
+  {
+   "type": "dashboards",
+   "tags": [
+    "homelab-nav"
+   ],
+   "asDropdown": false,
+   "includeVars": false,
+   "keepTime": true,
+   "title": "Dashboards",
+   "icon": "external link",
+   "targetBlank": false
+  }
+ ],
+ "annotations": {
+  "list": [
+   {
+    "builtIn": 1,
+    "datasource": {
+     "type": "grafana",
+     "uid": "-- Grafana --"
+    },
+    "enable": true,
+    "hide": true,
+    "iconColor": "rgba(0, 211, 255, 1)",
+    "name": "Annotations & Alerts",
+    "type": "dashboard"
+   }
+  ]
+ },
+ "templating": {
+  "list": []
+ },
+ "panels": [
+  {
+   "type": "row",
+   "title": "Internet",
+   "collapsed": false,
+   "id": 1,
+   "gridPos": {
+    "h": 1,
+    "w": 24,
+    "x": 0,
+    "y": 0
+   },
+   "panels": []
+  },
+  {
+   "type": "stat",
+   "title": "Download now",
+   "targets": [
+    {
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "sum(rate(unpoller_device_wan_receive_bytes_total[2m])) * 8",
+     "legendFormat": "",
+     "range": true,
+     "instant": false,
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {},
+     "unit": "bps",
+     "decimals": 1,
+     "color": {
+      "mode": "thresholds"
+     },
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "#3987e5",
+        "value": null
+       }
+      ]
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    },
+    "graphMode": "area",
+    "colorMode": "value",
+    "textMode": "value",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "wideLayout": true,
+    "showPercentChange": false
+   },
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "id": 2,
+   "gridPos": {
+    "h": 4,
+    "w": 4,
+    "x": 0,
+    "y": 1
+   }
+  },
+  {
+   "type": "stat",
+   "title": "Upload now",
+   "targets": [
+    {
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "sum(rate(unpoller_device_wan_transmit_bytes_total[2m])) * 8",
+     "legendFormat": "",
+     "range": true,
+     "instant": false,
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {},
+     "unit": "bps",
+     "decimals": 1,
+     "color": {
+      "mode": "thresholds"
+     },
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "#3987e5",
+        "value": null
+       }
+      ]
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    },
+    "graphMode": "area",
+    "colorMode": "value",
+    "textMode": "value",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "wideLayout": true,
+    "showPercentChange": false
+   },
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "id": 3,
+   "gridPos": {
+    "h": 4,
+    "w": 4,
+    "x": 4,
+    "y": 1
+   }
+  },
+  {
+   "type": "stat",
+   "title": "Speed test ↓",
+   "targets": [
+    {
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "max(unpoller_device_speedtest_download)",
+     "legendFormat": "",
+     "range": true,
+     "instant": false,
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {},
+     "unit": "Mbits",
+     "decimals": 0,
+     "color": {
+      "mode": "thresholds"
+     },
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "#3987e5",
+        "value": null
+       }
+      ]
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    },
+    "graphMode": "none",
+    "colorMode": "value",
+    "textMode": "value",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "wideLayout": true,
+    "showPercentChange": false
+   },
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "id": 4,
+   "gridPos": {
+    "h": 4,
+    "w": 4,
+    "x": 8,
+    "y": 1
+   }
+  },
+  {
+   "type": "stat",
+   "title": "Speed test ↑",
+   "targets": [
+    {
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "max(unpoller_device_speedtest_upload)",
+     "legendFormat": "",
+     "range": true,
+     "instant": false,
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {},
+     "unit": "Mbits",
+     "decimals": 0,
+     "color": {
+      "mode": "thresholds"
+     },
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "#3987e5",
+        "value": null
+       }
+      ]
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    },
+    "graphMode": "none",
+    "colorMode": "value",
+    "textMode": "value",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "wideLayout": true,
+    "showPercentChange": false
+   },
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "id": 5,
+   "gridPos": {
+    "h": 4,
+    "w": 4,
+    "x": 12,
+    "y": 1
+   }
+  },
+  {
+   "type": "stat",
+   "title": "WAN latency",
+   "targets": [
+    {
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "max(unpoller_device_wan_latency_seconds)",
+     "legendFormat": "",
+     "range": true,
+     "instant": false,
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {},
+     "unit": "s",
+     "decimals": 3,
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "#3aa655",
+        "value": null
+       },
+       {
+        "color": "#e0a100",
+        "value": 0.03
+       },
+       {
+        "color": "#e5484d",
+        "value": 0.1
+       }
+      ]
+     },
+     "color": {
+      "mode": "thresholds"
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    },
+    "graphMode": "area",
+    "colorMode": "value",
+    "textMode": "value",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "wideLayout": true,
+    "showPercentChange": false
+   },
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "id": 6,
+   "gridPos": {
+    "h": 4,
+    "w": 4,
+    "x": 16,
+    "y": 1
+   }
+  },
+  {
+   "type": "stat",
+   "title": "Clients",
+   "targets": [
+    {
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "sum(unpoller_site_users)",
+     "legendFormat": "",
+     "range": true,
+     "instant": false,
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {},
+     "decimals": 0,
+     "color": {
+      "mode": "thresholds"
+     },
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "#3987e5",
+        "value": null
+       }
+      ]
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    },
+    "graphMode": "area",
+    "colorMode": "value",
+    "textMode": "value",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "wideLayout": true,
+    "showPercentChange": false
+   },
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "description": "Wired, Wi-Fi and VPN clients the gateway sees.",
+   "id": 7,
+   "gridPos": {
+    "h": 4,
+    "w": 4,
+    "x": 20,
+    "y": 1
+   }
+  },
+  {
+   "type": "timeseries",
+   "title": "WAN throughput",
+   "targets": [
+    {
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "sum(rate(unpoller_device_wan_receive_bytes_total[$__rate_interval])) * 8",
+     "legendFormat": "Download",
+     "range": true,
+     "instant": false,
+     "refId": "A"
+    },
+    {
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "sum(rate(unpoller_device_wan_transmit_bytes_total[$__rate_interval])) * 8",
+     "legendFormat": "Upload",
+     "range": true,
+     "instant": false,
+     "refId": "B"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {
+      "drawStyle": "line",
+      "lineWidth": 2,
+      "fillOpacity": 15,
+      "gradientMode": "opacity",
+      "lineInterpolation": "smooth",
+      "showPoints": "never",
+      "spanNulls": true,
+      "stacking": {
+       "mode": "none",
+       "group": "A"
+      },
+      "axisBorderShow": false,
+      "barAlignment": -1,
+      "thresholdsStyle": {
+       "mode": "off"
+      }
+     },
+     "unit": "bps",
+     "color": {
+      "mode": "palette-classic"
+     }
+    },
+    "overrides": [
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "Download"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#3987e5"
+        }
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "Upload"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#d95926"
+        }
+       }
+      ]
+     }
+    ]
+   },
+   "options": {
+    "legend": {
+     "displayMode": "list",
+     "placement": "bottom",
+     "showLegend": true,
+     "calcs": []
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "desc"
+    }
+   },
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "id": 8,
+   "gridPos": {
+    "h": 8,
+    "w": 16,
+    "x": 0,
+    "y": 5
+   }
+  },
+  {
+   "type": "timeseries",
+   "title": "Clients by network",
+   "targets": [
+    {
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "sum by (subsystem) (unpoller_site_users)",
+     "legendFormat": "{{subsystem}}",
+     "range": true,
+     "instant": false,
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {
+      "drawStyle": "line",
+      "lineWidth": 2,
+      "fillOpacity": 40,
+      "gradientMode": "none",
+      "lineInterpolation": "smooth",
+      "showPoints": "never",
+      "spanNulls": true,
+      "stacking": {
+       "mode": "normal",
+       "group": "A"
+      },
+      "axisBorderShow": false,
+      "barAlignment": -1,
+      "thresholdsStyle": {
+       "mode": "off"
+      }
+     },
+     "decimals": 0,
+     "color": {
+      "mode": "palette-classic"
+     }
+    },
+    "overrides": [
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "lan"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#3987e5"
+        }
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "wlan"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#d95926"
+        }
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "vpn"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#199e70"
+        }
+       }
+      ]
+     }
+    ]
+   },
+   "options": {
+    "legend": {
+     "displayMode": "list",
+     "placement": "bottom",
+     "showLegend": true,
+     "calcs": []
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "desc"
+    }
+   },
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "id": 9,
+   "gridPos": {
+    "h": 8,
+    "w": 8,
+    "x": 16,
+    "y": 5
+   }
+  },
+  {
+   "type": "row",
+   "title": "Clients",
+   "collapsed": false,
+   "id": 10,
+   "gridPos": {
+    "h": 1,
+    "w": 24,
+    "x": 0,
+    "y": 13
+   },
+   "panels": []
+  },
+  {
+   "type": "bargauge",
+   "title": "Top talkers in range",
+   "targets": [
+    {
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "topk(15, sum by (name) (increase(unpoller_client_receive_bytes_total[$__range]) + increase(unpoller_client_transmit_bytes_total[$__range])))",
+     "legendFormat": "{{name}}",
+     "range": false,
+     "instant": true,
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {},
+     "unit": "bytes",
+     "decimals": 1,
+     "color": {
+      "mode": "fixed",
+      "fixedColor": "#3987e5"
+     },
+     "displayName": "${__field.labels.name}",
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "#3987e5",
+        "value": null
+       }
+      ]
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    },
+    "displayMode": "basic",
+    "orientation": "horizontal",
+    "showUnfilled": true,
+    "valueMode": "color",
+    "namePlacement": "left",
+    "sizing": "auto",
+    "minVizHeight": 12,
+    "minVizWidth": 8,
+    "maxVizHeight": 28
+   },
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "id": 11,
+   "gridPos": {
+    "h": 12,
+    "w": 8,
+    "x": 0,
+    "y": 14
+   }
+  },
+  {
+   "type": "timeseries",
+   "title": "Client throughput (top 8)",
+   "targets": [
+    {
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "topk(8, sum by (name) (rate(unpoller_client_receive_bytes_total[$__rate_interval]) + rate(unpoller_client_transmit_bytes_total[$__rate_interval]))) * 8",
+     "legendFormat": "{{name}}",
+     "range": true,
+     "instant": false,
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {
+      "drawStyle": "line",
+      "lineWidth": 2,
+      "fillOpacity": 0,
+      "gradientMode": "opacity",
+      "lineInterpolation": "smooth",
+      "showPoints": "never",
+      "spanNulls": true,
+      "stacking": {
+       "mode": "none",
+       "group": "A"
+      },
+      "axisBorderShow": false,
+      "barAlignment": -1,
+      "thresholdsStyle": {
+       "mode": "off"
+      }
+     },
+     "unit": "bps",
+     "color": {
+      "mode": "palette-classic"
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "legend": {
+     "displayMode": "list",
+     "placement": "right",
+     "showLegend": true,
+     "calcs": []
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "desc"
+    }
+   },
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "id": 12,
+   "gridPos": {
+    "h": 12,
+    "w": 16,
+    "x": 8,
+    "y": 14
+   }
+  },
+  {
+   "type": "bargauge",
+   "title": "Weakest Wi-Fi signals",
+   "targets": [
+    {
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "bottomk(12, max by (name, ap_name) (unpoller_client_radio_signal_db{wired=\"false\"}))",
+     "legendFormat": "{{name}} ({{ap_name}})",
+     "range": false,
+     "instant": true,
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {},
+     "unit": "dBm",
+     "decimals": 0,
+     "min": -95,
+     "max": -30,
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "#e5484d",
+        "value": null
+       },
+       {
+        "color": "#e0a100",
+        "value": -75
+       },
+       {
+        "color": "#3aa655",
+        "value": -67
+       }
+      ]
+     },
+     "displayName": "${__field.labels.name} · ${__field.labels.ap_name}",
+     "color": {
+      "mode": "thresholds"
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    },
+    "displayMode": "basic",
+    "orientation": "horizontal",
+    "showUnfilled": true,
+    "valueMode": "color",
+    "namePlacement": "left",
+    "sizing": "auto",
+    "minVizHeight": 12,
+    "minVizWidth": 8,
+    "maxVizHeight": 28
+   },
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "id": 13,
+   "gridPos": {
+    "h": 10,
+    "w": 8,
+    "x": 0,
+    "y": 26
+   }
+  },
+  {
+   "type": "timeseries",
+   "title": "Wi-Fi clients per access point",
+   "targets": [
+    {
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "count by (ap_name) (unpoller_client_uptime_seconds{wired=\"false\"})",
+     "legendFormat": "{{ap_name}}",
+     "range": true,
+     "instant": false,
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {
+      "drawStyle": "line",
+      "lineWidth": 2,
+      "fillOpacity": 0,
+      "gradientMode": "opacity",
+      "lineInterpolation": "smooth",
+      "showPoints": "never",
+      "spanNulls": true,
+      "stacking": {
+       "mode": "none",
+       "group": "A"
+      },
+      "axisBorderShow": false,
+      "barAlignment": -1,
+      "thresholdsStyle": {
+       "mode": "off"
+      }
+     },
+     "decimals": 0,
+     "color": {
+      "mode": "palette-classic"
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "legend": {
+     "displayMode": "list",
+     "placement": "right",
+     "showLegend": true,
+     "calcs": []
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "desc"
+    }
+   },
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "id": 14,
+   "gridPos": {
+    "h": 10,
+    "w": 8,
+    "x": 8,
+    "y": 26
+   }
+  },
+  {
+   "type": "bargauge",
+   "title": "Wi-Fi clients by standard",
+   "targets": [
+    {
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "sort_desc(count by (radio_proto) (unpoller_client_uptime_seconds{wired=\"false\"}))",
+     "legendFormat": "{{radio_proto}}",
+     "range": false,
+     "instant": true,
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {},
+     "decimals": 0,
+     "color": {
+      "mode": "fixed",
+      "fixedColor": "#3987e5"
+     },
+     "displayName": "${__field.labels.radio_proto}",
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "#3987e5",
+        "value": null
+       }
+      ]
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    },
+    "displayMode": "basic",
+    "orientation": "horizontal",
+    "showUnfilled": true,
+    "valueMode": "color",
+    "namePlacement": "left",
+    "sizing": "auto",
+    "minVizHeight": 12,
+    "minVizWidth": 8,
+    "maxVizHeight": 28
+   },
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "description": "ng/g = 2.4 GHz legacy, ac = Wi-Fi 5, ax = Wi-Fi 6, be = Wi-Fi 7.",
+   "id": 15,
+   "gridPos": {
+    "h": 10,
+    "w": 8,
+    "x": 16,
+    "y": 26
+   }
+  },
+  {
+   "type": "row",
+   "title": "UniFi devices",
+   "collapsed": false,
+   "id": 16,
+   "gridPos": {
+    "h": 1,
+    "w": 24,
+    "x": 0,
+    "y": 36
+   },
+   "panels": []
+  },
+  {
+   "type": "table",
+   "title": "Devices",
+   "targets": [
+    {
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "max by (name, model, version) (unpoller_device_info{job=\"unpoller\"})",
+     "legendFormat": "",
+     "range": false,
+     "instant": true,
+     "format": "table",
+     "refId": "A"
+    },
+    {
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "max by (name) (unpoller_device_cpu_utilization_ratio{job=\"unpoller\"})",
+     "legendFormat": "",
+     "range": false,
+     "instant": true,
+     "format": "table",
+     "refId": "B"
+    },
+    {
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "max by (name) (unpoller_device_memory_utilization_ratio{job=\"unpoller\"})",
+     "legendFormat": "",
+     "range": false,
+     "instant": true,
+     "format": "table",
+     "refId": "C"
+    },
+    {
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "max by (name) (unpoller_device_temperature_celsius{job=\"unpoller\"})",
+     "legendFormat": "",
+     "range": false,
+     "instant": true,
+     "format": "table",
+     "refId": "D"
+    },
+    {
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "max by (name) (unpoller_device_uptime_seconds{job=\"unpoller\"})",
+     "legendFormat": "",
+     "range": false,
+     "instant": true,
+     "format": "table",
+     "refId": "E"
+    },
+    {
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "max by (name) (unpoller_device_upgradable{job=\"unpoller\"})",
+     "legendFormat": "",
+     "range": false,
+     "instant": true,
+     "format": "table",
+     "refId": "F"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {
+      "align": "auto",
+      "cellOptions": {
+       "type": "auto"
+      },
+      "inspect": false
+     }
+    },
+    "overrides": [
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "CPU"
+      },
+      "properties": [
+       {
+        "id": "unit",
+        "value": "percentunit"
+       },
+       {
+        "id": "decimals",
+        "value": 0
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "Memory"
+      },
+      "properties": [
+       {
+        "id": "unit",
+        "value": "percentunit"
+       },
+       {
+        "id": "decimals",
+        "value": 0
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "Temp"
+      },
+      "properties": [
+       {
+        "id": "unit",
+        "value": "celsius"
+       },
+       {
+        "id": "decimals",
+        "value": 0
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "Uptime"
+      },
+      "properties": [
+       {
+        "id": "unit",
+        "value": "s"
+       },
+       {
+        "id": "decimals",
+        "value": 0
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "Update"
+      },
+      "properties": [
+       {
+        "id": "mappings",
+        "value": [
+         {
+          "type": "value",
+          "options": {
+           "1": {
+            "text": "Available",
+            "color": "#e0a100",
+            "index": 0
+           },
+           "0": {
+            "text": "",
+            "color": "#3aa655",
+            "index": 1
+           }
+          }
+         }
+        ]
+       },
+       {
+        "id": "custom.cellOptions",
+        "value": {
+         "type": "color-text"
+        }
+       }
+      ]
+     }
+    ]
+   },
+   "options": {
+    "showHeader": true,
+    "cellHeight": "sm",
+    "footer": {
+     "show": false,
+     "reducer": [
+      "sum"
+     ],
+     "countRows": false,
+     "fields": ""
+    },
+    "sortBy": [
+     {
+      "displayName": "Device",
+      "desc": false
+     }
+    ]
+   },
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "transformations": [
+    {
+     "id": "joinByField",
+     "options": {
+      "byField": "name",
+      "mode": "outer"
+     }
+    },
+    {
+     "id": "filterFieldsByName",
+     "options": {
+      "include": {
+       "pattern": "^(name|model|version|Value #[B-F])$"
+      }
+     }
+    },
+    {
+     "id": "organize",
+     "options": {
+      "renameByName": {
+       "name": "Device",
+       "model": "Model",
+       "version": "Firmware",
+       "Value #B": "CPU",
+       "Value #C": "Memory",
+       "Value #D": "Temp",
+       "Value #E": "Uptime",
+       "Value #F": "Update"
+      },
+      "excludeByName": {}
+     }
+    }
+   ],
+   "id": 17,
+   "gridPos": {
+    "h": 9,
+    "w": 14,
+    "x": 0,
+    "y": 37
+   }
+  },
+  {
+   "type": "timeseries",
+   "title": "Access point channel utilisation",
+   "targets": [
+    {
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "max by (name, radio) (unpoller_device_radio_channel_utilization_total_ratio)",
+     "legendFormat": "{{name}} {{radio}}",
+     "range": true,
+     "instant": false,
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {
+      "drawStyle": "line",
+      "lineWidth": 2,
+      "fillOpacity": 0,
+      "gradientMode": "opacity",
+      "lineInterpolation": "smooth",
+      "showPoints": "never",
+      "spanNulls": true,
+      "stacking": {
+       "mode": "none",
+       "group": "A"
+      },
+      "axisBorderShow": false,
+      "barAlignment": -1,
+      "thresholdsStyle": {
+       "mode": "off"
+      }
+     },
+     "unit": "percentunit",
+     "min": 0,
+     "color": {
+      "mode": "palette-classic"
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "legend": {
+     "displayMode": "list",
+     "placement": "right",
+     "showLegend": true,
+     "calcs": []
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "desc"
+    }
+   },
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "id": 18,
+   "gridPos": {
+    "h": 9,
+    "w": 10,
+    "x": 14,
+    "y": 37
+   }
+  },
+  {
+   "type": "timeseries",
+   "title": "PoE power by switch",
+   "targets": [
+    {
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "sum by (name) (unpoller_device_port_poe_watts)",
+     "legendFormat": "{{name}}",
+     "range": true,
+     "instant": false,
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {
+      "drawStyle": "line",
+      "lineWidth": 2,
+      "fillOpacity": 40,
+      "gradientMode": "none",
+      "lineInterpolation": "smooth",
+      "showPoints": "never",
+      "spanNulls": true,
+      "stacking": {
+       "mode": "normal",
+       "group": "A"
+      },
+      "axisBorderShow": false,
+      "barAlignment": -1,
+      "thresholdsStyle": {
+       "mode": "off"
+      }
+     },
+     "unit": "watt",
+     "decimals": 1,
+     "color": {
+      "mode": "palette-classic"
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "legend": {
+     "displayMode": "list",
+     "placement": "right",
+     "showLegend": true,
+     "calcs": []
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "desc"
+    }
+   },
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "id": 19,
+   "gridPos": {
+    "h": 7,
+    "w": 12,
+    "x": 0,
+    "y": 46
+   }
+  },
+  {
+   "type": "timeseries",
+   "title": "Wi-Fi experience by access point",
+   "targets": [
+    {
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "avg by (ap_name) (unpoller_client_satisfaction_ratio{wired=\"false\"})",
+     "legendFormat": "{{ap_name}}",
+     "range": true,
+     "instant": false,
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {
+      "drawStyle": "line",
+      "lineWidth": 2,
+      "fillOpacity": 0,
+      "gradientMode": "opacity",
+      "lineInterpolation": "smooth",
+      "showPoints": "never",
+      "spanNulls": true,
+      "stacking": {
+       "mode": "none",
+       "group": "A"
+      },
+      "axisBorderShow": false,
+      "barAlignment": -1,
+      "thresholdsStyle": {
+       "mode": "off"
+      }
+     },
+     "unit": "percentunit",
+     "max": 1,
+     "color": {
+      "mode": "palette-classic"
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "legend": {
+     "displayMode": "list",
+     "placement": "right",
+     "showLegend": true,
+     "calcs": []
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "desc"
+    }
+   },
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "description": "UniFi's client satisfaction score, averaged over each AP's clients.",
+   "id": 20,
+   "gridPos": {
+    "h": 7,
+    "w": 12,
+    "x": 12,
+    "y": 46
+   }
+  }
+ ]
+}

@@ -1,0 +1,667 @@
+{
+ "uid": "lab-logs",
+ "title": "Homelab · Logs & security",
+ "description": "Log volume and errors per app, a filtered log view, and who knocks on the public gateway.",
+ "tags": [
+  "homelab-nav",
+  "homelab"
+ ],
+ "timezone": "browser",
+ "editable": true,
+ "graphTooltip": 1,
+ "schemaVersion": 39,
+ "time": {
+  "from": "now-6h",
+  "to": "now"
+ },
+ "refresh": "",
+ "fiscalYearStartMonth": 0,
+ "liveNow": false,
+ "weekStart": "monday",
+ "links": [
+  {
+   "type": "dashboards",
+   "tags": [
+    "homelab-nav"
+   ],
+   "asDropdown": false,
+   "includeVars": false,
+   "keepTime": true,
+   "title": "Dashboards",
+   "icon": "external link",
+   "targetBlank": false
+  }
+ ],
+ "annotations": {
+  "list": [
+   {
+    "builtIn": 1,
+    "datasource": {
+     "type": "grafana",
+     "uid": "-- Grafana --"
+    },
+    "enable": true,
+    "hide": true,
+    "iconColor": "rgba(0, 211, 255, 1)",
+    "name": "Annotations & Alerts",
+    "type": "dashboard"
+   }
+  ]
+ },
+ "templating": {
+  "list": [
+   {
+    "type": "query",
+    "name": "app",
+    "label": "App",
+    "datasource": {
+     "type": "loki",
+     "uid": "loki"
+    },
+    "query": "label_values(app)",
+    "refresh": 2,
+    "includeAll": true,
+    "multi": true,
+    "current": {
+     "text": "All",
+     "value": "$__all"
+    },
+    "allValue": ".+",
+    "sort": 1
+   },
+   {
+    "type": "textbox",
+    "name": "search",
+    "label": "Search",
+    "query": "",
+    "current": {
+     "text": "",
+     "value": ""
+    }
+   }
+  ]
+ },
+ "panels": [
+  {
+   "type": "row",
+   "title": "Log volume",
+   "collapsed": false,
+   "id": 1,
+   "gridPos": {
+    "h": 1,
+    "w": 24,
+    "x": 0,
+    "y": 0
+   },
+   "panels": []
+  },
+  {
+   "type": "timeseries",
+   "title": "Log lines by namespace",
+   "targets": [
+    {
+     "datasource": {
+      "type": "loki",
+      "uid": "loki"
+     },
+     "expr": "sum by (namespace) (count_over_time({namespace=~\".+\"} [$__auto]))",
+     "legendFormat": "{{namespace}}",
+     "queryType": "range",
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {
+      "drawStyle": "bars",
+      "lineWidth": 1,
+      "fillOpacity": 80,
+      "gradientMode": "none",
+      "lineInterpolation": "linear",
+      "showPoints": "never",
+      "spanNulls": false,
+      "stacking": {
+       "mode": "normal",
+       "group": "A"
+      },
+      "axisBorderShow": false,
+      "barAlignment": -1,
+      "thresholdsStyle": {
+       "mode": "off"
+      }
+     },
+     "unit": "short",
+     "color": {
+      "mode": "palette-classic"
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "legend": {
+     "displayMode": "list",
+     "placement": "right",
+     "showLegend": true,
+     "calcs": []
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "desc"
+    }
+   },
+   "datasource": {
+    "type": "loki",
+    "uid": "loki"
+   },
+   "id": 2,
+   "gridPos": {
+    "h": 8,
+    "w": 12,
+    "x": 0,
+    "y": 1
+   }
+  },
+  {
+   "type": "timeseries",
+   "title": "Error-looking lines by app",
+   "targets": [
+    {
+     "datasource": {
+      "type": "loki",
+      "uid": "loki"
+     },
+     "expr": "sum by (app) (count_over_time({namespace=~\".+\", app=~\"$app\"} |~ `(?i)\\b(error|panic|fatal|exception)\\b` [$__auto]))",
+     "legendFormat": "{{app}}",
+     "queryType": "range",
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {
+      "drawStyle": "bars",
+      "lineWidth": 1,
+      "fillOpacity": 80,
+      "gradientMode": "none",
+      "lineInterpolation": "linear",
+      "showPoints": "never",
+      "spanNulls": false,
+      "stacking": {
+       "mode": "normal",
+       "group": "A"
+      },
+      "axisBorderShow": false,
+      "barAlignment": -1,
+      "thresholdsStyle": {
+       "mode": "off"
+      }
+     },
+     "unit": "short",
+     "color": {
+      "mode": "palette-classic"
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "legend": {
+     "displayMode": "list",
+     "placement": "right",
+     "showLegend": true,
+     "calcs": []
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "desc"
+    }
+   },
+   "datasource": {
+    "type": "loki",
+    "uid": "loki"
+   },
+   "description": "Lines matching error, panic, fatal or exception (case-insensitive). Crude, but it shows which app got noisy.",
+   "id": 3,
+   "gridPos": {
+    "h": 8,
+    "w": 12,
+    "x": 12,
+    "y": 1
+   }
+  },
+  {
+   "type": "logs",
+   "title": "Logs ($app, matching \"$search\")",
+   "targets": [
+    {
+     "datasource": {
+      "type": "loki",
+      "uid": "loki"
+     },
+     "expr": "{namespace=~\".+\", app=~\"$app\"} |~ `(?i)$search`",
+     "legendFormat": "",
+     "queryType": "range",
+     "maxLines": 500,
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {}
+    },
+    "overrides": []
+   },
+   "options": {
+    "showTime": true,
+    "wrapLogMessage": true,
+    "sortOrder": "Descending",
+    "enableLogDetails": true,
+    "dedupStrategy": "none",
+    "prettifyLogMessage": false
+   },
+   "datasource": {
+    "type": "loki",
+    "uid": "loki"
+   },
+   "id": 4,
+   "gridPos": {
+    "h": 14,
+    "w": 24,
+    "x": 0,
+    "y": 9
+   }
+  },
+  {
+   "type": "row",
+   "title": "Public gateway",
+   "collapsed": false,
+   "id": 5,
+   "gridPos": {
+    "h": 1,
+    "w": 24,
+    "x": 0,
+    "y": 23
+   },
+   "panels": []
+  },
+  {
+   "type": "timeseries",
+   "title": "Requests for hosts that aren't ours",
+   "targets": [
+    {
+     "datasource": {
+      "type": "loki",
+      "uid": "loki"
+     },
+     "expr": "sum(count_over_time({namespace=\"envoy-gateway-system\", container=\"envoy\", pod=~\".*-public-.*\"} |= \"authority\" | json host=`[\":authority\"]` | host!~`(.+\\.)?(fruitiex\\.org|lovegren\\.fi|xn--lvegren-90a\\.fi)` [$__auto]))",
+     "legendFormat": "Scanners",
+     "queryType": "range",
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {
+      "drawStyle": "bars",
+      "lineWidth": 1,
+      "fillOpacity": 80,
+      "gradientMode": "none",
+      "lineInterpolation": "linear",
+      "showPoints": "never",
+      "spanNulls": false,
+      "stacking": {
+       "mode": "none",
+       "group": "A"
+      },
+      "axisBorderShow": false,
+      "barAlignment": -1,
+      "thresholdsStyle": {
+       "mode": "off"
+      }
+     },
+     "unit": "short",
+     "color": {
+      "mode": "fixed",
+      "fixedColor": "#d95926"
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "legend": {
+     "displayMode": "list",
+     "placement": "bottom",
+     "showLegend": true,
+     "calcs": []
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "desc"
+    }
+   },
+   "datasource": {
+    "type": "loki",
+    "uid": "loki"
+   },
+   "description": "Requests addressed to the bare IP or to other domains: internet-wide scanners.",
+   "id": 6,
+   "gridPos": {
+    "h": 8,
+    "w": 12,
+    "x": 0,
+    "y": 24
+   }
+  },
+  {
+   "type": "timeseries",
+   "title": "Public responses by status class",
+   "targets": [
+    {
+     "datasource": {
+      "type": "loki",
+      "uid": "loki"
+     },
+     "expr": "sum(count_over_time({namespace=\"envoy-gateway-system\", container=\"envoy\", pod=~\".*-public-.*\"} |= \"authority\" | json host=`[\":authority\"]`, response_code | host=~`(.+\\.)?(fruitiex\\.org|lovegren\\.fi|xn--lvegren-90a\\.fi)` | response_code >= 200 | response_code < 300 [$__auto]))",
+     "legendFormat": "2xx",
+     "queryType": "range",
+     "refId": "A"
+    },
+    {
+     "datasource": {
+      "type": "loki",
+      "uid": "loki"
+     },
+     "expr": "sum(count_over_time({namespace=\"envoy-gateway-system\", container=\"envoy\", pod=~\".*-public-.*\"} |= \"authority\" | json host=`[\":authority\"]`, response_code | host=~`(.+\\.)?(fruitiex\\.org|lovegren\\.fi|xn--lvegren-90a\\.fi)` | response_code >= 300 | response_code < 400 [$__auto]))",
+     "legendFormat": "3xx",
+     "queryType": "range",
+     "refId": "B"
+    },
+    {
+     "datasource": {
+      "type": "loki",
+      "uid": "loki"
+     },
+     "expr": "sum(count_over_time({namespace=\"envoy-gateway-system\", container=\"envoy\", pod=~\".*-public-.*\"} |= \"authority\" | json host=`[\":authority\"]`, response_code | host=~`(.+\\.)?(fruitiex\\.org|lovegren\\.fi|xn--lvegren-90a\\.fi)` | response_code >= 400 | response_code < 500 [$__auto]))",
+     "legendFormat": "4xx",
+     "queryType": "range",
+     "refId": "C"
+    },
+    {
+     "datasource": {
+      "type": "loki",
+      "uid": "loki"
+     },
+     "expr": "sum(count_over_time({namespace=\"envoy-gateway-system\", container=\"envoy\", pod=~\".*-public-.*\"} |= \"authority\" | json host=`[\":authority\"]`, response_code | host=~`(.+\\.)?(fruitiex\\.org|lovegren\\.fi|xn--lvegren-90a\\.fi)` | response_code >= 500 | response_code < 600 [$__auto]))",
+     "legendFormat": "5xx",
+     "queryType": "range",
+     "refId": "D"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {
+      "drawStyle": "bars",
+      "lineWidth": 1,
+      "fillOpacity": 80,
+      "gradientMode": "none",
+      "lineInterpolation": "linear",
+      "showPoints": "never",
+      "spanNulls": false,
+      "stacking": {
+       "mode": "normal",
+       "group": "A"
+      },
+      "axisBorderShow": false,
+      "barAlignment": -1,
+      "thresholdsStyle": {
+       "mode": "off"
+      }
+     },
+     "unit": "short",
+     "color": {
+      "mode": "palette-classic"
+     }
+    },
+    "overrides": [
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "2xx"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#3987e5"
+        }
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "3xx"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#199e70"
+        }
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "4xx"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#c98500"
+        }
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "5xx"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#e66767"
+        }
+       }
+      ]
+     }
+    ]
+   },
+   "options": {
+    "legend": {
+     "displayMode": "list",
+     "placement": "bottom",
+     "showLegend": true,
+     "calcs": []
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "desc"
+    }
+   },
+   "datasource": {
+    "type": "loki",
+    "uid": "loki"
+   },
+   "id": 7,
+   "gridPos": {
+    "h": 8,
+    "w": 12,
+    "x": 12,
+    "y": 24
+   }
+  },
+  {
+   "type": "table",
+   "title": "Most probed paths (4xx on public hosts)",
+   "targets": [
+    {
+     "datasource": {
+      "type": "loki",
+      "uid": "loki"
+     },
+     "expr": "topk(20, sum by (host, path) (count_over_time({namespace=\"envoy-gateway-system\", container=\"envoy\", pod=~\".*-public-.*\"} |= \"authority\" | json host=`[\":authority\"]`, response_code, path=`[\"x-envoy-origin-path\"]` | host=~`(.+\\.)?(fruitiex\\.org|lovegren\\.fi|xn--lvegren-90a\\.fi)` | response_code >= 400 [$__range])))",
+     "legendFormat": "",
+     "queryType": "instant",
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {
+      "align": "auto",
+      "cellOptions": {
+       "type": "auto"
+      },
+      "inspect": false
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "showHeader": true,
+    "cellHeight": "sm",
+    "footer": {
+     "show": false,
+     "reducer": [
+      "sum"
+     ],
+     "countRows": false,
+     "fields": ""
+    },
+    "sortBy": [
+     {
+      "displayName": "Requests",
+      "desc": true
+     }
+    ]
+   },
+   "datasource": {
+    "type": "loki",
+    "uid": "loki"
+   },
+   "transformations": [
+    {
+     "id": "labelsToFields",
+     "options": {
+      "mode": "columns"
+     }
+    },
+    {
+     "id": "organize",
+     "options": {
+      "renameByName": {
+       "host": "Host",
+       "path": "Path",
+       "Value #A": "Requests"
+      },
+      "excludeByName": {
+       "Time": true
+      }
+     }
+    }
+   ],
+   "id": 8,
+   "gridPos": {
+    "h": 10,
+    "w": 12,
+    "x": 0,
+    "y": 32
+   }
+  },
+  {
+   "type": "table",
+   "title": "Top user agents (public)",
+   "targets": [
+    {
+     "datasource": {
+      "type": "loki",
+      "uid": "loki"
+     },
+     "expr": "topk(20, sum by (ua) (count_over_time({namespace=\"envoy-gateway-system\", container=\"envoy\", pod=~\".*-public-.*\"} |= \"authority\" | json host=`[\":authority\"]`, ua=`[\"user-agent\"]` [$__range])))",
+     "legendFormat": "",
+     "queryType": "instant",
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {
+      "align": "auto",
+      "cellOptions": {
+       "type": "auto"
+      },
+      "inspect": false
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "showHeader": true,
+    "cellHeight": "sm",
+    "footer": {
+     "show": false,
+     "reducer": [
+      "sum"
+     ],
+     "countRows": false,
+     "fields": ""
+    },
+    "sortBy": [
+     {
+      "displayName": "Requests",
+      "desc": true
+     }
+    ]
+   },
+   "datasource": {
+    "type": "loki",
+    "uid": "loki"
+   },
+   "transformations": [
+    {
+     "id": "labelsToFields",
+     "options": {
+      "mode": "columns"
+     }
+    },
+    {
+     "id": "organize",
+     "options": {
+      "renameByName": {
+       "ua": "User agent",
+       "Value #A": "Requests"
+      },
+      "excludeByName": {
+       "Time": true
+      }
+     }
+    }
+   ],
+   "id": 9,
+   "gridPos": {
+    "h": 10,
+    "w": 12,
+    "x": 12,
+    "y": 32
+   }
+  }
+ ]
+}

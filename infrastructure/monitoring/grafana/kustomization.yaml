@@ -6,4 +6,5 @@ resources:
   - release.yaml
   - httproute.yaml
   - grafana-datasources.sops.yaml
+  - dashboards
   - oidc-secret.sops.yaml

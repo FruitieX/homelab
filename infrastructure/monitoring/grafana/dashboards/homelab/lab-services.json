@@ -1,0 +1,1574 @@
+{
+ "uid": "lab-services",
+ "title": "Homelab · Services",
+ "description": "Is everything answering, how fast, how much traffic, and is GitOps healthy.",
+ "tags": [
+  "homelab-nav",
+  "homelab"
+ ],
+ "timezone": "browser",
+ "editable": true,
+ "graphTooltip": 1,
+ "schemaVersion": 39,
+ "time": {
+  "from": "now-24h",
+  "to": "now"
+ },
+ "refresh": "1m",
+ "fiscalYearStartMonth": 0,
+ "liveNow": false,
+ "weekStart": "monday",
+ "links": [
+  {
+   "type": "dashboards",
+   "tags": [
+    "homelab-nav"
+   ],
+   "asDropdown": false,
+   "includeVars": false,
+   "keepTime": true,
+   "title": "Dashboards",
+   "icon": "external link",
+   "targetBlank": false
+  }
+ ],
+ "annotations": {
+  "list": [
+   {
+    "builtIn": 1,
+    "datasource": {
+     "type": "grafana",
+     "uid": "-- Grafana --"
+    },
+    "enable": true,
+    "hide": true,
+    "iconColor": "rgba(0, 211, 255, 1)",
+    "name": "Annotations & Alerts",
+    "type": "dashboard"
+   },
+   {
+    "datasource": {
+     "type": "prometheus",
+     "uid": "prometheus"
+    },
+    "enable": true,
+    "hide": false,
+    "iconColor": "#9085e9",
+    "name": "Deploys",
+    "expr": "max by (namespace, owner_name) ((time() - kube_replicaset_created{namespace=~\"default\"} < 90) * on (namespace, replicaset) group_left (owner_name) kube_replicaset_owner{owner_kind=\"Deployment\"})",
+    "step": "60s",
+    "titleFormat": "Rollout",
+    "textFormat": "{{owner_name}} rolled out",
+    "tagKeys": "namespace"
+   }
+  ]
+ },
+ "templating": {
+  "list": []
+ },
+ "panels": [
+  {
+   "type": "row",
+   "title": "Availability",
+   "collapsed": false,
+   "id": 1,
+   "gridPos": {
+    "h": 1,
+    "w": 24,
+    "x": 0,
+    "y": 0
+   },
+   "panels": []
+  },
+  {
+   "type": "stat",
+   "title": "Apps down",
+   "targets": [
+    {
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "count(label_replace(probe_success{job=~\"probe/kube-prometheus-stack/apps-.*\"}, \"app\", \"$1\", \"instance\", \"https://([^/]+).*\") == 0) or vector(0)",
+     "legendFormat": "",
+     "range": false,
+     "instant": true,
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {},
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "#3aa655",
+        "value": null
+       },
+       {
+        "color": "#e5484d",
+        "value": 1
+       }
+      ]
+     },
+     "color": {
+      "mode": "thresholds"
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    },
+    "graphMode": "none",
+    "colorMode": "background",
+    "textMode": "value",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "wideLayout": true,
+    "showPercentChange": false
+   },
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "description": "Blackbox HTTPS probes of every app hostname, once a minute.",
+   "id": 2,
+   "gridPos": {
+    "h": 4,
+    "w": 4,
+    "x": 0,
+    "y": 1
+   }
+  },
+  {
+   "type": "stat",
+   "title": "Firing alerts",
+   "targets": [
+    {
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "count(ALERTS{alertstate=\"firing\", alertname!~\"Watchdog|InfoInhibitor\"}) or vector(0)",
+     "legendFormat": "",
+     "range": false,
+     "instant": true,
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {},
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "#3aa655",
+        "value": null
+       },
+       {
+        "color": "#e0a100",
+        "value": 1
+       }
+      ]
+     },
+     "color": {
+      "mode": "thresholds"
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    },
+    "graphMode": "none",
+    "colorMode": "background",
+    "textMode": "value",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "wideLayout": true,
+    "showPercentChange": false
+   },
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "id": 3,
+   "gridPos": {
+    "h": 4,
+    "w": 4,
+    "x": 4,
+    "y": 1
+   }
+  },
+  {
+   "type": "stat",
+   "title": "Flux not ready",
+   "targets": [
+    {
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "count(gotk_resource_info{ready=\"False\"}) or vector(0)",
+     "legendFormat": "",
+     "range": false,
+     "instant": true,
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {},
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "#3aa655",
+        "value": null
+       },
+       {
+        "color": "#e5484d",
+        "value": 1
+       }
+      ]
+     },
+     "color": {
+      "mode": "thresholds"
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    },
+    "graphMode": "none",
+    "colorMode": "background",
+    "textMode": "value",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "wideLayout": true,
+    "showPercentChange": false
+   },
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "id": 4,
+   "gridPos": {
+    "h": 4,
+    "w": 4,
+    "x": 8,
+    "y": 1
+   }
+  },
+  {
+   "type": "stat",
+   "title": "Earliest TLS expiry",
+   "targets": [
+    {
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "min(probe_ssl_earliest_cert_expiry - time()) / 86400",
+     "legendFormat": "",
+     "range": false,
+     "instant": true,
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {},
+     "unit": "d",
+     "decimals": 0,
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "#e5484d",
+        "value": null
+       },
+       {
+        "color": "#e0a100",
+        "value": 7
+       },
+       {
+        "color": "#3aa655",
+        "value": 21
+       }
+      ]
+     },
+     "color": {
+      "mode": "thresholds"
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    },
+    "graphMode": "none",
+    "colorMode": "value",
+    "textMode": "value",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "wideLayout": true,
+    "showPercentChange": false
+   },
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "id": 5,
+   "gridPos": {
+    "h": 4,
+    "w": 4,
+    "x": 12,
+    "y": 1
+   }
+  },
+  {
+   "type": "stat",
+   "title": "LAN hosts down",
+   "targets": [
+    {
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "count(probe_success{job=\"lan-hosts\"} == 0) or vector(0)",
+     "legendFormat": "",
+     "range": false,
+     "instant": true,
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {},
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "#3aa655",
+        "value": null
+       },
+       {
+        "color": "#e5484d",
+        "value": 1
+       }
+      ]
+     },
+     "color": {
+      "mode": "thresholds"
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    },
+    "graphMode": "none",
+    "colorMode": "background",
+    "textMode": "value",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "wideLayout": true,
+    "showPercentChange": false
+   },
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "description": "TCP checks of the NAS, Proxmox hosts, gateway, honeydew and Zigbee2MQTT.",
+   "id": 6,
+   "gridPos": {
+    "h": 4,
+    "w": 4,
+    "x": 16,
+    "y": 1
+   }
+  },
+  {
+   "type": "stat",
+   "title": "Core services down",
+   "targets": [
+    {
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "count(probe_success{job=\"probe/kube-prometheus-stack/cluster-services\"} == 0) or vector(0)",
+     "legendFormat": "",
+     "range": false,
+     "instant": true,
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {},
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "#3aa655",
+        "value": null
+       },
+       {
+        "color": "#e5484d",
+        "value": 1
+       }
+      ]
+     },
+     "color": {
+      "mode": "thresholds"
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    },
+    "graphMode": "none",
+    "colorMode": "background",
+    "textMode": "value",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "wideLayout": true,
+    "showPercentChange": false
+   },
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "description": "MQTT, both PostgreSQL instances, InfluxDB and Loki (TCP).",
+   "id": 7,
+   "gridPos": {
+    "h": 4,
+    "w": 4,
+    "x": 20,
+    "y": 1
+   }
+  },
+  {
+   "type": "status-history",
+   "title": "App status",
+   "targets": [
+    {
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "max by (app) (label_replace(probe_success{job=~\"probe/kube-prometheus-stack/apps-.*\"}, \"app\", \"$1\", \"instance\", \"https://([^/]+).*\"))",
+     "legendFormat": "{{app}}",
+     "range": true,
+     "instant": false,
+     "interval": "5m",
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {
+      "lineWidth": 0,
+      "fillOpacity": 85
+     },
+     "color": {
+      "mode": "thresholds"
+     },
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "#e5484d",
+        "value": null
+       },
+       {
+        "color": "#3aa655",
+        "value": 1
+       }
+      ]
+     },
+     "mappings": [
+      {
+       "type": "value",
+       "options": {
+        "1": {
+         "text": "Up",
+         "color": "#3aa655",
+         "index": 0
+        },
+        "0": {
+         "text": "Down",
+         "color": "#e5484d",
+         "index": 1
+        }
+       }
+      }
+     ]
+    },
+    "overrides": []
+   },
+   "options": {
+    "showValue": "never",
+    "rowHeight": 0.8,
+    "colWidth": 0.95,
+    "legend": {
+     "showLegend": false,
+     "displayMode": "list",
+     "placement": "bottom"
+    },
+    "tooltip": {
+     "mode": "single",
+     "sort": "none"
+    }
+   },
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "id": 8,
+   "gridPos": {
+    "h": 16,
+    "w": 16,
+    "x": 0,
+    "y": 5
+   }
+  },
+  {
+   "type": "bargauge",
+   "title": "Response time (avg over range)",
+   "targets": [
+    {
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "sort_desc(avg by (app) (avg_over_time(label_replace(probe_duration_seconds{job=~\"probe/kube-prometheus-stack/apps-.*\"}, \"app\", \"$1\", \"instance\", \"https://([^/]+).*\")[$__range])))",
+     "legendFormat": "{{app}}",
+     "range": false,
+     "instant": true,
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {},
+     "unit": "s",
+     "decimals": 2,
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "#3aa655",
+        "value": null
+       },
+       {
+        "color": "#e0a100",
+        "value": 0.5
+       },
+       {
+        "color": "#e5484d",
+        "value": 2
+       }
+      ]
+     },
+     "displayName": "${__field.labels.app}",
+     "color": {
+      "mode": "thresholds"
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    },
+    "displayMode": "basic",
+    "orientation": "horizontal",
+    "showUnfilled": true,
+    "valueMode": "color",
+    "namePlacement": "left",
+    "sizing": "auto",
+    "minVizHeight": 12,
+    "minVizWidth": 8,
+    "maxVizHeight": 28
+   },
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "id": 9,
+   "gridPos": {
+    "h": 16,
+    "w": 8,
+    "x": 16,
+    "y": 5
+   }
+  },
+  {
+   "type": "state-timeline",
+   "title": "LAN hosts & core services",
+   "targets": [
+    {
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "max by (instance, service) (probe_success{job=\"lan-hosts\"})",
+     "legendFormat": "{{instance}} ({{service}})",
+     "range": true,
+     "instant": false,
+     "refId": "A"
+    },
+    {
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "max by (instance) (probe_success{job=\"probe/kube-prometheus-stack/cluster-services\"})",
+     "legendFormat": "{{instance}}",
+     "range": true,
+     "instant": false,
+     "refId": "B"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {
+      "lineWidth": 0,
+      "fillOpacity": 80
+     },
+     "color": {
+      "mode": "thresholds"
+     },
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "#e5484d",
+        "value": null
+       },
+       {
+        "color": "#3aa655",
+        "value": 1
+       }
+      ]
+     },
+     "mappings": [
+      {
+       "type": "value",
+       "options": {
+        "1": {
+         "text": "Up",
+         "color": "#3aa655",
+         "index": 0
+        },
+        "0": {
+         "text": "Down",
+         "color": "#e5484d",
+         "index": 1
+        }
+       }
+      }
+     ]
+    },
+    "overrides": []
+   },
+   "options": {
+    "showValue": "never",
+    "rowHeight": 0.85,
+    "mergeValues": true,
+    "alignValue": "left",
+    "legend": {
+     "showLegend": false
+    },
+    "tooltip": {
+     "mode": "single",
+     "sort": "none"
+    }
+   },
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "id": 10,
+   "gridPos": {
+    "h": 9,
+    "w": 16,
+    "x": 0,
+    "y": 21
+   }
+  },
+  {
+   "type": "bargauge",
+   "title": "Days until certificate expiry",
+   "targets": [
+    {
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "sort(min by (app) (label_replace(probe_ssl_earliest_cert_expiry{job=~\"probe/kube-prometheus-stack/apps-.*\"}, \"app\", \"$1\", \"instance\", \"https://([^/]+).*\")) - time()) / 86400",
+     "legendFormat": "{{app}}",
+     "range": false,
+     "instant": true,
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {},
+     "unit": "d",
+     "decimals": 0,
+     "min": 0,
+     "max": 90,
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "#e5484d",
+        "value": null
+       },
+       {
+        "color": "#e0a100",
+        "value": 7
+       },
+       {
+        "color": "#3aa655",
+        "value": 21
+       }
+      ]
+     },
+     "displayName": "${__field.labels.app}",
+     "color": {
+      "mode": "thresholds"
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    },
+    "displayMode": "basic",
+    "orientation": "horizontal",
+    "showUnfilled": true,
+    "valueMode": "color",
+    "namePlacement": "left",
+    "sizing": "auto",
+    "minVizHeight": 12,
+    "minVizWidth": 8,
+    "maxVizHeight": 28
+   },
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "description": "cert-manager renews 30 days before expiry, so anything under ~25 days means renewal is failing.",
+   "id": 11,
+   "gridPos": {
+    "h": 9,
+    "w": 8,
+    "x": 16,
+    "y": 21
+   }
+  },
+  {
+   "type": "row",
+   "title": "Traffic (Envoy access logs)",
+   "collapsed": false,
+   "id": 12,
+   "gridPos": {
+    "h": 1,
+    "w": 24,
+    "x": 0,
+    "y": 30
+   },
+   "panels": []
+  },
+  {
+   "type": "timeseries",
+   "title": "Requests per app",
+   "targets": [
+    {
+     "datasource": {
+      "type": "loki",
+      "uid": "loki"
+     },
+     "expr": "sum by (host) (count_over_time({namespace=\"envoy-gateway-system\", container=\"envoy\"} |= \"authority\" | json host=`[\":authority\"]` | host=~`(.+\\.)?(fruitiex\\.org|lovegren\\.fi|xn--lvegren-90a\\.fi)` [$__auto]))",
+     "legendFormat": "{{host}}",
+     "queryType": "range",
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {
+      "drawStyle": "line",
+      "lineWidth": 2,
+      "fillOpacity": 30,
+      "gradientMode": "none",
+      "lineInterpolation": "smooth",
+      "showPoints": "never",
+      "spanNulls": true,
+      "stacking": {
+       "mode": "normal",
+       "group": "A"
+      },
+      "axisBorderShow": false,
+      "barAlignment": -1,
+      "thresholdsStyle": {
+       "mode": "off"
+      }
+     },
+     "unit": "short",
+     "color": {
+      "mode": "palette-classic"
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "legend": {
+     "displayMode": "table",
+     "placement": "right",
+     "showLegend": true,
+     "calcs": [
+      "sum"
+     ]
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "desc"
+    }
+   },
+   "datasource": {
+    "type": "loki",
+    "uid": "loki"
+   },
+   "description": "Requests through the public and private gateways per interval. LAN clients that talk to MetalLB addresses directly (Jellyfin) are not counted.",
+   "id": 13,
+   "gridPos": {
+    "h": 9,
+    "w": 16,
+    "x": 0,
+    "y": 31
+   }
+  },
+  {
+   "type": "bargauge",
+   "title": "Requests in range",
+   "targets": [
+    {
+     "datasource": {
+      "type": "loki",
+      "uid": "loki"
+     },
+     "expr": "topk(15, sum by (host) (count_over_time({namespace=\"envoy-gateway-system\", container=\"envoy\"} |= \"authority\" | json host=`[\":authority\"]` | host=~`(.+\\.)?(fruitiex\\.org|lovegren\\.fi|xn--lvegren-90a\\.fi)` [$__range])))",
+     "legendFormat": "{{host}}",
+     "queryType": "instant",
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {},
+     "unit": "short",
+     "decimals": 0,
+     "color": {
+      "mode": "fixed",
+      "fixedColor": "#3987e5"
+     },
+     "displayName": "${__field.labels.host}",
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "#3987e5",
+        "value": null
+       }
+      ]
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    },
+    "displayMode": "basic",
+    "orientation": "horizontal",
+    "showUnfilled": true,
+    "valueMode": "color",
+    "namePlacement": "left",
+    "sizing": "auto",
+    "minVizHeight": 12,
+    "minVizWidth": 8,
+    "maxVizHeight": 28
+   },
+   "datasource": {
+    "type": "loki",
+    "uid": "loki"
+   },
+   "id": 14,
+   "gridPos": {
+    "h": 9,
+    "w": 8,
+    "x": 16,
+    "y": 31
+   }
+  },
+  {
+   "type": "timeseries",
+   "title": "Server errors (5xx) per app",
+   "targets": [
+    {
+     "datasource": {
+      "type": "loki",
+      "uid": "loki"
+     },
+     "expr": "sum by (host) (count_over_time({namespace=\"envoy-gateway-system\", container=\"envoy\"} |= \"authority\" | json host=`[\":authority\"]`, response_code | host=~`(.+\\.)?(fruitiex\\.org|lovegren\\.fi|xn--lvegren-90a\\.fi)` | response_code >= 500 [$__auto]))",
+     "legendFormat": "{{host}}",
+     "queryType": "range",
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {
+      "drawStyle": "bars",
+      "lineWidth": 1,
+      "fillOpacity": 80,
+      "gradientMode": "none",
+      "lineInterpolation": "linear",
+      "showPoints": "never",
+      "spanNulls": false,
+      "stacking": {
+       "mode": "normal",
+       "group": "A"
+      },
+      "axisBorderShow": false,
+      "barAlignment": -1,
+      "thresholdsStyle": {
+       "mode": "off"
+      }
+     },
+     "unit": "short",
+     "color": {
+      "mode": "palette-classic"
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "legend": {
+     "displayMode": "list",
+     "placement": "right",
+     "showLegend": true,
+     "calcs": []
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "desc"
+    }
+   },
+   "datasource": {
+    "type": "loki",
+    "uid": "loki"
+   },
+   "id": 15,
+   "gridPos": {
+    "h": 8,
+    "w": 12,
+    "x": 0,
+    "y": 40
+   }
+  },
+  {
+   "type": "timeseries",
+   "title": "p95 latency per app",
+   "targets": [
+    {
+     "datasource": {
+      "type": "loki",
+      "uid": "loki"
+     },
+     "expr": "quantile_over_time(0.95, {namespace=\"envoy-gateway-system\", container=\"envoy\"} |= \"authority\" | json host=`[\":authority\"]`, duration | host=~`(.+\\.)?(fruitiex\\.org|lovegren\\.fi|xn--lvegren-90a\\.fi)` | unwrap duration [$__auto]) by (host)",
+     "legendFormat": "{{host}}",
+     "queryType": "range",
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {
+      "drawStyle": "line",
+      "lineWidth": 2,
+      "fillOpacity": 0,
+      "gradientMode": "opacity",
+      "lineInterpolation": "smooth",
+      "showPoints": "never",
+      "spanNulls": true,
+      "stacking": {
+       "mode": "none",
+       "group": "A"
+      },
+      "axisBorderShow": false,
+      "barAlignment": -1,
+      "thresholdsStyle": {
+       "mode": "off"
+      }
+     },
+     "unit": "ms",
+     "color": {
+      "mode": "palette-classic"
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "legend": {
+     "displayMode": "list",
+     "placement": "right",
+     "showLegend": true,
+     "calcs": []
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "desc"
+    }
+   },
+   "datasource": {
+    "type": "loki",
+    "uid": "loki"
+   },
+   "description": "Total request time at the gateway; long-lived streams (SSE, WebSockets, video) inflate it.",
+   "id": 16,
+   "gridPos": {
+    "h": 8,
+    "w": 12,
+    "x": 12,
+    "y": 40
+   }
+  },
+  {
+   "type": "timeseries",
+   "title": "Data served per app",
+   "targets": [
+    {
+     "datasource": {
+      "type": "loki",
+      "uid": "loki"
+     },
+     "expr": "sum by (host) (sum_over_time({namespace=\"envoy-gateway-system\", container=\"envoy\"} |= \"authority\" | json host=`[\":authority\"]`, bytes_sent | host=~`(.+\\.)?(fruitiex\\.org|lovegren\\.fi|xn--lvegren-90a\\.fi)` | unwrap bytes_sent [$__auto]))",
+     "legendFormat": "{{host}}",
+     "queryType": "range",
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {
+      "drawStyle": "bars",
+      "lineWidth": 1,
+      "fillOpacity": 80,
+      "gradientMode": "none",
+      "lineInterpolation": "linear",
+      "showPoints": "never",
+      "spanNulls": false,
+      "stacking": {
+       "mode": "normal",
+       "group": "A"
+      },
+      "axisBorderShow": false,
+      "barAlignment": -1,
+      "thresholdsStyle": {
+       "mode": "off"
+      }
+     },
+     "unit": "bytes",
+     "color": {
+      "mode": "palette-classic"
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "legend": {
+     "displayMode": "list",
+     "placement": "right",
+     "showLegend": true,
+     "calcs": []
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "desc"
+    }
+   },
+   "datasource": {
+    "type": "loki",
+    "uid": "loki"
+   },
+   "id": 17,
+   "gridPos": {
+    "h": 8,
+    "w": 24,
+    "x": 0,
+    "y": 48
+   }
+  },
+  {
+   "type": "row",
+   "title": "GitOps (Flux)",
+   "collapsed": false,
+   "id": 18,
+   "gridPos": {
+    "h": 1,
+    "w": 24,
+    "x": 0,
+    "y": 56
+   },
+   "panels": []
+  },
+  {
+   "type": "table",
+   "title": "Flux resources",
+   "targets": [
+    {
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "gotk_resource_info{customresource_kind=~\"Kustomization|HelmRelease\"}",
+     "legendFormat": "",
+     "range": false,
+     "instant": true,
+     "format": "table",
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {
+      "align": "auto",
+      "cellOptions": {
+       "type": "auto"
+      },
+      "inspect": false
+     }
+    },
+    "overrides": [
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "Ready"
+      },
+      "properties": [
+       {
+        "id": "mappings",
+        "value": [
+         {
+          "type": "value",
+          "options": {
+           "True": {
+            "text": "Ready",
+            "color": "#3aa655",
+            "index": 0
+           },
+           "False": {
+            "text": "Not ready",
+            "color": "#e5484d",
+            "index": 1
+           }
+          }
+         }
+        ]
+       },
+       {
+        "id": "custom.cellOptions",
+        "value": {
+         "type": "color-text"
+        }
+       }
+      ]
+     }
+    ]
+   },
+   "options": {
+    "showHeader": true,
+    "cellHeight": "sm",
+    "footer": {
+     "show": false,
+     "reducer": [
+      "sum"
+     ],
+     "countRows": false,
+     "fields": ""
+    },
+    "sortBy": [
+     {
+      "displayName": "Ready",
+      "desc": false
+     }
+    ]
+   },
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "transformations": [
+    {
+     "id": "organize",
+     "options": {
+      "renameByName": {
+       "customresource_kind": "Kind",
+       "exported_namespace": "Namespace",
+       "name": "Name",
+       "ready": "Ready",
+       "revision": "Revision",
+       "suspended": "Suspended",
+       "source_name": "Source",
+       "chart_app_version": "App version"
+      },
+      "excludeByName": {
+       "Time": true,
+       "Value": true,
+       "__name__": true,
+       "container": true,
+       "endpoint": true,
+       "instance": true,
+       "job": true,
+       "namespace": true,
+       "pod": true,
+       "service": true,
+       "customresource_group": true,
+       "customresource_version": true,
+       "uid": true
+      },
+      "indexByName": {
+       "Kind": 0,
+       "Namespace": 1,
+       "Name": 2,
+       "Ready": 3,
+       "Revision": 4,
+       "App version": 5,
+       "Source": 6,
+       "Suspended": 7
+      }
+     }
+    }
+   ],
+   "id": 19,
+   "gridPos": {
+    "h": 12,
+    "w": 14,
+    "x": 0,
+    "y": 57
+   }
+  },
+  {
+   "type": "timeseries",
+   "title": "Reconcile time p95 by kind",
+   "targets": [
+    {
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "histogram_quantile(0.95, sum by (le, kind) (rate(gotk_reconcile_duration_seconds_bucket[$__rate_interval])))",
+     "legendFormat": "{{kind}}",
+     "range": true,
+     "instant": false,
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {
+      "drawStyle": "line",
+      "lineWidth": 2,
+      "fillOpacity": 0,
+      "gradientMode": "opacity",
+      "lineInterpolation": "smooth",
+      "showPoints": "never",
+      "spanNulls": true,
+      "stacking": {
+       "mode": "none",
+       "group": "A"
+      },
+      "axisBorderShow": false,
+      "barAlignment": -1,
+      "thresholdsStyle": {
+       "mode": "off"
+      }
+     },
+     "unit": "s",
+     "color": {
+      "mode": "palette-classic"
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "legend": {
+     "displayMode": "list",
+     "placement": "bottom",
+     "showLegend": true,
+     "calcs": []
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "desc"
+    }
+   },
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "id": 20,
+   "gridPos": {
+    "h": 6,
+    "w": 10,
+    "x": 14,
+    "y": 57
+   }
+  },
+  {
+   "type": "timeseries",
+   "title": "Reconcile errors",
+   "targets": [
+    {
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "sum by (controller) (increase(controller_runtime_reconcile_errors_total{job=\"flux-system/flux-system\"}[$__rate_interval]))",
+     "legendFormat": "{{controller}}",
+     "range": true,
+     "instant": false,
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {
+      "drawStyle": "bars",
+      "lineWidth": 1,
+      "fillOpacity": 80,
+      "gradientMode": "none",
+      "lineInterpolation": "linear",
+      "showPoints": "never",
+      "spanNulls": false,
+      "stacking": {
+       "mode": "normal",
+       "group": "A"
+      },
+      "axisBorderShow": false,
+      "barAlignment": -1,
+      "thresholdsStyle": {
+       "mode": "off"
+      }
+     },
+     "unit": "short",
+     "color": {
+      "mode": "palette-classic"
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "legend": {
+     "displayMode": "list",
+     "placement": "bottom",
+     "showLegend": true,
+     "calcs": []
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "desc"
+    }
+   },
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "id": 21,
+   "gridPos": {
+    "h": 6,
+    "w": 10,
+    "x": 0,
+    "y": 69
+   }
+  },
+  {
+   "type": "table",
+   "title": "Firing alerts",
+   "targets": [
+    {
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "ALERTS{alertstate=\"firing\", alertname!~\"Watchdog|InfoInhibitor\"}",
+     "legendFormat": "",
+     "range": false,
+     "instant": true,
+     "format": "table",
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {
+      "align": "auto",
+      "cellOptions": {
+       "type": "auto"
+      },
+      "inspect": false
+     }
+    },
+    "overrides": [
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "Severity"
+      },
+      "properties": [
+       {
+        "id": "custom.cellOptions",
+        "value": {
+         "type": "color-text"
+        }
+       },
+       {
+        "id": "mappings",
+        "value": [
+         {
+          "type": "value",
+          "options": {
+           "critical": {
+            "text": "critical",
+            "color": "#e5484d",
+            "index": 0
+           },
+           "warning": {
+            "text": "warning",
+            "color": "#e0a100",
+            "index": 1
+           },
+           "info": {
+            "text": "info",
+            "color": "#7d7d7d",
+            "index": 2
+           }
+          }
+         }
+        ]
+       }
+      ]
+     }
+    ]
+   },
+   "options": {
+    "showHeader": true,
+    "cellHeight": "sm",
+    "footer": {
+     "show": false,
+     "reducer": [
+      "sum"
+     ],
+     "countRows": false,
+     "fields": ""
+    }
+   },
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "transformations": [
+    {
+     "id": "organize",
+     "options": {
+      "renameByName": {
+       "alertname": "Alert",
+       "severity": "Severity",
+       "namespace": "Namespace"
+      },
+      "excludeByName": {
+       "Time": true,
+       "Value": true,
+       "__name__": true,
+       "alertstate": true,
+       "container": true,
+       "endpoint": true,
+       "prometheus": true,
+       "service": true,
+       "job": true,
+       "uid": true
+      },
+      "indexByName": {
+       "Alert": 0,
+       "Severity": 1,
+       "Namespace": 2
+      }
+     }
+    }
+   ],
+   "id": 22,
+   "gridPos": {
+    "h": 7,
+    "w": 24,
+    "x": 0,
+    "y": 75
+   }
+  }
+ ]
+}

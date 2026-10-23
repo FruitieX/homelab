@@ -1,0 +1,1951 @@
+{
+ "uid": "lab-apps",
+ "title": "Homelab · Apps",
+ "description": "What the apps are used for: music, photos, automations, 3D printing and video.",
+ "tags": [
+  "homelab-nav",
+  "homelab"
+ ],
+ "timezone": "browser",
+ "editable": true,
+ "graphTooltip": 1,
+ "schemaVersion": 39,
+ "time": {
+  "from": "now-30d",
+  "to": "now"
+ },
+ "refresh": "5m",
+ "fiscalYearStartMonth": 0,
+ "liveNow": false,
+ "weekStart": "monday",
+ "links": [
+  {
+   "type": "dashboards",
+   "tags": [
+    "homelab-nav"
+   ],
+   "asDropdown": false,
+   "includeVars": false,
+   "keepTime": true,
+   "title": "Dashboards",
+   "icon": "external link",
+   "targetBlank": false
+  }
+ ],
+ "annotations": {
+  "list": [
+   {
+    "builtIn": 1,
+    "datasource": {
+     "type": "grafana",
+     "uid": "-- Grafana --"
+    },
+    "enable": true,
+    "hide": true,
+    "iconColor": "rgba(0, 211, 255, 1)",
+    "name": "Annotations & Alerts",
+    "type": "dashboard"
+   }
+  ]
+ },
+ "templating": {
+  "list": []
+ },
+ "panels": [
+  {
+   "type": "row",
+   "title": "Ferrotune",
+   "collapsed": false,
+   "id": 1,
+   "gridPos": {
+    "h": 1,
+    "w": 24,
+    "x": 0,
+    "y": 0
+   },
+   "panels": []
+  },
+  {
+   "type": "stat",
+   "title": "Listening this week",
+   "targets": [
+    {
+     "datasource": {
+      "type": "grafana-postgresql-datasource",
+      "uid": "pg-ferrotune"
+     },
+     "rawSql": "SELECT sum(duration_seconds) / 3600.0 AS hours FROM listening_sessions WHERE listened_at > now() - interval '7 days'",
+     "format": "table",
+     "rawQuery": true,
+     "editorMode": "code",
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {},
+     "unit": "h",
+     "decimals": 1,
+     "color": {
+      "mode": "thresholds"
+     },
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "#3987e5",
+        "value": null
+       }
+      ]
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    },
+    "graphMode": "none",
+    "colorMode": "value",
+    "textMode": "value",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "wideLayout": true,
+    "showPercentChange": false
+   },
+   "datasource": {
+    "type": "grafana-postgresql-datasource",
+    "uid": "pg-ferrotune"
+   },
+   "id": 2,
+   "gridPos": {
+    "h": 4,
+    "w": 4,
+    "x": 0,
+    "y": 1
+   }
+  },
+  {
+   "type": "stat",
+   "title": "Plays this week",
+   "targets": [
+    {
+     "datasource": {
+      "type": "grafana-postgresql-datasource",
+      "uid": "pg-ferrotune"
+     },
+     "rawSql": "SELECT count(*) AS plays FROM listening_sessions WHERE listened_at > now() - interval '7 days' AND NOT skipped",
+     "format": "table",
+     "rawQuery": true,
+     "editorMode": "code",
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {},
+     "decimals": 0,
+     "color": {
+      "mode": "thresholds"
+     },
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "#3987e5",
+        "value": null
+       }
+      ]
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    },
+    "graphMode": "none",
+    "colorMode": "value",
+    "textMode": "value",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "wideLayout": true,
+    "showPercentChange": false
+   },
+   "datasource": {
+    "type": "grafana-postgresql-datasource",
+    "uid": "pg-ferrotune"
+   },
+   "id": 3,
+   "gridPos": {
+    "h": 4,
+    "w": 4,
+    "x": 4,
+    "y": 1
+   }
+  },
+  {
+   "type": "stat",
+   "title": "Skip rate (30 d)",
+   "targets": [
+    {
+     "datasource": {
+      "type": "grafana-postgresql-datasource",
+      "uid": "pg-ferrotune"
+     },
+     "rawSql": "SELECT avg(skipped::int) AS skip FROM listening_sessions WHERE listened_at > now() - interval '30 days'",
+     "format": "table",
+     "rawQuery": true,
+     "editorMode": "code",
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {},
+     "unit": "percentunit",
+     "decimals": 0,
+     "color": {
+      "mode": "thresholds"
+     },
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "#3987e5",
+        "value": null
+       }
+      ]
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    },
+    "graphMode": "none",
+    "colorMode": "value",
+    "textMode": "value",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "wideLayout": true,
+    "showPercentChange": false
+   },
+   "datasource": {
+    "type": "grafana-postgresql-datasource",
+    "uid": "pg-ferrotune"
+   },
+   "id": 4,
+   "gridPos": {
+    "h": 4,
+    "w": 4,
+    "x": 8,
+    "y": 1
+   }
+  },
+  {
+   "type": "stat",
+   "title": "Library",
+   "targets": [
+    {
+     "datasource": {
+      "type": "grafana-postgresql-datasource",
+      "uid": "pg-ferrotune"
+     },
+     "rawSql": "SELECT (SELECT count(*) FROM songs) AS \"Songs\", (SELECT count(*) FROM albums) AS \"Albums\",\n       (SELECT count(*) FROM artists) AS \"Artists\"",
+     "format": "table",
+     "rawQuery": true,
+     "editorMode": "code",
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {},
+     "decimals": 0,
+     "color": {
+      "mode": "thresholds"
+     },
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "#3987e5",
+        "value": null
+       }
+      ]
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    },
+    "graphMode": "none",
+    "colorMode": "value",
+    "textMode": "value_and_name",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "wideLayout": true,
+    "showPercentChange": false
+   },
+   "datasource": {
+    "type": "grafana-postgresql-datasource",
+    "uid": "pg-ferrotune"
+   },
+   "id": 5,
+   "gridPos": {
+    "h": 4,
+    "w": 12,
+    "x": 12,
+    "y": 1
+   }
+  },
+  {
+   "type": "timeseries",
+   "title": "Listening hours per day",
+   "targets": [
+    {
+     "datasource": {
+      "type": "grafana-postgresql-datasource",
+      "uid": "pg-ferrotune"
+     },
+     "rawSql": "SELECT date_trunc('day', listened_at) AS time, sum(duration_seconds) / 3600.0 AS \"Hours\"\nFROM listening_sessions WHERE $__timeFilter(listened_at) GROUP BY 1 ORDER BY 1",
+     "format": "time_series",
+     "rawQuery": true,
+     "editorMode": "code",
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {
+      "drawStyle": "bars",
+      "lineWidth": 1,
+      "fillOpacity": 80,
+      "gradientMode": "none",
+      "lineInterpolation": "linear",
+      "showPoints": "never",
+      "spanNulls": false,
+      "stacking": {
+       "mode": "none",
+       "group": "A"
+      },
+      "axisBorderShow": false,
+      "barAlignment": -1,
+      "thresholdsStyle": {
+       "mode": "off"
+      }
+     },
+     "unit": "h",
+     "decimals": 1,
+     "color": {
+      "mode": "fixed",
+      "fixedColor": "#3987e5"
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "legend": {
+     "displayMode": "list",
+     "placement": "bottom",
+     "showLegend": true,
+     "calcs": []
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "desc"
+    }
+   },
+   "datasource": {
+    "type": "grafana-postgresql-datasource",
+    "uid": "pg-ferrotune"
+   },
+   "id": 6,
+   "gridPos": {
+    "h": 8,
+    "w": 12,
+    "x": 0,
+    "y": 5
+   }
+  },
+  {
+   "type": "bargauge",
+   "title": "Top artists in range",
+   "targets": [
+    {
+     "datasource": {
+      "type": "grafana-postgresql-datasource",
+      "uid": "pg-ferrotune"
+     },
+     "rawSql": "SELECT a.name AS metric, round(sum(l.duration_seconds) / 3600.0, 1) AS value\nFROM listening_sessions l JOIN songs s ON s.id = l.song_id JOIN artists a ON a.id = s.artist_id\nWHERE $__timeFilter(l.listened_at) GROUP BY 1 ORDER BY 2 DESC LIMIT 12",
+     "format": "table",
+     "rawQuery": true,
+     "editorMode": "code",
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {},
+     "unit": "h",
+     "decimals": 1,
+     "color": {
+      "mode": "fixed",
+      "fixedColor": "#3987e5"
+     },
+     "displayName": "${__field.displayName}",
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "#3987e5",
+        "value": null
+       }
+      ]
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": true
+    },
+    "displayMode": "basic",
+    "orientation": "horizontal",
+    "showUnfilled": true,
+    "valueMode": "color",
+    "namePlacement": "left",
+    "sizing": "auto",
+    "minVizHeight": 12,
+    "minVizWidth": 8,
+    "maxVizHeight": 28
+   },
+   "datasource": {
+    "type": "grafana-postgresql-datasource",
+    "uid": "pg-ferrotune"
+   },
+   "id": 7,
+   "gridPos": {
+    "h": 8,
+    "w": 6,
+    "x": 12,
+    "y": 5
+   }
+  },
+  {
+   "type": "table",
+   "title": "Top songs in range",
+   "targets": [
+    {
+     "datasource": {
+      "type": "grafana-postgresql-datasource",
+      "uid": "pg-ferrotune"
+     },
+     "rawSql": "SELECT s.title AS \"Song\", a.name AS \"Artist\", count(*) AS \"Plays\"\nFROM listening_sessions l JOIN songs s ON s.id = l.song_id LEFT JOIN artists a ON a.id = s.artist_id\nWHERE $__timeFilter(l.listened_at) AND NOT l.skipped GROUP BY 1, 2 ORDER BY 3 DESC LIMIT 15",
+     "format": "table",
+     "rawQuery": true,
+     "editorMode": "code",
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {
+      "align": "auto",
+      "cellOptions": {
+       "type": "auto"
+      },
+      "inspect": false
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "showHeader": true,
+    "cellHeight": "sm",
+    "footer": {
+     "show": false,
+     "reducer": [
+      "sum"
+     ],
+     "countRows": false,
+     "fields": ""
+    }
+   },
+   "datasource": {
+    "type": "grafana-postgresql-datasource",
+    "uid": "pg-ferrotune"
+   },
+   "id": 8,
+   "gridPos": {
+    "h": 8,
+    "w": 6,
+    "x": 18,
+    "y": 5
+   }
+  },
+  {
+   "type": "row",
+   "title": "Immich",
+   "collapsed": false,
+   "id": 9,
+   "gridPos": {
+    "h": 1,
+    "w": 24,
+    "x": 0,
+    "y": 13
+   },
+   "panels": []
+  },
+  {
+   "type": "stat",
+   "title": "Photos",
+   "targets": [
+    {
+     "datasource": {
+      "type": "grafana-postgresql-datasource",
+      "uid": "pg-immich"
+     },
+     "rawSql": "SELECT count(*) FROM asset WHERE type = 'IMAGE' AND \"deletedAt\" IS NULL",
+     "format": "table",
+     "rawQuery": true,
+     "editorMode": "code",
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {},
+     "decimals": 0,
+     "color": {
+      "mode": "thresholds"
+     },
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "#3987e5",
+        "value": null
+       }
+      ]
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    },
+    "graphMode": "none",
+    "colorMode": "value",
+    "textMode": "value",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "wideLayout": true,
+    "showPercentChange": false
+   },
+   "datasource": {
+    "type": "grafana-postgresql-datasource",
+    "uid": "pg-immich"
+   },
+   "id": 10,
+   "gridPos": {
+    "h": 4,
+    "w": 4,
+    "x": 0,
+    "y": 14
+   }
+  },
+  {
+   "type": "stat",
+   "title": "Videos",
+   "targets": [
+    {
+     "datasource": {
+      "type": "grafana-postgresql-datasource",
+      "uid": "pg-immich"
+     },
+     "rawSql": "SELECT count(*) FROM asset WHERE type = 'VIDEO' AND \"deletedAt\" IS NULL",
+     "format": "table",
+     "rawQuery": true,
+     "editorMode": "code",
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {},
+     "decimals": 0,
+     "color": {
+      "mode": "thresholds"
+     },
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "#3987e5",
+        "value": null
+       }
+      ]
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    },
+    "graphMode": "none",
+    "colorMode": "value",
+    "textMode": "value",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "wideLayout": true,
+    "showPercentChange": false
+   },
+   "datasource": {
+    "type": "grafana-postgresql-datasource",
+    "uid": "pg-immich"
+   },
+   "id": 11,
+   "gridPos": {
+    "h": 4,
+    "w": 4,
+    "x": 4,
+    "y": 14
+   }
+  },
+  {
+   "type": "stat",
+   "title": "Library size",
+   "targets": [
+    {
+     "datasource": {
+      "type": "grafana-postgresql-datasource",
+      "uid": "pg-immich"
+     },
+     "rawSql": "SELECT sum(e.\"fileSizeInByte\") FROM asset_exif e JOIN asset a ON a.id = e.\"assetId\" WHERE a.\"deletedAt\" IS NULL",
+     "format": "table",
+     "rawQuery": true,
+     "editorMode": "code",
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {},
+     "unit": "bytes",
+     "decimals": 1,
+     "color": {
+      "mode": "thresholds"
+     },
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "#3987e5",
+        "value": null
+       }
+      ]
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    },
+    "graphMode": "none",
+    "colorMode": "value",
+    "textMode": "value",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "wideLayout": true,
+    "showPercentChange": false
+   },
+   "datasource": {
+    "type": "grafana-postgresql-datasource",
+    "uid": "pg-immich"
+   },
+   "id": 12,
+   "gridPos": {
+    "h": 4,
+    "w": 4,
+    "x": 8,
+    "y": 14
+   }
+  },
+  {
+   "type": "stat",
+   "title": "Added this month",
+   "targets": [
+    {
+     "datasource": {
+      "type": "grafana-postgresql-datasource",
+      "uid": "pg-immich"
+     },
+     "rawSql": "SELECT count(*) FROM asset WHERE \"createdAt\" > date_trunc('month', now()) AND \"deletedAt\" IS NULL",
+     "format": "table",
+     "rawQuery": true,
+     "editorMode": "code",
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {},
+     "decimals": 0,
+     "color": {
+      "mode": "thresholds"
+     },
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "#3987e5",
+        "value": null
+       }
+      ]
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    },
+    "graphMode": "none",
+    "colorMode": "value",
+    "textMode": "value",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "wideLayout": true,
+    "showPercentChange": false
+   },
+   "datasource": {
+    "type": "grafana-postgresql-datasource",
+    "uid": "pg-immich"
+   },
+   "id": 13,
+   "gridPos": {
+    "h": 4,
+    "w": 4,
+    "x": 12,
+    "y": 14
+   }
+  },
+  {
+   "type": "stat",
+   "title": "Favourites",
+   "targets": [
+    {
+     "datasource": {
+      "type": "grafana-postgresql-datasource",
+      "uid": "pg-immich"
+     },
+     "rawSql": "SELECT count(*) FROM asset WHERE \"isFavorite\" AND \"deletedAt\" IS NULL",
+     "format": "table",
+     "rawQuery": true,
+     "editorMode": "code",
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {},
+     "decimals": 0,
+     "color": {
+      "mode": "thresholds"
+     },
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "#3987e5",
+        "value": null
+       }
+      ]
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    },
+    "graphMode": "none",
+    "colorMode": "value",
+    "textMode": "value",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "wideLayout": true,
+    "showPercentChange": false
+   },
+   "datasource": {
+    "type": "grafana-postgresql-datasource",
+    "uid": "pg-immich"
+   },
+   "id": 14,
+   "gridPos": {
+    "h": 4,
+    "w": 4,
+    "x": 16,
+    "y": 14
+   }
+  },
+  {
+   "type": "stat",
+   "title": "People",
+   "targets": [
+    {
+     "datasource": {
+      "type": "grafana-postgresql-datasource",
+      "uid": "pg-immich"
+     },
+     "rawSql": "SELECT count(*) FROM person WHERE name <> ''",
+     "format": "table",
+     "rawQuery": true,
+     "editorMode": "code",
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {},
+     "decimals": 0,
+     "color": {
+      "mode": "thresholds"
+     },
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "#3987e5",
+        "value": null
+       }
+      ]
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    },
+    "graphMode": "none",
+    "colorMode": "value",
+    "textMode": "value",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "wideLayout": true,
+    "showPercentChange": false
+   },
+   "datasource": {
+    "type": "grafana-postgresql-datasource",
+    "uid": "pg-immich"
+   },
+   "description": "Named face clusters.",
+   "id": 15,
+   "gridPos": {
+    "h": 4,
+    "w": 4,
+    "x": 20,
+    "y": 14
+   }
+  },
+  {
+   "type": "timeseries",
+   "title": "Photos and videos taken per month",
+   "targets": [
+    {
+     "datasource": {
+      "type": "grafana-postgresql-datasource",
+      "uid": "pg-immich"
+     },
+     "rawSql": "SELECT date_trunc('month', \"fileCreatedAt\") AS time, type AS metric, count(*) AS value\nFROM asset WHERE \"deletedAt\" IS NULL AND $__timeFilter(\"fileCreatedAt\") GROUP BY 1, 2 ORDER BY 1",
+     "format": "time_series",
+     "rawQuery": true,
+     "editorMode": "code",
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {
+      "drawStyle": "bars",
+      "lineWidth": 1,
+      "fillOpacity": 80,
+      "gradientMode": "none",
+      "lineInterpolation": "linear",
+      "showPoints": "never",
+      "spanNulls": false,
+      "stacking": {
+       "mode": "normal",
+       "group": "A"
+      },
+      "axisBorderShow": false,
+      "barAlignment": -1,
+      "thresholdsStyle": {
+       "mode": "off"
+      }
+     },
+     "displayName": "${__field.labels.metric}",
+     "color": {
+      "mode": "palette-classic"
+     }
+    },
+    "overrides": [
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "IMAGE"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#3987e5"
+        }
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "VIDEO"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#d95926"
+        }
+       }
+      ]
+     }
+    ]
+   },
+   "options": {
+    "legend": {
+     "displayMode": "list",
+     "placement": "bottom",
+     "showLegend": true,
+     "calcs": []
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "desc"
+    }
+   },
+   "datasource": {
+    "type": "grafana-postgresql-datasource",
+    "uid": "pg-immich"
+   },
+   "timeFrom": "10y",
+   "id": 16,
+   "gridPos": {
+    "h": 8,
+    "w": 14,
+    "x": 0,
+    "y": 18
+   }
+  },
+  {
+   "type": "bargauge",
+   "title": "Cameras",
+   "targets": [
+    {
+     "datasource": {
+      "type": "grafana-postgresql-datasource",
+      "uid": "pg-immich"
+     },
+     "rawSql": "SELECT coalesce(nullif(trim(e.make || ' ' || e.model), ''), 'Unknown') AS metric, count(*) AS value\nFROM asset_exif e JOIN asset a ON a.id = e.\"assetId\" WHERE a.\"deletedAt\" IS NULL AND e.model IS NOT NULL\nGROUP BY 1 ORDER BY 2 DESC LIMIT 10",
+     "format": "table",
+     "rawQuery": true,
+     "editorMode": "code",
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {},
+     "decimals": 0,
+     "color": {
+      "mode": "fixed",
+      "fixedColor": "#3987e5"
+     },
+     "displayName": "${__field.displayName}",
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "#3987e5",
+        "value": null
+       }
+      ]
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": true
+    },
+    "displayMode": "basic",
+    "orientation": "horizontal",
+    "showUnfilled": true,
+    "valueMode": "color",
+    "namePlacement": "left",
+    "sizing": "auto",
+    "minVizHeight": 12,
+    "minVizWidth": 8,
+    "maxVizHeight": 28
+   },
+   "datasource": {
+    "type": "grafana-postgresql-datasource",
+    "uid": "pg-immich"
+   },
+   "id": 17,
+   "gridPos": {
+    "h": 8,
+    "w": 5,
+    "x": 14,
+    "y": 18
+   }
+  },
+  {
+   "type": "bargauge",
+   "title": "Places",
+   "targets": [
+    {
+     "datasource": {
+      "type": "grafana-postgresql-datasource",
+      "uid": "pg-immich"
+     },
+     "rawSql": "SELECT coalesce(e.city || ', ' || e.country, e.country) AS metric, count(*) AS value\nFROM asset_exif e JOIN asset a ON a.id = e.\"assetId\" WHERE a.\"deletedAt\" IS NULL AND e.country IS NOT NULL\nGROUP BY 1 ORDER BY 2 DESC LIMIT 10",
+     "format": "table",
+     "rawQuery": true,
+     "editorMode": "code",
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {},
+     "decimals": 0,
+     "color": {
+      "mode": "fixed",
+      "fixedColor": "#3987e5"
+     },
+     "displayName": "${__field.displayName}",
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "#3987e5",
+        "value": null
+       }
+      ]
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": true
+    },
+    "displayMode": "basic",
+    "orientation": "horizontal",
+    "showUnfilled": true,
+    "valueMode": "color",
+    "namePlacement": "left",
+    "sizing": "auto",
+    "minVizHeight": 12,
+    "minVizWidth": 8,
+    "maxVizHeight": 28
+   },
+   "datasource": {
+    "type": "grafana-postgresql-datasource",
+    "uid": "pg-immich"
+   },
+   "id": 18,
+   "gridPos": {
+    "h": 8,
+    "w": 5,
+    "x": 19,
+    "y": 18
+   }
+  },
+  {
+   "type": "row",
+   "title": "Home automation (homectl)",
+   "collapsed": false,
+   "id": 19,
+   "gridPos": {
+    "h": 1,
+    "w": 24,
+    "x": 0,
+    "y": 26
+   },
+   "panels": []
+  },
+  {
+   "type": "timeseries",
+   "title": "Routine runs per hour",
+   "targets": [
+    {
+     "datasource": {
+      "type": "grafana-postgresql-datasource",
+      "uid": "pg-homectl"
+     },
+     "rawSql": "SELECT date_trunc('hour', \"timestamp\"::timestamptz) AS time, entry::jsonb ->> 'routine_name' AS metric, count(*) AS value\nFROM routine_history\nWHERE \"timestamp\"::timestamptz BETWEEN $__timeFrom() AND $__timeTo() AND entry::jsonb ->> 'trigger_kind' = 'v2_run'\nGROUP BY 1, 2 ORDER BY 1",
+     "format": "time_series",
+     "rawQuery": true,
+     "editorMode": "code",
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {
+      "drawStyle": "bars",
+      "lineWidth": 1,
+      "fillOpacity": 80,
+      "gradientMode": "none",
+      "lineInterpolation": "linear",
+      "showPoints": "never",
+      "spanNulls": false,
+      "stacking": {
+       "mode": "normal",
+       "group": "A"
+      },
+      "axisBorderShow": false,
+      "barAlignment": -1,
+      "thresholdsStyle": {
+       "mode": "off"
+      }
+     },
+     "displayName": "${__field.labels.metric}",
+     "color": {
+      "mode": "palette-classic"
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "legend": {
+     "displayMode": "list",
+     "placement": "right",
+     "showLegend": true,
+     "calcs": []
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "desc"
+    }
+   },
+   "datasource": {
+    "type": "grafana-postgresql-datasource",
+    "uid": "pg-homectl"
+   },
+   "timeFrom": "7d",
+   "id": 20,
+   "gridPos": {
+    "h": 8,
+    "w": 12,
+    "x": 0,
+    "y": 27
+   }
+  },
+  {
+   "type": "table",
+   "title": "Routines in range",
+   "targets": [
+    {
+     "datasource": {
+      "type": "grafana-postgresql-datasource",
+      "uid": "pg-homectl"
+     },
+     "rawSql": "SELECT entry::jsonb ->> 'routine_name' AS \"Routine\",\n       count(*) FILTER (WHERE entry::jsonb ->> 'trigger_kind' = 'v2_run') AS \"Ran\",\n       count(*) FILTER (WHERE entry::jsonb ->> 'trigger_kind' = 'v2_blocked') AS \"Blocked\",\n       max(\"timestamp\"::timestamptz) AS \"Last evaluated\"\nFROM routine_history WHERE \"timestamp\"::timestamptz BETWEEN $__timeFrom() AND $__timeTo()\nGROUP BY 1 ORDER BY 2 DESC, 3 DESC",
+     "format": "table",
+     "rawQuery": true,
+     "editorMode": "code",
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {
+      "align": "auto",
+      "cellOptions": {
+       "type": "auto"
+      },
+      "inspect": false
+     }
+    },
+    "overrides": [
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "Last evaluated"
+      },
+      "properties": [
+       {
+        "id": "unit",
+        "value": "dateTimeFromNow"
+       }
+      ]
+     }
+    ]
+   },
+   "options": {
+    "showHeader": true,
+    "cellHeight": "sm",
+    "footer": {
+     "show": false,
+     "reducer": [
+      "sum"
+     ],
+     "countRows": false,
+     "fields": ""
+    }
+   },
+   "datasource": {
+    "type": "grafana-postgresql-datasource",
+    "uid": "pg-homectl"
+   },
+   "description": "Blocked means a trigger fired but the routine's conditions were false.",
+   "timeFrom": "7d",
+   "id": 21,
+   "gridPos": {
+    "h": 8,
+    "w": 12,
+    "x": 12,
+    "y": 27
+   }
+  },
+  {
+   "type": "row",
+   "title": "3D printing (Bambuddy)",
+   "collapsed": false,
+   "id": 22,
+   "gridPos": {
+    "h": 1,
+    "w": 24,
+    "x": 0,
+    "y": 35
+   },
+   "panels": []
+  },
+  {
+   "type": "stat",
+   "title": "Printer",
+   "targets": [
+    {
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "max(bambuddy_printer_state)",
+     "legendFormat": "",
+     "range": true,
+     "instant": false,
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {},
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "#7d7d7d",
+        "value": null
+       }
+      ]
+     },
+     "mappings": [
+      {
+       "type": "value",
+       "options": {
+        "0": {
+         "text": "Unknown",
+         "color": "#7d7d7d",
+         "index": 0
+        },
+        "1": {
+         "text": "Idle",
+         "color": "#7d7d7d",
+         "index": 1
+        },
+        "2": {
+         "text": "Printing",
+         "color": "#3987e5",
+         "index": 2
+        },
+        "3": {
+         "text": "Paused",
+         "color": "#e0a100",
+         "index": 3
+        },
+        "4": {
+         "text": "Finished",
+         "color": "#3aa655",
+         "index": 4
+        },
+        "5": {
+         "text": "Failed",
+         "color": "#e5484d",
+         "index": 5
+        },
+        "6": {
+         "text": "Preparing",
+         "color": "#199e70",
+         "index": 6
+        },
+        "7": {
+         "text": "Slicing",
+         "color": "#199e70",
+         "index": 7
+        }
+       }
+      }
+     ],
+     "color": {
+      "mode": "thresholds"
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    },
+    "graphMode": "none",
+    "colorMode": "background",
+    "textMode": "value",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "wideLayout": true,
+    "showPercentChange": false
+   },
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "id": 23,
+   "gridPos": {
+    "h": 4,
+    "w": 4,
+    "x": 0,
+    "y": 36
+   }
+  },
+  {
+   "type": "stat",
+   "title": "Progress",
+   "targets": [
+    {
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "max(bambuddy_print_progress)",
+     "legendFormat": "",
+     "range": true,
+     "instant": false,
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {},
+     "unit": "percent",
+     "decimals": 0,
+     "color": {
+      "mode": "thresholds"
+     },
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "#3987e5",
+        "value": null
+       }
+      ]
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    },
+    "graphMode": "none",
+    "colorMode": "value",
+    "textMode": "value",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "wideLayout": true,
+    "showPercentChange": false
+   },
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "id": 24,
+   "gridPos": {
+    "h": 4,
+    "w": 4,
+    "x": 4,
+    "y": 36
+   }
+  },
+  {
+   "type": "stat",
+   "title": "Time left",
+   "targets": [
+    {
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "max(bambuddy_print_remaining_seconds)",
+     "legendFormat": "",
+     "range": true,
+     "instant": false,
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {},
+     "unit": "s",
+     "color": {
+      "mode": "thresholds"
+     },
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "#3987e5",
+        "value": null
+       }
+      ]
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    },
+    "graphMode": "none",
+    "colorMode": "value",
+    "textMode": "value",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "wideLayout": true,
+    "showPercentChange": false
+   },
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "id": 25,
+   "gridPos": {
+    "h": 4,
+    "w": 4,
+    "x": 8,
+    "y": 36
+   }
+  },
+  {
+   "type": "stat",
+   "title": "Prints",
+   "targets": [
+    {
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "sum by (result) (bambuddy_prints_total)",
+     "legendFormat": "{{result}}",
+     "range": true,
+     "instant": false,
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {},
+     "decimals": 0,
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "#3987e5",
+        "value": null
+       }
+      ]
+     },
+     "color": {
+      "mode": "thresholds"
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    },
+    "graphMode": "none",
+    "colorMode": "value",
+    "textMode": "value_and_name",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "wideLayout": true,
+    "showPercentChange": false
+   },
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "id": 26,
+   "gridPos": {
+    "h": 4,
+    "w": 8,
+    "x": 12,
+    "y": 36
+   }
+  },
+  {
+   "type": "stat",
+   "title": "Filament used",
+   "targets": [
+    {
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "max(bambuddy_filament_used_grams)",
+     "legendFormat": "",
+     "range": true,
+     "instant": false,
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {},
+     "unit": "massg",
+     "decimals": 0,
+     "color": {
+      "mode": "thresholds"
+     },
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "#3987e5",
+        "value": null
+       }
+      ]
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    },
+    "graphMode": "none",
+    "colorMode": "value",
+    "textMode": "value",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "wideLayout": true,
+    "showPercentChange": false
+   },
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "id": 27,
+   "gridPos": {
+    "h": 4,
+    "w": 4,
+    "x": 20,
+    "y": 36
+   }
+  },
+  {
+   "type": "timeseries",
+   "title": "Temperatures",
+   "targets": [
+    {
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "max(bambuddy_nozzle_temp_celsius)",
+     "legendFormat": "Nozzle",
+     "range": true,
+     "instant": false,
+     "refId": "A"
+    },
+    {
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "max(bambuddy_bed_temp_celsius)",
+     "legendFormat": "Bed",
+     "range": true,
+     "instant": false,
+     "refId": "B"
+    },
+    {
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "max(bambuddy_chamber_temp_celsius)",
+     "legendFormat": "Chamber",
+     "range": true,
+     "instant": false,
+     "refId": "C"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {
+      "drawStyle": "line",
+      "lineWidth": 2,
+      "fillOpacity": 0,
+      "gradientMode": "opacity",
+      "lineInterpolation": "smooth",
+      "showPoints": "never",
+      "spanNulls": true,
+      "stacking": {
+       "mode": "none",
+       "group": "A"
+      },
+      "axisBorderShow": false,
+      "barAlignment": -1,
+      "thresholdsStyle": {
+       "mode": "off"
+      }
+     },
+     "unit": "celsius",
+     "decimals": 0,
+     "color": {
+      "mode": "palette-classic"
+     }
+    },
+    "overrides": [
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "Nozzle"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#d95926"
+        }
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "Bed"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#3987e5"
+        }
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "Chamber"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#199e70"
+        }
+       }
+      ]
+     }
+    ]
+   },
+   "options": {
+    "legend": {
+     "displayMode": "list",
+     "placement": "bottom",
+     "showLegend": true,
+     "calcs": []
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "desc"
+    }
+   },
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "timeFrom": "2d",
+   "id": 28,
+   "gridPos": {
+    "h": 7,
+    "w": 12,
+    "x": 0,
+    "y": 40
+   }
+  },
+  {
+   "type": "timeseries",
+   "title": "Print progress",
+   "targets": [
+    {
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "max(bambuddy_print_progress)",
+     "legendFormat": "Progress",
+     "range": true,
+     "instant": false,
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {
+      "drawStyle": "line",
+      "lineWidth": 2,
+      "fillOpacity": 12,
+      "gradientMode": "opacity",
+      "lineInterpolation": "smooth",
+      "showPoints": "never",
+      "spanNulls": true,
+      "stacking": {
+       "mode": "none",
+       "group": "A"
+      },
+      "axisBorderShow": false,
+      "barAlignment": -1,
+      "thresholdsStyle": {
+       "mode": "off"
+      }
+     },
+     "unit": "percent",
+     "min": 0,
+     "max": 100,
+     "color": {
+      "mode": "fixed",
+      "fixedColor": "#3987e5"
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "legend": {
+     "displayMode": "list",
+     "placement": "bottom",
+     "showLegend": true,
+     "calcs": []
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "desc"
+    }
+   },
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "timeFrom": "2d",
+   "id": 29,
+   "gridPos": {
+    "h": 7,
+    "w": 12,
+    "x": 12,
+    "y": 40
+   }
+  },
+  {
+   "type": "row",
+   "title": "Media (through the gateway)",
+   "collapsed": false,
+   "id": 30,
+   "gridPos": {
+    "h": 1,
+    "w": 24,
+    "x": 0,
+    "y": 47
+   },
+   "panels": []
+  },
+  {
+   "type": "timeseries",
+   "title": "Jellyfin & Immich data served per day",
+   "targets": [
+    {
+     "datasource": {
+      "type": "loki",
+      "uid": "loki"
+     },
+     "expr": "sum by (host) (sum_over_time({namespace=\"envoy-gateway-system\", container=\"envoy\"} |= \"authority\" | json host=`[\":authority\"]`, bytes_sent | host=~`(jellyfin|immich|photos)\\..*` | unwrap bytes_sent [1d]))",
+     "legendFormat": "{{host}}",
+     "queryType": "range",
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {
+      "drawStyle": "bars",
+      "lineWidth": 1,
+      "fillOpacity": 80,
+      "gradientMode": "none",
+      "lineInterpolation": "linear",
+      "showPoints": "never",
+      "spanNulls": false,
+      "stacking": {
+       "mode": "normal",
+       "group": "A"
+      },
+      "axisBorderShow": false,
+      "barAlignment": -1,
+      "thresholdsStyle": {
+       "mode": "off"
+      }
+     },
+     "unit": "bytes",
+     "color": {
+      "mode": "palette-classic"
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "legend": {
+     "displayMode": "list",
+     "placement": "bottom",
+     "showLegend": true,
+     "calcs": []
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "desc"
+    }
+   },
+   "datasource": {
+    "type": "loki",
+    "uid": "loki"
+   },
+   "description": "Only remote and gateway traffic; LAN clients streaming from Jellyfin's MetalLB address are not counted.",
+   "interval": "1d",
+   "id": 31,
+   "gridPos": {
+    "h": 7,
+    "w": 24,
+    "x": 0,
+    "y": 48
+   }
+  }
+ ]
+}
