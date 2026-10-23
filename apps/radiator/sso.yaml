@@ -100,6 +100,63 @@ spec:
         - name: radiator-portal
           port: 8088
 ---
+# RFC 8908 Captive Portal API, answered by Envoy so it never reaches Radiator:
+# Android polls it about once a second while a device is in the portal, and
+# every request would count against the evaluation licence's HTTP allowance.
+# UniFi DHCP option 114 on the "Wi-Fi portal" network (VLAN 80) points here.
+# In the UniFi API the option is a site definition (rest/dhcpoption: code
+# 114, type text) plus, on the "Wi-Fi portal" networkconf, the field
+# dhcpd_user_option_<definition _id> holding the URL. "captive" is always
+# true: only VLAN 80 gets the option, and a stale true elsewhere is harmless.
+#
+# With "captive" true Android skips its probes and, with the
+# x-android-use-custom-tabs opt-in (CaptivePortalLogin module 361335020 or
+# later), opens the portal in a Chrome Custom Tab, where passkeys work. The
+# phone decides: CaptivePortalLogin also needs its captive_portal_custom_tabs
+# flag on, no strict Private DNS, and a default browser that supports
+# network-bound Custom Tabs (Chrome yes, Firefox no); otherwise it uses its
+# WebView, where passkeys fail and the "Continue in browser" handoff is the
+# way in.
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: HTTPRouteFilter
+metadata:
+  name: radiator-captive-api
+  namespace: default
+spec:
+  directResponse:
+    statusCode: 200
+    contentType: application/captive+json
+    body:
+      type: Inline
+      inline: '{"captive": true, "user-portal-url": "https://wifi.fruitiex.org/", "x-android-use-custom-tabs": 361335020}'
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: radiator-wifi-captive-api
+  namespace: default
+  annotations:
+    # The record comes from the radiator-wifi route.
+    external-dns.alpha.kubernetes.io/exclude: "true"
+spec:
+  parentRefs:
+    - name: private
+      namespace: envoy-gateway-system
+      sectionName: https
+  hostnames:
+    - wifi.fruitiex.org
+  rules:
+    - matches:
+        - path:
+            type: Exact
+            value: /captive-api
+      filters:
+        - type: ExtensionRef
+          extensionRef:
+            group: gateway.envoyproxy.io
+            kind: HTTPRouteFilter
+            name: radiator-captive-api
+---
 # Wi-Fi portal, signed-in part: member sign-in (/signin) and guest approval
 # (/approve, admins only, checked by Radiator) behind Pocket ID.
 apiVersion: gateway.networking.k8s.io/v1
