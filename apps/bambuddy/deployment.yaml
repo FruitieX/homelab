@@ -62,6 +62,12 @@ spec:
               value: Administrators
             - name: BAMBUDDY_OIDC_AUTOLOGIN
               value: "true"
+            # The shared PostgreSQL allows 100 connections in total; Bambuddy's
+            # PostgreSQL default (20 + 60 overflow) could starve the other apps.
+            - name: DB_POOL_SIZE
+              value: "5"
+            - name: DB_MAX_OVERFLOW
+              value: "10"
           envFrom:
             - secretRef:
                 name: bambuddy-oidc
