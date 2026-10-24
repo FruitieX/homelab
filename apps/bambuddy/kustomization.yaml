@@ -6,3 +6,4 @@ resources:
   - service.yaml
   - ingress.yaml
   - secret.sops.yaml
+  - database.sops.yaml

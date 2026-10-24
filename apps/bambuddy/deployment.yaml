@@ -65,6 +65,8 @@ spec:
           envFrom:
             - secretRef:
                 name: bambuddy-oidc
+            - secretRef:
+                name: bambuddy-database
           volumeMounts:
             - name: data
               mountPath: /app/data
