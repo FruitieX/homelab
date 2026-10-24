@@ -5,7 +5,7 @@ side by side. Every other dashboard is one click away in the link bar.
 
 | Folder | Dashboards | Data |
 | --- | --- | --- |
-| Home | Energy & water, Climate, Devices | InfluxDB `home` (MQTT via Telegraf) and `nordpool` |
+| Home | Energy & water, Climate, Devices, 3D printing | InfluxDB `home` (MQTT via Telegraf) and `nordpool` |
 | Homelab | Services, Workloads, Hardware, Network, Logs & security, Apps | Prometheus, Loki, app PostgreSQL databases |
 | Kubernetes, Loki | Stock kube-prometheus-stack and Loki mixin dashboards | Prometheus |
 | Legacy (hand-made) | The old UI-made dashboards, kept for reference | InfluxDB |
@@ -50,8 +50,15 @@ ids are ignored on purpose, because neighbours' sensors show up too.
 
 Grafana also queries the apps' PostgreSQL databases directly as `grafana_ro`. That is a SELECT-only role with
 `pg_monitor`, set to read-only by default with a 30 s statement timeout. It exists on `postgres` (ferrotune,
-homectl) and on `immich-postgres`; the password is in 1Password ("homelab PostgreSQL grafana_ro"). The role was
+homectl, bambuddy) and on `immich-postgres`; the password is in 1Password ("homelab PostgreSQL grafana_ro"). The role was
 created by hand, so recreate it if a database is restored from scratch.
+
+Bambuddy stores its data in the shared PostgreSQL (`bambuddy` database, `DATABASE_URL` in
+`apps/bambuddy/database.sops.yaml`, connection pool capped at 15). It moved off SQLite on 2026-10-24 with
+Bambuddy's own importer, and the last SQLite snapshot stays in its data volume as `bambuddy-pre-postgres.db`.
+To roll back, drop `DATABASE_URL` from the deployment and restore that file as `bambuddy.db`. Prints made after
+the migration would then be missing. The 3D printing dashboard reads the print archive, maintenance and spools
+from that database.
 
 ## Alerts
 
