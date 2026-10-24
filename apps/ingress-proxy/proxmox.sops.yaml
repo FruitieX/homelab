@@ -1,0 +1,503 @@
+# Proxmox web UIs on the private gateway. Each host keeps its own self-signed
+# certificate; Envoy trusts only that host's Proxmox root CA (public, from
+# /etc/pve/pve-root-ca.pem; the hosts aren't clustered, so each has its own).
+# Break-glass when the cluster is down: https://<host IP>:8006 and root@pam.
+# The hosts sign in through Pocket ID themselves (realm pocket-id, client
+# proxmox), so there is no gateway OIDC gate here.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+    name: proxmox-ca-mango
+    namespace: ingress-proxy
+data:
+    ca.crt: |
+        -----BEGIN CERTIFICATE-----
+        MIIFzTCCA7WgAwIBAgIUWmSlXkTCtJYCtJzX9d8gzKPpm34wDQYJKoZIhvcNAQEL
+        BQAwdjEkMCIGA1UEAwwbUHJveG1veCBWaXJ0dWFsIEVudmlyb25tZW50MS0wKwYD
+        VQQLDCRkMjI0YjllMy00NTRjLTQ4NGQtYjExYi1kY2U2YTRkZWUzZjMxHzAdBgNV
+        BAoMFlBWRSBDbHVzdGVyIE1hbmFnZXIgQ0EwHhcNMjMwNDEzMDkwMzIwWhcNMzMw
+        NDEwMDkwMzIwWjB2MSQwIgYDVQQDDBtQcm94bW94IFZpcnR1YWwgRW52aXJvbm1l
+        bnQxLTArBgNVBAsMJGQyMjRiOWUzLTQ1NGMtNDg0ZC1iMTFiLWRjZTZhNGRlZTNm
+        MzEfMB0GA1UECgwWUFZFIENsdXN0ZXIgTWFuYWdlciBDQTCCAiIwDQYJKoZIhvcN
+        AQEBBQADggIPADCCAgoCggIBAM/0K2J2KmHyFfoWDiDKo1nkZx+O4G8+FfvM4P+Q
+        Umd1TbSZuu8zZyVH5rwJZaRir2dLb6fDNKS/6w8YtaEzJsg0snX7Cj2A8eZepW3y
+        Vi/ihWGWUNi7pzMR6cT18TLCG+ruHWiWbpEZ1iToHUgo+AFbcR0TKLJWInxuPHwc
+        eJJ5SKwIlC/rK9u0bNMdTVuq6/RVb0gf4tO/XDDPurWEfvxuTOe24pe2IurOvZpI
+        INb/eyETq0HJHA+ckvKAqmzxsjKt3uvMYFU1t0iv2QNOxGtvBkNM97Z9F5vArU6/
+        S0MHbNiEue+w3BkWwxTNqyX8+KA3ZZYGWkjLf8XCkPDpniZ2cF8l1y3dgtnHgw/n
+        wCeWcyDvq/NRkFe8b2MqsDuc3kfCkQweYNnZebbWO/Out9I26M3G7JU9srzCoNQ0
+        yMtYCPHY0ZfTT7q/LlIg/Ywj3G94ewV7HEdHQ3SIJPLMQ00zfnG5k1quTVcIbQCG
+        zGAO7LsWt4J4yqdv5pcFmRpbe4DHphL6tdaq351uD7DjI1Cb+POZ82UwXONLVIJ3
+        TrL6iKB4BQxllMMyYMZBiURypHyhZAFsW0c9fw9q5wNpzNWrmkQDtQw8Ez1evU3k
+        GTeb2GVY0Z2XZS/lkNwTefd9EYs1UHn2yr/0N+/RYAs2GzbzRNwvvMuR0ex0+poz
+        eHm9AgMBAAGjUzBRMB0GA1UdDgQWBBTCtxTQblY7SvRntssFprisH3xFwDAfBgNV
+        HSMEGDAWgBTCtxTQblY7SvRntssFprisH3xFwDAPBgNVHRMBAf8EBTADAQH/MA0G
+        CSqGSIb3DQEBCwUAA4ICAQB/uuegnfsek3rIxm1QpC3PTrOclRA3dZhg/dmQH8vh
+        rf1jZUR8aZhym6cA+HkYv9sc1LRmvf2wqzOJ7JNblPB/9eKhdgzUZ26FbTT1ExPi
+        YeqnkSx97HDbRtWJkpI793FDxlK+fP/fpeHtx0xrq2PZPE9IQQ9zKxQgnB6fzW4N
+        W6EDzLXb/YjQsDJfkThru3xHMnFPizZfeIHwMTGkaHWlt6+oR8mDeBgZ0+32ap5+
+        6YEV7+It9+3WNdBvHnP+2rJSAnm7ofL+nTDQ3r/iEZZSl0qID5nfsKRWUPifNAiI
+        5ILQ6xvJJpZJLJ8fRju6XzfzQx/eqEhWHuNN/9f3XaJo7If7vtm5CWaaZAYgeTvx
+        jr2AhYNRRcECkmeyOB//QgvwCEq9Ghg8c44tX+Ju1upJBidQa/BSIYMr9EKiQNz9
+        jxjWBEZDB4ct6NDb8feMvWzfpht62IAa5Zy2wg/ljdyqGH6cWjScFtLb5Sb5V9dp
+        q4otUzzwErYRyKqkFuhr1FbDUDdCOP85MVdezshW3q4bir/TsVlt9LYnor7jQgi0
+        EuhmVRL+IkZeBnSD/QsRiPPY8bS07TleZe+h7Zs/Uvi5uRrhNaKtkNQgxMt7KlZP
+        H9QMwRbYJOlZ88PMaCtVOex8LVqfxxl42sG0DlGqmUwe/oYT1Xs1fL6u06NNbCOi
+        XQ==
+        -----END CERTIFICATE-----
+sops:
+    encrypted_regex: ^(address|hostnames?)$
+    lastmodified: "2026-10-24T05:52:12Z"
+    mac: ENC[AES256_GCM,data:zUgSYSADmlDVOpN+hoEkLvR9TCxZ/TQgo8aSFIzSdUMC2X0RlTNcoirr6D8TRBTJsFqabZPcB3vPsZewuRQcH7NBtLo2HWCmVSUyVpva5IrTroDHAT/xBK+VRA8q9a7ktA4stx1pgZoAMV/YrZorNyTuOJWanDxzjPo3RSMgkQs=,iv:aMZ7Oxf9Y+eapvia3kKAbuCrvRBxg7f4J0ub9yNVKNE=,tag:/9rKkK4XOe3/uRa/4FzdSw==,type:str]
+    pgp:
+        - created_at: "2026-10-24T05:52:12Z"
+          enc: |-
+            -----BEGIN PGP MESSAGE-----
+
+            hQIMA8WjeZLD+fxwARAAjG1BZF5wsyGTPL3oU/TGUZAN00d6c7LN3cmD/czjzIIt
+            ubaLorSSUVb7sBMHfxlTo/dBkwoBh/Ccp17daWwqimt8vgum9Hl4uA4OvhmtcPAd
+            VDS3OsLHSFfr9jpavM1WCjZOwmfaN0kZgGOMXfWHnK0jEQsKPZutypYUu+z5TABr
+            d9KJuPad5bC4QVSCXzv/3Yb8Hyk3I/nk/UojZGxXKHGfpEs017od/xEUpZIG67+z
+            rQDgVowiBtnbY+wkbHYGp6DKyQDSnfYOsAADdA+QiDTkMcLkoKApT0mWyAoM4/BI
+            WeiU0SpuaeT+STUX3amsDFX3PyLZuk8j3sHHIZh6dxFA/n208w34vrwjz9DJ8u35
+            jtT/ov35anZiy8hzBf9xMW7oE69uxUfmNc25YAPbzY367CAJ1JGrx8M8caRu3bSP
+            uTtnJvvPZF8HB4P+ljF0e50eGFogdAcaQNL8fzkEm+CkejOm7qtV8Ty6KcCaoWi+
+            3k8RjQBzmhME6dD7xYVhotnnpnm/PFV+DYhxg4BYwZ6uPwhlKwWsspP0Vt7pqdLQ
+            +LpBzC88kgA6dGxvlWE9DLkFtm3vzS2YRCIxMSU7HpWprDo5zr5tldTv4i5vU+0T
+            +wPVqXw+QAhD7DUe6JGzOWx46a1yi7cRotuwXP1+qZTIpKhBMzZE0QENVcelClLS
+            XAFn4q3kimGnL74CzNVasBdSiGK1s8XyQpz88Kk41m3rN5VW44nUeQ2lLZN5VP4/
+            QrJ6KeOBW095bRP2KnS8ZgMq7dpu1xXSBCvsNtW4x4WK/luAxxnSFIxJIb6K
+            =1aPe
+            -----END PGP MESSAGE-----
+          fp: 3536F7F9345D96C86FB7F9CD21FAFEE575B18815
+    version: 3.13.3
+---
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: Backend
+metadata:
+    name: proxmox-mango
+    namespace: ingress-proxy
+spec:
+    endpoints:
+        - ip:
+            address: ENC[AES256_GCM,data:Ml3NgCoOjTwSsjLTYKg=,iv:qMZG3IUQmHyp4QmBqnZhHTGT4LUL2SFdpLWvU12BFxI=,tag:ONi0xuRvjEI3eNTYt4u4EQ==,type:str]
+            port: 8006
+    tls:
+        sni: mango
+        # pveproxy speaks HTTP/1.1 only; WebSocket consoles need it too.
+        alpnProtocols:
+            - http/1.1
+        caCertificateRefs:
+            - group: ""
+              kind: ConfigMap
+              name: proxmox-ca-mango
+sops:
+    encrypted_regex: ^(address|hostnames?)$
+    lastmodified: "2026-10-24T05:52:12Z"
+    mac: ENC[AES256_GCM,data:zUgSYSADmlDVOpN+hoEkLvR9TCxZ/TQgo8aSFIzSdUMC2X0RlTNcoirr6D8TRBTJsFqabZPcB3vPsZewuRQcH7NBtLo2HWCmVSUyVpva5IrTroDHAT/xBK+VRA8q9a7ktA4stx1pgZoAMV/YrZorNyTuOJWanDxzjPo3RSMgkQs=,iv:aMZ7Oxf9Y+eapvia3kKAbuCrvRBxg7f4J0ub9yNVKNE=,tag:/9rKkK4XOe3/uRa/4FzdSw==,type:str]
+    pgp:
+        - created_at: "2026-10-24T05:52:12Z"
+          enc: |-
+            -----BEGIN PGP MESSAGE-----
+
+            hQIMA8WjeZLD+fxwARAAjG1BZF5wsyGTPL3oU/TGUZAN00d6c7LN3cmD/czjzIIt
+            ubaLorSSUVb7sBMHfxlTo/dBkwoBh/Ccp17daWwqimt8vgum9Hl4uA4OvhmtcPAd
+            VDS3OsLHSFfr9jpavM1WCjZOwmfaN0kZgGOMXfWHnK0jEQsKPZutypYUu+z5TABr
+            d9KJuPad5bC4QVSCXzv/3Yb8Hyk3I/nk/UojZGxXKHGfpEs017od/xEUpZIG67+z
+            rQDgVowiBtnbY+wkbHYGp6DKyQDSnfYOsAADdA+QiDTkMcLkoKApT0mWyAoM4/BI
+            WeiU0SpuaeT+STUX3amsDFX3PyLZuk8j3sHHIZh6dxFA/n208w34vrwjz9DJ8u35
+            jtT/ov35anZiy8hzBf9xMW7oE69uxUfmNc25YAPbzY367CAJ1JGrx8M8caRu3bSP
+            uTtnJvvPZF8HB4P+ljF0e50eGFogdAcaQNL8fzkEm+CkejOm7qtV8Ty6KcCaoWi+
+            3k8RjQBzmhME6dD7xYVhotnnpnm/PFV+DYhxg4BYwZ6uPwhlKwWsspP0Vt7pqdLQ
+            +LpBzC88kgA6dGxvlWE9DLkFtm3vzS2YRCIxMSU7HpWprDo5zr5tldTv4i5vU+0T
+            +wPVqXw+QAhD7DUe6JGzOWx46a1yi7cRotuwXP1+qZTIpKhBMzZE0QENVcelClLS
+            XAFn4q3kimGnL74CzNVasBdSiGK1s8XyQpz88Kk41m3rN5VW44nUeQ2lLZN5VP4/
+            QrJ6KeOBW095bRP2KnS8ZgMq7dpu1xXSBCvsNtW4x4WK/luAxxnSFIxJIb6K
+            =1aPe
+            -----END PGP MESSAGE-----
+          fp: 3536F7F9345D96C86FB7F9CD21FAFEE575B18815
+    version: 3.13.3
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+    name: proxmox-mango
+    namespace: ingress-proxy
+spec:
+    parentRefs:
+        - name: private
+          namespace: envoy-gateway-system
+          sectionName: https
+    hostnames:
+        - ENC[AES256_GCM,data:wB/+ldl1VgzjpCHv+j/+5cvU,iv:52LaTlGcP1NYHQdznxhvRyW+1SOjiBTFlkEjqdYFGek=,tag:CM2G2wVI/pgwM5IGf3ukjw==,type:str]
+    rules:
+        - matches:
+            - path:
+                type: PathPrefix
+                value: /
+          backendRefs:
+            - group: gateway.envoyproxy.io
+              kind: Backend
+              name: proxmox-mango
+          # Consoles (noVNC, xterm.js) are long-lived WebSockets, and ISO or
+          # backup uploads take minutes.
+          timeouts:
+            request: 0s
+sops:
+    encrypted_regex: ^(address|hostnames?)$
+    lastmodified: "2026-10-24T05:52:12Z"
+    mac: ENC[AES256_GCM,data:zUgSYSADmlDVOpN+hoEkLvR9TCxZ/TQgo8aSFIzSdUMC2X0RlTNcoirr6D8TRBTJsFqabZPcB3vPsZewuRQcH7NBtLo2HWCmVSUyVpva5IrTroDHAT/xBK+VRA8q9a7ktA4stx1pgZoAMV/YrZorNyTuOJWanDxzjPo3RSMgkQs=,iv:aMZ7Oxf9Y+eapvia3kKAbuCrvRBxg7f4J0ub9yNVKNE=,tag:/9rKkK4XOe3/uRa/4FzdSw==,type:str]
+    pgp:
+        - created_at: "2026-10-24T05:52:12Z"
+          enc: |-
+            -----BEGIN PGP MESSAGE-----
+
+            hQIMA8WjeZLD+fxwARAAjG1BZF5wsyGTPL3oU/TGUZAN00d6c7LN3cmD/czjzIIt
+            ubaLorSSUVb7sBMHfxlTo/dBkwoBh/Ccp17daWwqimt8vgum9Hl4uA4OvhmtcPAd
+            VDS3OsLHSFfr9jpavM1WCjZOwmfaN0kZgGOMXfWHnK0jEQsKPZutypYUu+z5TABr
+            d9KJuPad5bC4QVSCXzv/3Yb8Hyk3I/nk/UojZGxXKHGfpEs017od/xEUpZIG67+z
+            rQDgVowiBtnbY+wkbHYGp6DKyQDSnfYOsAADdA+QiDTkMcLkoKApT0mWyAoM4/BI
+            WeiU0SpuaeT+STUX3amsDFX3PyLZuk8j3sHHIZh6dxFA/n208w34vrwjz9DJ8u35
+            jtT/ov35anZiy8hzBf9xMW7oE69uxUfmNc25YAPbzY367CAJ1JGrx8M8caRu3bSP
+            uTtnJvvPZF8HB4P+ljF0e50eGFogdAcaQNL8fzkEm+CkejOm7qtV8Ty6KcCaoWi+
+            3k8RjQBzmhME6dD7xYVhotnnpnm/PFV+DYhxg4BYwZ6uPwhlKwWsspP0Vt7pqdLQ
+            +LpBzC88kgA6dGxvlWE9DLkFtm3vzS2YRCIxMSU7HpWprDo5zr5tldTv4i5vU+0T
+            +wPVqXw+QAhD7DUe6JGzOWx46a1yi7cRotuwXP1+qZTIpKhBMzZE0QENVcelClLS
+            XAFn4q3kimGnL74CzNVasBdSiGK1s8XyQpz88Kk41m3rN5VW44nUeQ2lLZN5VP4/
+            QrJ6KeOBW095bRP2KnS8ZgMq7dpu1xXSBCvsNtW4x4WK/luAxxnSFIxJIb6K
+            =1aPe
+            -----END PGP MESSAGE-----
+          fp: 3536F7F9345D96C86FB7F9CD21FAFEE575B18815
+    version: 3.13.3
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+    name: proxmox-ca-mandarin
+    namespace: ingress-proxy
+data:
+    ca.crt: |
+        -----BEGIN CERTIFICATE-----
+        MIIFzTCCA7WgAwIBAgIUKcd+fLYU0WtHf//ERaRBVALnmo4wDQYJKoZIhvcNAQEL
+        BQAwdjEkMCIGA1UEAwwbUHJveG1veCBWaXJ0dWFsIEVudmlyb25tZW50MS0wKwYD
+        VQQLDCRhYTRhOTZjYy01MmMzLTQ3MWItOGJlYi05YjQyZTA0MzgzODMxHzAdBgNV
+        BAoMFlBWRSBDbHVzdGVyIE1hbmFnZXIgQ0EwHhcNMjUxMDAxMTgwMzMwWhcNMzUw
+        OTI5MTgwMzMwWjB2MSQwIgYDVQQDDBtQcm94bW94IFZpcnR1YWwgRW52aXJvbm1l
+        bnQxLTArBgNVBAsMJGFhNGE5NmNjLTUyYzMtNDcxYi04YmViLTliNDJlMDQzODM4
+        MzEfMB0GA1UECgwWUFZFIENsdXN0ZXIgTWFuYWdlciBDQTCCAiIwDQYJKoZIhvcN
+        AQEBBQADggIPADCCAgoCggIBAJkIdidUmfrEbc+Bxz5AByj96n3KSysC3gVwRvDz
+        BFYDGxYNyq5zEX3HmaESxIPLbDy3qCp6Zo4Rue7Y/dPOOJjGmjXucSxBiqLZ+Jk3
+        HhrvvJBP4xDG+CAVdbevqel0Ssf1ggFP9K91BIj2+0ipy7y7Qp/a6qRLE+YgJF8Y
+        oWGcLDPXOQmuaMEI3bir7YWrvilfo8gl3zm2PuB0gPEE/OJz8vgu75NtsUOq1hSn
+        QH/0g4gkca6Uz7J5AtTFujj9tbcMugRvTDHhodl7W8KusA93AGopN5AKmdthLO15
+        BQx0VyP2ZTwKWsBkCyrTMg+fqQQGY8mJ0KMZW8zm/lQbW2uWGdxlf5xdBvqpVtqx
+        OtAH6TlANzNQqz6EjDc5vAXVRqrHnlCAzkor7oyLpGoA3LqSkIHMjAn/JGyQ89Sb
+        HV3jujgypZUpD8wdCISIp1+3h2JJ2kXeNaRiE1Ih9Oi/b+Aui3OhkUM4LX2IMA/j
+        bWLgMPQCiuhD5KB55yGMhXXEP35p7VotjZhoKxubPrIbGB8vGQ4J07+/WVMwVe1p
+        pa5CIQAFQDAbshQDLfJqwALEjA4lvI2RZNxvAPg4bn+snIDQGo15He5HcKiLorcg
+        0ND11TVbQ3ucnaFRPohuEjyx64zTej6maE5+Ud2iK6KeuL3oq9CMJB8mtI11oUPY
+        eiARAgMBAAGjUzBRMB0GA1UdDgQWBBRaJK+F5Cy+AWNTJ1goQ96+0Y6nRjAfBgNV
+        HSMEGDAWgBRaJK+F5Cy+AWNTJ1goQ96+0Y6nRjAPBgNVHRMBAf8EBTADAQH/MA0G
+        CSqGSIb3DQEBCwUAA4ICAQAffPkH5L4uGIsBK+fi4AQP8dpnC35qKcBmrZplTZee
+        RB62NvUYuK0amjEo5FIUFQI619W1yhF99Ki6cu6tN7PvxKiBb160i9Bl8vp6RzXL
+        s/XRATVnEmbpPh9UC1s9TiA7huNogTH+xkVL2zFiN6WtFuIP4rYQsCYyK1h2d7F7
+        UH9zqCva7+AyGbLh3iV3DG1ggRtdbbTJ/Q2uOdihZ3Cf8o0UHiBpeXgcvMwT5itj
+        T3Mtqdk1KcfXKHTGGba+M1JuZuxarhfIZbkGO/0VFST7VCgrvOTC6eWbH0M2Ex94
+        pdLC+ud817MO75iOR0lHT0D/FSrVfnSQ+uP2hz1an5R3T1W9qjMoOhElme1n1eYD
+        OeXoA+2heLt8lJ7mSijGfTBOYor/cQmkOfeYEVNV2KyABsTAZEfBBHxweRtHrqcb
+        4jYAZGXVdWP2GSEMBrRS6bN/iL+S+QsaJFHJ0bBLe5DqD9G8YYYCyGBTu5K+FlVB
+        DxB4wt2MeR4t8au+Vdlz8DH/ViHIjZRiTGoA3lRfkFgMy4eb0yi6nRQZbNWU5KPT
+        IHU0u/8X/G/TfYrBK3O7z/8mOJNMpDoahvYRHt6sl0HJnd8VqOJ46Pdjc0dwLoMm
+        l8WmiRgDKZ89l9W1JprbYGTxkF8fp/Orr95da6kq5zUrwtphIbPuwNHupZv1aIoH
+        WA==
+        -----END CERTIFICATE-----
+sops:
+    encrypted_regex: ^(address|hostnames?)$
+    lastmodified: "2026-10-24T05:52:12Z"
+    mac: ENC[AES256_GCM,data:zUgSYSADmlDVOpN+hoEkLvR9TCxZ/TQgo8aSFIzSdUMC2X0RlTNcoirr6D8TRBTJsFqabZPcB3vPsZewuRQcH7NBtLo2HWCmVSUyVpva5IrTroDHAT/xBK+VRA8q9a7ktA4stx1pgZoAMV/YrZorNyTuOJWanDxzjPo3RSMgkQs=,iv:aMZ7Oxf9Y+eapvia3kKAbuCrvRBxg7f4J0ub9yNVKNE=,tag:/9rKkK4XOe3/uRa/4FzdSw==,type:str]
+    pgp:
+        - created_at: "2026-10-24T05:52:12Z"
+          enc: |-
+            -----BEGIN PGP MESSAGE-----
+
+            hQIMA8WjeZLD+fxwARAAjG1BZF5wsyGTPL3oU/TGUZAN00d6c7LN3cmD/czjzIIt
+            ubaLorSSUVb7sBMHfxlTo/dBkwoBh/Ccp17daWwqimt8vgum9Hl4uA4OvhmtcPAd
+            VDS3OsLHSFfr9jpavM1WCjZOwmfaN0kZgGOMXfWHnK0jEQsKPZutypYUu+z5TABr
+            d9KJuPad5bC4QVSCXzv/3Yb8Hyk3I/nk/UojZGxXKHGfpEs017od/xEUpZIG67+z
+            rQDgVowiBtnbY+wkbHYGp6DKyQDSnfYOsAADdA+QiDTkMcLkoKApT0mWyAoM4/BI
+            WeiU0SpuaeT+STUX3amsDFX3PyLZuk8j3sHHIZh6dxFA/n208w34vrwjz9DJ8u35
+            jtT/ov35anZiy8hzBf9xMW7oE69uxUfmNc25YAPbzY367CAJ1JGrx8M8caRu3bSP
+            uTtnJvvPZF8HB4P+ljF0e50eGFogdAcaQNL8fzkEm+CkejOm7qtV8Ty6KcCaoWi+
+            3k8RjQBzmhME6dD7xYVhotnnpnm/PFV+DYhxg4BYwZ6uPwhlKwWsspP0Vt7pqdLQ
+            +LpBzC88kgA6dGxvlWE9DLkFtm3vzS2YRCIxMSU7HpWprDo5zr5tldTv4i5vU+0T
+            +wPVqXw+QAhD7DUe6JGzOWx46a1yi7cRotuwXP1+qZTIpKhBMzZE0QENVcelClLS
+            XAFn4q3kimGnL74CzNVasBdSiGK1s8XyQpz88Kk41m3rN5VW44nUeQ2lLZN5VP4/
+            QrJ6KeOBW095bRP2KnS8ZgMq7dpu1xXSBCvsNtW4x4WK/luAxxnSFIxJIb6K
+            =1aPe
+            -----END PGP MESSAGE-----
+          fp: 3536F7F9345D96C86FB7F9CD21FAFEE575B18815
+    version: 3.13.3
+---
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: Backend
+metadata:
+    name: proxmox-mandarin
+    namespace: ingress-proxy
+spec:
+    endpoints:
+        - ip:
+            address: ENC[AES256_GCM,data:JgQM/gd5eo4ds34Rzts=,iv:/x/Ey2bCYlaOFy7XjzcFr1u1fm0iocyOzF9jqBKrspA=,tag:z86S4gS6jcgYw5k+UEhZpQ==,type:str]
+            port: 8006
+    tls:
+        sni: mandarin
+        # pveproxy speaks HTTP/1.1 only; WebSocket consoles need it too.
+        alpnProtocols:
+            - http/1.1
+        caCertificateRefs:
+            - group: ""
+              kind: ConfigMap
+              name: proxmox-ca-mandarin
+sops:
+    encrypted_regex: ^(address|hostnames?)$
+    lastmodified: "2026-10-24T05:52:12Z"
+    mac: ENC[AES256_GCM,data:zUgSYSADmlDVOpN+hoEkLvR9TCxZ/TQgo8aSFIzSdUMC2X0RlTNcoirr6D8TRBTJsFqabZPcB3vPsZewuRQcH7NBtLo2HWCmVSUyVpva5IrTroDHAT/xBK+VRA8q9a7ktA4stx1pgZoAMV/YrZorNyTuOJWanDxzjPo3RSMgkQs=,iv:aMZ7Oxf9Y+eapvia3kKAbuCrvRBxg7f4J0ub9yNVKNE=,tag:/9rKkK4XOe3/uRa/4FzdSw==,type:str]
+    pgp:
+        - created_at: "2026-10-24T05:52:12Z"
+          enc: |-
+            -----BEGIN PGP MESSAGE-----
+
+            hQIMA8WjeZLD+fxwARAAjG1BZF5wsyGTPL3oU/TGUZAN00d6c7LN3cmD/czjzIIt
+            ubaLorSSUVb7sBMHfxlTo/dBkwoBh/Ccp17daWwqimt8vgum9Hl4uA4OvhmtcPAd
+            VDS3OsLHSFfr9jpavM1WCjZOwmfaN0kZgGOMXfWHnK0jEQsKPZutypYUu+z5TABr
+            d9KJuPad5bC4QVSCXzv/3Yb8Hyk3I/nk/UojZGxXKHGfpEs017od/xEUpZIG67+z
+            rQDgVowiBtnbY+wkbHYGp6DKyQDSnfYOsAADdA+QiDTkMcLkoKApT0mWyAoM4/BI
+            WeiU0SpuaeT+STUX3amsDFX3PyLZuk8j3sHHIZh6dxFA/n208w34vrwjz9DJ8u35
+            jtT/ov35anZiy8hzBf9xMW7oE69uxUfmNc25YAPbzY367CAJ1JGrx8M8caRu3bSP
+            uTtnJvvPZF8HB4P+ljF0e50eGFogdAcaQNL8fzkEm+CkejOm7qtV8Ty6KcCaoWi+
+            3k8RjQBzmhME6dD7xYVhotnnpnm/PFV+DYhxg4BYwZ6uPwhlKwWsspP0Vt7pqdLQ
+            +LpBzC88kgA6dGxvlWE9DLkFtm3vzS2YRCIxMSU7HpWprDo5zr5tldTv4i5vU+0T
+            +wPVqXw+QAhD7DUe6JGzOWx46a1yi7cRotuwXP1+qZTIpKhBMzZE0QENVcelClLS
+            XAFn4q3kimGnL74CzNVasBdSiGK1s8XyQpz88Kk41m3rN5VW44nUeQ2lLZN5VP4/
+            QrJ6KeOBW095bRP2KnS8ZgMq7dpu1xXSBCvsNtW4x4WK/luAxxnSFIxJIb6K
+            =1aPe
+            -----END PGP MESSAGE-----
+          fp: 3536F7F9345D96C86FB7F9CD21FAFEE575B18815
+    version: 3.13.3
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+    name: proxmox-mandarin
+    namespace: ingress-proxy
+spec:
+    parentRefs:
+        - name: private
+          namespace: envoy-gateway-system
+          sectionName: https
+    hostnames:
+        - ENC[AES256_GCM,data:5ROxN87xk8KMwrVet3gm/6jgF+Of,iv:+vcR/3Nm7QqlaGXshkutFTd5Rt4FUH4v/sUVk1AOKwY=,tag:DI4NZJ9hPF+GnW8ydPp4Jw==,type:str]
+    rules:
+        - matches:
+            - path:
+                type: PathPrefix
+                value: /
+          backendRefs:
+            - group: gateway.envoyproxy.io
+              kind: Backend
+              name: proxmox-mandarin
+          # Consoles (noVNC, xterm.js) are long-lived WebSockets, and ISO or
+          # backup uploads take minutes.
+          timeouts:
+            request: 0s
+sops:
+    encrypted_regex: ^(address|hostnames?)$
+    lastmodified: "2026-10-24T05:52:12Z"
+    mac: ENC[AES256_GCM,data:zUgSYSADmlDVOpN+hoEkLvR9TCxZ/TQgo8aSFIzSdUMC2X0RlTNcoirr6D8TRBTJsFqabZPcB3vPsZewuRQcH7NBtLo2HWCmVSUyVpva5IrTroDHAT/xBK+VRA8q9a7ktA4stx1pgZoAMV/YrZorNyTuOJWanDxzjPo3RSMgkQs=,iv:aMZ7Oxf9Y+eapvia3kKAbuCrvRBxg7f4J0ub9yNVKNE=,tag:/9rKkK4XOe3/uRa/4FzdSw==,type:str]
+    pgp:
+        - created_at: "2026-10-24T05:52:12Z"
+          enc: |-
+            -----BEGIN PGP MESSAGE-----
+
+            hQIMA8WjeZLD+fxwARAAjG1BZF5wsyGTPL3oU/TGUZAN00d6c7LN3cmD/czjzIIt
+            ubaLorSSUVb7sBMHfxlTo/dBkwoBh/Ccp17daWwqimt8vgum9Hl4uA4OvhmtcPAd
+            VDS3OsLHSFfr9jpavM1WCjZOwmfaN0kZgGOMXfWHnK0jEQsKPZutypYUu+z5TABr
+            d9KJuPad5bC4QVSCXzv/3Yb8Hyk3I/nk/UojZGxXKHGfpEs017od/xEUpZIG67+z
+            rQDgVowiBtnbY+wkbHYGp6DKyQDSnfYOsAADdA+QiDTkMcLkoKApT0mWyAoM4/BI
+            WeiU0SpuaeT+STUX3amsDFX3PyLZuk8j3sHHIZh6dxFA/n208w34vrwjz9DJ8u35
+            jtT/ov35anZiy8hzBf9xMW7oE69uxUfmNc25YAPbzY367CAJ1JGrx8M8caRu3bSP
+            uTtnJvvPZF8HB4P+ljF0e50eGFogdAcaQNL8fzkEm+CkejOm7qtV8Ty6KcCaoWi+
+            3k8RjQBzmhME6dD7xYVhotnnpnm/PFV+DYhxg4BYwZ6uPwhlKwWsspP0Vt7pqdLQ
+            +LpBzC88kgA6dGxvlWE9DLkFtm3vzS2YRCIxMSU7HpWprDo5zr5tldTv4i5vU+0T
+            +wPVqXw+QAhD7DUe6JGzOWx46a1yi7cRotuwXP1+qZTIpKhBMzZE0QENVcelClLS
+            XAFn4q3kimGnL74CzNVasBdSiGK1s8XyQpz88Kk41m3rN5VW44nUeQ2lLZN5VP4/
+            QrJ6KeOBW095bRP2KnS8ZgMq7dpu1xXSBCvsNtW4x4WK/luAxxnSFIxJIb6K
+            =1aPe
+            -----END PGP MESSAGE-----
+          fp: 3536F7F9345D96C86FB7F9CD21FAFEE575B18815
+    version: 3.13.3
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+    name: proxmox-ca-mulberry
+    namespace: ingress-proxy
+data:
+    ca.crt: |
+        -----BEGIN CERTIFICATE-----
+        MIIFzTCCA7WgAwIBAgIUH4PSGgrwmcqScZ9J9SYV7j7XThUwDQYJKoZIhvcNAQEL
+        BQAwdjEkMCIGA1UEAwwbUHJveG1veCBWaXJ0dWFsIEVudmlyb25tZW50MS0wKwYD
+        VQQLDCRhMGYwOWEwNS02N2M2LTRlOGItYWU2YS02YmNiYWE1ZDJkMmMxHzAdBgNV
+        BAoMFlBWRSBDbHVzdGVyIE1hbmFnZXIgQ0EwHhcNMjUxMDAxMTczNzIyWhcNMzUw
+        OTI5MTczNzIyWjB2MSQwIgYDVQQDDBtQcm94bW94IFZpcnR1YWwgRW52aXJvbm1l
+        bnQxLTArBgNVBAsMJGEwZjA5YTA1LTY3YzYtNGU4Yi1hZTZhLTZiY2JhYTVkMmQy
+        YzEfMB0GA1UECgwWUFZFIENsdXN0ZXIgTWFuYWdlciBDQTCCAiIwDQYJKoZIhvcN
+        AQEBBQADggIPADCCAgoCggIBAKixHnufh8FKTJ9UNhhR4m0mkXIOiCQ7Fr2fAHOU
+        tt/fwug3cpLEa7yrmBLBPgMVLlXkJFXPagnMA5o73x70WnJxcNn2AuVQc7TtQs/V
+        wwIqpntANAjV4j+2oaTEMSxf7fS5vwLdB/4nn9OtzlXZDkYWgnFYpCK2zmuyzw/f
+        r4InIFYvo23+urV67Lf20R2iCuZE2P795eEU6qEu9Igvvhw9VTEsPdE+lEOndN3b
+        POQ+F5BfOyBNWnMVpLK325qSfCaSWT1TJ2UI1DS8mQLCEtFcouXrvYrkgESYX0+7
+        bvnomd96HvU0OQip2m1a6G8oeNAwnqA4ddjxiiV6xqZydU8ZfOpktOwUGoWc3+mR
+        ulJpo7NeGao3qe1yzATAOXrmIIkSqA1r7upCq+xQ2GqJlsb8r1H8McVGxXH22d0M
+        x7M7EiXNMcLGR+qlXcsOMNHMBS6XHiuJtIPeNCGe/nPO6RApgSajDTjKfLwuHW/C
+        I1N9pY7bIfyIoAfWuKsS20FihTOWmhcrOBFtUjjV2P/LfI6jb28oC7vvRaYUua0M
+        mLMzTvVKxO3veKWZUxMx69UoXxEhJVtP1ncpoasWd0fPRmcbrtbwPF/nV42coPHm
+        uSCeCTqWPEbkSkblriFRVCDdLBMCh4L4xbmmj7PmbZobTDzWGxwz+pmPGhA2dUnH
+        4bzZAgMBAAGjUzBRMB0GA1UdDgQWBBSp8vthOcD3bBTtX1mbv860lzalyTAfBgNV
+        HSMEGDAWgBSp8vthOcD3bBTtX1mbv860lzalyTAPBgNVHRMBAf8EBTADAQH/MA0G
+        CSqGSIb3DQEBCwUAA4ICAQAQk+urQ/fNvd51jE7Ngf5LGCEAaqry5OrXmSQizQwC
+        4zPx8CSTCaIYmfUY0a9tMnR2pVGiq6AWrk2ome9sPrjicQoTluYB+CfVIbcybxFQ
+        hVb0zHCuyBsx/pZmyF17XmIh2fX/PoOCD9xpkjNGOvBvZHy2KkfUma/yN6hBMm5i
+        Q/U98vcoHvK4bEa2sEsOIQo9fF1+8nT6GfR5GKDS0owtmQU4MZOPrdnOJ9p9/EGy
+        wMXMUqqUivTEoXr0zFCam6MrlkJri+KY+EcF8796w8oYp7c4HlShEvmVQ2tASUVV
+        5R1pwrfeKNNNiRNj46IxUIUj2sy+IjEhavqEFjFqjIVKIz0InXe/XRwU8VyUmnsm
+        S3dQULfVv9TpyIS7JoPT/pntjgDiodpCnD353pSg7lZRk3s1eGsgMTuerx+Zc+Lh
+        rfRWCKrzWb0cdWXZ1NQxetvqO9HD0I1L1Sh36mP8CBrfqkDWxLDzVVTDkN7HQYj4
+        7qnwWRF5Zr3AE964ZhzGzX1TaEod3E3JEOQFqtWLwOnVC2a5VgyA1va2ZCGMaJOL
+        j6nYzoQSK9HZfTmJWETCoLSKwdDhzlrNhvOM/WZZFvuqg9l/GEXF67HUbdVymmqa
+        GisAMFjp3LVqZDA9+T0pALqoAFWVqe2HGQyvIFh3dTxPqaCf8uHkZSFxLJijf7Ba
+        /g==
+        -----END CERTIFICATE-----
+sops:
+    encrypted_regex: ^(address|hostnames?)$
+    lastmodified: "2026-10-24T05:52:12Z"
+    mac: ENC[AES256_GCM,data:zUgSYSADmlDVOpN+hoEkLvR9TCxZ/TQgo8aSFIzSdUMC2X0RlTNcoirr6D8TRBTJsFqabZPcB3vPsZewuRQcH7NBtLo2HWCmVSUyVpva5IrTroDHAT/xBK+VRA8q9a7ktA4stx1pgZoAMV/YrZorNyTuOJWanDxzjPo3RSMgkQs=,iv:aMZ7Oxf9Y+eapvia3kKAbuCrvRBxg7f4J0ub9yNVKNE=,tag:/9rKkK4XOe3/uRa/4FzdSw==,type:str]
+    pgp:
+        - created_at: "2026-10-24T05:52:12Z"
+          enc: |-
+            -----BEGIN PGP MESSAGE-----
+
+            hQIMA8WjeZLD+fxwARAAjG1BZF5wsyGTPL3oU/TGUZAN00d6c7LN3cmD/czjzIIt
+            ubaLorSSUVb7sBMHfxlTo/dBkwoBh/Ccp17daWwqimt8vgum9Hl4uA4OvhmtcPAd
+            VDS3OsLHSFfr9jpavM1WCjZOwmfaN0kZgGOMXfWHnK0jEQsKPZutypYUu+z5TABr
+            d9KJuPad5bC4QVSCXzv/3Yb8Hyk3I/nk/UojZGxXKHGfpEs017od/xEUpZIG67+z
+            rQDgVowiBtnbY+wkbHYGp6DKyQDSnfYOsAADdA+QiDTkMcLkoKApT0mWyAoM4/BI
+            WeiU0SpuaeT+STUX3amsDFX3PyLZuk8j3sHHIZh6dxFA/n208w34vrwjz9DJ8u35
+            jtT/ov35anZiy8hzBf9xMW7oE69uxUfmNc25YAPbzY367CAJ1JGrx8M8caRu3bSP
+            uTtnJvvPZF8HB4P+ljF0e50eGFogdAcaQNL8fzkEm+CkejOm7qtV8Ty6KcCaoWi+
+            3k8RjQBzmhME6dD7xYVhotnnpnm/PFV+DYhxg4BYwZ6uPwhlKwWsspP0Vt7pqdLQ
+            +LpBzC88kgA6dGxvlWE9DLkFtm3vzS2YRCIxMSU7HpWprDo5zr5tldTv4i5vU+0T
+            +wPVqXw+QAhD7DUe6JGzOWx46a1yi7cRotuwXP1+qZTIpKhBMzZE0QENVcelClLS
+            XAFn4q3kimGnL74CzNVasBdSiGK1s8XyQpz88Kk41m3rN5VW44nUeQ2lLZN5VP4/
+            QrJ6KeOBW095bRP2KnS8ZgMq7dpu1xXSBCvsNtW4x4WK/luAxxnSFIxJIb6K
+            =1aPe
+            -----END PGP MESSAGE-----
+          fp: 3536F7F9345D96C86FB7F9CD21FAFEE575B18815
+    version: 3.13.3
+---
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: Backend
+metadata:
+    name: proxmox-mulberry
+    namespace: ingress-proxy
+spec:
+    endpoints:
+        - ip:
+            address: ENC[AES256_GCM,data:PhO4sijJjPiWD3Lahg==,iv:IBLkl1F2HeumGcAUgEJTJiK/gIBEuG7lp+s5it1eRZE=,tag:xkfcd2e8C1Sk9Pkn35Z4tw==,type:str]
+            port: 8006
+    tls:
+        sni: mulberry
+        # pveproxy speaks HTTP/1.1 only; WebSocket consoles need it too.
+        alpnProtocols:
+            - http/1.1
+        caCertificateRefs:
+            - group: ""
+              kind: ConfigMap
+              name: proxmox-ca-mulberry
+sops:
+    encrypted_regex: ^(address|hostnames?)$
+    lastmodified: "2026-10-24T05:52:12Z"
+    mac: ENC[AES256_GCM,data:zUgSYSADmlDVOpN+hoEkLvR9TCxZ/TQgo8aSFIzSdUMC2X0RlTNcoirr6D8TRBTJsFqabZPcB3vPsZewuRQcH7NBtLo2HWCmVSUyVpva5IrTroDHAT/xBK+VRA8q9a7ktA4stx1pgZoAMV/YrZorNyTuOJWanDxzjPo3RSMgkQs=,iv:aMZ7Oxf9Y+eapvia3kKAbuCrvRBxg7f4J0ub9yNVKNE=,tag:/9rKkK4XOe3/uRa/4FzdSw==,type:str]
+    pgp:
+        - created_at: "2026-10-24T05:52:12Z"
+          enc: |-
+            -----BEGIN PGP MESSAGE-----
+
+            hQIMA8WjeZLD+fxwARAAjG1BZF5wsyGTPL3oU/TGUZAN00d6c7LN3cmD/czjzIIt
+            ubaLorSSUVb7sBMHfxlTo/dBkwoBh/Ccp17daWwqimt8vgum9Hl4uA4OvhmtcPAd
+            VDS3OsLHSFfr9jpavM1WCjZOwmfaN0kZgGOMXfWHnK0jEQsKPZutypYUu+z5TABr
+            d9KJuPad5bC4QVSCXzv/3Yb8Hyk3I/nk/UojZGxXKHGfpEs017od/xEUpZIG67+z
+            rQDgVowiBtnbY+wkbHYGp6DKyQDSnfYOsAADdA+QiDTkMcLkoKApT0mWyAoM4/BI
+            WeiU0SpuaeT+STUX3amsDFX3PyLZuk8j3sHHIZh6dxFA/n208w34vrwjz9DJ8u35
+            jtT/ov35anZiy8hzBf9xMW7oE69uxUfmNc25YAPbzY367CAJ1JGrx8M8caRu3bSP
+            uTtnJvvPZF8HB4P+ljF0e50eGFogdAcaQNL8fzkEm+CkejOm7qtV8Ty6KcCaoWi+
+            3k8RjQBzmhME6dD7xYVhotnnpnm/PFV+DYhxg4BYwZ6uPwhlKwWsspP0Vt7pqdLQ
+            +LpBzC88kgA6dGxvlWE9DLkFtm3vzS2YRCIxMSU7HpWprDo5zr5tldTv4i5vU+0T
+            +wPVqXw+QAhD7DUe6JGzOWx46a1yi7cRotuwXP1+qZTIpKhBMzZE0QENVcelClLS
+            XAFn4q3kimGnL74CzNVasBdSiGK1s8XyQpz88Kk41m3rN5VW44nUeQ2lLZN5VP4/
+            QrJ6KeOBW095bRP2KnS8ZgMq7dpu1xXSBCvsNtW4x4WK/luAxxnSFIxJIb6K
+            =1aPe
+            -----END PGP MESSAGE-----
+          fp: 3536F7F9345D96C86FB7F9CD21FAFEE575B18815
+    version: 3.13.3
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+    name: proxmox-mulberry
+    namespace: ingress-proxy
+spec:
+    parentRefs:
+        - name: private
+          namespace: envoy-gateway-system
+          sectionName: https
+    hostnames:
+        - ENC[AES256_GCM,data:+yOMdlHyPaHKzwAdA2xrrQDCcOgc,iv:XInlXoFFUuLOxKA6+jCiomELNbwn0yRSFFhuVzGDkB4=,tag:LwjVlkd336+OSbNoMjx6zw==,type:str]
+    rules:
+        - matches:
+            - path:
+                type: PathPrefix
+                value: /
+          backendRefs:
+            - group: gateway.envoyproxy.io
+              kind: Backend
+              name: proxmox-mulberry
+          # Consoles (noVNC, xterm.js) are long-lived WebSockets, and ISO or
+          # backup uploads take minutes.
+          timeouts:
+            request: 0s
+sops:
+    encrypted_regex: ^(address|hostnames?)$
+    lastmodified: "2026-10-24T05:52:12Z"
+    mac: ENC[AES256_GCM,data:zUgSYSADmlDVOpN+hoEkLvR9TCxZ/TQgo8aSFIzSdUMC2X0RlTNcoirr6D8TRBTJsFqabZPcB3vPsZewuRQcH7NBtLo2HWCmVSUyVpva5IrTroDHAT/xBK+VRA8q9a7ktA4stx1pgZoAMV/YrZorNyTuOJWanDxzjPo3RSMgkQs=,iv:aMZ7Oxf9Y+eapvia3kKAbuCrvRBxg7f4J0ub9yNVKNE=,tag:/9rKkK4XOe3/uRa/4FzdSw==,type:str]
+    pgp:
+        - created_at: "2026-10-24T05:52:12Z"
+          enc: |-
+            -----BEGIN PGP MESSAGE-----
+
+            hQIMA8WjeZLD+fxwARAAjG1BZF5wsyGTPL3oU/TGUZAN00d6c7LN3cmD/czjzIIt
+            ubaLorSSUVb7sBMHfxlTo/dBkwoBh/Ccp17daWwqimt8vgum9Hl4uA4OvhmtcPAd
+            VDS3OsLHSFfr9jpavM1WCjZOwmfaN0kZgGOMXfWHnK0jEQsKPZutypYUu+z5TABr
+            d9KJuPad5bC4QVSCXzv/3Yb8Hyk3I/nk/UojZGxXKHGfpEs017od/xEUpZIG67+z
+            rQDgVowiBtnbY+wkbHYGp6DKyQDSnfYOsAADdA+QiDTkMcLkoKApT0mWyAoM4/BI
+            WeiU0SpuaeT+STUX3amsDFX3PyLZuk8j3sHHIZh6dxFA/n208w34vrwjz9DJ8u35
+            jtT/ov35anZiy8hzBf9xMW7oE69uxUfmNc25YAPbzY367CAJ1JGrx8M8caRu3bSP
+            uTtnJvvPZF8HB4P+ljF0e50eGFogdAcaQNL8fzkEm+CkejOm7qtV8Ty6KcCaoWi+
+            3k8RjQBzmhME6dD7xYVhotnnpnm/PFV+DYhxg4BYwZ6uPwhlKwWsspP0Vt7pqdLQ
+            +LpBzC88kgA6dGxvlWE9DLkFtm3vzS2YRCIxMSU7HpWprDo5zr5tldTv4i5vU+0T
+            +wPVqXw+QAhD7DUe6JGzOWx46a1yi7cRotuwXP1+qZTIpKhBMzZE0QENVcelClLS
+            XAFn4q3kimGnL74CzNVasBdSiGK1s8XyQpz88Kk41m3rN5VW44nUeQ2lLZN5VP4/
+            QrJ6KeOBW095bRP2KnS8ZgMq7dpu1xXSBCvsNtW4x4WK/luAxxnSFIxJIb6K
+            =1aPe
+            -----END PGP MESSAGE-----
+          fp: 3536F7F9345D96C86FB7F9CD21FAFEE575B18815
+    version: 3.13.3

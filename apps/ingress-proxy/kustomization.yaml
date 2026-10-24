@@ -5,3 +5,4 @@ resources:
   - ./namespace.yaml
   - ./backends.yaml
   - ./nectarine-sharing.yaml
+  - ./proxmox.sops.yaml

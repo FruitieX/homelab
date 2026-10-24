@@ -1,4 +1,8 @@
 creation_rules:
+  # Proxmox backends: keep host addresses out of the public repo.
+  - path_regex: apps/ingress-proxy/proxmox\.sops\.yaml$
+    encrypted_regex: "^(address|hostnames?)$"
+
   - path_regex: apps/ingress-proxy/.*
     encrypted_regex: "^(hosts?|hostnames?)$"
 
