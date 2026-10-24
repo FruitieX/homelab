@@ -249,14 +249,6 @@ from(bucket: "home")
                      unit="celsius", decimals=1, display_name=BY_PLACE, time_from="60d", fill=0, points="always",
                      overrides=fixed_colors({"Low": SLOTS[0], "High": SLOTS[1]})), 8, 8)
 
-    d.row("3D printing storage")
-    d.add(bargauge("Filament humidity now", [flux(ble("hum", PRINTING, start="-6h", stop="now()") + "\n  |> last()")],
-                   unit="humidity", decimals=0, minv=0, maxv=60, display_name=BY_PLACE,
-                   thr=thresholds(GOOD, (20, WARN), (35, BAD)),
-                   desc="Keep filament below about 20 % RH; above 35 % it starts absorbing moisture."), 8, 8)
-    d.add(timeseries("Filament humidity", [flux(ble("hum", PRINTING))], unit="humidity", decimals=0, fill=0,
-                     display_name=BY_PLACE, overrides=fixed_colors(dict(zip(PRINTING.values(), SLOTS))),
-                     time_from="7d"), 16, 8)
     return d
 
 

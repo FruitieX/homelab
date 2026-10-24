@@ -30,6 +30,12 @@ configMapGenerator:
     options:
       annotations:
         grafana_folder: Home
+  - name: grafana-dashboard-home-printing
+    files:
+      - home-printing.json=home/home-printing.json
+    options:
+      annotations:
+        grafana_folder: Home
   - name: grafana-dashboard-lab-services
     files:
       - lab-services.json=homelab/lab-services.json

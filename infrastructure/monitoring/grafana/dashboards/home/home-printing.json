@@ -1,0 +1,2282 @@
+{
+ "uid": "home-printing",
+ "title": "Home · 3D printing",
+ "description": "The Bambu Lab X2D through Bambuddy, what printing costs, and how dry the filament is.",
+ "tags": [
+  "homelab-nav",
+  "home"
+ ],
+ "timezone": "browser",
+ "editable": true,
+ "graphTooltip": 1,
+ "schemaVersion": 39,
+ "time": {
+  "from": "now-24h",
+  "to": "now"
+ },
+ "refresh": "30s",
+ "fiscalYearStartMonth": 0,
+ "liveNow": false,
+ "weekStart": "monday",
+ "links": [
+  {
+   "type": "dashboards",
+   "tags": [
+    "homelab-nav"
+   ],
+   "asDropdown": false,
+   "includeVars": false,
+   "keepTime": true,
+   "title": "Dashboards",
+   "icon": "external link",
+   "targetBlank": false
+  }
+ ],
+ "annotations": {
+  "list": [
+   {
+    "builtIn": 1,
+    "datasource": {
+     "type": "grafana",
+     "uid": "-- Grafana --"
+    },
+    "enable": true,
+    "hide": true,
+    "iconColor": "rgba(0, 211, 255, 1)",
+    "name": "Annotations & Alerts",
+    "type": "dashboard"
+   }
+  ]
+ },
+ "templating": {
+  "list": []
+ },
+ "panels": [
+  {
+   "type": "row",
+   "title": "Printer now",
+   "collapsed": false,
+   "id": 1,
+   "gridPos": {
+    "h": 1,
+    "w": 24,
+    "x": 0,
+    "y": 0
+   },
+   "panels": []
+  },
+  {
+   "type": "stat",
+   "title": "State",
+   "targets": [
+    {
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "max(bambuddy_printer_state{printer_name=\"Bambu Lab X2D\"})",
+     "legendFormat": "",
+     "range": true,
+     "instant": false,
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {},
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "#7d7d7d",
+        "value": null
+       }
+      ]
+     },
+     "mappings": [
+      {
+       "type": "value",
+       "options": {
+        "0": {
+         "text": "Unknown",
+         "color": "#7d7d7d",
+         "index": 0
+        },
+        "1": {
+         "text": "Idle",
+         "color": "#7d7d7d",
+         "index": 1
+        },
+        "2": {
+         "text": "Printing",
+         "color": "#3987e5",
+         "index": 2
+        },
+        "3": {
+         "text": "Paused",
+         "color": "#e0a100",
+         "index": 3
+        },
+        "4": {
+         "text": "Finished",
+         "color": "#3aa655",
+         "index": 4
+        },
+        "5": {
+         "text": "Failed",
+         "color": "#e5484d",
+         "index": 5
+        },
+        "6": {
+         "text": "Preparing",
+         "color": "#199e70",
+         "index": 6
+        },
+        "7": {
+         "text": "Slicing",
+         "color": "#199e70",
+         "index": 7
+        }
+       }
+      }
+     ],
+     "color": {
+      "mode": "thresholds"
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    },
+    "graphMode": "none",
+    "colorMode": "background",
+    "textMode": "value",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "wideLayout": true,
+    "showPercentChange": false
+   },
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "id": 2,
+   "gridPos": {
+    "h": 5,
+    "w": 4,
+    "x": 0,
+    "y": 1
+   }
+  },
+  {
+   "type": "stat",
+   "title": "Progress",
+   "targets": [
+    {
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "max(bambuddy_print_progress{printer_name=\"Bambu Lab X2D\"})",
+     "legendFormat": "",
+     "range": true,
+     "instant": false,
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {},
+     "unit": "percent",
+     "decimals": 0,
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "#3987e5",
+        "value": null
+       }
+      ]
+     },
+     "color": {
+      "mode": "thresholds"
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    },
+    "graphMode": "none",
+    "colorMode": "value",
+    "textMode": "value",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "wideLayout": true,
+    "showPercentChange": false
+   },
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "id": 3,
+   "gridPos": {
+    "h": 5,
+    "w": 4,
+    "x": 4,
+    "y": 1
+   }
+  },
+  {
+   "type": "stat",
+   "title": "Layer",
+   "targets": [
+    {
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "max(bambuddy_print_layer_current{printer_name=\"Bambu Lab X2D\"})",
+     "legendFormat": "Layer",
+     "range": true,
+     "instant": false,
+     "refId": "A"
+    },
+    {
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "max(bambuddy_print_layer_total{printer_name=\"Bambu Lab X2D\"})",
+     "legendFormat": "of",
+     "range": true,
+     "instant": false,
+     "refId": "B"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {},
+     "decimals": 0,
+     "color": {
+      "mode": "thresholds"
+     },
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "#3987e5",
+        "value": null
+       }
+      ]
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    },
+    "graphMode": "none",
+    "colorMode": "value",
+    "textMode": "value_and_name",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "wideLayout": true,
+    "showPercentChange": false
+   },
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "id": 4,
+   "gridPos": {
+    "h": 5,
+    "w": 4,
+    "x": 8,
+    "y": 1
+   }
+  },
+  {
+   "type": "stat",
+   "title": "Time left",
+   "targets": [
+    {
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "max(bambuddy_print_remaining_seconds{printer_name=\"Bambu Lab X2D\"})",
+     "legendFormat": "",
+     "range": true,
+     "instant": false,
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {},
+     "unit": "s",
+     "color": {
+      "mode": "thresholds"
+     },
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "#3987e5",
+        "value": null
+       }
+      ]
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    },
+    "graphMode": "none",
+    "colorMode": "value",
+    "textMode": "value",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "wideLayout": true,
+    "showPercentChange": false
+   },
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "id": 5,
+   "gridPos": {
+    "h": 5,
+    "w": 4,
+    "x": 12,
+    "y": 1
+   }
+  },
+  {
+   "type": "stat",
+   "title": "Done at",
+   "targets": [
+    {
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "(time() + max(bambuddy_print_remaining_seconds{printer_name=\"Bambu Lab X2D\"}) > time()) * 1000",
+     "legendFormat": "",
+     "range": true,
+     "instant": false,
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {},
+     "unit": "dateTimeAsLocalNoDateIfToday",
+     "noValue": "Not printing",
+     "color": {
+      "mode": "thresholds"
+     },
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "#3987e5",
+        "value": null
+       }
+      ]
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    },
+    "graphMode": "none",
+    "colorMode": "value",
+    "textMode": "value",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "wideLayout": true,
+    "showPercentChange": false
+   },
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "description": "Wall-clock time the current print should finish.",
+   "id": 6,
+   "gridPos": {
+    "h": 5,
+    "w": 4,
+    "x": 16,
+    "y": 1
+   }
+  },
+  {
+   "type": "stat",
+   "title": "Queue",
+   "targets": [
+    {
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "max(bambuddy_queue_pending)",
+     "legendFormat": "",
+     "range": true,
+     "instant": false,
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {},
+     "decimals": 0,
+     "color": {
+      "mode": "thresholds"
+     },
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "#3987e5",
+        "value": null
+       }
+      ]
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    },
+    "graphMode": "none",
+    "colorMode": "value",
+    "textMode": "value",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "wideLayout": true,
+    "showPercentChange": false
+   },
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "description": "Jobs waiting in Bambuddy's print queue.",
+   "id": 7,
+   "gridPos": {
+    "h": 5,
+    "w": 4,
+    "x": 20,
+    "y": 1
+   }
+  },
+  {
+   "type": "stat",
+   "title": "Temperatures",
+   "targets": [
+    {
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "max(bambuddy_nozzle_temp_celsius{printer_name=\"Bambu Lab X2D\", nozzle=\"0\"})",
+     "legendFormat": "Nozzle L",
+     "range": true,
+     "instant": false,
+     "refId": "A"
+    },
+    {
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "max(bambuddy_nozzle_temp_celsius{printer_name=\"Bambu Lab X2D\", nozzle=\"1\"})",
+     "legendFormat": "Nozzle R",
+     "range": true,
+     "instant": false,
+     "refId": "B"
+    },
+    {
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "max(bambuddy_bed_temp_celsius{printer_name=\"Bambu Lab X2D\"})",
+     "legendFormat": "Bed",
+     "range": true,
+     "instant": false,
+     "refId": "C"
+    },
+    {
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "max(bambuddy_chamber_temp_celsius{printer_name=\"Bambu Lab X2D\"})",
+     "legendFormat": "Chamber",
+     "range": true,
+     "instant": false,
+     "refId": "D"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {},
+     "unit": "celsius",
+     "decimals": 0,
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "#3987e5",
+        "value": null
+       }
+      ]
+     },
+     "color": {
+      "mode": "thresholds"
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    },
+    "graphMode": "none",
+    "colorMode": "value",
+    "textMode": "value_and_name",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "wideLayout": true,
+    "showPercentChange": false
+   },
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "id": 8,
+   "gridPos": {
+    "h": 5,
+    "w": 16,
+    "x": 0,
+    "y": 6
+   }
+  },
+  {
+   "type": "stat",
+   "title": "Plug power",
+   "targets": [
+    {
+     "datasource": {
+      "type": "influxdb",
+      "uid": "influxdb-home"
+     },
+     "query": "from(bucket: \"home\")\n  |> range(start: -10m)\n  |> filter(fn: (r) => r._measurement == \"mqtt_consumer\" and r.integration_id == \"tuya\" and r._field == \"raw_19\" and r.name == \"3D printer\")\n  |> last()\n  |> map(fn: (r) => ({_time: r._time, _value: float(v: r._value) / 10.0}))",
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {},
+     "unit": "watt",
+     "decimals": 0,
+     "color": {
+      "mode": "thresholds"
+     },
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "#3987e5",
+        "value": null
+       }
+      ]
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    },
+    "graphMode": "none",
+    "colorMode": "value",
+    "textMode": "value",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "wideLayout": true,
+    "showPercentChange": false
+   },
+   "datasource": {
+    "type": "influxdb",
+    "uid": "influxdb-home"
+   },
+   "id": 9,
+   "gridPos": {
+    "h": 5,
+    "w": 4,
+    "x": 16,
+    "y": 6
+   }
+  },
+  {
+   "type": "stat",
+   "title": "Wi-Fi",
+   "targets": [
+    {
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "max(bambuddy_wifi_signal_dbm{printer_name=\"Bambu Lab X2D\"})",
+     "legendFormat": "",
+     "range": true,
+     "instant": false,
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {},
+     "unit": "dBm",
+     "decimals": 0,
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "#e5484d",
+        "value": null
+       },
+       {
+        "color": "#e0a100",
+        "value": -75
+       },
+       {
+        "color": "#3aa655",
+        "value": -65
+       }
+      ]
+     },
+     "color": {
+      "mode": "thresholds"
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    },
+    "graphMode": "none",
+    "colorMode": "value",
+    "textMode": "value",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "wideLayout": true,
+    "showPercentChange": false
+   },
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "id": 10,
+   "gridPos": {
+    "h": 5,
+    "w": 4,
+    "x": 20,
+    "y": 6
+   }
+  },
+  {
+   "type": "row",
+   "title": "Activity",
+   "collapsed": false,
+   "id": 11,
+   "gridPos": {
+    "h": 1,
+    "w": 24,
+    "x": 0,
+    "y": 11
+   },
+   "panels": []
+  },
+  {
+   "type": "state-timeline",
+   "title": "Printer state",
+   "targets": [
+    {
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "max(bambuddy_printer_state{printer_name=\"Bambu Lab X2D\"})",
+     "legendFormat": "X2D",
+     "range": true,
+     "instant": false,
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {
+      "lineWidth": 0,
+      "fillOpacity": 80
+     },
+     "color": {
+      "mode": "thresholds"
+     },
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "#7d7d7d",
+        "value": null
+       }
+      ]
+     },
+     "mappings": [
+      {
+       "type": "value",
+       "options": {
+        "0": {
+         "text": "Unknown",
+         "color": "#7d7d7d",
+         "index": 0
+        },
+        "1": {
+         "text": "Idle",
+         "color": "#7d7d7d",
+         "index": 1
+        },
+        "2": {
+         "text": "Printing",
+         "color": "#3987e5",
+         "index": 2
+        },
+        "3": {
+         "text": "Paused",
+         "color": "#e0a100",
+         "index": 3
+        },
+        "4": {
+         "text": "Finished",
+         "color": "#3aa655",
+         "index": 4
+        },
+        "5": {
+         "text": "Failed",
+         "color": "#e5484d",
+         "index": 5
+        },
+        "6": {
+         "text": "Preparing",
+         "color": "#199e70",
+         "index": 6
+        },
+        "7": {
+         "text": "Slicing",
+         "color": "#199e70",
+         "index": 7
+        }
+       }
+      }
+     ]
+    },
+    "overrides": []
+   },
+   "options": {
+    "showValue": "never",
+    "rowHeight": 0.85,
+    "mergeValues": true,
+    "alignValue": "left",
+    "legend": {
+     "showLegend": false
+    },
+    "tooltip": {
+     "mode": "single",
+     "sort": "none"
+    }
+   },
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "timeFrom": "7d",
+   "id": 12,
+   "gridPos": {
+    "h": 4,
+    "w": 24,
+    "x": 0,
+    "y": 12
+   }
+  },
+  {
+   "type": "timeseries",
+   "title": "Temperatures",
+   "targets": [
+    {
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "max(bambuddy_nozzle_temp_celsius{printer_name=\"Bambu Lab X2D\", nozzle=\"0\"})",
+     "legendFormat": "Nozzle L",
+     "range": true,
+     "instant": false,
+     "refId": "A"
+    },
+    {
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "max(bambuddy_nozzle_temp_celsius{printer_name=\"Bambu Lab X2D\", nozzle=\"1\"})",
+     "legendFormat": "Nozzle R",
+     "range": true,
+     "instant": false,
+     "refId": "B"
+    },
+    {
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "max(bambuddy_bed_temp_celsius{printer_name=\"Bambu Lab X2D\"})",
+     "legendFormat": "Bed",
+     "range": true,
+     "instant": false,
+     "refId": "C"
+    },
+    {
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "max(bambuddy_chamber_temp_celsius{printer_name=\"Bambu Lab X2D\"})",
+     "legendFormat": "Chamber",
+     "range": true,
+     "instant": false,
+     "refId": "D"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {
+      "drawStyle": "line",
+      "lineWidth": 2,
+      "fillOpacity": 0,
+      "gradientMode": "opacity",
+      "lineInterpolation": "smooth",
+      "showPoints": "never",
+      "spanNulls": true,
+      "stacking": {
+       "mode": "none",
+       "group": "A"
+      },
+      "axisBorderShow": false,
+      "barAlignment": -1,
+      "thresholdsStyle": {
+       "mode": "off"
+      },
+      "insertNulls": 3600000
+     },
+     "unit": "celsius",
+     "decimals": 0,
+     "color": {
+      "mode": "palette-classic"
+     }
+    },
+    "overrides": [
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "Nozzle L"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#d95926"
+        }
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "Nozzle R"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#c98500"
+        }
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "Bed"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#3987e5"
+        }
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "Chamber"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#199e70"
+        }
+       }
+      ]
+     }
+    ]
+   },
+   "options": {
+    "legend": {
+     "displayMode": "list",
+     "placement": "right",
+     "showLegend": true,
+     "calcs": []
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "desc"
+    }
+   },
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "id": 13,
+   "gridPos": {
+    "h": 8,
+    "w": 14,
+    "x": 0,
+    "y": 16
+   }
+  },
+  {
+   "type": "timeseries",
+   "title": "Progress",
+   "targets": [
+    {
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "max(bambuddy_print_progress{printer_name=\"Bambu Lab X2D\"})",
+     "legendFormat": "Progress",
+     "range": true,
+     "instant": false,
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {
+      "drawStyle": "line",
+      "lineWidth": 2,
+      "fillOpacity": 12,
+      "gradientMode": "opacity",
+      "lineInterpolation": "smooth",
+      "showPoints": "never",
+      "spanNulls": true,
+      "stacking": {
+       "mode": "none",
+       "group": "A"
+      },
+      "axisBorderShow": false,
+      "barAlignment": -1,
+      "thresholdsStyle": {
+       "mode": "off"
+      },
+      "insertNulls": 3600000
+     },
+     "unit": "percent",
+     "min": 0,
+     "max": 100,
+     "color": {
+      "mode": "fixed",
+      "fixedColor": "#3987e5"
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "legend": {
+     "displayMode": "list",
+     "placement": "bottom",
+     "showLegend": true,
+     "calcs": []
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "desc"
+    }
+   },
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "id": 14,
+   "gridPos": {
+    "h": 8,
+    "w": 10,
+    "x": 14,
+    "y": 16
+   }
+  },
+  {
+   "type": "row",
+   "title": "Totals",
+   "collapsed": false,
+   "id": 15,
+   "gridPos": {
+    "h": 1,
+    "w": 24,
+    "x": 0,
+    "y": 24
+   },
+   "panels": []
+  },
+  {
+   "type": "stat",
+   "title": "Prints",
+   "targets": [
+    {
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "sum by (result) (bambuddy_prints_total)",
+     "legendFormat": "{{result}}",
+     "range": true,
+     "instant": false,
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {},
+     "decimals": 0,
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "#3987e5",
+        "value": null
+       }
+      ]
+     },
+     "color": {
+      "mode": "thresholds"
+     }
+    },
+    "overrides": [
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "completed"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#3aa655"
+        }
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "failed"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#e5484d"
+        }
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "aborted"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#e0a100"
+        }
+       }
+      ]
+     }
+    ]
+   },
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    },
+    "graphMode": "none",
+    "colorMode": "value",
+    "textMode": "value_and_name",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "wideLayout": true,
+    "showPercentChange": false
+   },
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "id": 16,
+   "gridPos": {
+    "h": 4,
+    "w": 8,
+    "x": 0,
+    "y": 25
+   }
+  },
+  {
+   "type": "stat",
+   "title": "Success rate",
+   "targets": [
+    {
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "sum(bambuddy_prints_total{result=\"completed\"}) / sum(bambuddy_prints_total)",
+     "legendFormat": "",
+     "range": true,
+     "instant": false,
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {},
+     "unit": "percentunit",
+     "decimals": 0,
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "#e5484d",
+        "value": null
+       },
+       {
+        "color": "#e0a100",
+        "value": 0.8
+       },
+       {
+        "color": "#3aa655",
+        "value": 0.9
+       }
+      ]
+     },
+     "color": {
+      "mode": "thresholds"
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    },
+    "graphMode": "none",
+    "colorMode": "value",
+    "textMode": "value",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "wideLayout": true,
+    "showPercentChange": false
+   },
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "id": 17,
+   "gridPos": {
+    "h": 4,
+    "w": 4,
+    "x": 8,
+    "y": 25
+   }
+  },
+  {
+   "type": "stat",
+   "title": "Filament used",
+   "targets": [
+    {
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "max(bambuddy_filament_used_grams)",
+     "legendFormat": "",
+     "range": true,
+     "instant": false,
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {},
+     "unit": "massg",
+     "decimals": 1,
+     "color": {
+      "mode": "thresholds"
+     },
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "#3987e5",
+        "value": null
+       }
+      ]
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    },
+    "graphMode": "none",
+    "colorMode": "value",
+    "textMode": "value",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "wideLayout": true,
+    "showPercentChange": false
+   },
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "id": 18,
+   "gridPos": {
+    "h": 4,
+    "w": 4,
+    "x": 12,
+    "y": 25
+   }
+  },
+  {
+   "type": "stat",
+   "title": "Print time",
+   "targets": [
+    {
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "max(bambuddy_print_time_seconds)",
+     "legendFormat": "",
+     "range": true,
+     "instant": false,
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {},
+     "unit": "s",
+     "decimals": 0,
+     "color": {
+      "mode": "thresholds"
+     },
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "#3987e5",
+        "value": null
+       }
+      ]
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    },
+    "graphMode": "none",
+    "colorMode": "value",
+    "textMode": "value",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "wideLayout": true,
+    "showPercentChange": false
+   },
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "id": 19,
+   "gridPos": {
+    "h": 4,
+    "w": 4,
+    "x": 16,
+    "y": 25
+   }
+  },
+  {
+   "type": "stat",
+   "title": "Plug cost this month",
+   "targets": [
+    {
+     "datasource": {
+      "type": "influxdb",
+      "uid": "influxdb-home"
+     },
+     "query": "import \"timezone\"\nimport \"date\"\noption location = timezone.location(name: \"Europe/Helsinki\")\nenergy = from(bucket: \"home\")\n  |> range(start: date.truncate(t: now(), unit: 1mo), stop: now())\n  |> filter(fn: (r) => r._measurement == \"mqtt_consumer\" and r.integration_id == \"tuya\" and r._field == \"raw_19\")\n  |> map(fn: (r) => ({_time: r._time, _value: float(v: r._value) / 10.0, device: r.name}))\n  |> group(columns: [\"device\"])\n  |> aggregateWindow(every: 1h, fn: mean, createEmpty: false, timeSrc: \"_start\")\nprice = from(bucket: \"nordpool\")\n  |> range(start: date.truncate(t: now(), unit: 1mo), stop: now())\n  |> filter(fn: (r) => r._measurement == \"price\" and r._field == \"price\")\n  |> aggregateWindow(every: 1h, fn: mean, createEmpty: false, timeSrc: \"_start\")\n  |> keep(columns: [\"_time\", \"_value\"])\njoin(tables: {e: energy, p: price}, on: [\"_time\"])\n  |> map(fn: (r) => ({_time: r._time, device: r.device, _value: r._value_e / 1000.0 * r._value_p / 100.0}))\n  |> group(columns: [\"device\"])\n  |> filter(fn: (r) => r.device == \"3D printer\")\n  |> group() |> sum()",
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {},
+     "unit": "currencyEUR",
+     "decimals": 2,
+     "color": {
+      "mode": "thresholds"
+     },
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "#3987e5",
+        "value": null
+       }
+      ]
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    },
+    "graphMode": "none",
+    "colorMode": "value",
+    "textMode": "value",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "wideLayout": true,
+    "showPercentChange": false
+   },
+   "datasource": {
+    "type": "influxdb",
+    "uid": "influxdb-home"
+   },
+   "description": "The printer's smart-plug energy at the hourly spot price.",
+   "id": 20,
+   "gridPos": {
+    "h": 4,
+    "w": 4,
+    "x": 20,
+    "y": 25
+   }
+  },
+  {
+   "type": "timeseries",
+   "title": "Prints per day",
+   "targets": [
+    {
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "sum by (result) (increase(bambuddy_prints_total[1d]))",
+     "legendFormat": "{{result}}",
+     "range": true,
+     "instant": false,
+     "interval": "1d",
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {
+      "drawStyle": "bars",
+      "lineWidth": 1,
+      "fillOpacity": 80,
+      "gradientMode": "none",
+      "lineInterpolation": "linear",
+      "showPoints": "never",
+      "spanNulls": false,
+      "stacking": {
+       "mode": "normal",
+       "group": "A"
+      },
+      "axisBorderShow": false,
+      "barAlignment": -1,
+      "thresholdsStyle": {
+       "mode": "off"
+      },
+      "insertNulls": false
+     },
+     "decimals": 0,
+     "color": {
+      "mode": "palette-classic"
+     }
+    },
+    "overrides": [
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "completed"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#3aa655"
+        }
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "failed"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#e5484d"
+        }
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "aborted"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#e0a100"
+        }
+       }
+      ]
+     }
+    ]
+   },
+   "options": {
+    "legend": {
+     "displayMode": "list",
+     "placement": "bottom",
+     "showLegend": true,
+     "calcs": []
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "desc"
+    }
+   },
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "description": "From Bambuddy's counters, so history starts when Prometheus began scraping it.",
+   "timeFrom": "30d",
+   "id": 21,
+   "gridPos": {
+    "h": 8,
+    "w": 8,
+    "x": 0,
+    "y": 29
+   }
+  },
+  {
+   "type": "timeseries",
+   "title": "Filament per day",
+   "targets": [
+    {
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "max(delta(bambuddy_filament_used_grams[1d]))",
+     "legendFormat": "Filament",
+     "range": true,
+     "instant": false,
+     "interval": "1d",
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {
+      "drawStyle": "bars",
+      "lineWidth": 1,
+      "fillOpacity": 80,
+      "gradientMode": "none",
+      "lineInterpolation": "linear",
+      "showPoints": "never",
+      "spanNulls": false,
+      "stacking": {
+       "mode": "none",
+       "group": "A"
+      },
+      "axisBorderShow": false,
+      "barAlignment": -1,
+      "thresholdsStyle": {
+       "mode": "off"
+      },
+      "insertNulls": false
+     },
+     "unit": "massg",
+     "decimals": 0,
+     "color": {
+      "mode": "fixed",
+      "fixedColor": "#3987e5"
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "legend": {
+     "displayMode": "list",
+     "placement": "bottom",
+     "showLegend": true,
+     "calcs": []
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "desc"
+    }
+   },
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "timeFrom": "30d",
+   "id": 22,
+   "gridPos": {
+    "h": 8,
+    "w": 8,
+    "x": 8,
+    "y": 29
+   }
+  },
+  {
+   "type": "timeseries",
+   "title": "Printer energy per day",
+   "targets": [
+    {
+     "datasource": {
+      "type": "influxdb",
+      "uid": "influxdb-home"
+     },
+     "query": "import \"timezone\"\noption location = timezone.location(name: \"Europe/Helsinki\")\nfrom(bucket: \"home\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"mqtt_consumer\" and r.integration_id == \"tuya\" and r._field == \"raw_19\")\n  |> filter(fn: (r) => r.name == \"3D printer\")\n  |> map(fn: (r) => ({_time: r._time, _value: float(v: r._value) / 10.0, device: r.name}))\n  |> group(columns: [\"device\"])\n  |> aggregateWindow(every: 1h, fn: mean, createEmpty: false, timeSrc: \"_start\")\n  |> aggregateWindow(every: 1d, fn: sum, createEmpty: false, timeSrc: \"_start\")\n  |> map(fn: (r) => ({r with _value: r._value / 1000.0}))",
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {
+      "drawStyle": "bars",
+      "lineWidth": 1,
+      "fillOpacity": 80,
+      "gradientMode": "none",
+      "lineInterpolation": "linear",
+      "showPoints": "never",
+      "spanNulls": false,
+      "stacking": {
+       "mode": "none",
+       "group": "A"
+      },
+      "axisBorderShow": false,
+      "barAlignment": -1,
+      "thresholdsStyle": {
+       "mode": "off"
+      },
+      "insertNulls": false
+     },
+     "unit": "kwatth",
+     "decimals": 2,
+     "color": {
+      "mode": "fixed",
+      "fixedColor": "#d55181"
+     },
+     "displayName": "Energy"
+    },
+    "overrides": []
+   },
+   "options": {
+    "legend": {
+     "displayMode": "list",
+     "placement": "bottom",
+     "showLegend": true,
+     "calcs": []
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "desc"
+    }
+   },
+   "datasource": {
+    "type": "influxdb",
+    "uid": "influxdb-home"
+   },
+   "timeFrom": "30d",
+   "id": 23,
+   "gridPos": {
+    "h": 8,
+    "w": 8,
+    "x": 16,
+    "y": 29
+   }
+  },
+  {
+   "type": "row",
+   "title": "Filament storage",
+   "collapsed": false,
+   "id": 24,
+   "gridPos": {
+    "h": 1,
+    "w": 24,
+    "x": 0,
+    "y": 37
+   },
+   "panels": []
+  },
+  {
+   "type": "bargauge",
+   "title": "Humidity now",
+   "targets": [
+    {
+     "datasource": {
+      "type": "influxdb",
+      "uid": "influxdb-home"
+     },
+     "query": "import \"dict\"\nnames = [\"CE2A83062A34\": \"Filament dryer\", \"C76A00462055\": \"AMS 1\", \"C76A05065C4E\": \"AMS 2\", \"CE2A82463295\": \"Drybox 1\", \"D9343130222A\": \"Drybox 2\", \"CE2A8486490B\": \"Drybox 3\"]\nfrom(bucket: \"home\")\n  |> range(start: -6h, stop: now())\n  |> filter(fn: (r) => r._measurement == \"mqtt_consumer\" and r._field == \"hum\")\n  |> filter(fn: (r) => r.device_id == \"CE2A83062A34\" or r.device_id == \"C76A00462055\" or r.device_id == \"C76A05065C4E\" or r.device_id == \"CE2A82463295\" or r.device_id == \"D9343130222A\" or r.device_id == \"CE2A8486490B\")\n  |> map(fn: (r) => ({_time: r._time, _value: float(v: r._value), place: dict.get(dict: names, key: r.device_id, default: r.device_id)}))\n  |> group(columns: [\"place\"])\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\n\n  |> last()",
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {},
+     "unit": "humidity",
+     "decimals": 0,
+     "min": 0,
+     "max": 60,
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "#3aa655",
+        "value": null
+       },
+       {
+        "color": "#e0a100",
+        "value": 20
+       },
+       {
+        "color": "#e5484d",
+        "value": 35
+       }
+      ]
+     },
+     "displayName": "${__field.labels.place}",
+     "color": {
+      "mode": "thresholds"
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    },
+    "displayMode": "basic",
+    "orientation": "horizontal",
+    "showUnfilled": true,
+    "valueMode": "color",
+    "namePlacement": "left",
+    "sizing": "auto",
+    "minVizHeight": 12,
+    "minVizWidth": 8,
+    "maxVizHeight": 28
+   },
+   "datasource": {
+    "type": "influxdb",
+    "uid": "influxdb-home"
+   },
+   "description": "Keep filament below about 20 % RH; above 35 % it starts absorbing moisture.",
+   "id": 25,
+   "gridPos": {
+    "h": 9,
+    "w": 8,
+    "x": 0,
+    "y": 38
+   }
+  },
+  {
+   "type": "timeseries",
+   "title": "Humidity",
+   "targets": [
+    {
+     "datasource": {
+      "type": "influxdb",
+      "uid": "influxdb-home"
+     },
+     "query": "import \"dict\"\nnames = [\"CE2A83062A34\": \"Filament dryer\", \"C76A00462055\": \"AMS 1\", \"C76A05065C4E\": \"AMS 2\", \"CE2A82463295\": \"Drybox 1\", \"D9343130222A\": \"Drybox 2\", \"CE2A8486490B\": \"Drybox 3\"]\nfrom(bucket: \"home\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"mqtt_consumer\" and r._field == \"hum\")\n  |> filter(fn: (r) => r.device_id == \"CE2A83062A34\" or r.device_id == \"C76A00462055\" or r.device_id == \"C76A05065C4E\" or r.device_id == \"CE2A82463295\" or r.device_id == \"D9343130222A\" or r.device_id == \"CE2A8486490B\")\n  |> map(fn: (r) => ({_time: r._time, _value: float(v: r._value), place: dict.get(dict: names, key: r.device_id, default: r.device_id)}))\n  |> group(columns: [\"place\"])\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)",
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {
+      "drawStyle": "line",
+      "lineWidth": 2,
+      "fillOpacity": 0,
+      "gradientMode": "opacity",
+      "lineInterpolation": "smooth",
+      "showPoints": "never",
+      "spanNulls": true,
+      "stacking": {
+       "mode": "none",
+       "group": "A"
+      },
+      "axisBorderShow": false,
+      "barAlignment": -1,
+      "thresholdsStyle": {
+       "mode": "off"
+      },
+      "insertNulls": 3600000
+     },
+     "unit": "humidity",
+     "decimals": 0,
+     "displayName": "${__field.labels.place}",
+     "color": {
+      "mode": "palette-classic"
+     }
+    },
+    "overrides": [
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "Filament dryer"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#3987e5"
+        }
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "AMS 1"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#d95926"
+        }
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "AMS 2"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#199e70"
+        }
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "Drybox 1"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#c98500"
+        }
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "Drybox 2"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#d55181"
+        }
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "Drybox 3"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#008300"
+        }
+       }
+      ]
+     }
+    ]
+   },
+   "options": {
+    "legend": {
+     "displayMode": "list",
+     "placement": "right",
+     "showLegend": true,
+     "calcs": []
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "desc"
+    }
+   },
+   "datasource": {
+    "type": "influxdb",
+    "uid": "influxdb-home"
+   },
+   "timeFrom": "7d",
+   "id": 26,
+   "gridPos": {
+    "h": 9,
+    "w": 16,
+    "x": 8,
+    "y": 38
+   }
+  },
+  {
+   "type": "timeseries",
+   "title": "Dryer and box temperatures",
+   "targets": [
+    {
+     "datasource": {
+      "type": "influxdb",
+      "uid": "influxdb-home"
+     },
+     "query": "import \"dict\"\nnames = [\"CE2A83062A34\": \"Filament dryer\", \"C76A00462055\": \"AMS 1\", \"C76A05065C4E\": \"AMS 2\", \"CE2A82463295\": \"Drybox 1\", \"D9343130222A\": \"Drybox 2\", \"CE2A8486490B\": \"Drybox 3\"]\nfrom(bucket: \"home\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"mqtt_consumer\" and r._field == \"tempc\")\n  |> filter(fn: (r) => r.device_id == \"CE2A83062A34\" or r.device_id == \"C76A00462055\" or r.device_id == \"C76A05065C4E\" or r.device_id == \"CE2A82463295\" or r.device_id == \"D9343130222A\" or r.device_id == \"CE2A8486490B\")\n  |> map(fn: (r) => ({_time: r._time, _value: float(v: r._value), place: dict.get(dict: names, key: r.device_id, default: r.device_id)}))\n  |> group(columns: [\"place\"])\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)",
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {
+      "drawStyle": "line",
+      "lineWidth": 2,
+      "fillOpacity": 0,
+      "gradientMode": "opacity",
+      "lineInterpolation": "smooth",
+      "showPoints": "never",
+      "spanNulls": true,
+      "stacking": {
+       "mode": "none",
+       "group": "A"
+      },
+      "axisBorderShow": false,
+      "barAlignment": -1,
+      "thresholdsStyle": {
+       "mode": "off"
+      },
+      "insertNulls": 3600000
+     },
+     "unit": "celsius",
+     "decimals": 1,
+     "displayName": "${__field.labels.place}",
+     "color": {
+      "mode": "palette-classic"
+     }
+    },
+    "overrides": [
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "Filament dryer"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#3987e5"
+        }
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "AMS 1"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#d95926"
+        }
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "AMS 2"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#199e70"
+        }
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "Drybox 1"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#c98500"
+        }
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "Drybox 2"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#d55181"
+        }
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "Drybox 3"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#008300"
+        }
+       }
+      ]
+     }
+    ]
+   },
+   "options": {
+    "legend": {
+     "displayMode": "list",
+     "placement": "right",
+     "showLegend": true,
+     "calcs": []
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "desc"
+    }
+   },
+   "datasource": {
+    "type": "influxdb",
+    "uid": "influxdb-home"
+   },
+   "timeFrom": "7d",
+   "id": 27,
+   "gridPos": {
+    "h": 8,
+    "w": 12,
+    "x": 0,
+    "y": 47
+   }
+  },
+  {
+   "type": "timeseries",
+   "title": "Storage room temperature",
+   "targets": [
+    {
+     "datasource": {
+      "type": "influxdb",
+      "uid": "influxdb-home"
+     },
+     "query": "import \"dict\"\nnames = [\"C76A03460A73\": \"Storage room\"]\nfrom(bucket: \"home\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"mqtt_consumer\" and r._field == \"tempc\")\n  |> filter(fn: (r) => r.device_id == \"C76A03460A73\")\n  |> map(fn: (r) => ({_time: r._time, _value: float(v: r._value), place: dict.get(dict: names, key: r.device_id, default: r.device_id)}))\n  |> group(columns: [\"place\"])\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)",
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {
+      "drawStyle": "line",
+      "lineWidth": 2,
+      "fillOpacity": 0,
+      "gradientMode": "opacity",
+      "lineInterpolation": "smooth",
+      "showPoints": "never",
+      "spanNulls": true,
+      "stacking": {
+       "mode": "none",
+       "group": "A"
+      },
+      "axisBorderShow": false,
+      "barAlignment": -1,
+      "thresholdsStyle": {
+       "mode": "off"
+      },
+      "insertNulls": 3600000
+     },
+     "unit": "celsius",
+     "decimals": 1,
+     "color": {
+      "mode": "fixed",
+      "fixedColor": "#d95926"
+     },
+     "displayName": "${__field.labels.place}"
+    },
+    "overrides": []
+   },
+   "options": {
+    "legend": {
+     "displayMode": "list",
+     "placement": "bottom",
+     "showLegend": true,
+     "calcs": []
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "desc"
+    }
+   },
+   "datasource": {
+    "type": "influxdb",
+    "uid": "influxdb-home"
+   },
+   "description": "Where the printer and spare spools live.",
+   "timeFrom": "7d",
+   "id": 28,
+   "gridPos": {
+    "h": 8,
+    "w": 6,
+    "x": 12,
+    "y": 47
+   }
+  },
+  {
+   "type": "timeseries",
+   "title": "Storage room humidity",
+   "targets": [
+    {
+     "datasource": {
+      "type": "influxdb",
+      "uid": "influxdb-home"
+     },
+     "query": "import \"dict\"\nnames = [\"C76A03460A73\": \"Storage room\"]\nfrom(bucket: \"home\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"mqtt_consumer\" and r._field == \"hum\")\n  |> filter(fn: (r) => r.device_id == \"C76A03460A73\")\n  |> map(fn: (r) => ({_time: r._time, _value: float(v: r._value), place: dict.get(dict: names, key: r.device_id, default: r.device_id)}))\n  |> group(columns: [\"place\"])\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)",
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {
+      "drawStyle": "line",
+      "lineWidth": 2,
+      "fillOpacity": 0,
+      "gradientMode": "opacity",
+      "lineInterpolation": "smooth",
+      "showPoints": "never",
+      "spanNulls": true,
+      "stacking": {
+       "mode": "none",
+       "group": "A"
+      },
+      "axisBorderShow": false,
+      "barAlignment": -1,
+      "thresholdsStyle": {
+       "mode": "off"
+      },
+      "insertNulls": 3600000
+     },
+     "unit": "humidity",
+     "decimals": 0,
+     "color": {
+      "mode": "fixed",
+      "fixedColor": "#3987e5"
+     },
+     "displayName": "${__field.labels.place}"
+    },
+    "overrides": []
+   },
+   "options": {
+    "legend": {
+     "displayMode": "list",
+     "placement": "bottom",
+     "showLegend": true,
+     "calcs": []
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "desc"
+    }
+   },
+   "datasource": {
+    "type": "influxdb",
+    "uid": "influxdb-home"
+   },
+   "timeFrom": "7d",
+   "id": 29,
+   "gridPos": {
+    "h": 8,
+    "w": 6,
+    "x": 18,
+    "y": 47
+   }
+  }
+ ]
+}

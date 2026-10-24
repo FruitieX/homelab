@@ -442,7 +442,7 @@ def logs_dashboard():
 
 def apps_dashboard():
     d = Dashboard("lab-apps", "Homelab · Apps", folder="Homelab", tags=["homelab"], time="now-30d", refresh="5m",
-                  description="What the apps are used for: music, photos, automations, 3D printing and video.")
+                  description="What the apps are used for: music, photos, automations and video. 3D printing has its own dashboard.")
     d.row("Ferrotune")
     d.add(stat("Listening this week", [sql("ferrotune", '''
 SELECT sum(duration_seconds) / 3600.0 AS hours FROM listening_sessions WHERE listened_at > now() - interval '7 days' ''')],
@@ -518,25 +518,6 @@ SELECT entry::jsonb ->> 'routine_name' AS "Routine",
 FROM routine_history WHERE "timestamp"::timestamptz BETWEEN $__timeFrom() AND $__timeTo()
 GROUP BY 1 ORDER BY 2 DESC, 3 DESC''')], overrides=[by_name("Last evaluated", unit="dateTimeFromNow")],
         time_from="7d", desc="Blocked means a trigger fired but the routine's conditions were false."), 12, 8)
-
-    d.row("3D printing (Bambuddy)")
-    state = value_map([(0, "Unknown", MUTED), (1, "Idle", MUTED), (2, "Printing", SLOTS[0]), (3, "Paused", WARN),
-                       (4, "Finished", GOOD), (5, "Failed", BAD), (6, "Preparing", SLOTS[2]), (7, "Slicing", SLOTS[2])])
-    d.add(stat("Printer", [prom('max(bambuddy_printer_state)')], graph=False, mappings=state, color_mode="background",
-               thr=thresholds(MUTED)), 4, 4)
-    d.add(stat("Progress", [prom('max(bambuddy_print_progress)')], unit="percent", decimals=0, graph=False), 4, 4)
-    d.add(stat("Time left", [prom('max(bambuddy_print_remaining_seconds)')], unit="s", graph=False), 4, 4)
-    d.add(stat("Prints", [prom('sum by (result) (bambuddy_prints_total)', legend="{{result}}")], decimals=0,
-               graph=False, text_mode="value_and_name", thr=thresholds(SLOTS[0])), 8, 4)
-    d.add(stat("Filament used", [prom('max(bambuddy_filament_used_grams)')], unit="massg", decimals=1,
-               graph=False), 4, 4)
-    d.add(timeseries("Temperatures", [prom('max(bambuddy_nozzle_temp_celsius)', legend="Nozzle"),
-                                      prom('max(bambuddy_bed_temp_celsius)', legend="Bed"),
-                                      prom('max(bambuddy_chamber_temp_celsius)', legend="Chamber")],
-                     unit="celsius", decimals=0, fill=0, time_from="2d",
-                     overrides=fixed_colors({"Nozzle": SLOTS[1], "Bed": SLOTS[0], "Chamber": SLOTS[2]})), 12, 7)
-    d.add(timeseries("Print progress", [prom('max(bambuddy_print_progress)', legend="Progress")], unit="percent",
-                     minv=0, maxv=100, time_from="2d", color={"mode": "fixed", "fixedColor": SLOTS[0]}), 12, 7)
 
     d.row("Media (through the gateway)")
     d.add(timeseries("Jellyfin & Immich data served per day", [loki(

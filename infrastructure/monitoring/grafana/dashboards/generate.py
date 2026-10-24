@@ -18,12 +18,14 @@ sys.path.insert(0, HERE)
 
 import home  # noqa: E402
 import lab  # noqa: E402
+import printing  # noqa: E402
 
 DASHBOARDS = [
     lab.overview_dashboard(),
     home.energy_dashboard(),
     home.climate_dashboard(),
     home.devices_dashboard(),
+    printing.printing_dashboard(),
     lab.services_dashboard(),
     lab.workloads_dashboard(),
     lab.hardware_dashboard(),
