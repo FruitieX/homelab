@@ -21,7 +21,7 @@ spec:
 
       containers:
         - name: hue-mqtt
-          image: ghcr.io/fruitiex/hue-mqtt:main@sha256:06a8b7e8606c5f66cd1a4ccf8b5636769d3c485d7179c04dff5539aba38bcb23
+          image: ghcr.io/fruitiex/hue-mqtt:main@sha256:bb4d0b0e0c9dcb2283801362ff696bb8b1323b65c6b93a7047917265b3c65191
           resources:
             limits:
               memory: 128Mi
