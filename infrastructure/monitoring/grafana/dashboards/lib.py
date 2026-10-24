@@ -5,7 +5,7 @@ import json
 PROM = {"type": "prometheus", "uid": "prometheus"}
 LOKI = {"type": "loki", "uid": "loki"}
 INFLUX = {"type": "influxdb", "uid": "influxdb-home"}
-PG = {db: {"type": "grafana-postgresql-datasource", "uid": f"pg-{db}"} for db in ("ferrotune", "homectl", "immich")}
+PG = {db: {"type": "grafana-postgresql-datasource", "uid": f"pg-{db}"} for db in ("ferrotune", "homectl", "immich", "bambuddy")}
 
 # Categorical slots, in fixed order (validated for adjacent-pair CVD
 # separation on dark surfaces). Entities keep their slot everywhere.

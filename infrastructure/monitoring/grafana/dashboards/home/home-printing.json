@@ -1182,6 +1182,21 @@
         }
        }
       ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "cancelled"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#e0a100"
+        }
+       }
+      ]
      }
     ]
    },
@@ -1477,18 +1492,17 @@
   },
   {
    "type": "timeseries",
-   "title": "Prints per day",
+   "title": "Prints per week",
    "targets": [
     {
      "datasource": {
-      "type": "prometheus",
-      "uid": "prometheus"
+      "type": "grafana-postgresql-datasource",
+      "uid": "pg-bambuddy"
      },
-     "expr": "sum by (result) (increase(bambuddy_prints_total[1d]))",
-     "legendFormat": "{{result}}",
-     "range": true,
-     "instant": false,
-     "interval": "1d",
+     "rawSql": "SELECT date_trunc('week', coalesce(started_at, created_at)) AS time, status AS metric, count(*) AS value\nFROM print_archives WHERE deleted_at IS NULL AND $__timeFilter(coalesce(started_at, created_at))\nGROUP BY 1, 2 ORDER BY 1",
+     "format": "time_series",
+     "rawQuery": true,
+     "editorMode": "code",
      "refId": "A"
     }
    ],
@@ -1514,6 +1528,7 @@
       "insertNulls": false
      },
      "decimals": 0,
+     "displayName": "${__field.labels.metric}",
      "color": {
       "mode": "palette-classic"
      }
@@ -1563,6 +1578,21 @@
         }
        }
       ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "cancelled"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#e0a100"
+        }
+       }
+      ]
      }
     ]
    },
@@ -1579,11 +1609,11 @@
     }
    },
    "datasource": {
-    "type": "prometheus",
-    "uid": "prometheus"
+    "type": "grafana-postgresql-datasource",
+    "uid": "pg-bambuddy"
    },
-   "description": "From Bambuddy's counters, so history starts when Prometheus began scraping it.",
-   "timeFrom": "30d",
+   "description": "Bambuddy's print archive, back to the first print.",
+   "timeFrom": "1y",
    "id": 21,
    "gridPos": {
     "h": 8,
@@ -1594,18 +1624,17 @@
   },
   {
    "type": "timeseries",
-   "title": "Filament per day",
+   "title": "Filament per week by material",
    "targets": [
     {
      "datasource": {
-      "type": "prometheus",
-      "uid": "prometheus"
+      "type": "grafana-postgresql-datasource",
+      "uid": "pg-bambuddy"
      },
-     "expr": "max(delta(bambuddy_filament_used_grams[1d]))",
-     "legendFormat": "Filament",
-     "range": true,
-     "instant": false,
-     "interval": "1d",
+     "rawSql": "SELECT date_trunc('week', coalesce(started_at, created_at)) AS time, coalesce(filament_type, 'Unknown') AS metric,\n       sum(filament_used_grams) AS value\nFROM print_archives WHERE deleted_at IS NULL AND $__timeFilter(coalesce(started_at, created_at))\nGROUP BY 1, 2 ORDER BY 1",
+     "format": "time_series",
+     "rawQuery": true,
+     "editorMode": "code",
      "refId": "A"
     }
    ],
@@ -1620,7 +1649,7 @@
       "showPoints": "never",
       "spanNulls": false,
       "stacking": {
-       "mode": "none",
+       "mode": "normal",
        "group": "A"
       },
       "axisBorderShow": false,
@@ -1632,9 +1661,9 @@
      },
      "unit": "massg",
      "decimals": 0,
+     "displayName": "${__field.labels.metric}",
      "color": {
-      "mode": "fixed",
-      "fixedColor": "#3987e5"
+      "mode": "palette-classic"
      }
     },
     "overrides": []
@@ -1652,10 +1681,10 @@
     }
    },
    "datasource": {
-    "type": "prometheus",
-    "uid": "prometheus"
+    "type": "grafana-postgresql-datasource",
+    "uid": "pg-bambuddy"
    },
-   "timeFrom": "30d",
+   "timeFrom": "1y",
    "id": 22,
    "gridPos": {
     "h": 8,
@@ -1735,7 +1764,7 @@
   },
   {
    "type": "row",
-   "title": "Filament storage",
+   "title": "Print history (Bambuddy archive)",
    "collapsed": false,
    "id": 24,
    "gridPos": {
@@ -1743,6 +1772,693 @@
     "w": 24,
     "x": 0,
     "y": 37
+   },
+   "panels": []
+  },
+  {
+   "type": "table",
+   "title": "Recent prints",
+   "targets": [
+    {
+     "datasource": {
+      "type": "grafana-postgresql-datasource",
+      "uid": "pg-bambuddy"
+     },
+     "rawSql": "SELECT coalesce(started_at, created_at) AS \"Started\", print_name AS \"Print\", status AS \"Result\",\n       print_time_seconds AS \"Duration\", filament_used_grams AS \"Filament\", filament_type AS \"Material\",\n       cost AS \"Cost\", failure_reason AS \"Why it failed\"\nFROM print_archives WHERE deleted_at IS NULL ORDER BY coalesce(started_at, created_at) DESC LIMIT 25",
+     "format": "table",
+     "rawQuery": true,
+     "editorMode": "code",
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {
+      "align": "auto",
+      "cellOptions": {
+       "type": "auto"
+      },
+      "inspect": false
+     }
+    },
+    "overrides": [
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "Started"
+      },
+      "properties": [
+       {
+        "id": "unit",
+        "value": "dateTimeAsLocal"
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "Duration"
+      },
+      "properties": [
+       {
+        "id": "unit",
+        "value": "s"
+       },
+       {
+        "id": "decimals",
+        "value": 0
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "Filament"
+      },
+      "properties": [
+       {
+        "id": "unit",
+        "value": "massg"
+       },
+       {
+        "id": "decimals",
+        "value": 0
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "Cost"
+      },
+      "properties": [
+       {
+        "id": "unit",
+        "value": "currencyEUR"
+       },
+       {
+        "id": "decimals",
+        "value": 2
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "Result"
+      },
+      "properties": [
+       {
+        "id": "custom.cellOptions",
+        "value": {
+         "type": "color-text"
+        }
+       },
+       {
+        "id": "mappings",
+        "value": [
+         {
+          "type": "value",
+          "options": {
+           "completed": {
+            "text": "completed",
+            "color": "#3aa655",
+            "index": 0
+           },
+           "failed": {
+            "text": "failed",
+            "color": "#e5484d",
+            "index": 1
+           },
+           "aborted": {
+            "text": "aborted",
+            "color": "#e0a100",
+            "index": 2
+           },
+           "cancelled": {
+            "text": "cancelled",
+            "color": "#e0a100",
+            "index": 3
+           }
+          }
+         }
+        ]
+       }
+      ]
+     }
+    ]
+   },
+   "options": {
+    "showHeader": true,
+    "cellHeight": "sm",
+    "footer": {
+     "show": false,
+     "reducer": [
+      "sum"
+     ],
+     "countRows": false,
+     "fields": ""
+    }
+   },
+   "datasource": {
+    "type": "grafana-postgresql-datasource",
+    "uid": "pg-bambuddy"
+   },
+   "id": 25,
+   "gridPos": {
+    "h": 10,
+    "w": 16,
+    "x": 0,
+    "y": 38
+   }
+  },
+  {
+   "type": "bargauge",
+   "title": "Most printed",
+   "targets": [
+    {
+     "datasource": {
+      "type": "grafana-postgresql-datasource",
+      "uid": "pg-bambuddy"
+     },
+     "rawSql": "SELECT print_name AS metric, count(*) AS value FROM print_archives\nWHERE deleted_at IS NULL AND status = 'completed' GROUP BY 1 ORDER BY 2 DESC LIMIT 10",
+     "format": "table",
+     "rawQuery": true,
+     "editorMode": "code",
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {},
+     "decimals": 0,
+     "color": {
+      "mode": "fixed",
+      "fixedColor": "#3987e5"
+     },
+     "displayName": "${__data.fields.metric}",
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "#3987e5",
+        "value": null
+       }
+      ]
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": true
+    },
+    "displayMode": "basic",
+    "orientation": "horizontal",
+    "showUnfilled": true,
+    "valueMode": "color",
+    "namePlacement": "left",
+    "sizing": "auto",
+    "minVizHeight": 12,
+    "minVizWidth": 8,
+    "maxVizHeight": 28
+   },
+   "datasource": {
+    "type": "grafana-postgresql-datasource",
+    "uid": "pg-bambuddy"
+   },
+   "id": 26,
+   "gridPos": {
+    "h": 10,
+    "w": 8,
+    "x": 16,
+    "y": 38
+   }
+  },
+  {
+   "type": "stat",
+   "title": "Filament cost",
+   "targets": [
+    {
+     "datasource": {
+      "type": "grafana-postgresql-datasource",
+      "uid": "pg-bambuddy"
+     },
+     "rawSql": "SELECT sum(cost) AS \"Total\", coalesce(sum(cost) FILTER (WHERE started_at > date_trunc('month', now())), 0) AS \"This month\",\n       avg(cost) FILTER (WHERE status = 'completed') AS \"Per print\"\nFROM print_archives WHERE deleted_at IS NULL",
+     "format": "table",
+     "rawQuery": true,
+     "editorMode": "code",
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {},
+     "unit": "currencyEUR",
+     "decimals": 2,
+     "color": {
+      "mode": "thresholds"
+     },
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "#3987e5",
+        "value": null
+       }
+      ]
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    },
+    "graphMode": "none",
+    "colorMode": "value",
+    "textMode": "value_and_name",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "wideLayout": true,
+    "showPercentChange": false
+   },
+   "datasource": {
+    "type": "grafana-postgresql-datasource",
+    "uid": "pg-bambuddy"
+   },
+   "description": "Bambuddy's filament cost per print, from the spool prices.",
+   "id": 27,
+   "gridPos": {
+    "h": 5,
+    "w": 8,
+    "x": 0,
+    "y": 48
+   }
+  },
+  {
+   "type": "stat",
+   "title": "Typical print",
+   "targets": [
+    {
+     "datasource": {
+      "type": "grafana-postgresql-datasource",
+      "uid": "pg-bambuddy"
+     },
+     "rawSql": "SELECT percentile_cont(0.5) WITHIN GROUP (ORDER BY print_time_seconds) AS \"Duration\",\n       percentile_cont(0.5) WITHIN GROUP (ORDER BY filament_used_grams) AS \"Filament\"\nFROM print_archives WHERE deleted_at IS NULL AND status = 'completed'",
+     "format": "table",
+     "rawQuery": true,
+     "editorMode": "code",
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {},
+     "color": {
+      "mode": "thresholds"
+     },
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "#3987e5",
+        "value": null
+       }
+      ]
+     }
+    },
+    "overrides": [
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "Duration"
+      },
+      "properties": [
+       {
+        "id": "unit",
+        "value": "s"
+       },
+       {
+        "id": "decimals",
+        "value": 0
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "Filament"
+      },
+      "properties": [
+       {
+        "id": "unit",
+        "value": "massg"
+       },
+       {
+        "id": "decimals",
+        "value": 0
+       }
+      ]
+     }
+    ]
+   },
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    },
+    "graphMode": "none",
+    "colorMode": "value",
+    "textMode": "value_and_name",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "wideLayout": true,
+    "showPercentChange": false
+   },
+   "datasource": {
+    "type": "grafana-postgresql-datasource",
+    "uid": "pg-bambuddy"
+   },
+   "description": "Median of completed prints.",
+   "id": 28,
+   "gridPos": {
+    "h": 5,
+    "w": 8,
+    "x": 8,
+    "y": 48
+   }
+  },
+  {
+   "type": "stat",
+   "title": "Printer runtime",
+   "targets": [
+    {
+     "datasource": {
+      "type": "grafana-postgresql-datasource",
+      "uid": "pg-bambuddy"
+     },
+     "rawSql": "SELECT max(print_hours_offset + runtime_seconds / 3600.0) * 3600 AS runtime FROM printers",
+     "format": "table",
+     "rawQuery": true,
+     "editorMode": "code",
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {},
+     "unit": "s",
+     "decimals": 0,
+     "color": {
+      "mode": "thresholds"
+     },
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "#3987e5",
+        "value": null
+       }
+      ]
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    },
+    "graphMode": "none",
+    "colorMode": "value",
+    "textMode": "value",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "wideLayout": true,
+    "showPercentChange": false
+   },
+   "datasource": {
+    "type": "grafana-postgresql-datasource",
+    "uid": "pg-bambuddy"
+   },
+   "description": "Total print-head hours as Bambuddy counts them for maintenance.",
+   "id": 29,
+   "gridPos": {
+    "h": 5,
+    "w": 8,
+    "x": 16,
+    "y": 48
+   }
+  },
+  {
+   "type": "table",
+   "title": "Maintenance",
+   "targets": [
+    {
+     "datasource": {
+      "type": "grafana-postgresql-datasource",
+      "uid": "pg-bambuddy"
+     },
+     "rawSql": "WITH p AS (SELECT id, print_hours_offset + runtime_seconds / 3600.0 AS hours FROM printers)\nSELECT t.name AS \"Task\", coalesce(pm.custom_interval_hours, t.default_interval_hours) AS \"Every (h)\",\n       round((p.hours - pm.last_performed_hours)::numeric, 1) AS \"Since (h)\",\n       round((coalesce(pm.custom_interval_hours, t.default_interval_hours) - (p.hours - pm.last_performed_hours))::numeric, 1) AS \"Due in (h)\",\n       pm.last_performed_at AS \"Last done\"\nFROM printer_maintenance pm JOIN maintenance_types t ON t.id = pm.maintenance_type_id JOIN p ON p.id = pm.printer_id\nWHERE pm.enabled AND NOT t.is_deleted AND coalesce(pm.custom_interval_type, t.interval_type) = 'hours'\nORDER BY 4",
+     "format": "table",
+     "rawQuery": true,
+     "editorMode": "code",
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {
+      "align": "auto",
+      "cellOptions": {
+       "type": "auto"
+      },
+      "inspect": false
+     }
+    },
+    "overrides": [
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "Due in (h)"
+      },
+      "properties": [
+       {
+        "id": "thresholds",
+        "value": {
+         "mode": "absolute",
+         "steps": [
+          {
+           "color": "#e5484d",
+           "value": null
+          },
+          {
+           "color": "#e0a100",
+           "value": 0
+          },
+          {
+           "color": "#3aa655",
+           "value": 10
+          }
+         ]
+        }
+       },
+       {
+        "id": "custom.cellOptions",
+        "value": {
+         "type": "color-text"
+        }
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "Last done"
+      },
+      "properties": [
+       {
+        "id": "unit",
+        "value": "dateTimeFromNow"
+       }
+      ]
+     }
+    ]
+   },
+   "options": {
+    "showHeader": true,
+    "cellHeight": "sm",
+    "footer": {
+     "show": false,
+     "reducer": [
+      "sum"
+     ],
+     "countRows": false,
+     "fields": ""
+    }
+   },
+   "datasource": {
+    "type": "grafana-postgresql-datasource",
+    "uid": "pg-bambuddy"
+   },
+   "description": "Hour-based maintenance from Bambuddy. Negative means overdue; mark it done in Bambuddy.",
+   "id": 30,
+   "gridPos": {
+    "h": 8,
+    "w": 12,
+    "x": 0,
+    "y": 53
+   }
+  },
+  {
+   "type": "table",
+   "title": "Spools",
+   "targets": [
+    {
+     "datasource": {
+      "type": "grafana-postgresql-datasource",
+      "uid": "pg-bambuddy"
+     },
+     "rawSql": "SELECT material AS \"Material\", coalesce(nullif(color_name, ''), '#' || left(rgba, 6)) AS \"Colour\", brand AS \"Brand\",\n       greatest(label_weight - coalesce(weight_used, 0), 0) AS \"Left\", label_weight AS \"Of\", last_used AS \"Last used\"\nFROM spool WHERE archived_at IS NULL ORDER BY 4",
+     "format": "table",
+     "rawQuery": true,
+     "editorMode": "code",
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {
+      "align": "auto",
+      "cellOptions": {
+       "type": "auto"
+      },
+      "inspect": false
+     }
+    },
+    "overrides": [
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "Left"
+      },
+      "properties": [
+       {
+        "id": "unit",
+        "value": "massg"
+       },
+       {
+        "id": "decimals",
+        "value": 0
+       },
+       {
+        "id": "thresholds",
+        "value": {
+         "mode": "absolute",
+         "steps": [
+          {
+           "color": "#e5484d",
+           "value": null
+          },
+          {
+           "color": "#e0a100",
+           "value": 150
+          },
+          {
+           "color": "#3aa655",
+           "value": 300
+          }
+         ]
+        }
+       },
+       {
+        "id": "custom.cellOptions",
+        "value": {
+         "type": "color-text"
+        }
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "Of"
+      },
+      "properties": [
+       {
+        "id": "unit",
+        "value": "massg"
+       },
+       {
+        "id": "decimals",
+        "value": 0
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "Last used"
+      },
+      "properties": [
+       {
+        "id": "unit",
+        "value": "dateTimeFromNow"
+       }
+      ]
+     }
+    ]
+   },
+   "options": {
+    "showHeader": true,
+    "cellHeight": "sm",
+    "footer": {
+     "show": false,
+     "reducer": [
+      "sum"
+     ],
+     "countRows": false,
+     "fields": ""
+    }
+   },
+   "datasource": {
+    "type": "grafana-postgresql-datasource",
+    "uid": "pg-bambuddy"
+   },
+   "description": "Spool inventory as Bambuddy tracks it; weights are only as good as its usage tracking.",
+   "id": 31,
+   "gridPos": {
+    "h": 8,
+    "w": 12,
+    "x": 12,
+    "y": 53
+   }
+  },
+  {
+   "type": "row",
+   "title": "Filament storage",
+   "collapsed": false,
+   "id": 32,
+   "gridPos": {
+    "h": 1,
+    "w": 24,
+    "x": 0,
+    "y": 61
    },
    "panels": []
   },
@@ -1813,12 +2529,12 @@
     "uid": "influxdb-home"
    },
    "description": "Keep filament below about 20 % RH; above 35 % it starts absorbing moisture.",
-   "id": 25,
+   "id": 33,
    "gridPos": {
     "h": 9,
     "w": 8,
     "x": 0,
-    "y": 38
+    "y": 62
    }
   },
   {
@@ -1972,12 +2688,12 @@
     "uid": "influxdb-home"
    },
    "timeFrom": "7d",
-   "id": 26,
+   "id": 34,
    "gridPos": {
     "h": 9,
     "w": 16,
     "x": 8,
-    "y": 38
+    "y": 62
    }
   },
   {
@@ -2131,12 +2847,12 @@
     "uid": "influxdb-home"
    },
    "timeFrom": "7d",
-   "id": 27,
+   "id": 35,
    "gridPos": {
     "h": 8,
     "w": 12,
     "x": 0,
-    "y": 47
+    "y": 71
    }
   },
   {
@@ -2201,12 +2917,12 @@
    },
    "description": "Where the printer and spare spools live.",
    "timeFrom": "7d",
-   "id": 28,
+   "id": 36,
    "gridPos": {
     "h": 8,
     "w": 6,
     "x": 12,
-    "y": 47
+    "y": 71
    }
   },
   {
@@ -2270,12 +2986,12 @@
     "uid": "influxdb-home"
    },
    "timeFrom": "7d",
-   "id": 29,
+   "id": 37,
    "gridPos": {
     "h": 8,
     "w": 6,
     "x": 18,
-    "y": 47
+    "y": 71
    }
   }
  ]
