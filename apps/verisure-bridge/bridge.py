@@ -106,32 +106,39 @@ API = verisure_api.from_env()
 MODES = {"ARMED_AWAY": "armed_away", "ARMED_HOME": "armed_home", "DISARMED": "disarmed"}
 
 
-def lookup_mode(delay):
-    """One read-only API call for the arm mode (the notification does not say stay vs away)."""
-    time.sleep(delay)
-    try:
-        s = API.arm_state()
-    except verisure_api.MfaRequired as e:
-        log("verisure api:", e)
-        return
-    except Exception as e:  # rate limits, outages: skip this one, the next event tries again
-        log("verisure api error:", e)
-        return
+def lookup_mode(expected=None):
+    """One read-only API call for the arm mode (the notification does not say stay vs away).
+
+    If the answer contradicts the notification (the API not caught up yet), try once more 3 s later."""
+    for attempt in (1, 2):
+        try:
+            s = API.arm_state()
+        except verisure_api.MfaRequired as e:
+            log("verisure api:", e)
+            return
+        except Exception as e:  # rate limits, outages: skip this one, the next event tries again
+            log("verisure api error:", e)
+            return
+        mode = MODES.get(s.get("statusType"))
+        consistent = expected is None or (mode == "disarmed") == (expected == "disarmed")
+        if consistent or attempt == 2:
+            break
+        log("api still says", s.get("statusType"), "- retrying in 3 s")
+        time.sleep(3)
     publish("arm_state", json.dumps(s, ensure_ascii=False), retain=True)
-    mode = MODES.get(s.get("statusType"))
     if mode:
         publish("mode", mode, retain=True)
     log("mode", s.get("statusType"), "by", s.get("name"), "via", s.get("changedVia"))
 
 
-def publish_state(n, lookup_delay=3):
+def publish_state(n):
     state, who = state_of(n)
     if state:
         publish("state", state, retain=True)
         publish("changed_by", who or "", retain=True)
         log("state", state, "by", who)
         if API:
-            threading.Thread(target=lookup_mode, args=(lookup_delay,), daemon=True).start()
+            threading.Thread(target=lookup_mode, args=(state,), daemon=True).start()
 
 
 def main():
@@ -152,7 +159,7 @@ def main():
                 log("existing notifications:", len(current))
                 known = [n for n in current.values() if state_of(n)[0]]
                 if known:
-                    publish_state(max(known, key=lambda n: n.get("when_ms", 0)), lookup_delay=0)
+                    publish_state(max(known, key=lambda n: n.get("when_ms", 0)))
             for key, n in current.items():
                 if seen.get(key) == n:
                     continue
