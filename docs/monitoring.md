@@ -49,13 +49,24 @@ ids are ignored on purpose, because neighbours' sensors show up too.
 - **LAN targets:** every scrape config that names a LAN address is in `lan.sops.yaml`. Only `targets` is
   encrypted there, because this repo is public.
 
-`apps/influxdb/telegraf-nibe.yaml` polls the NIBE F750 heat pump through the myUplink cloud API once a minute
-(the official Home Assistant integration uses the same interval) and writes every data point to InfluxDB:
-bucket `home`, measurement `nibe`, field `value`, tags `id` (the parameter number), `name` and `unit`. Query by
-`id`, because the names come from NIBE and can change. The myUplink app ("myUplink homelab API" in 1Password) only
-ever requests the `READSYSTEM` scope, so the poller cannot change pump settings, and its InfluxDB token can only
-write to `home`. Point `43144` is labelled "time factor" in myUplink but is the compressor's energy counter in
-kWh.
+- **Internet:** ICMP to public resolvers, the SSH banner of GitHub on ports 22 and 443, and TCP to the cloud APIs
+  the homelab uses (`group="internet"`). ICMP works unprivileged through the pod's `ping_group_range` sysctl.
+
+`apps/influxdb/telegraf-cloud.yaml` fetches cloud data into InfluxDB (bucket `home`, field `value`). Its
+credentials, the NIBE device id, the FMI station and the home coordinates are in `telegraf-cloud.sops.yaml`,
+and its InfluxDB token ("homelab InfluxDB telegraf-nibe token" in 1Password) can only write to `home`.
+
+- **NIBE F750 heat pump** (measurement `nibe`, tags `id`, `name`, `unit`): every myUplink data point, once a
+  minute, the same interval as the official Home Assistant integration. Query by `id` (the parameter number),
+  because NIBE can rename points. The myUplink app ("myUplink homelab API" in 1Password) only requests the
+  `READSYSTEM` scope, so the poller cannot change pump settings. Point `43144` is labelled "time factor" but is
+  the compressor's energy counter in kWh.
+- **FMI weather** (no key): `fmi_observation` holds the nearest station's 10-minute observations, tagged by
+  `param` (`t2m`, `ws_10min`, `r_1h` and so on). `fmi_forecast` holds the forecast for home, rewritten hourly so
+  future points are always the latest forecast. NaN values are skipped because InfluxDB cannot store them.
+
+The heat pump dashboard's shower estimate uses constants in `heatpump.py`. They come from the water meter
+history: evening showers run about 4.8 L/min for 13–15 minutes. Re-measure them if the shower head changes.
 
 Grafana also queries the apps' PostgreSQL databases directly as `grafana_ro`. That is a SELECT-only role with
 `pg_monitor`, set to read-only by default with a 30 s statement timeout. It exists on `postgres` (ferrotune,
