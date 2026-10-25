@@ -5,7 +5,7 @@ side by side. Every other dashboard is one click away in the link bar.
 
 | Folder | Dashboards | Data |
 | --- | --- | --- |
-| Home | Energy & water, Climate, Devices, 3D printing | InfluxDB `home` (MQTT via Telegraf) and `nordpool` |
+| Home | Energy & water, Climate, Devices, Heat pump, 3D printing | InfluxDB `home` (MQTT via Telegraf, myUplink) and `nordpool` |
 | Homelab | Services, Workloads, Hardware, Network, Logs & security, Apps | Prometheus, Loki, app PostgreSQL databases |
 | Kubernetes, Loki | Stock kube-prometheus-stack and Loki mixin dashboards | Prometheus |
 | Legacy (hand-made) | The old UI-made dashboards, kept for reference | InfluxDB |
@@ -16,7 +16,8 @@ side by side. Every other dashboard is one click away in the link bar.
 
 - `lib.py` contains the panel and target builders and the colour slots. Each entity (a smart plug, a room) keeps
   one fixed colour.
-- `home.py` holds the house dashboards and the BLE sensor and smart plug names.
+- `home.py` holds the house dashboards and the BLE sensor and smart plug names; `heatpump.py` and `printing.py`
+  hold the heat pump and 3D printing dashboards.
 - `lab.py` holds the homelab dashboards and the overview.
 
 Edit those files, then run `python3 infrastructure/monitoring/grafana/dashboards/generate.py` and commit the
@@ -48,6 +49,14 @@ ids are ignored on purpose, because neighbours' sensors show up too.
 - **LAN targets:** every scrape config that names a LAN address is in `lan.sops.yaml`. Only `targets` is
   encrypted there, because this repo is public.
 
+`apps/influxdb/telegraf-nibe.yaml` polls the NIBE F750 heat pump through the myUplink cloud API once a minute
+(the official Home Assistant integration uses the same interval) and writes every data point to InfluxDB:
+bucket `home`, measurement `nibe`, field `value`, tags `id` (the parameter number), `name` and `unit`. Query by
+`id`, because the names come from NIBE and can change. The myUplink app ("myUplink homelab API" in 1Password) only
+ever requests the `READSYSTEM` scope, so the poller cannot change pump settings, and its InfluxDB token can only
+write to `home`. Point `43144` is labelled "time factor" in myUplink but is the compressor's energy counter in
+kWh.
+
 Grafana also queries the apps' PostgreSQL databases directly as `grafana_ro`. That is a SELECT-only role with
 `pg_monitor`, set to read-only by default with a 30 s statement timeout. It exists on `postgres` (ferrotune,
 homectl, bambuddy) and on `immich-postgres`; the password is in 1Password ("homelab PostgreSQL grafana_ro"). The role was
@@ -66,7 +75,8 @@ from that database.
   `critical` alert and a few chosen stock alerts, to the Discord channel that Flux notifications use. Everything
   else stays in the Alertmanager UI.
 - Grafana-managed rules for the InfluxDB data are in `grafana/grafana-alerting.sops.yaml` and go to the same
-  Discord webhook. They cover the freezer, the fridge, water flowing non-stop, and home sensors going silent.
+  Discord webhook. They cover the freezer, the fridge, water flowing non-stop for 3 hours (normal use always pauses within
+  about 2 hours), and home sensors going silent.
 
 ## Pitfalls
 
