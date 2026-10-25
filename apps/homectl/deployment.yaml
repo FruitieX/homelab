@@ -17,6 +17,7 @@ spec:
       labels:
         app: homectl
     spec:
+      priorityClassName: homelab-home
       containers:
         - name: homectl
           image: ghcr.io/fruitiex/homectl:main@sha256:af56a3a07ce03bcf74ba0728a3b858d1300e6c6484ca89e166fd48cf678d8330
@@ -45,6 +46,8 @@ spec:
             - name: HOMECTL_OIDC_ADMIN_GROUPS
               value: admins
           resources:
+            requests:
+              memory: 160Mi
             limits:
               memory: 512Mi
               cpu: 500m

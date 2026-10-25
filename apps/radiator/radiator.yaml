@@ -1836,6 +1836,7 @@ spec:
       labels:
         app: radiator-postgres
     spec:
+      priorityClassName: homelab-home
       containers:
         - name: postgres
           image: postgres:18@sha256:0377e72c5289ed2f98cf61b1a9c2db9eb9d300317fe14244492fbc94343b3d04
@@ -1870,6 +1871,8 @@ spec:
             periodSeconds: 10
             timeoutSeconds: 5
           resources:
+            requests:
+              memory: 48Mi
             limits:
               cpu: 1000m
               memory: 512Mi
@@ -1951,6 +1954,7 @@ spec:
       labels:
         app: radiator
     spec:
+      priorityClassName: homelab-home
       securityContext:
         runAsNonRoot: true
       initContainers:

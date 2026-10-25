@@ -14,6 +14,7 @@ spec:
       labels:
         app: telegraf-home
     spec:
+      priorityClassName: homelab-home
       volumes:
         - name: telegraf-home-config
           secret:
@@ -23,6 +24,8 @@ spec:
         - name: telegraf
           image: telegraf
           resources:
+            requests:
+              memory: 48Mi
             limits:
               memory: 300Mi
               cpu: 100m

@@ -15,6 +15,9 @@ spec:
         name: influxdata
         namespace: flux-system
   values:
+    resources:
+      requests:
+        memory: 4Gi
     adminUser:
       existingSecret: influxdb-auth
     persistence:

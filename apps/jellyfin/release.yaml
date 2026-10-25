@@ -15,6 +15,10 @@ spec:
         name: jellyfin
         namespace: flux-system
   values:
+    priorityClassName: homelab-apps
+    resources:
+      requests:
+        memory: 384Mi
     ingress:
       enabled: false
     persistence:

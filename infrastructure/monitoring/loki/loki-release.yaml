@@ -16,8 +16,16 @@ spec:
         namespace: flux-system
   values:
     deploymentMode: SingleBinary
+    # loki-sc-rules sidecar
+    sidecar:
+      resources:
+        requests:
+          memory: 64Mi
     singleBinary:
       replicas: 1
+      resources:
+        requests:
+          memory: 384Mi
       persistence:
         enabled: true
         size: 50Gi

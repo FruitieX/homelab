@@ -17,6 +17,7 @@ spec:
       labels:
         app: ferrotune
     spec:
+      priorityClassName: homelab-apps
       imagePullSecrets:
         - name: ghcr-credentials
       volumes:
@@ -36,6 +37,8 @@ spec:
             - secretRef:
                 name: ferrotune-env
           resources:
+            requests:
+              memory: 32Mi
             limits:
               memory: 2Gi
               cpu: 1000m

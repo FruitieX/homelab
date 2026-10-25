@@ -36,3 +36,8 @@ spec:
     # requires the privileged Pod Security labels on the arc-runners namespace.
     containerMode:
       type: dind
+
+    # Runner pods yield to everything else when capacity is short.
+    template:
+      spec:
+        priorityClassName: homelab-batch

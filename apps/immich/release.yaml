@@ -28,8 +28,13 @@ spec:
     server:
       controllers:
         main:
+          pod:
+            priorityClassName: homelab-apps
           containers:
             main:
+              resources:
+                requests:
+                  memory: 1280Mi
               env:
                 DB_DATABASE_NAME: immich
                 DB_HOSTNAME: immich-postgres.fruitiex.org
@@ -59,11 +64,22 @@ spec:
       enabled: true
       controllers:
         main:
+          pod:
+            priorityClassName: homelab-apps
           containers:
             main:
+              resources:
+                requests:
+                  memory: 32Mi
               image:
                 repository: docker.io/valkey/valkey
                 tag: 8.0-alpine
+
+    machine-learning:
+      controllers:
+        main:
+          pod:
+            priorityClassName: homelab-batch
 
     immich:
       persistence:

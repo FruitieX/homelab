@@ -16,6 +16,7 @@ spec:
       labels:
         app: littlecupboard
     spec:
+      priorityClassName: homelab-apps
       imagePullSecrets:
         - name: ghcr-credentials
       securityContext:

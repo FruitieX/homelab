@@ -20,6 +20,9 @@ spec:
   values:
     ingress:
       enabled: false
+    resources:
+      requests:
+        memory: 192Mi
     # Sign-in through Pocket ID (admins group only); the local admin stays
     # reachable at /login?disableAutoLogin.
     envFromSecret: grafana-oidc
@@ -61,6 +64,10 @@ spec:
         - ReadWriteOnce
       size: 10Gi
     sidecar:
+      # Shared by all four sidecar containers.
+      resources:
+        requests:
+          memory: 64Mi
       alerts:
         enabled: true
         searchNamespace: ALL

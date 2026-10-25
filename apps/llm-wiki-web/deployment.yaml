@@ -17,6 +17,7 @@ spec:
       labels:
         app: llm-wiki-web
     spec:
+      priorityClassName: homelab-apps
       imagePullSecrets:
         - name: ghcr-credentials
       securityContext:

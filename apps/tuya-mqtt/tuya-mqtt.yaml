@@ -14,6 +14,7 @@ spec:
       labels:
         app: tuya-mqtt
     spec:
+      priorityClassName: homelab-home
       volumes:
         - name: tuya-mqtt-config
           secret:
@@ -23,6 +24,8 @@ spec:
         - name: tuya-mqtt
           image: ghcr.io/fruitiex/tuya-mqtt:main@sha256:0f9fc2f6443fd63ebbcef02a10cbd607a57be18e0ba60eef9a259fd375aaac21
           resources:
+            requests:
+              memory: 32Mi
             limits:
               memory: 128Mi
               cpu: 100m

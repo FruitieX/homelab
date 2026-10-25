@@ -15,3 +15,14 @@ spec:
         name: metallb
         namespace: flux-system
   releaseName: metallb
+  values:
+    controller:
+      priorityClassName: homelab-critical
+      resources:
+        requests:
+          memory: 96Mi
+    speaker:
+      priorityClassName: homelab-critical
+      resources:
+        requests:
+          memory: 48Mi

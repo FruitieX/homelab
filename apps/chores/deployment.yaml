@@ -16,6 +16,7 @@ spec:
       labels:
         app: chores
     spec:
+      priorityClassName: homelab-apps
       imagePullSecrets:
         - name: ghcr-credentials
       securityContext:

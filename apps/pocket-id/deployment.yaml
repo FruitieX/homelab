@@ -16,6 +16,7 @@ spec:
       labels:
         app: pocket-id
     spec:
+      priorityClassName: homelab-critical
       securityContext:
         seccompProfile:
           type: RuntimeDefault

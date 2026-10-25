@@ -21,6 +21,12 @@ spec:
   upgrade:
     crds: CreateReplace
   values:
+    # Sets the config-reloader sidecar of Prometheus and Alertmanager.
+    prometheusOperator:
+      prometheusConfigReloader:
+        resources:
+          requests:
+            memory: 32Mi
     grafana:
       enabled: false
       forceDeployDatasources: true
@@ -201,6 +207,7 @@ spec:
               - webhook_url_file: /etc/alertmanager/secrets/alertmanager-discord/webhook-url
                 send_resolved: true
       alertmanagerSpec:
+        priorityClassName: homelab-home
         secrets:
           - alertmanager-discord
         storage:
@@ -216,6 +223,10 @@ spec:
       ingress:
         enabled: false
       prometheusSpec:
+        priorityClassName: homelab-home
+        resources:
+          requests:
+            memory: 1536Mi
         # Select every monitor/probe/rule in the cluster, not only those
         # labelled release=kube-prometheus-stack.
         serviceMonitorSelectorNilUsesHelmValues: false

@@ -1,0 +1,45 @@
+# Pod priority tiers. With one worker host down, the scheduler preempts
+# lower tiers so that higher ones keep running. Applied by the root
+# flux-system Kustomization (clusters/homelab/kustomization.yaml), so the
+# classes exist before any child Kustomization creates pods that use them.
+# Unassigned pods get priority 0 (no globalDefault).
+---
+# Shared plumbing other apps depend on: ingress, load balancing, DNS,
+# certificates, storage, identity, shared databases, MQTT.
+apiVersion: scheduling.k8s.io/v1
+kind: PriorityClass
+metadata:
+  name: homelab-critical
+value: 1000000
+globalDefault: false
+description: Shared plumbing other homelab apps depend on.
+---
+# Things the house runs on: home automation, MQTT bridges, door, alarm,
+# network auth, and the metrics/alerting that watch them.
+apiVersion: scheduling.k8s.io/v1
+kind: PriorityClass
+metadata:
+  name: homelab-home
+value: 100000
+globalDefault: false
+description: Things the house runs on.
+---
+# Family-facing apps.
+apiVersion: scheduling.k8s.io/v1
+kind: PriorityClass
+metadata:
+  name: homelab-apps
+value: 10000
+globalDefault: false
+description: Family-facing apps.
+---
+# Batch work (ML jobs, CI runners) that should yield: below the default 0
+# and never preempts other pods.
+apiVersion: scheduling.k8s.io/v1
+kind: PriorityClass
+metadata:
+  name: homelab-batch
+value: -100
+globalDefault: false
+preemptionPolicy: Never
+description: Batch work that yields to everything else and never preempts.

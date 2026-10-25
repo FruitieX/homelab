@@ -70,6 +70,7 @@ spec:
       labels:
         app: fruitiex-org
     spec:
+      priorityClassName: homelab-apps
       containers:
         - name: fruitiex-org
           image: ghcr.io/fruitiex/fruitiex.org:main@sha256:6f17c22856aeeb67accb709acfcf8d0c20aca12f0468d76dcace0221abd26113
@@ -79,6 +80,8 @@ spec:
               containerPort: 80
               protocol: TCP
           resources:
+            requests:
+              memory: 32Mi
             limits:
               memory: 128Mi
               cpu: 100m

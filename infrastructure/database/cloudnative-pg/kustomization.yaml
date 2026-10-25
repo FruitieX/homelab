@@ -2,3 +2,12 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
   - operator.yaml
+patches:
+  # Keep the upstream operator.yaml unmodified; see infrastructure/priority-classes.
+  - target:
+      kind: Deployment
+      name: cnpg-controller-manager
+    patch: |
+      - op: add
+        path: /spec/template/spec/priorityClassName
+        value: homelab-critical

@@ -56,6 +56,7 @@ spec:
       labels:
         app: synology-csi-node
     spec:
+      priorityClassName: homelab-critical
       hostPID: true
       serviceAccount: csi-node-sa
       hostNetwork: true
@@ -83,6 +84,9 @@ spec:
               mountPath: /csi
             - name: registration-dir
               mountPath: /registration
+          resources:
+            requests:
+              memory: 32Mi
         - name: csi-plugin
           securityContext:
             privileged: true
@@ -114,6 +118,9 @@ spec:
               mountPath: /host
             - name: device-dir
               mountPath: /dev
+          resources:
+            requests:
+              memory: 32Mi
       volumes:
         - name: kubelet-dir
           hostPath:

@@ -12,6 +12,7 @@ spec:
       labels:
         app: photoframe-rs
     spec:
+      priorityClassName: homelab-apps
       volumes:
         - name: photoframe-rs-config
           persistentVolumeClaim:
@@ -20,6 +21,8 @@ spec:
         - name: photoframe-rs
           image: ghcr.io/fruitiex/photoframe-rs-server:main@sha256:41d00e110286538678a3ebf959051e995ba7dc18aa01115e034fbfa56ff0669c
           resources:
+            requests:
+              memory: 80Mi
             limits:
               memory: 512Mi
               cpu: 1000m

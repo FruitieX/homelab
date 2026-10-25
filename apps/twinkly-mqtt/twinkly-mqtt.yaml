@@ -14,6 +14,7 @@ spec:
       labels:
         app: twinkly-mqtt
     spec:
+      priorityClassName: homelab-home
       volumes:
         - name: twinkly-mqtt-config
           secret:
@@ -23,6 +24,8 @@ spec:
         - name: twinkly-mqtt
           image: ghcr.io/fruitiex/twinkly-mqtt:main@sha256:df38db40e381f8ea10aad4ed64538c554611347d20f0f1ffe9b532c31ae98e60
           resources:
+            requests:
+              memory: 32Mi
             limits:
               memory: 128Mi
               cpu: 100m

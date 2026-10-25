@@ -32,6 +32,7 @@ spec:
           image: docker.io/envoyproxy/ratelimit:17b1956c@sha256:871098f54d99ad612abdd455e39632be6d990937be2e46eecf4e39f65d948a94
     deployment:
       replicas: 2
+      priorityClassName: homelab-critical
       envoyGateway:
         resources:
           requests:

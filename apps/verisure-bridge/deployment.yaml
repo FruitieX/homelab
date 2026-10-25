@@ -34,6 +34,7 @@ spec:
       labels:
         app: verisure-bridge
     spec:
+      priorityClassName: homelab-home
       volumes:
         - name: script
           configMap:

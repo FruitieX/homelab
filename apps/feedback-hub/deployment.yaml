@@ -17,6 +17,7 @@ spec:
       labels:
         app: feedback-hub
     spec:
+      priorityClassName: homelab-apps
       imagePullSecrets:
         - name: ghcr-credentials
       securityContext:

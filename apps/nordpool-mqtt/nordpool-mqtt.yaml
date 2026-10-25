@@ -14,6 +14,7 @@ spec:
       labels:
         app: nordpool-mqtt
     spec:
+      priorityClassName: homelab-home
       volumes:
         - name: nordpool-mqtt-config
           secret:
@@ -23,6 +24,8 @@ spec:
         - name: nordpool-mqtt
           image: ghcr.io/fruitiex/nordpool-mqtt:main@sha256:5d466cb81748c39d41120115d84062fe265d535dfc2ed2bfb3df618bf7c64b8d
           resources:
+            requests:
+              memory: 32Mi
             limits:
               memory: 128Mi
               cpu: 100m

@@ -82,6 +82,7 @@ spec:
       labels:
         app: synology-csi-controller
     spec:
+      priorityClassName: homelab-critical
       serviceAccountName: csi-controller-sa
       hostNetwork: true
       containers:
@@ -103,6 +104,9 @@ spec:
           volumeMounts:
             - name: socket-dir
               mountPath: /var/lib/csi/sockets/pluginproxy/
+          resources:
+            requests:
+              memory: 32Mi
         - name: csi-attacher
           securityContext:
             privileged: true
@@ -120,6 +124,9 @@ spec:
           volumeMounts:
             - name: socket-dir
               mountPath: /var/lib/csi/sockets/pluginproxy/
+          resources:
+            requests:
+              memory: 32Mi
         - name: csi-resizer
           securityContext:
             privileged: true
@@ -137,6 +144,9 @@ spec:
           volumeMounts:
             - name: socket-dir
               mountPath: /var/lib/csi/sockets/pluginproxy/
+          resources:
+            requests:
+              memory: 32Mi
         - name: csi-plugin
           securityContext:
             privileged: true
@@ -160,6 +170,9 @@ spec:
             - name: client-info
               mountPath: /etc/synology
               readOnly: true
+          resources:
+            requests:
+              memory: 32Mi
       volumes:
         - name: socket-dir
           emptyDir: {}

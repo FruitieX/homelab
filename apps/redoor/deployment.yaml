@@ -17,6 +17,7 @@ spec:
       labels:
         app: redoor
     spec:
+      priorityClassName: homelab-home
       enableServiceLinks: false
       securityContext:
         runAsNonRoot: true

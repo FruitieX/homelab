@@ -14,6 +14,7 @@ spec:
       labels:
         app: external-dns
     spec:
+      priorityClassName: homelab-critical
       serviceAccountName: external-dns
       containers:
         - name: external-dns
@@ -34,6 +35,8 @@ spec:
             - name: CF_API_TOKEN
               value: ${EXTERNAL_DNS_CLOUDFLARE_API_TOKEN}
           resources:
+            requests:
+              memory: 48Mi
             limits:
               memory: 512Mi
               cpu: 500m

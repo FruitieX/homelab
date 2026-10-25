@@ -46,6 +46,7 @@ spec:
       labels:
         app: postgres
     spec:
+      priorityClassName: homelab-critical
       containers:
         - name: postgres
           image: postgres:16@sha256:e2135391c55eb2ecabaaaeef4a9538bb8915c1980953fb6ce41a2d6d3e4b5695
@@ -62,6 +63,8 @@ spec:
             - mountPath: /var/lib/postgresql/data
               name: postgres-data
           resources:
+            requests:
+              memory: 192Mi
             limits:
               cpu: 1000m
               memory: 512Mi

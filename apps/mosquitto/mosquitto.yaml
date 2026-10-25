@@ -33,6 +33,7 @@ spec:
       labels:
         app: mosquitto
     spec:
+      priorityClassName: homelab-critical
       containers:
         - name: mosquitto
           image: eclipse-mosquitto:2.0@sha256:eca7dcecf2498396b5217bc06ffcc2da889d3a8f65fc0761fc5c4c071b3c272a
@@ -44,6 +45,8 @@ spec:
             - containerPort: 9001
               name: websocket
           resources:
+            requests:
+              memory: 32Mi
             limits:
               cpu: 100m
               memory: 512Mi

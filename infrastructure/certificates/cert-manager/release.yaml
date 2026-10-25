@@ -16,6 +16,19 @@ spec:
         namespace: flux-system
   values:
     installCRDs: true
+    global:
+      priorityClassName: homelab-critical
+    resources:
+      requests:
+        memory: 32Mi
+    cainjector:
+      resources:
+        requests:
+          memory: 64Mi
+    webhook:
+      resources:
+        requests:
+          memory: 32Mi
     prometheus:
       enabled: true
       servicemonitor:

@@ -14,3 +14,8 @@ spec:
         kind: HelmRepository
         name: emberstack
         namespace: flux-system
+  values:
+    priorityClassName: homelab-critical
+    resources:
+      requests:
+        memory: 128Mi

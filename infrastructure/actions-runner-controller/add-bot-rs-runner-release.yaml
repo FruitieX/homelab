@@ -33,3 +33,8 @@ spec:
     # Docker builds require the privileged DinD runner mode.
     containerMode:
       type: dind
+
+    # Runner pods yield to everything else when capacity is short.
+    template:
+      spec:
+        priorityClassName: homelab-batch

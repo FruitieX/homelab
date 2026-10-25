@@ -19,6 +19,7 @@ spec:
       labels:
         app: spliit
     spec:
+      priorityClassName: homelab-apps
       containers:
         - name: spliit
           image: ghcr.io/spliit-app/spliit:1.25.0
