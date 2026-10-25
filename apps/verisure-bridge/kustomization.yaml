@@ -8,5 +8,6 @@ configMapGenerator:
     namespace: default
     files:
       - bridge.py
+      - verisure_api.py
 generatorOptions:
   disableNameSuffixHash: true

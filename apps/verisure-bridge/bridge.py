@@ -1,9 +1,9 @@
 """Verisure notification bridge: Android notifications from the android-bliss VM -> MQTT.
 
 Read-only towards the Verisure app and the alarm: it only runs `dumpsys` over adb and never sends input,
-starts activities or touches the app. On each (re)connect it re-applies two device settings that do not
-survive a reboot (mains power, and the Verisure app's battery-optimisation exemption) so pushes are not
-deferred.
+starts activities or touches the app, and verisure_api.py can only send read queries. On each (re)connect
+it re-applies two device settings that do not survive a reboot (mains power, and the Verisure app's
+battery-optimisation exemption) so pushes are not deferred.
 
 MQTT topics (prefix from MQTT_PREFIX, default home/verisure):
   <prefix>/notification   every new Verisure notification as JSON (not retained)
@@ -15,14 +15,19 @@ The Finnish app texts are "Päällekytkentä - <name>" (armed) and "Poiskytkent�
 notification does not say whether the system was armed fully or in stay/home mode. On start the newest
 existing Verisure notification seeds the state.
   <prefix>/bridge         online / offline (retained, last will)
+  <prefix>/mode           armed_away / armed_home / disarmed from Verisure's API (retained); needs
+                          VERISURE_USERNAME/PASSWORD, see verisure_api.py
+  <prefix>/arm_state      the API's armState as JSON (retained)
 """
-import json, os, re, subprocess, sys, time
+import json, os, re, subprocess, sys, threading, time
+
+import verisure_api
 
 SERIAL = os.environ["ADB_SERIAL"]
 PKG = os.environ.get("VERISURE_PACKAGE", "com.sdi.mobile.android.verisure")
 PREFIX = os.environ.get("MQTT_PREFIX", "home/verisure")
 MQTT = os.environ.get("MQTT_HOST", "mqtt")
-INTERVAL = float(os.environ.get("POLL_SECONDS", "2"))
+INTERVAL = float(os.environ.get("POLL_SECONDS", "1"))
 
 EXTRA = re.compile(r"^\s*android\.(title|text|bigText|subText|infoText|summaryText)=\S+ \((.*)\)\s*$")
 ANY_EXTRA = re.compile(r"^\s*((?:android|com)\.[\w.]+)=(\S+)(?: \((.*)\))?\s*$")
@@ -97,12 +102,36 @@ def state_of(n):
     return ("disarmed" if word.startswith(("pois", "disarm")) else "armed"), m.group(2)
 
 
-def publish_state(n):
+API = verisure_api.from_env()
+MODES = {"ARMED_AWAY": "armed_away", "ARMED_HOME": "armed_home", "DISARMED": "disarmed"}
+
+
+def lookup_mode(delay):
+    """One read-only API call for the arm mode (the notification does not say stay vs away)."""
+    time.sleep(delay)
+    try:
+        s = API.arm_state()
+    except verisure_api.MfaRequired as e:
+        log("verisure api:", e)
+        return
+    except Exception as e:  # rate limits, outages: skip this one, the next event tries again
+        log("verisure api error:", e)
+        return
+    publish("arm_state", json.dumps(s, ensure_ascii=False), retain=True)
+    mode = MODES.get(s.get("statusType"))
+    if mode:
+        publish("mode", mode, retain=True)
+    log("mode", s.get("statusType"), "by", s.get("name"), "via", s.get("changedVia"))
+
+
+def publish_state(n, lookup_delay=3):
     state, who = state_of(n)
     if state:
         publish("state", state, retain=True)
         publish("changed_by", who or "", retain=True)
         log("state", state, "by", who)
+        if API:
+            threading.Thread(target=lookup_mode, args=(lookup_delay,), daemon=True).start()
 
 
 def main():
@@ -123,7 +152,7 @@ def main():
                 log("existing notifications:", len(current))
                 known = [n for n in current.values() if state_of(n)[0]]
                 if known:
-                    publish_state(max(known, key=lambda n: n.get("when_ms", 0)))
+                    publish_state(max(known, key=lambda n: n.get("when_ms", 0)), lookup_delay=0)
             for key, n in current.items():
                 if seen.get(key) == n:
                     continue
