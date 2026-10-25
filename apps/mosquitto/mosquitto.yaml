@@ -31,6 +31,8 @@ spec:
   # One writer for the persistence file.
   strategy:
     type: Recreate
+    # Clears the live object's default rollingUpdate under server-side apply.
+    rollingUpdate: null
   template:
     metadata:
       labels:
