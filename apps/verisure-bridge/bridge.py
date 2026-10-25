@@ -110,9 +110,10 @@ def lookup_mode(expected=None):
     """One read-only API call for the arm mode (the notification does not say stay vs away).
 
     If the answer contradicts the notification (the API not caught up yet), try once more 3 s later."""
+    api = verisure_api.from_env()  # fresh client: picks up cookies saved by other processes (MFA setup)
     for attempt in (1, 2):
         try:
-            s = API.arm_state()
+            s = api.arm_state()
         except verisure_api.MfaRequired as e:
             log("verisure api:", e)
             return
