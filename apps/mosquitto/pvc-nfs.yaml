@@ -1,0 +1,16 @@
+# Retained messages (zigbee2mqtt's bridge/devices, device states, availability)
+# must survive broker restarts: homectl can't decode zigbee2mqtt traffic
+# without bridge/devices, and zigbee2mqtt only republishes it when it starts.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mosquitto-data-nfs
+  namespace: default
+  annotations:
+    kustomize.toolkit.fluxcd.io/prune: disabled
+spec:
+  accessModes: [ReadWriteOnce]
+  storageClassName: nfs-csi
+  resources:
+    requests:
+      storage: 1Gi

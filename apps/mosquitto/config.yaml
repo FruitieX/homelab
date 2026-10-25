@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mosquitto-config
+  namespace: default
+data:
+  mosquitto.conf: |
+    listener 1883
+    allow_anonymous true
+
+    # Keep retained messages across restarts (see pvc-nfs.yaml). Saved every
+    # minute and on shutdown.
+    persistence true
+    persistence_location /mosquitto/data/
+    autosave_interval 60

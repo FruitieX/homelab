@@ -28,26 +28,53 @@ spec:
   selector:
     matchLabels:
       app: mosquitto
+  # One writer for the persistence file.
+  strategy:
+    type: Recreate
   template:
     metadata:
       labels:
         app: mosquitto
     spec:
       priorityClassName: homelab-critical
+      securityContext:
+        runAsUser: 1883
+        runAsGroup: 1883
+        fsGroup: 1883
+        fsGroupChangePolicy: OnRootMismatch
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
       containers:
         - name: mosquitto
           image: eclipse-mosquitto:2.0@sha256:eca7dcecf2498396b5217bc06ffcc2da889d3a8f65fc0761fc5c4c071b3c272a
           command: ["mosquitto"]
-          args: ["-c", "/mosquitto-no-auth.conf"]
+          args: ["-c", "/mosquitto/config/mosquitto.conf"]
           ports:
             - containerPort: 1883
               name: mqtt
             - containerPort: 9001
               name: websocket
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: [ALL]
+          volumeMounts:
+            - name: config
+              mountPath: /mosquitto/config
+              readOnly: true
+            - name: data
+              mountPath: /mosquitto/data
           resources:
             requests:
               memory: 32Mi
             limits:
               cpu: 100m
               memory: 512Mi
----
+      volumes:
+        - name: config
+          configMap:
+            name: mosquitto-config
+        - name: data
+          persistentVolumeClaim:
+            claimName: mosquitto-data-nfs
