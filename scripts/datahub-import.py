@@ -22,14 +22,14 @@ def lines(path):
             yield f'electricity,source=datahub,resolution={row["Resolution"]} kwh={kwh} {ts}\n'
 
 
-def write(data):
-    """Write line protocol (second precision) to the home bucket."""
+def write(data, bucket=BUCKET):
+    """Write line protocol (second precision) to an InfluxDB bucket (default home)."""
     token = base64.b64decode(subprocess.run(
         ["kubectl", "-n", "influxdb", "get", "secret", "influxdb-auth", "-o", "jsonpath={.data.admin-token}"],
         check=True, capture_output=True, text=True).stdout).decode()
     # The token goes in on the first stdin line so it never shows up in a process listing.
     subprocess.run(["kubectl", "-n", "influxdb", "exec", "-i", "influxdb-influxdb2-0", "--", "sh", "-c",
-                    f'read -r INFLUX_TOKEN; export INFLUX_TOKEN; influx write --org {ORG} --bucket {BUCKET} '
+                    f'read -r INFLUX_TOKEN; export INFLUX_TOKEN; influx write --org {ORG} --bucket {bucket} '
                     '--precision s'], input=token + "\n" + data, check=True, text=True)
 
 
