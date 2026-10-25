@@ -167,10 +167,10 @@ def main():
                 seen[key] = n
                 event = {"key": key, **n, "seen_ms": int(time.time() * 1000)}
                 payload = json.dumps(event, ensure_ascii=False)
+                publish_state(n)  # state first: it is what automations wait for
                 log("notification", payload)
                 publish("notification", payload)
                 publish("last", payload, retain=True)
-                publish_state(n)
             for key in list(seen):
                 if key not in current:
                     del seen[key]
