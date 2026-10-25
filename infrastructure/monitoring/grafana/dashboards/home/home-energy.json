@@ -1513,7 +1513,7 @@
     "defaults": {
      "custom": {},
      "unit": "kwatth",
-     "decimals": 0,
+     "decimals": 1,
      "color": {
       "mode": "thresholds"
      },
@@ -1575,7 +1575,7 @@
     "defaults": {
      "custom": {},
      "unit": "kwatth",
-     "decimals": 0,
+     "decimals": 1,
      "thresholds": {
       "mode": "absolute",
       "steps": [
@@ -1629,7 +1629,7 @@
       "type": "influxdb",
       "uid": "influxdb-home"
      },
-     "query": "from(bucket: \"home\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"electricity\" and r._field == \"kwh\")\n  |> group()\n  |> keep(columns: [\"_time\", \"_value\"])\n  |> aggregateWindow(every: 1d, fn: sum, createEmpty: false, timeSrc: \"_start\")\n  |> set(key: \"series\", value: \"Used\")",
+     "query": "from(bucket: \"home\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"electricity\" and r._field == \"kwh\")\n  |> group()\n  |> keep(columns: [\"_time\", \"_value\"])\n  |> aggregateWindow(every: 1d, fn: sum, createEmpty: false, timeSrc: \"_start\")\n  |> set(key: \"series\", value: \"Used\")\n  |> group(columns: [\"series\"])",
      "refId": "A"
     },
     {
@@ -1757,7 +1757,7 @@
       "type": "influxdb",
       "uid": "influxdb-home"
      },
-     "query": "import \"timezone\"\nimport \"date\"\noption location = timezone.location(name: \"Europe/Helsinki\")\n\nused =\nfrom(bucket: \"home\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"electricity\" and r._field == \"kwh\")\n  |> group()\n  |> keep(columns: [\"_time\", \"_value\"])\n  |> aggregateWindow(every: 1d, fn: sum, createEmpty: false, timeSrc: \"_start\")\n  |> set(key: \"series\", value: \"Used\")\n  |> group()\n  |> timedMovingAverage(every: 1d, period: 30d)\nexp =\nfrom(bucket: \"home\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"fmi_daily\" and r.param == \"tday\")\n  |> map(fn: (r) => ({_time: date.truncate(t: r._time, unit: 1d), _value: 19.9 + 1.86 * (if r._value < 10.5 then 10.5 - r._value else 0.0), series: \"Expected from weather\"}))\n  |> group(columns: [\"series\"])\n  |> group()\n  |> timedMovingAverage(every: 1d, period: 30d)\njoin(tables: {u: used, e: exp}, on: [\"_time\"])\n  |> map(fn: (r) => ({_time: r._time, _value: r._value_u / r._value_e}))",
+     "query": "import \"timezone\"\nimport \"date\"\noption location = timezone.location(name: \"Europe/Helsinki\")\n\nused =\nfrom(bucket: \"home\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"electricity\" and r._field == \"kwh\")\n  |> group()\n  |> keep(columns: [\"_time\", \"_value\"])\n  |> aggregateWindow(every: 1d, fn: sum, createEmpty: false, timeSrc: \"_start\")\n  |> set(key: \"series\", value: \"Used\")\n  |> group(columns: [\"series\"])\n  |> group()\n  |> timedMovingAverage(every: 1d, period: 30d)\nexp =\nfrom(bucket: \"home\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"fmi_daily\" and r.param == \"tday\")\n  |> map(fn: (r) => ({_time: date.truncate(t: r._time, unit: 1d), _value: 19.9 + 1.86 * (if r._value < 10.5 then 10.5 - r._value else 0.0), series: \"Expected from weather\"}))\n  |> group(columns: [\"series\"])\n  |> group()\n  |> timedMovingAverage(every: 1d, period: 30d)\njoin(tables: {u: used, e: exp}, on: [\"_time\"])\n  |> map(fn: (r) => ({_time: r._time, _value: r._value_u / r._value_e}))",
      "refId": "A"
     }
    ],
@@ -1930,6 +1930,7 @@
    "fieldConfig": {
     "defaults": {
      "custom": {},
+     "unit": "suffix: g/kWh",
      "decimals": 0,
      "thresholds": {
       "mode": "absolute",

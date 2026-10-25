@@ -108,7 +108,8 @@ def electricity(every=None, start="v.timeRangeStart", stop="v.timeRangeStop"):
     if every:
         q += f'''
   |> aggregateWindow(every: {every}, fn: sum, createEmpty: false, timeSrc: "_start")
-  |> set(key: "series", value: "Used")'''
+  |> set(key: "series", value: "Used")
+  |> group(columns: ["series"])'''
     return q
 
 
@@ -259,10 +260,10 @@ def energy_dashboard():
 
     d.row("Whole house electricity (Datahub)")
     d.add(stat("Last 12 months", [flux(electricity(start="-365d", stop="now()") + "\n  |> sum()")], unit="kwatth",
-               decimals=0, graph=False, desc="From Fingrid Datahub exports, imported with scripts/datahub-import.py. "
+               decimals=1, graph=False, desc="From Fingrid Datahub exports, imported with scripts/datahub-import.py. "
                                              "Datahub data arrives 1–2 days late and only when imported."), 4, 6)
     d.add(stat("Expected from weather", [flux(expected_electricity(start="-365d", stop="now()") + "\n  |> sum()")],
-               unit="kwatth", decimals=0, graph=False, thr=thresholds(MUTED),
+               unit="kwatth", decimals=1, graph=False, thr=thresholds(MUTED),
                desc=f"What the 2021–2024 house would have used in the same weather: {ELEC_BASE} kWh/day plus "
                     f"{ELEC_SLOPE} kWh for each degree the daily mean is below {ELEC_BALANCE} °C."), 4, 6)
     d.add(timeseries("Electricity per day", [flux(electricity(every="1d")), flux(expected_electricity())],
@@ -297,7 +298,7 @@ join(tables: {{u: used, e: exp}}, on: ["_time"])
 
     d.row("Finnish grid (Fingrid)")
     d.add(stat("CO₂ now", [flux(fingrid({"co2_consumption": "Consumed"}, start="-30m", stop="now()", fn="last")
-                                + "\n  |> last()")], decimals=0, graph=False,
+                                + "\n  |> last()")], unit="suffix: g/kWh", decimals=0, graph=False,
                thr=thresholds(GOOD, (50, WARN), (100, BAD)),
                desc="Grams of CO₂ per kWh of electricity consumed in Finland, including imports (Fingrid, 3 min)."),
           4, 5)
