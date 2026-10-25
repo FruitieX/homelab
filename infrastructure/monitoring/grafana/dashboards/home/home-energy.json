@@ -1485,7 +1485,7 @@
   },
   {
    "type": "row",
-   "title": "Water",
+   "title": "Whole house electricity (Datahub)",
    "collapsed": false,
    "id": 19,
    "gridPos": {
@@ -1493,6 +1493,424 @@
     "w": 24,
     "x": 0,
     "y": 41
+   },
+   "panels": []
+  },
+  {
+   "type": "stat",
+   "title": "Last 12 months",
+   "targets": [
+    {
+     "datasource": {
+      "type": "influxdb",
+      "uid": "influxdb-home"
+     },
+     "query": "from(bucket: \"home\")\n  |> range(start: -365d, stop: now())\n  |> filter(fn: (r) => r._measurement == \"electricity\" and r._field == \"kwh\")\n  |> group()\n  |> keep(columns: [\"_time\", \"_value\"])\n  |> sum()",
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {},
+     "unit": "kwatth",
+     "decimals": 0,
+     "color": {
+      "mode": "thresholds"
+     },
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "#3987e5",
+        "value": null
+       }
+      ]
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    },
+    "graphMode": "none",
+    "colorMode": "value",
+    "textMode": "value",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "wideLayout": true,
+    "showPercentChange": false
+   },
+   "datasource": {
+    "type": "influxdb",
+    "uid": "influxdb-home"
+   },
+   "description": "From Fingrid Datahub exports, imported with scripts/datahub-import.py. Datahub data arrives 1–2 days late and only when imported.",
+   "id": 20,
+   "gridPos": {
+    "h": 6,
+    "w": 4,
+    "x": 0,
+    "y": 42
+   }
+  },
+  {
+   "type": "stat",
+   "title": "Expected from weather",
+   "targets": [
+    {
+     "datasource": {
+      "type": "influxdb",
+      "uid": "influxdb-home"
+     },
+     "query": "import \"date\"\nfrom(bucket: \"home\")\n  |> range(start: -365d, stop: now())\n  |> filter(fn: (r) => r._measurement == \"fmi_daily\" and r.param == \"tday\")\n  |> map(fn: (r) => ({_time: date.truncate(t: r._time, unit: 1d), _value: 19.9 + 1.86 * (if r._value < 10.5 then 10.5 - r._value else 0.0), series: \"Expected from weather\"}))\n  |> group(columns: [\"series\"])\n  |> sum()",
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {},
+     "unit": "kwatth",
+     "decimals": 0,
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "#7d7d7d",
+        "value": null
+       }
+      ]
+     },
+     "color": {
+      "mode": "thresholds"
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    },
+    "graphMode": "none",
+    "colorMode": "value",
+    "textMode": "value",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "wideLayout": true,
+    "showPercentChange": false
+   },
+   "datasource": {
+    "type": "influxdb",
+    "uid": "influxdb-home"
+   },
+   "description": "What the 2021–2024 house would have used in the same weather: 19.9 kWh/day plus 1.86 kWh for each degree the daily mean is below 10.5 °C.",
+   "id": 21,
+   "gridPos": {
+    "h": 6,
+    "w": 4,
+    "x": 4,
+    "y": 42
+   }
+  },
+  {
+   "type": "timeseries",
+   "title": "Electricity per day",
+   "targets": [
+    {
+     "datasource": {
+      "type": "influxdb",
+      "uid": "influxdb-home"
+     },
+     "query": "from(bucket: \"home\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"electricity\" and r._field == \"kwh\")\n  |> group()\n  |> keep(columns: [\"_time\", \"_value\"])\n  |> aggregateWindow(every: 1d, fn: sum, createEmpty: false, timeSrc: \"_start\")\n  |> set(key: \"series\", value: \"Used\")",
+     "refId": "A"
+    },
+    {
+     "datasource": {
+      "type": "influxdb",
+      "uid": "influxdb-home"
+     },
+     "query": "import \"date\"\nfrom(bucket: \"home\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"fmi_daily\" and r.param == \"tday\")\n  |> map(fn: (r) => ({_time: date.truncate(t: r._time, unit: 1d), _value: 19.9 + 1.86 * (if r._value < 10.5 then 10.5 - r._value else 0.0), series: \"Expected from weather\"}))\n  |> group(columns: [\"series\"])",
+     "refId": "B"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {
+      "drawStyle": "line",
+      "lineWidth": 2,
+      "fillOpacity": 12,
+      "gradientMode": "opacity",
+      "lineInterpolation": "smooth",
+      "showPoints": "never",
+      "spanNulls": true,
+      "stacking": {
+       "mode": "none",
+       "group": "A"
+      },
+      "axisBorderShow": false,
+      "barAlignment": -1,
+      "thresholdsStyle": {
+       "mode": "off"
+      },
+      "insertNulls": 3600000
+     },
+     "unit": "kwatth",
+     "decimals": 0,
+     "displayName": "${__field.labels.series}",
+     "color": {
+      "mode": "palette-classic"
+     }
+    },
+    "overrides": [
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "Used"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#3987e5"
+        }
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "Expected from weather"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#7d7d7d"
+        }
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "Used"
+      },
+      "properties": [
+       {
+        "id": "custom.drawStyle",
+        "value": "bars"
+       },
+       {
+        "id": "custom.fillOpacity",
+        "value": 80
+       },
+       {
+        "id": "custom.lineWidth",
+        "value": 1
+       }
+      ]
+     }
+    ]
+   },
+   "options": {
+    "legend": {
+     "displayMode": "list",
+     "placement": "bottom",
+     "showLegend": true,
+     "calcs": []
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "desc"
+    }
+   },
+   "datasource": {
+    "type": "influxdb",
+    "uid": "influxdb-home"
+   },
+   "description": "Bars: the house's metered use. Line: what the weather model expects.",
+   "timeFrom": "1y",
+   "id": 22,
+   "gridPos": {
+    "h": 6,
+    "w": 16,
+    "x": 8,
+    "y": 42
+   }
+  },
+  {
+   "type": "timeseries",
+   "title": "Use vs weather-expected (30-day)",
+   "targets": [
+    {
+     "datasource": {
+      "type": "influxdb",
+      "uid": "influxdb-home"
+     },
+     "query": "import \"timezone\"\nimport \"date\"\noption location = timezone.location(name: \"Europe/Helsinki\")\n\nused =\nfrom(bucket: \"home\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"electricity\" and r._field == \"kwh\")\n  |> group()\n  |> keep(columns: [\"_time\", \"_value\"])\n  |> aggregateWindow(every: 1d, fn: sum, createEmpty: false, timeSrc: \"_start\")\n  |> set(key: \"series\", value: \"Used\")\n  |> group()\n  |> timedMovingAverage(every: 1d, period: 30d)\nexp =\nfrom(bucket: \"home\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"fmi_daily\" and r.param == \"tday\")\n  |> map(fn: (r) => ({_time: date.truncate(t: r._time, unit: 1d), _value: 19.9 + 1.86 * (if r._value < 10.5 then 10.5 - r._value else 0.0), series: \"Expected from weather\"}))\n  |> group(columns: [\"series\"])\n  |> group()\n  |> timedMovingAverage(every: 1d, period: 30d)\njoin(tables: {u: used, e: exp}, on: [\"_time\"])\n  |> map(fn: (r) => ({_time: r._time, _value: r._value_u / r._value_e}))",
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {
+      "drawStyle": "line",
+      "lineWidth": 2,
+      "fillOpacity": 12,
+      "gradientMode": "opacity",
+      "lineInterpolation": "smooth",
+      "showPoints": "never",
+      "spanNulls": true,
+      "stacking": {
+       "mode": "none",
+       "group": "A"
+      },
+      "axisBorderShow": false,
+      "barAlignment": -1,
+      "thresholdsStyle": {
+       "mode": "dashed"
+      },
+      "insertNulls": 3600000
+     },
+     "unit": "percentunit",
+     "decimals": 0,
+     "color": {
+      "mode": "fixed",
+      "fixedColor": "#c98500"
+     },
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "#7d7d7d",
+        "value": null
+       },
+       {
+        "color": "#7d7d7d",
+        "value": 1
+       }
+      ]
+     },
+     "displayName": "Used ÷ expected"
+    },
+    "overrides": []
+   },
+   "options": {
+    "legend": {
+     "displayMode": "list",
+     "placement": "bottom",
+     "showLegend": true,
+     "calcs": []
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "desc"
+    }
+   },
+   "datasource": {
+    "type": "influxdb",
+    "uid": "influxdb-home"
+   },
+   "description": "Above 100 % means more electricity than the 2021–2024 house used in the same weather: a new always-on load, the electric heater, or a less efficient heat pump.",
+   "timeFrom": "6y",
+   "id": 23,
+   "gridPos": {
+    "h": 8,
+    "w": 12,
+    "x": 0,
+    "y": 48
+   }
+  },
+  {
+   "type": "timeseries",
+   "title": "Night base load",
+   "targets": [
+    {
+     "datasource": {
+      "type": "influxdb",
+      "uid": "influxdb-home"
+     },
+     "query": "import \"timezone\"\nimport \"date\"\noption location = timezone.location(name: \"Europe/Helsinki\")\nfrom(bucket: \"home\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"electricity\" and r._field == \"kwh\")\n  |> group()\n  |> keep(columns: [\"_time\", \"_value\"])\n  |> filter(fn: (r) => date.hour(t: r._time) >= 2 and date.hour(t: r._time) < 5)\n  |> aggregateWindow(every: 1w, fn: median, createEmpty: false, timeSrc: \"_start\")",
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {
+      "drawStyle": "line",
+      "lineWidth": 2,
+      "fillOpacity": 12,
+      "gradientMode": "opacity",
+      "lineInterpolation": "smooth",
+      "showPoints": "never",
+      "spanNulls": true,
+      "stacking": {
+       "mode": "none",
+       "group": "A"
+      },
+      "axisBorderShow": false,
+      "barAlignment": -1,
+      "thresholdsStyle": {
+       "mode": "off"
+      },
+      "insertNulls": 3600000
+     },
+     "unit": "kwatt",
+     "decimals": 2,
+     "color": {
+      "mode": "fixed",
+      "fixedColor": "#d55181"
+     },
+     "displayName": "02–05 median"
+    },
+    "overrides": []
+   },
+   "options": {
+    "legend": {
+     "displayMode": "list",
+     "placement": "bottom",
+     "showLegend": true,
+     "calcs": []
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "desc"
+    }
+   },
+   "datasource": {
+    "type": "influxdb",
+    "uid": "influxdb-home"
+   },
+   "description": "Median hourly use between 02 and 05, per week. In summer this is the always-on load (fridge, freezer, network, homelab, ventilation).",
+   "timeFrom": "6y",
+   "id": 24,
+   "gridPos": {
+    "h": 8,
+    "w": 12,
+    "x": 12,
+    "y": 48
+   }
+  },
+  {
+   "type": "row",
+   "title": "Water",
+   "collapsed": false,
+   "id": 25,
+   "gridPos": {
+    "h": 1,
+    "w": 24,
+    "x": 0,
+    "y": 56
    },
    "panels": []
   },
@@ -1556,12 +1974,12 @@
     "type": "influxdb",
     "uid": "influxdb-home"
    },
-   "id": 20,
+   "id": 26,
    "gridPos": {
     "h": 8,
     "w": 12,
     "x": 0,
-    "y": 42
+    "y": 57
    }
   },
   {
@@ -1625,12 +2043,12 @@
     "uid": "influxdb-home"
    },
    "timeFrom": "60d",
-   "id": 21,
+   "id": 27,
    "gridPos": {
     "h": 8,
     "w": 6,
     "x": 12,
-    "y": 42
+    "y": 57
    }
   },
   {
@@ -1711,12 +2129,12 @@
    },
    "description": "Water used between 02:00 and 05:00. A few litres every night points at a running toilet or a dripping tap.",
    "timeFrom": "60d",
-   "id": 22,
+   "id": 28,
    "gridPos": {
     "h": 8,
     "w": 6,
     "x": 18,
-    "y": 42
+    "y": 57
    }
   }
  ]

@@ -1,7 +1,8 @@
 # Cloud data sources written to InfluxDB (bucket home), see docs/monitoring.md:
 # - NIBE F750 heat pump via the myUplink API, once a minute (measurement nibe).
 # - FMI open data: weather observations from the nearest station every 10 min
-#   (fmi_observation) and the forecast for home hourly (fmi_forecast).
+#   (fmi_observation), daily mean temperatures (fmi_daily) and the forecast
+#   for home hourly (fmi_forecast).
 # Credentials, device id, station and home coordinates are in
 # telegraf-cloud.sops.yaml.
 apiVersion: v1
@@ -51,6 +52,24 @@ data:
       data_format = "xml"
       [[inputs.http.xpath]]
         metric_name = "'fmi_observation'"
+        metric_selection = "//BsWfs:BsWfsElement[BsWfs:ParameterValue != 'NaN']"
+        timestamp = "BsWfs:Time"
+        timestamp_format = "2006-01-02T15:04:05Z"
+        [inputs.http.xpath.tags]
+          param = "BsWfs:ParameterName"
+        [inputs.http.xpath.fields]
+          value = "number(BsWfs:ParameterValue)"
+
+    # Daily mean temperature (tday), which FMI computes the morning after; the
+    # last few days are returned, so a missed fetch fills itself in.
+    [[inputs.http]]
+      interval = "6h"
+      urls = ["https://opendata.fmi.fi/wfs?service=WFS&version=2.0.0&request=getFeature&storedquery_id=fmi::observations::weather::daily::simple&fmisid=${FMI_STATION}&parameters=tday"]
+      timeout = "30s"
+      tagexclude = ["url"]
+      data_format = "xml"
+      [[inputs.http.xpath]]
+        metric_name = "'fmi_daily'"
         metric_selection = "//BsWfs:BsWfsElement[BsWfs:ParameterValue != 'NaN']"
         timestamp = "BsWfs:Time"
         timestamp_format = "2006-01-02T15:04:05Z"

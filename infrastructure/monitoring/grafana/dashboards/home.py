@@ -94,6 +94,34 @@ def water(start="v.timeRangeStart", stop="v.timeRangeStop"):
   |> keep(columns: ["_time", "_value"])'''
 
 
+# Weather model of daily electricity use, fitted on Datahub 2021–2024 against FMI daily mean temperature (R² 0.8).
+ELEC_BASE, ELEC_SLOPE, ELEC_BALANCE = 19.9, 1.86, 10.5
+
+
+def electricity(every=None, start="v.timeRangeStart", stop="v.timeRangeStop"):
+    """Metered whole-house kWh (Datahub, hourly), optionally summed per period."""
+    q = f'''from(bucket: "home")
+  |> range(start: {start}, stop: {stop})
+  |> filter(fn: (r) => r._measurement == "electricity" and r._field == "kwh")
+  |> group()
+  |> keep(columns: ["_time", "_value"])'''
+    if every:
+        q += f'''
+  |> aggregateWindow(every: {every}, fn: sum, createEmpty: false, timeSrc: "_start")
+  |> set(key: "series", value: "Used")'''
+    return q
+
+
+def expected_electricity(start="v.timeRangeStart", stop="v.timeRangeStop"):
+    """Daily kWh the weather model expects, stamped at local midnight like electricity(every="1d")."""
+    return f'''import "date"
+from(bucket: "home")
+  |> range(start: {start}, stop: {stop})
+  |> filter(fn: (r) => r._measurement == "fmi_daily" and r.param == "tday")
+  |> map(fn: (r) => ({{_time: date.truncate(t: r._time, unit: 1d), _value: {ELEC_BASE} + {ELEC_SLOPE} * (if r._value < {ELEC_BALANCE} then {ELEC_BALANCE} - r._value else 0.0), series: "Expected from weather"}}))
+  |> group(columns: ["series"])'''
+
+
 PLUG_OVERRIDES = fixed_colors(PLUG_COLORS)
 BY_DEVICE = "${__field.labels.device}"
 BY_PLACE = "${__field.labels.place}"
@@ -175,6 +203,44 @@ def energy_dashboard():
                      display_name=BY_PLACE, overrides=fixed_colors({"Fridge": SLOTS[0], "Freezer": SLOTS[1]}),
                      time_from="7d", fill=0,
                      desc="Fridge should sit at 2–6 °C, the freezer at −16 °C or colder."), 12, 8)
+
+    d.row("Whole house electricity (Datahub)")
+    d.add(stat("Last 12 months", [flux(electricity(start="-365d", stop="now()") + "\n  |> sum()")], unit="kwatth",
+               decimals=0, graph=False, desc="From Fingrid Datahub exports, imported with scripts/datahub-import.py. "
+                                             "Datahub data arrives 1–2 days late and only when imported."), 4, 6)
+    d.add(stat("Expected from weather", [flux(expected_electricity(start="-365d", stop="now()") + "\n  |> sum()")],
+               unit="kwatth", decimals=0, graph=False, thr=thresholds(MUTED),
+               desc=f"What the 2021–2024 house would have used in the same weather: {ELEC_BASE} kWh/day plus "
+                    f"{ELEC_SLOPE} kWh for each degree the daily mean is below {ELEC_BALANCE} °C."), 4, 6)
+    d.add(timeseries("Electricity per day", [flux(electricity(every="1d")), flux(expected_electricity())],
+                     unit="kwatth", decimals=0, time_from="1y", display_name="${__field.labels.series}",
+                     overrides=fixed_colors({"Used": SLOTS[0], "Expected from weather": MUTED})
+                     + [by_name("Used", custom__drawStyle="bars", custom__fillOpacity=80, custom__lineWidth=1)],
+                     desc="Bars: the house's metered use. Line: what the weather model expects."), 16, 6)
+    d.add(timeseries("Use vs weather-expected (30-day)", [flux(TZ + f'''
+used =
+{electricity(every="1d")}
+  |> group()
+  |> timedMovingAverage(every: 1d, period: 30d)
+exp =
+{expected_electricity()}
+  |> group()
+  |> timedMovingAverage(every: 1d, period: 30d)
+join(tables: {{u: used, e: exp}}, on: ["_time"])
+  |> map(fn: (r) => ({{_time: r._time, _value: r._value_u / r._value_e}}))
+''')],
+                     unit="percentunit", decimals=0, time_from="6y", display_name="Used ÷ expected",
+                     color={"mode": "fixed", "fixedColor": SLOTS[3]}, thresholds_style="dashed",
+                     thr=thresholds(MUTED, (1, MUTED)),
+                     desc="Above 100 % means more electricity than the 2021–2024 house used in the same "
+                          "weather: a new always-on load, the electric heater, or a less efficient heat pump."), 12, 8)
+    d.add(timeseries("Night base load", [flux(TZ + 'import "date"\n' + electricity() + '''
+  |> filter(fn: (r) => date.hour(t: r._time) >= 2 and date.hour(t: r._time) < 5)
+  |> aggregateWindow(every: 1w, fn: median, createEmpty: false, timeSrc: "_start")''')],
+                     unit="kwatt", decimals=2, time_from="6y", display_name="02–05 median",
+                     color={"mode": "fixed", "fixedColor": SLOTS[4]},
+                     desc="Median hourly use between 02 and 05, per week. In summer this is the always-on load "
+                          "(fridge, freezer, network, homelab, ventilation)."), 12, 8)
 
     d.row("Water")
     d.add(timeseries("Water per hour", [flux(TZ + water() + '''
