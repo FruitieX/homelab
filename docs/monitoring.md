@@ -65,6 +65,18 @@ and its InfluxDB token ("homelab InfluxDB telegraf-nibe token" in 1Password) can
   `param` (`t2m`, `ws_10min`, `r_1h` and so on). `fmi_forecast` holds the forecast for home, rewritten hourly so
   future points are always the latest forecast. NaN values are skipped because InfluxDB cannot store them.
 
+- **FMI daily means** (`fmi_daily`, `param=tday`): fetched every 6 hours, backfilled from 2020.
+- **Fingrid open data** (measurement `fingrid`, tag `series`): CO₂ intensity of consumption and production,
+  national consumption and production, nuclear, hydro and wind, net import, frequency, system state and
+  shortage status, every 3 minutes. The key ("Fingrid Open Data API" in 1Password, field "primary key") allows one
+  request per 2 s and 10 000 a day, so the 11 inputs are staggered 10 s apart. A manual backfill using the same
+  key at the same time will cause 429 errors. `fingrid_hourly` holds hourly CO₂ intensity backfilled from 2020.
+
+**Whole-house electricity** comes from Fingrid Datahub, which has no consumer API. Export the consumption CSV from
+oma.datahub.fi and run `KUBECONFIG=kubeconfig python3 scripts/datahub-import.py consumption.csv` (measurement
+`electricity`, field `kwh`, hourly until the meter is replaced). Exports can overlap. The energy dashboard's
+"expected from weather" line is a model fitted on 2021–2024 (`ELEC_*` in `home.py`).
+
 The heat pump dashboard's shower estimate uses constants in `heatpump.py`. They come from the water meter
 history: evening showers run about 4.8 L/min for 13–15 minutes. Re-measure them if the shower head changes.
 
