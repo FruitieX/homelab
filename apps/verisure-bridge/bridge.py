@@ -25,6 +25,8 @@ MQTT = os.environ.get("MQTT_HOST", "mqtt")
 INTERVAL = float(os.environ.get("POLL_SECONDS", "2"))
 
 EXTRA = re.compile(r"^\s*android\.(title|text|bigText|subText|infoText|summaryText)=\S+ \((.*)\)\s*$")
+ANY_EXTRA = re.compile(r"^\s*((?:android|com)\.[\w.]+)=(\S+)(?: \((.*)\))?\s*$")
+CHANNEL = re.compile(r"Notification\(channel=(\S+)")
 RECORD = re.compile(r"NotificationRecord\(0x[0-9a-f]+: pkg=(\S+) .*?key=(\S+?):")
 WHEN = re.compile(r"^\s*when=(\d+)\s*$")
 
@@ -63,20 +65,28 @@ def notifications():
         m = RECORD.search(line)
         if m:
             cur = out.setdefault(m.group(2), {}) if m.group(1) == PKG else None
+            c = CHANNEL.search(line)
+            if cur is not None and c:
+                cur["channel"] = c.group(1)
             continue
         if cur is None:
             continue
         m = EXTRA.match(line)
         if m and m.group(2) not in ("null", ""):
             cur.setdefault(m.group(1), m.group(2))
+        # Every extra, raw, to tell notification variants apart (e.g. full vs stay arming).
+        m = ANY_EXTRA.match(line)
+        if m:
+            cur.setdefault("extras", {}).setdefault(m.group(1), m.group(3) if m.group(3) is not None else m.group(2))
         m = WHEN.match(line)
         if m and "when_ms" not in cur:
             cur["when_ms"] = int(m.group(1))
     return {k: v for k, v in out.items() if v.get("title") or v.get("text")}
 
 
-# "<event> - <name>". English texts are a guess; the app on the VM uses Finnish.
-EVENT = re.compile(r"^\s*(Päällekytkentä|Poiskytkentä|Armed[^-]*|Disarmed)\s*-\s*(.+?)\s*$", re.I)
+# "<event> - <name>"; the name is whoever made the change and may be missing. English texts are a guess;
+# the app on the VM uses Finnish.
+EVENT = re.compile(r"^\s*(Päällekytkentä|Poiskytkentä|Armed[^-]*|Disarmed)\b(?:\s*-\s*(.+?))?\s*$", re.I)
 
 
 def state_of(n):
@@ -91,7 +101,7 @@ def publish_state(n):
     state, who = state_of(n)
     if state:
         publish("state", state, retain=True)
-        publish("changed_by", who, retain=True)
+        publish("changed_by", who or "", retain=True)
         log("state", state, "by", who)
 
 
