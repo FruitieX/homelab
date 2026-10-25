@@ -74,7 +74,7 @@
       "type": "influxdb",
       "uid": "influxdb-home"
      },
-     "query": "import \"dict\"\nnames = [\"49994\": \"49994\"]\nfrom(bucket: \"home\")\n  |> range(start: -15m, stop: now())\n  |> filter(fn: (r) => r._measurement == \"nibe\" and r._field == \"value\")\n  |> filter(fn: (r) => r.id == \"49994\")\n  |> map(fn: (r) => ({_time: r._time, _value: r._value, point: dict.get(dict: names, key: r.id, default: r.id)}))\n  |> group(columns: [\"point\"])\n  |> aggregateWindow(every: 15m, fn: last, createEmpty: false)\n\n  |> last()",
+     "query": "import \"dict\"\nfrom(bucket: \"home\")\n  |> range(start: -15m, stop: now())\n  |> filter(fn: (r) => r._measurement == \"nibe\" and r._field == \"value\")\n  |> filter(fn: (r) => r.id == \"49994\")\n  |> map(fn: (r) => ({_time: r._time, _value: r._value, point: dict.get(dict: [\"49994\": \"49994\"], key: r.id, default: r.id)}))\n  |> group(columns: [\"point\"])\n  |> aggregateWindow(every: 15m, fn: last, createEmpty: false)\n\n  |> last()",
      "refId": "A"
     }
    ],
@@ -161,7 +161,7 @@
       "type": "influxdb",
       "uid": "influxdb-home"
      },
-     "query": "import \"dict\"\nnames = [\"40013\": \"40013\"]\nfrom(bucket: \"home\")\n  |> range(start: -15m, stop: now())\n  |> filter(fn: (r) => r._measurement == \"nibe\" and r._field == \"value\")\n  |> filter(fn: (r) => r.id == \"40013\")\n  |> map(fn: (r) => ({_time: r._time, _value: r._value, point: dict.get(dict: names, key: r.id, default: r.id)}))\n  |> group(columns: [\"point\"])\n  |> aggregateWindow(every: 15m, fn: last, createEmpty: false)\n\n  |> last()",
+     "query": "import \"dict\"\nfrom(bucket: \"home\")\n  |> range(start: -15m, stop: now())\n  |> filter(fn: (r) => r._measurement == \"nibe\" and r._field == \"value\")\n  |> filter(fn: (r) => r.id == \"40013\")\n  |> map(fn: (r) => ({_time: r._time, _value: r._value, point: dict.get(dict: [\"40013\": \"40013\"], key: r.id, default: r.id)}))\n  |> group(columns: [\"point\"])\n  |> aggregateWindow(every: 15m, fn: last, createEmpty: false)\n\n  |> last()",
      "refId": "A"
     }
    ],
@@ -231,7 +231,7 @@
       "type": "influxdb",
       "uid": "influxdb-home"
      },
-     "query": "import \"dict\"\nnames = [\"50345\": \"50345\"]\nfrom(bucket: \"home\")\n  |> range(start: -15m, stop: now())\n  |> filter(fn: (r) => r._measurement == \"nibe\" and r._field == \"value\")\n  |> filter(fn: (r) => r.id == \"50345\")\n  |> map(fn: (r) => ({_time: r._time, _value: r._value, point: dict.get(dict: names, key: r.id, default: r.id)}))\n  |> group(columns: [\"point\"])\n  |> aggregateWindow(every: 15m, fn: last, createEmpty: false)\n\n  |> last()",
+     "query": "import \"dict\"\nfrom(bucket: \"home\")\n  |> range(start: -15m, stop: now())\n  |> filter(fn: (r) => r._measurement == \"nibe\" and r._field == \"value\")\n  |> filter(fn: (r) => r.id == \"50345\")\n  |> map(fn: (r) => ({_time: r._time, _value: r._value, point: dict.get(dict: [\"50345\": \"50345\"], key: r.id, default: r.id)}))\n  |> group(columns: [\"point\"])\n  |> aggregateWindow(every: 15m, fn: last, createEmpty: false)\n\n  |> last()",
      "refId": "A"
     }
    ],
@@ -293,7 +293,7 @@
       "type": "influxdb",
       "uid": "influxdb-home"
      },
-     "query": "import \"dict\"\nnames = [\"41778\": \"41778\"]\nfrom(bucket: \"home\")\n  |> range(start: -15m, stop: now())\n  |> filter(fn: (r) => r._measurement == \"nibe\" and r._field == \"value\")\n  |> filter(fn: (r) => r.id == \"41778\")\n  |> map(fn: (r) => ({_time: r._time, _value: r._value, point: dict.get(dict: names, key: r.id, default: r.id)}))\n  |> group(columns: [\"point\"])\n  |> aggregateWindow(every: 15m, fn: last, createEmpty: false)\n\n  |> last()",
+     "query": "import \"dict\"\nfrom(bucket: \"home\")\n  |> range(start: -15m, stop: now())\n  |> filter(fn: (r) => r._measurement == \"nibe\" and r._field == \"value\")\n  |> filter(fn: (r) => r.id == \"41778\")\n  |> map(fn: (r) => ({_time: r._time, _value: r._value, point: dict.get(dict: [\"41778\": \"41778\"], key: r.id, default: r.id)}))\n  |> group(columns: [\"point\"])\n  |> aggregateWindow(every: 15m, fn: last, createEmpty: false)\n\n  |> last()",
      "refId": "A"
     }
    ],
@@ -354,7 +354,7 @@
       "type": "influxdb",
       "uid": "influxdb-home"
      },
-     "query": "import \"dict\"\nnames = [\"40008\": \"Supply\"]\nfrom(bucket: \"home\")\n  |> range(start: -15m, stop: now())\n  |> filter(fn: (r) => r._measurement == \"nibe\" and r._field == \"value\")\n  |> filter(fn: (r) => r.id == \"40008\")\n  |> map(fn: (r) => ({_time: r._time, _value: r._value, point: dict.get(dict: names, key: r.id, default: r.id)}))\n  |> group(columns: [\"point\"])\n  |> aggregateWindow(every: 15m, fn: last, createEmpty: false)\n\n  |> last()",
+     "query": "import \"dict\"\nfrom(bucket: \"home\")\n  |> range(start: -15m, stop: now())\n  |> filter(fn: (r) => r._measurement == \"nibe\" and r._field == \"value\")\n  |> filter(fn: (r) => r.id == \"40008\")\n  |> map(fn: (r) => ({_time: r._time, _value: r._value, point: dict.get(dict: [\"40008\": \"Supply\"], key: r.id, default: r.id)}))\n  |> group(columns: [\"point\"])\n  |> aggregateWindow(every: 15m, fn: last, createEmpty: false)\n\n  |> last()",
      "refId": "A"
     },
     {
@@ -362,7 +362,7 @@
       "type": "influxdb",
       "uid": "influxdb-home"
      },
-     "query": "import \"dict\"\nnames = [\"43009\": \"Target\"]\nfrom(bucket: \"home\")\n  |> range(start: -15m, stop: now())\n  |> filter(fn: (r) => r._measurement == \"nibe\" and r._field == \"value\")\n  |> filter(fn: (r) => r.id == \"43009\")\n  |> map(fn: (r) => ({_time: r._time, _value: r._value, point: dict.get(dict: names, key: r.id, default: r.id)}))\n  |> group(columns: [\"point\"])\n  |> aggregateWindow(every: 15m, fn: last, createEmpty: false)\n\n  |> last()",
+     "query": "import \"dict\"\nfrom(bucket: \"home\")\n  |> range(start: -15m, stop: now())\n  |> filter(fn: (r) => r._measurement == \"nibe\" and r._field == \"value\")\n  |> filter(fn: (r) => r.id == \"43009\")\n  |> map(fn: (r) => ({_time: r._time, _value: r._value, point: dict.get(dict: [\"43009\": \"Target\"], key: r.id, default: r.id)}))\n  |> group(columns: [\"point\"])\n  |> aggregateWindow(every: 15m, fn: last, createEmpty: false)\n\n  |> last()",
      "refId": "B"
     }
    ],
@@ -424,7 +424,7 @@
       "type": "influxdb",
       "uid": "influxdb-home"
      },
-     "query": "import \"dict\"\nnames = [\"40004\": \"40004\"]\nfrom(bucket: \"home\")\n  |> range(start: -15m, stop: now())\n  |> filter(fn: (r) => r._measurement == \"nibe\" and r._field == \"value\")\n  |> filter(fn: (r) => r.id == \"40004\")\n  |> map(fn: (r) => ({_time: r._time, _value: r._value, point: dict.get(dict: names, key: r.id, default: r.id)}))\n  |> group(columns: [\"point\"])\n  |> aggregateWindow(every: 15m, fn: last, createEmpty: false)\n\n  |> last()",
+     "query": "import \"dict\"\nfrom(bucket: \"home\")\n  |> range(start: -15m, stop: now())\n  |> filter(fn: (r) => r._measurement == \"nibe\" and r._field == \"value\")\n  |> filter(fn: (r) => r.id == \"40004\")\n  |> map(fn: (r) => ({_time: r._time, _value: r._value, point: dict.get(dict: [\"40004\": \"40004\"], key: r.id, default: r.id)}))\n  |> group(columns: [\"point\"])\n  |> aggregateWindow(every: 15m, fn: last, createEmpty: false)\n\n  |> last()",
      "refId": "A"
     }
    ],
@@ -486,7 +486,7 @@
       "type": "influxdb",
       "uid": "influxdb-home"
      },
-     "query": "import \"dict\"\nnames = [\"40941\": \"40941\"]\nfrom(bucket: \"home\")\n  |> range(start: -15m, stop: now())\n  |> filter(fn: (r) => r._measurement == \"nibe\" and r._field == \"value\")\n  |> filter(fn: (r) => r.id == \"40941\")\n  |> map(fn: (r) => ({_time: r._time, _value: r._value, point: dict.get(dict: names, key: r.id, default: r.id)}))\n  |> group(columns: [\"point\"])\n  |> aggregateWindow(every: 15m, fn: last, createEmpty: false)\n\n  |> last()",
+     "query": "import \"dict\"\nfrom(bucket: \"home\")\n  |> range(start: -15m, stop: now())\n  |> filter(fn: (r) => r._measurement == \"nibe\" and r._field == \"value\")\n  |> filter(fn: (r) => r.id == \"40941\")\n  |> map(fn: (r) => ({_time: r._time, _value: r._value, point: dict.get(dict: [\"40941\": \"40941\"], key: r.id, default: r.id)}))\n  |> group(columns: [\"point\"])\n  |> aggregateWindow(every: 15m, fn: last, createEmpty: false)\n\n  |> last()",
      "refId": "A"
     }
    ],
@@ -555,7 +555,7 @@
       "type": "influxdb",
       "uid": "influxdb-home"
      },
-     "query": "import \"dict\"\nnames = [\"49993\": \"49993\"]\nfrom(bucket: \"home\")\n  |> range(start: -15m, stop: now())\n  |> filter(fn: (r) => r._measurement == \"nibe\" and r._field == \"value\")\n  |> filter(fn: (r) => r.id == \"49993\")\n  |> map(fn: (r) => ({_time: r._time, _value: r._value, point: dict.get(dict: names, key: r.id, default: r.id)}))\n  |> group(columns: [\"point\"])\n  |> aggregateWindow(every: 15m, fn: last, createEmpty: false)\n\n  |> last()",
+     "query": "import \"dict\"\nfrom(bucket: \"home\")\n  |> range(start: -15m, stop: now())\n  |> filter(fn: (r) => r._measurement == \"nibe\" and r._field == \"value\")\n  |> filter(fn: (r) => r.id == \"49993\")\n  |> map(fn: (r) => ({_time: r._time, _value: r._value, point: dict.get(dict: [\"49993\": \"49993\"], key: r.id, default: r.id)}))\n  |> group(columns: [\"point\"])\n  |> aggregateWindow(every: 15m, fn: last, createEmpty: false)\n\n  |> last()",
      "refId": "A"
     }
    ],
@@ -657,7 +657,7 @@
       "type": "influxdb",
       "uid": "influxdb-home"
      },
-     "query": "import \"dict\"\nnames = [\"43084\": \"43084\"]\nfrom(bucket: \"home\")\n  |> range(start: -15m, stop: now())\n  |> filter(fn: (r) => r._measurement == \"nibe\" and r._field == \"value\")\n  |> filter(fn: (r) => r.id == \"43084\")\n  |> map(fn: (r) => ({_time: r._time, _value: r._value, point: dict.get(dict: names, key: r.id, default: r.id)}))\n  |> group(columns: [\"point\"])\n  |> aggregateWindow(every: 15m, fn: last, createEmpty: false)\n\n  |> last()",
+     "query": "import \"dict\"\nfrom(bucket: \"home\")\n  |> range(start: -15m, stop: now())\n  |> filter(fn: (r) => r._measurement == \"nibe\" and r._field == \"value\")\n  |> filter(fn: (r) => r.id == \"43084\")\n  |> map(fn: (r) => ({_time: r._time, _value: r._value, point: dict.get(dict: [\"43084\": \"43084\"], key: r.id, default: r.id)}))\n  |> group(columns: [\"point\"])\n  |> aggregateWindow(every: 15m, fn: last, createEmpty: false)\n\n  |> last()",
      "refId": "A"
     }
    ],
@@ -722,7 +722,7 @@
       "type": "influxdb",
       "uid": "influxdb-home"
      },
-     "query": "import \"dict\"\nnames = [\"41929\": \"41929\"]\nfrom(bucket: \"home\")\n  |> range(start: -15m, stop: now())\n  |> filter(fn: (r) => r._measurement == \"nibe\" and r._field == \"value\")\n  |> filter(fn: (r) => r.id == \"41929\")\n  |> map(fn: (r) => ({_time: r._time, _value: r._value, point: dict.get(dict: names, key: r.id, default: r.id)}))\n  |> group(columns: [\"point\"])\n  |> aggregateWindow(every: 15m, fn: last, createEmpty: false)\n\n  |> last()",
+     "query": "import \"dict\"\nfrom(bucket: \"home\")\n  |> range(start: -15m, stop: now())\n  |> filter(fn: (r) => r._measurement == \"nibe\" and r._field == \"value\")\n  |> filter(fn: (r) => r.id == \"41929\")\n  |> map(fn: (r) => ({_time: r._time, _value: r._value, point: dict.get(dict: [\"41929\": \"41929\"], key: r.id, default: r.id)}))\n  |> group(columns: [\"point\"])\n  |> aggregateWindow(every: 15m, fn: last, createEmpty: false)\n\n  |> last()",
      "refId": "A"
     }
    ],
@@ -809,7 +809,7 @@
       "type": "influxdb",
       "uid": "influxdb-home"
      },
-     "query": "import \"dict\"\nnames = [\"50221\": \"50221\"]\nfrom(bucket: \"home\")\n  |> range(start: -15m, stop: now())\n  |> filter(fn: (r) => r._measurement == \"nibe\" and r._field == \"value\")\n  |> filter(fn: (r) => r.id == \"50221\")\n  |> map(fn: (r) => ({_time: r._time, _value: r._value, point: dict.get(dict: names, key: r.id, default: r.id)}))\n  |> group(columns: [\"point\"])\n  |> aggregateWindow(every: 15m, fn: last, createEmpty: false)\n\n  |> last()",
+     "query": "import \"dict\"\nfrom(bucket: \"home\")\n  |> range(start: -15m, stop: now())\n  |> filter(fn: (r) => r._measurement == \"nibe\" and r._field == \"value\")\n  |> filter(fn: (r) => r.id == \"50221\")\n  |> map(fn: (r) => ({_time: r._time, _value: r._value, point: dict.get(dict: [\"50221\": \"50221\"], key: r.id, default: r.id)}))\n  |> group(columns: [\"point\"])\n  |> aggregateWindow(every: 15m, fn: last, createEmpty: false)\n\n  |> last()",
      "refId": "A"
     }
    ],
@@ -870,7 +870,7 @@
       "type": "influxdb",
       "uid": "influxdb-home"
      },
-     "query": "import \"dict\"\nnames = [\"43140\": \"43140\"]\nfrom(bucket: \"home\")\n  |> range(start: -15m, stop: now())\n  |> filter(fn: (r) => r._measurement == \"nibe\" and r._field == \"value\")\n  |> filter(fn: (r) => r.id == \"43140\")\n  |> map(fn: (r) => ({_time: r._time, _value: r._value, point: dict.get(dict: names, key: r.id, default: r.id)}))\n  |> group(columns: [\"point\"])\n  |> aggregateWindow(every: 15m, fn: last, createEmpty: false)\n\n  |> last()",
+     "query": "import \"dict\"\nfrom(bucket: \"home\")\n  |> range(start: -15m, stop: now())\n  |> filter(fn: (r) => r._measurement == \"nibe\" and r._field == \"value\")\n  |> filter(fn: (r) => r.id == \"43140\")\n  |> map(fn: (r) => ({_time: r._time, _value: r._value, point: dict.get(dict: [\"43140\": \"43140\"], key: r.id, default: r.id)}))\n  |> group(columns: [\"point\"])\n  |> aggregateWindow(every: 15m, fn: last, createEmpty: false)\n\n  |> last()",
      "refId": "A"
     }
    ],
@@ -952,7 +952,7 @@
       "type": "influxdb",
       "uid": "influxdb-home"
      },
-     "query": "import \"dict\"\nnames = [\"49994\": \"Priority\"]\nfrom(bucket: \"home\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"nibe\" and r._field == \"value\")\n  |> filter(fn: (r) => r.id == \"49994\")\n  |> map(fn: (r) => ({_time: r._time, _value: r._value, point: dict.get(dict: names, key: r.id, default: r.id)}))\n  |> group(columns: [\"point\"])\n  |> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false)",
+     "query": "import \"dict\"\nfrom(bucket: \"home\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"nibe\" and r._field == \"value\")\n  |> filter(fn: (r) => r.id == \"49994\")\n  |> map(fn: (r) => ({_time: r._time, _value: r._value, point: dict.get(dict: [\"49994\": \"Priority\"], key: r.id, default: r.id)}))\n  |> group(columns: [\"point\"])\n  |> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false)",
      "refId": "A"
     },
     {
@@ -960,7 +960,7 @@
       "type": "influxdb",
       "uid": "influxdb-home"
      },
-     "query": "import \"dict\"\nnames = [\"43427\": \"Compressor\"]\nfrom(bucket: \"home\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"nibe\" and r._field == \"value\")\n  |> filter(fn: (r) => r.id == \"43427\")\n  |> map(fn: (r) => ({_time: r._time, _value: r._value, point: dict.get(dict: names, key: r.id, default: r.id)}))\n  |> group(columns: [\"point\"])\n  |> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false)",
+     "query": "import \"dict\"\nfrom(bucket: \"home\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"nibe\" and r._field == \"value\")\n  |> filter(fn: (r) => r.id == \"43427\")\n  |> map(fn: (r) => ({_time: r._time, _value: r._value, point: dict.get(dict: [\"43427\": \"Compressor\"], key: r.id, default: r.id)}))\n  |> group(columns: [\"point\"])\n  |> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false)",
      "refId": "B"
     },
     {
@@ -968,7 +968,7 @@
       "type": "influxdb",
       "uid": "influxdb-home"
      },
-     "query": "import \"dict\"\nnames = [\"49993\": \"Electric heater\"]\nfrom(bucket: \"home\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"nibe\" and r._field == \"value\")\n  |> filter(fn: (r) => r.id == \"49993\")\n  |> map(fn: (r) => ({_time: r._time, _value: r._value, point: dict.get(dict: names, key: r.id, default: r.id)}))\n  |> group(columns: [\"point\"])\n  |> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false)",
+     "query": "import \"dict\"\nfrom(bucket: \"home\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"nibe\" and r._field == \"value\")\n  |> filter(fn: (r) => r.id == \"49993\")\n  |> map(fn: (r) => ({_time: r._time, _value: r._value, point: dict.get(dict: [\"49993\": \"Electric heater\"], key: r.id, default: r.id)}))\n  |> group(columns: [\"point\"])\n  |> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false)",
      "refId": "C"
     },
     {
@@ -976,7 +976,7 @@
       "type": "influxdb",
       "uid": "influxdb-home"
      },
-     "query": "import \"dict\"\nnames = [\"41929\": \"Spot price\"]\nfrom(bucket: \"home\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"nibe\" and r._field == \"value\")\n  |> filter(fn: (r) => r.id == \"41929\")\n  |> map(fn: (r) => ({_time: r._time, _value: r._value, point: dict.get(dict: names, key: r.id, default: r.id)}))\n  |> group(columns: [\"point\"])\n  |> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false)",
+     "query": "import \"dict\"\nfrom(bucket: \"home\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"nibe\" and r._field == \"value\")\n  |> filter(fn: (r) => r.id == \"41929\")\n  |> map(fn: (r) => ({_time: r._time, _value: r._value, point: dict.get(dict: [\"41929\": \"Spot price\"], key: r.id, default: r.id)}))\n  |> group(columns: [\"point\"])\n  |> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false)",
      "refId": "D"
     }
    ],
@@ -1193,7 +1193,7 @@
       "type": "influxdb",
       "uid": "influxdb-home"
      },
-     "query": "import \"dict\"\nnames = [\"40013\": \"Top (BT7)\", \"40014\": \"Charging (BT6)\"]\nfrom(bucket: \"home\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"nibe\" and r._field == \"value\")\n  |> filter(fn: (r) => r.id == \"40013\" or r.id == \"40014\")\n  |> map(fn: (r) => ({_time: r._time, _value: r._value, point: dict.get(dict: names, key: r.id, default: r.id)}))\n  |> group(columns: [\"point\"])\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)",
+     "query": "import \"dict\"\nfrom(bucket: \"home\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"nibe\" and r._field == \"value\")\n  |> filter(fn: (r) => r.id == \"40013\" or r.id == \"40014\")\n  |> map(fn: (r) => ({_time: r._time, _value: r._value, point: dict.get(dict: [\"40013\": \"Top (BT7)\", \"40014\": \"Charging (BT6)\"], key: r.id, default: r.id)}))\n  |> group(columns: [\"point\"])\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)",
      "refId": "A"
     }
    ],
@@ -1361,7 +1361,7 @@
       "type": "influxdb",
       "uid": "influxdb-home"
      },
-     "query": "import \"dict\"\nnames = [\"40008\": \"Supply (BT63)\", \"40012\": \"Return (BT3)\", \"43009\": \"Target supply\"]\nfrom(bucket: \"home\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"nibe\" and r._field == \"value\")\n  |> filter(fn: (r) => r.id == \"40008\" or r.id == \"40012\" or r.id == \"43009\")\n  |> map(fn: (r) => ({_time: r._time, _value: r._value, point: dict.get(dict: names, key: r.id, default: r.id)}))\n  |> group(columns: [\"point\"])\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)",
+     "query": "import \"dict\"\nfrom(bucket: \"home\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"nibe\" and r._field == \"value\")\n  |> filter(fn: (r) => r.id == \"40008\" or r.id == \"40012\" or r.id == \"43009\")\n  |> map(fn: (r) => ({_time: r._time, _value: r._value, point: dict.get(dict: [\"40008\": \"Supply (BT63)\", \"40012\": \"Return (BT3)\", \"43009\": \"Target supply\"], key: r.id, default: r.id)}))\n  |> group(columns: [\"point\"])\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)",
      "refId": "A"
     }
    ],
@@ -1492,7 +1492,7 @@
       "type": "influxdb",
       "uid": "influxdb-home"
      },
-     "query": "import \"dict\"\nnames = [\"40025\": \"From rooms (BT20)\", \"40026\": \"Out of the house (BT21)\", \"40004\": \"Outdoor (BT1)\"]\nfrom(bucket: \"home\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"nibe\" and r._field == \"value\")\n  |> filter(fn: (r) => r.id == \"40025\" or r.id == \"40026\" or r.id == \"40004\")\n  |> map(fn: (r) => ({_time: r._time, _value: r._value, point: dict.get(dict: names, key: r.id, default: r.id)}))\n  |> group(columns: [\"point\"])\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)",
+     "query": "import \"dict\"\nfrom(bucket: \"home\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"nibe\" and r._field == \"value\")\n  |> filter(fn: (r) => r.id == \"40025\" or r.id == \"40026\" or r.id == \"40004\")\n  |> map(fn: (r) => ({_time: r._time, _value: r._value, point: dict.get(dict: [\"40025\": \"From rooms (BT20)\", \"40026\": \"Out of the house (BT21)\", \"40004\": \"Outdoor (BT1)\"], key: r.id, default: r.id)}))\n  |> group(columns: [\"point\"])\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)",
      "refId": "A"
     }
    ],
@@ -1606,7 +1606,7 @@
       "type": "influxdb",
       "uid": "influxdb-home"
      },
-     "query": "import \"dict\"\nnames = [\"41778\": \"Compressor\"]\nfrom(bucket: \"home\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"nibe\" and r._field == \"value\")\n  |> filter(fn: (r) => r.id == \"41778\")\n  |> map(fn: (r) => ({_time: r._time, _value: r._value, point: dict.get(dict: names, key: r.id, default: r.id)}))\n  |> group(columns: [\"point\"])\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)",
+     "query": "import \"dict\"\nfrom(bucket: \"home\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"nibe\" and r._field == \"value\")\n  |> filter(fn: (r) => r.id == \"41778\")\n  |> map(fn: (r) => ({_time: r._time, _value: r._value, point: dict.get(dict: [\"41778\": \"Compressor\"], key: r.id, default: r.id)}))\n  |> group(columns: [\"point\"])\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)",
      "refId": "A"
     }
    ],
@@ -1675,7 +1675,7 @@
       "type": "influxdb",
       "uid": "influxdb-home"
      },
-     "query": "import \"dict\"\nnames = [\"40941\": \"Degree minutes\"]\nfrom(bucket: \"home\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"nibe\" and r._field == \"value\")\n  |> filter(fn: (r) => r.id == \"40941\")\n  |> map(fn: (r) => ({_time: r._time, _value: r._value, point: dict.get(dict: names, key: r.id, default: r.id)}))\n  |> group(columns: [\"point\"])\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)",
+     "query": "import \"dict\"\nfrom(bucket: \"home\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"nibe\" and r._field == \"value\")\n  |> filter(fn: (r) => r.id == \"40941\")\n  |> map(fn: (r) => ({_time: r._time, _value: r._value, point: dict.get(dict: [\"40941\": \"Degree minutes\"], key: r.id, default: r.id)}))\n  |> group(columns: [\"point\"])\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)",
      "refId": "A"
     }
    ],
@@ -1769,7 +1769,7 @@
       "type": "influxdb",
       "uid": "influxdb-home"
      },
-     "query": "import \"timezone\"\nimport \"dict\"\noption location = timezone.location(name: \"Europe/Helsinki\")\n\nnames = [\"44308\": \"Heating, compressor\", \"44306\": \"Hot water, compressor\"]\nfrom(bucket: \"home\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"nibe\" and r._field == \"value\")\n  |> filter(fn: (r) => r.id == \"44308\" or r.id == \"44306\")\n  |> map(fn: (r) => ({_time: r._time, _value: r._value, point: dict.get(dict: names, key: r.id, default: r.id)}))\n  |> group(columns: [\"point\"])\n  |> aggregateWindow(every: 1d, fn: max, createEmpty: false)\n\n  |> difference(nonNegative: true)",
+     "query": "import \"timezone\"\nimport \"dict\"\noption location = timezone.location(name: \"Europe/Helsinki\")\n\nfrom(bucket: \"home\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"nibe\" and r._field == \"value\")\n  |> filter(fn: (r) => r.id == \"44308\" or r.id == \"44306\")\n  |> map(fn: (r) => ({_time: r._time, _value: r._value, point: dict.get(dict: [\"44308\": \"Heating, compressor\", \"44306\": \"Hot water, compressor\"], key: r.id, default: r.id)}))\n  |> group(columns: [\"point\"])\n  |> aggregateWindow(every: 1d, fn: spread, createEmpty: false)",
      "refId": "A"
     },
     {
@@ -1777,7 +1777,7 @@
       "type": "influxdb",
       "uid": "influxdb-home"
      },
-     "query": "import \"timezone\"\nimport \"dict\"\noption location = timezone.location(name: \"Europe/Helsinki\")\n\ntotal = \nnames = [\"44300\": \"44300\", \"44298\": \"44298\"]\nfrom(bucket: \"home\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"nibe\" and r._field == \"value\")\n  |> filter(fn: (r) => r.id == \"44300\" or r.id == \"44298\")\n  |> map(fn: (r) => ({_time: r._time, _value: r._value, point: dict.get(dict: names, key: r.id, default: r.id)}))\n  |> group(columns: [\"point\"])\n  |> aggregateWindow(every: 1d, fn: max, createEmpty: false)\n\n  |> difference(nonNegative: true)\n  |> group() |> aggregateWindow(every: 1d, fn: sum, createEmpty: false)\ncomp = \nnames = [\"44308\": \"c\", \"44306\": \"c\"]\nfrom(bucket: \"home\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"nibe\" and r._field == \"value\")\n  |> filter(fn: (r) => r.id == \"44308\" or r.id == \"44306\")\n  |> map(fn: (r) => ({_time: r._time, _value: r._value, point: dict.get(dict: names, key: r.id, default: r.id)}))\n  |> group(columns: [\"point\"])\n  |> aggregateWindow(every: 1d, fn: max, createEmpty: false)\n\n  |> difference(nonNegative: true)\n  |> group() |> aggregateWindow(every: 1d, fn: sum, createEmpty: false)\njoin(tables: {t: total, c: comp}, on: [\"_time\"])\n  |> map(fn: (r) => ({_time: r._time, _value: r._value_t - r._value_c, point: \"Electric heater\"}))\n  |> group(columns: [\"point\"])",
+     "query": "import \"timezone\"\nimport \"dict\"\noption location = timezone.location(name: \"Europe/Helsinki\")\n\ntotal = \nfrom(bucket: \"home\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"nibe\" and r._field == \"value\")\n  |> filter(fn: (r) => r.id == \"44300\" or r.id == \"44298\")\n  |> map(fn: (r) => ({_time: r._time, _value: r._value, point: dict.get(dict: [\"44300\": \"44300\", \"44298\": \"44298\"], key: r.id, default: r.id)}))\n  |> group(columns: [\"point\"])\n  |> aggregateWindow(every: 1d, fn: spread, createEmpty: false)\n\n  |> group() |> aggregateWindow(every: 1d, fn: sum, createEmpty: false)\ncomp = \nfrom(bucket: \"home\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"nibe\" and r._field == \"value\")\n  |> filter(fn: (r) => r.id == \"44308\" or r.id == \"44306\")\n  |> map(fn: (r) => ({_time: r._time, _value: r._value, point: dict.get(dict: [\"44308\": \"c\", \"44306\": \"c\"], key: r.id, default: r.id)}))\n  |> group(columns: [\"point\"])\n  |> aggregateWindow(every: 1d, fn: spread, createEmpty: false)\n\n  |> group() |> aggregateWindow(every: 1d, fn: sum, createEmpty: false)\njoin(tables: {t: total, c: comp}, on: [\"_time\"])\n  |> map(fn: (r) => ({_time: r._time, _value: r._value_t - r._value_c, point: \"Electric heater\"}))\n  |> group(columns: [\"point\"])",
      "refId": "B"
     }
    ],
@@ -1892,7 +1892,7 @@
       "type": "influxdb",
       "uid": "influxdb-home"
      },
-     "query": "import \"timezone\"\nimport \"dict\"\noption location = timezone.location(name: \"Europe/Helsinki\")\n\nnames = [\"43144\": \"Compressor\"]\nfrom(bucket: \"home\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"nibe\" and r._field == \"value\")\n  |> filter(fn: (r) => r.id == \"43144\")\n  |> map(fn: (r) => ({_time: r._time, _value: r._value, point: dict.get(dict: names, key: r.id, default: r.id)}))\n  |> group(columns: [\"point\"])\n  |> aggregateWindow(every: 1d, fn: max, createEmpty: false)\n\n  |> difference(nonNegative: true)",
+     "query": "import \"timezone\"\nimport \"dict\"\noption location = timezone.location(name: \"Europe/Helsinki\")\n\nfrom(bucket: \"home\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"nibe\" and r._field == \"value\")\n  |> filter(fn: (r) => r.id == \"43144\")\n  |> map(fn: (r) => ({_time: r._time, _value: r._value, point: dict.get(dict: [\"43144\": \"Compressor\"], key: r.id, default: r.id)}))\n  |> group(columns: [\"point\"])\n  |> aggregateWindow(every: 1d, fn: spread, createEmpty: false)",
      "refId": "A"
     }
    ],
@@ -1962,7 +1962,7 @@
       "type": "influxdb",
       "uid": "influxdb-home"
      },
-     "query": "import \"timezone\"\nimport \"dict\"\noption location = timezone.location(name: \"Europe/Helsinki\")\n\nheat = \nnames = [\"44308\": \"Heating, compressor\", \"44306\": \"Hot water, compressor\"]\nfrom(bucket: \"home\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"nibe\" and r._field == \"value\")\n  |> filter(fn: (r) => r.id == \"44308\" or r.id == \"44306\")\n  |> map(fn: (r) => ({_time: r._time, _value: r._value, point: dict.get(dict: names, key: r.id, default: r.id)}))\n  |> group(columns: [\"point\"])\n  |> aggregateWindow(every: 1d, fn: max, createEmpty: false)\n\n  |> difference(nonNegative: true)\n  |> group() |> aggregateWindow(every: 1d, fn: sum, createEmpty: false)\nelec = \nnames = [\"43144\": \"e\"]\nfrom(bucket: \"home\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"nibe\" and r._field == \"value\")\n  |> filter(fn: (r) => r.id == \"43144\")\n  |> map(fn: (r) => ({_time: r._time, _value: r._value, point: dict.get(dict: names, key: r.id, default: r.id)}))\n  |> group(columns: [\"point\"])\n  |> aggregateWindow(every: 1d, fn: max, createEmpty: false)\n\n  |> difference(nonNegative: true)\n  |> group()\njoin(tables: {h: heat, e: elec}, on: [\"_time\"])\n  |> filter(fn: (r) => r._value_e > 0.5)\n  |> map(fn: (r) => ({_time: r._time, _value: r._value_h / r._value_e}))",
+     "query": "import \"timezone\"\nimport \"dict\"\noption location = timezone.location(name: \"Europe/Helsinki\")\n\nheat = \nfrom(bucket: \"home\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"nibe\" and r._field == \"value\")\n  |> filter(fn: (r) => r.id == \"44308\" or r.id == \"44306\")\n  |> map(fn: (r) => ({_time: r._time, _value: r._value, point: dict.get(dict: [\"44308\": \"Heating, compressor\", \"44306\": \"Hot water, compressor\"], key: r.id, default: r.id)}))\n  |> group(columns: [\"point\"])\n  |> aggregateWindow(every: 1d, fn: spread, createEmpty: false)\n\n  |> group() |> aggregateWindow(every: 1d, fn: sum, createEmpty: false)\nelec = \nfrom(bucket: \"home\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"nibe\" and r._field == \"value\")\n  |> filter(fn: (r) => r.id == \"43144\")\n  |> map(fn: (r) => ({_time: r._time, _value: r._value, point: dict.get(dict: [\"43144\": \"e\"], key: r.id, default: r.id)}))\n  |> group(columns: [\"point\"])\n  |> aggregateWindow(every: 1d, fn: spread, createEmpty: false)\n\n  |> group()\njoin(tables: {h: heat, e: elec}, on: [\"_time\"])\n  |> filter(fn: (r) => r._value_e > 0.5)\n  |> map(fn: (r) => ({_time: r._time, _value: r._value_h / r._value_e}))",
      "refId": "A"
     }
    ],
@@ -2031,7 +2031,7 @@
       "type": "influxdb",
       "uid": "influxdb-home"
      },
-     "query": "import \"dict\"\nnames = [\"43420\": \"Running hours\", \"43424\": \"Hot water hours\", \"43416\": \"Compressor starts\", \"43081\": \"Heater hours (weighted)\"]\nfrom(bucket: \"home\")\n  |> range(start: -15m, stop: now())\n  |> filter(fn: (r) => r._measurement == \"nibe\" and r._field == \"value\")\n  |> filter(fn: (r) => r.id == \"43420\" or r.id == \"43424\" or r.id == \"43416\" or r.id == \"43081\")\n  |> map(fn: (r) => ({_time: r._time, _value: r._value, point: dict.get(dict: names, key: r.id, default: r.id)}))\n  |> group(columns: [\"point\"])\n  |> aggregateWindow(every: 15m, fn: last, createEmpty: false)\n\n  |> last()",
+     "query": "import \"dict\"\nfrom(bucket: \"home\")\n  |> range(start: -15m, stop: now())\n  |> filter(fn: (r) => r._measurement == \"nibe\" and r._field == \"value\")\n  |> filter(fn: (r) => r.id == \"43420\" or r.id == \"43424\" or r.id == \"43416\" or r.id == \"43081\")\n  |> map(fn: (r) => ({_time: r._time, _value: r._value, point: dict.get(dict: [\"43420\": \"Running hours\", \"43424\": \"Hot water hours\", \"43416\": \"Compressor starts\", \"43081\": \"Heater hours (weighted)\"], key: r.id, default: r.id)}))\n  |> group(columns: [\"point\"])\n  |> aggregateWindow(every: 15m, fn: last, createEmpty: false)\n\n  |> last()",
      "refId": "A"
     }
    ],
@@ -2093,7 +2093,7 @@
       "type": "influxdb",
       "uid": "influxdb-home"
      },
-     "query": "import \"dict\"\nnames = [\"44300\": \"Heating\", \"44298\": \"Hot water\"]\nfrom(bucket: \"home\")\n  |> range(start: -15m, stop: now())\n  |> filter(fn: (r) => r._measurement == \"nibe\" and r._field == \"value\")\n  |> filter(fn: (r) => r.id == \"44300\" or r.id == \"44298\")\n  |> map(fn: (r) => ({_time: r._time, _value: r._value, point: dict.get(dict: names, key: r.id, default: r.id)}))\n  |> group(columns: [\"point\"])\n  |> aggregateWindow(every: 15m, fn: last, createEmpty: false)\n\n  |> last()",
+     "query": "import \"dict\"\nfrom(bucket: \"home\")\n  |> range(start: -15m, stop: now())\n  |> filter(fn: (r) => r._measurement == \"nibe\" and r._field == \"value\")\n  |> filter(fn: (r) => r.id == \"44300\" or r.id == \"44298\")\n  |> map(fn: (r) => ({_time: r._time, _value: r._value, point: dict.get(dict: [\"44300\": \"Heating\", \"44298\": \"Hot water\"], key: r.id, default: r.id)}))\n  |> group(columns: [\"point\"])\n  |> aggregateWindow(every: 15m, fn: last, createEmpty: false)\n\n  |> last()",
      "refId": "A"
     }
    ],
@@ -2219,7 +2219,7 @@
       "type": "influxdb",
       "uid": "influxdb-home"
      },
-     "query": "import \"dict\"\nnames = [\"47007\": \"Heating curve\", \"47011\": \"Curve offset\", \"47041\": \"Hot water demand\"]\nfrom(bucket: \"home\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"nibe\" and r._field == \"value\")\n  |> filter(fn: (r) => r.id == \"47007\" or r.id == \"47011\" or r.id == \"47041\")\n  |> map(fn: (r) => ({_time: r._time, _value: r._value, point: dict.get(dict: names, key: r.id, default: r.id)}))\n  |> group(columns: [\"point\"])\n  |> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false)",
+     "query": "import \"dict\"\nfrom(bucket: \"home\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"nibe\" and r._field == \"value\")\n  |> filter(fn: (r) => r.id == \"47007\" or r.id == \"47011\" or r.id == \"47041\")\n  |> map(fn: (r) => ({_time: r._time, _value: r._value, point: dict.get(dict: [\"47007\": \"Heating curve\", \"47011\": \"Curve offset\", \"47041\": \"Hot water demand\"], key: r.id, default: r.id)}))\n  |> group(columns: [\"point\"])\n  |> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false)",
      "refId": "A"
     }
    ],

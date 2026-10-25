@@ -34,12 +34,11 @@ def nibe(points, every="v.windowPeriod", fn="mean", start="v.timeRangeStart", st
     """One series per data point, labelled `point`."""
     return f'''
 import "dict"
-names = {_dict(points)}
 from(bucket: "home")
   |> range(start: {start}, stop: {stop})
   |> filter(fn: (r) => r._measurement == "nibe" and r._field == "value")
   |> filter(fn: (r) => {_ids(points)})
-  |> map(fn: (r) => ({{_time: r._time, _value: r._value, point: dict.get(dict: names, key: r.id, default: r.id)}}))
+  |> map(fn: (r) => ({{_time: r._time, _value: r._value, point: dict.get(dict: {_dict(points)}, key: r.id, default: r.id)}}))
   |> group(columns: ["point"])
   |> aggregateWindow(every: {every}, fn: {fn}, createEmpty: false)
 '''
@@ -52,8 +51,7 @@ def now(point_id, label=None):
 
 def per_period(points, every="1d"):
     """Increase of lifetime counters per period (kWh)."""
-    return TZ + nibe(points, every=every, fn="max") + '''
-  |> difference(nonNegative: true)'''
+    return TZ + nibe(points, every=every, fn="spread")
 
 
 def heatpump_dashboard():
@@ -132,11 +130,9 @@ def heatpump_dashboard():
 
     d.row("Energy")
     d.add(timeseries("Heat produced per day", [flux(per_period(HEAT)), flux(TZ + f'''
-total = {nibe({k: k for k in HEAT_TOTAL}, every="1d", fn="max")}
-  |> difference(nonNegative: true)
+total = {nibe({k: k for k in HEAT_TOTAL}, every="1d", fn="spread")}
   |> group() |> aggregateWindow(every: 1d, fn: sum, createEmpty: false)
-comp = {nibe(dict.fromkeys(HEAT_TOTAL.values(), "c"), every="1d", fn="max")}
-  |> difference(nonNegative: true)
+comp = {nibe(dict.fromkeys(HEAT_TOTAL.values(), "c"), every="1d", fn="spread")}
   |> group() |> aggregateWindow(every: 1d, fn: sum, createEmpty: false)
 join(tables: {{t: total, c: comp}}, on: ["_time"])
   |> map(fn: (r) => ({{_time: r._time, _value: r._value_t - r._value_c, point: "Electric heater"}}))
@@ -151,11 +147,9 @@ join(tables: {{t: total, c: comp}}, on: ["_time"])
                      color={"mode": "fixed", "fixedColor": SLOTS[4]},
                      desc="The pump's own compressor energy counter (myUplink calls it \"time factor\")."), 6, 8)
     d.add(timeseries("Heat per compressor kWh", [flux(TZ + f'''
-heat = {nibe(HEAT, every="1d", fn="max")}
-  |> difference(nonNegative: true)
+heat = {nibe(HEAT, every="1d", fn="spread")}
   |> group() |> aggregateWindow(every: 1d, fn: sum, createEmpty: false)
-elec = {nibe({COMPRESSOR_KWH: "e"}, every="1d", fn="max")}
-  |> difference(nonNegative: true)
+elec = {nibe({COMPRESSOR_KWH: "e"}, every="1d", fn="spread")}
   |> group()
 join(tables: {{h: heat, e: elec}}, on: ["_time"])
   |> filter(fn: (r) => r._value_e > 0.5)
