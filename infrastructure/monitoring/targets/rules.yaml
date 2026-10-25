@@ -112,8 +112,16 @@ spec:
           annotations:
             summary: "NAS disk {{ $labels.diskID }} is at {{ $value }}°C"
         - alert: ProxmoxHostHot
-          expr: max by (host) (node_hwmon_temp_celsius{job="proxmox-node", chip=~".*(k10temp|coretemp).*"}) > 90
-          for: 15m
+          # On AMD hosts the chip label is a PCI path; match the CPU sensor by
+          # node_hwmon_chip_names instead. mango sat at 88°C while 90% idle
+          # (2026-10-25) because its thermal paste had dried out.
+          expr: |
+            max by (host) (
+              node_hwmon_temp_celsius{job="proxmox-node"}
+                * on (host, chip) group_left (chip_name)
+              node_hwmon_chip_names{job="proxmox-node", chip_name=~"k10temp|coretemp"}
+            ) > 85
+          for: 30m
           labels:
             homelab: "true"
             severity: warning
