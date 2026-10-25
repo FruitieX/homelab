@@ -8,7 +8,12 @@ deferred.
 MQTT topics (prefix from MQTT_PREFIX, default home/verisure):
   <prefix>/notification   every new Verisure notification as JSON (not retained)
   <prefix>/last           the most recent one (retained)
-  <prefix>/state          armed_away / armed_home / disarmed, guessed from the text (retained)
+  <prefix>/state          armed / disarmed (retained)
+  <prefix>/changed_by     who armed or disarmed, as the notification names them (retained)
+
+The Finnish app texts are "Päällekytkentä - <name>" (armed) and "Poiskytkentä - <name>" (disarmed); the
+notification does not say whether the system was armed fully or in stay/home mode. On start the newest
+existing Verisure notification seeds the state.
   <prefix>/bridge         online / offline (retained, last will)
 """
 import json, os, re, subprocess, sys, time
@@ -17,11 +22,11 @@ SERIAL = os.environ["ADB_SERIAL"]
 PKG = os.environ.get("VERISURE_PACKAGE", "com.sdi.mobile.android.verisure")
 PREFIX = os.environ.get("MQTT_PREFIX", "home/verisure")
 MQTT = os.environ.get("MQTT_HOST", "mqtt")
-INTERVAL = float(os.environ.get("POLL_SECONDS", "5"))
+INTERVAL = float(os.environ.get("POLL_SECONDS", "2"))
 
 EXTRA = re.compile(r"^\s*android\.(title|text|bigText|subText|infoText|summaryText)=\S+ \((.*)\)\s*$")
 RECORD = re.compile(r"NotificationRecord\(0x[0-9a-f]+: pkg=(\S+) .*?key=(\S+?):")
-POSTED = re.compile(r"\bmPostTime(?:Ms)?=(\d+)|\bpostTime=(\d+)")
+WHEN = re.compile(r"^\s*when=(\d+)\s*$")
 
 
 def log(*a):
@@ -64,21 +69,30 @@ def notifications():
         m = EXTRA.match(line)
         if m and m.group(2) not in ("null", ""):
             cur.setdefault(m.group(1), m.group(2))
-        m = POSTED.search(line)
-        if m and "posted_ms" not in cur:
-            cur["posted_ms"] = int(m.group(1) or m.group(2))
+        m = WHEN.match(line)
+        if m and "when_ms" not in cur:
+            cur["when_ms"] = int(m.group(1))
     return {k: v for k, v in out.items() if v.get("title") or v.get("text")}
 
 
-def guess_state(n):
-    s = " ".join(str(n.get(k, "")) for k in ("title", "text", "bigText")).lower()
-    if re.search(r"\bdisarm|\bpurettu|\bpois päältä", s):
-        return "disarmed"
-    if re.search(r"armed home|partially|kotitila|osittain", s):
-        return "armed_home"
-    if re.search(r"\barmed\b|\bviritetty|\bpäällä", s):
-        return "armed_away"
-    return None
+# "<event> - <name>". English texts are a guess; the app on the VM uses Finnish.
+EVENT = re.compile(r"^\s*(Päällekytkentä|Poiskytkentä|Armed[^-]*|Disarmed)\s*-\s*(.+?)\s*$", re.I)
+
+
+def state_of(n):
+    m = EVENT.match(n.get("text", ""))
+    if not m:
+        return None, None
+    word = m.group(1).lower()
+    return ("disarmed" if word.startswith(("pois", "disarm")) else "armed"), m.group(2)
+
+
+def publish_state(n):
+    state, who = state_of(n)
+    if state:
+        publish("state", state, retain=True)
+        publish("changed_by", who, retain=True)
+        log("state", state, "by", who)
 
 
 def main():
@@ -97,6 +111,9 @@ def main():
             if seen is None:
                 seen = {k: v for k, v in current.items()}  # don't replay what was already there
                 log("existing notifications:", len(current))
+                known = [n for n in current.values() if state_of(n)[0]]
+                if known:
+                    publish_state(max(known, key=lambda n: n.get("when_ms", 0)))
             for key, n in current.items():
                 if seen.get(key) == n:
                     continue
@@ -106,9 +123,7 @@ def main():
                 log("notification", payload)
                 publish("notification", payload)
                 publish("last", payload, retain=True)
-                state = guess_state(n)
-                if state:
-                    publish("state", state, retain=True)
+                publish_state(n)
             for key in list(seen):
                 if key not in current:
                     del seen[key]
