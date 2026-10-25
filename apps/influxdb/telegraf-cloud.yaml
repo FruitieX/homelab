@@ -1,10 +1,13 @@
-# NIBE F750 heat pump: polls the myUplink cloud API once a minute and writes
-# the data points to InfluxDB (bucket home, measurement nibe). Credentials and
-# the device id are in telegraf-nibe.sops.yaml; see docs/monitoring.md.
+# Cloud data sources written to InfluxDB (bucket home), see docs/monitoring.md:
+# - NIBE F750 heat pump via the myUplink API, once a minute (measurement nibe).
+# - FMI open data: weather observations from the nearest station every 10 min
+#   (fmi_observation) and the forecast for home hourly (fmi_forecast).
+# Credentials, device id, station and home coordinates are in
+# telegraf-cloud.sops.yaml.
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: telegraf-nibe-config
+  name: telegraf-cloud-config
   namespace: default
   annotations:
     # Telegraf expands the ${...} variables itself.
@@ -39,7 +42,43 @@ data:
     [inputs.http.tagdrop]
       parameterId = ["65535"]
 
+    # FMI open data (no key). The simple format has one element per value.
+    [[inputs.http]]
+      interval = "10m"
+      urls = ["https://opendata.fmi.fi/wfs?service=WFS&version=2.0.0&request=getFeature&storedquery_id=fmi::observations::weather::simple&fmisid=${FMI_STATION}&timestep=10"]
+      timeout = "30s"
+      tagexclude = ["url"]
+      data_format = "xml"
+      [[inputs.http.xpath]]
+        metric_name = "'fmi_observation'"
+        metric_selection = "//BsWfs:BsWfsElement"
+        timestamp = "BsWfs:Time"
+        timestamp_format = "2006-01-02T15:04:05Z"
+        [inputs.http.xpath.tags]
+          param = "BsWfs:ParameterName"
+        [inputs.http.xpath.fields]
+          value = "number(BsWfs:ParameterValue)"
+
+    # The forecast is rewritten every hour, so future points always hold the
+    # latest forecast.
+    [[inputs.http]]
+      interval = "1h"
+      urls = ["https://opendata.fmi.fi/wfs?service=WFS&version=2.0.0&request=getFeature&storedquery_id=fmi::forecast::edited::weather::scandinavia::point::simple&latlon=${HOME_LATLON}&timestep=60&parameters=Temperature,WindSpeedMS,WindGust,Precipitation1h,TotalCloudCover,Humidity,DewPoint,RadiationGlobal"]
+      timeout = "30s"
+      tagexclude = ["url"]
+      data_format = "xml"
+      [[inputs.http.xpath]]
+        metric_name = "'fmi_forecast'"
+        metric_selection = "//BsWfs:BsWfsElement"
+        timestamp = "BsWfs:Time"
+        timestamp_format = "2006-01-02T15:04:05Z"
+        [inputs.http.xpath.tags]
+          param = "BsWfs:ParameterName"
+        [inputs.http.xpath.fields]
+          value = "number(BsWfs:ParameterValue)"
+
     [[processors.rename]]
+      namepass = ["nibe"]
       [[processors.rename.replace]]
         tag = "parameterId"
         dest = "id"
@@ -52,6 +91,7 @@ data:
 
     # myUplink names carry soft hyphens for line breaking.
     [[processors.strings]]
+      namepass = ["nibe"]
       [[processors.strings.replace]]
         tag = "name"
         old = "­"
@@ -66,19 +106,19 @@ data:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: telegraf-nibe
+  name: telegraf-cloud
   namespace: default
   annotations:
-    configmap.reloader.stakater.com/reload: "telegraf-nibe-config"
-    secret.reloader.stakater.com/reload: "telegraf-nibe"
+    configmap.reloader.stakater.com/reload: "telegraf-cloud-config"
+    secret.reloader.stakater.com/reload: "telegraf-cloud"
 spec:
   selector:
     matchLabels:
-      app: telegraf-nibe
+      app: telegraf-cloud
   template:
     metadata:
       labels:
-        app: telegraf-nibe
+        app: telegraf-cloud
     spec:
       securityContext:
         runAsNonRoot: true
@@ -88,14 +128,14 @@ spec:
       volumes:
         - name: config
           configMap:
-            name: telegraf-nibe-config
+            name: telegraf-cloud-config
       containers:
         - name: telegraf
           image: telegraf:1.38.4-alpine
           args: ["--config", "/etc/telegraf/telegraf.conf"]
           envFrom:
             - secretRef:
-                name: telegraf-nibe
+                name: telegraf-cloud
           resources:
             requests:
               memory: 40Mi

@@ -1,4 +1,4 @@
-# Blackbox exporter: HTTP(S) and TCP reachability probes (see probes.yaml).
+# Blackbox exporter: HTTP(S), TCP and ICMP reachability probes (see probes.yaml).
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -21,6 +21,19 @@ data:
         timeout: 5s
         tcp:
           preferred_ip_protocol: ip4
+      # An SSH server answers with its banner before the client says anything.
+      ssh_banner:
+        prober: tcp
+        timeout: 8s
+        tcp:
+          preferred_ip_protocol: ip4
+          query_response:
+            - expect: "^SSH-2.0-"
+      icmp:
+        prober: icmp
+        timeout: 5s
+        icmp:
+          preferred_ip_protocol: ip4
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -39,6 +52,11 @@ spec:
       annotations:
         configmap.reloader.stakater.com/reload: blackbox-exporter
     spec:
+      securityContext:
+        # Unprivileged ICMP (ping sockets) for the non-root exporter.
+        sysctls:
+          - name: net.ipv4.ping_group_range
+            value: "0 2147483647"
       containers:
         - name: blackbox-exporter
           image: quay.io/prometheus/blackbox-exporter:v0.29.1

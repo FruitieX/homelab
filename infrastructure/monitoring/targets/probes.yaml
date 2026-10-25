@@ -82,3 +82,64 @@ spec:
         - immich-postgres.default.svc:5432
         - influxdb-influxdb2.influxdb.svc:80
         - loki.loki.svc:3100
+---
+# The internet as the cluster sees it: latency to public resolvers and
+# reachability of the services the homelab depends on. GitHub SSH on port 22
+# is probed next to port 443 because port 22 was found to time out often.
+apiVersion: monitoring.coreos.com/v1
+kind: Probe
+metadata:
+  name: internet-ping
+  namespace: kube-prometheus-stack
+spec:
+  interval: 30s
+  module: icmp
+  prober:
+    url: blackbox-exporter.kube-prometheus-stack.svc:9115
+  targets:
+    staticConfig:
+      labels:
+        group: internet
+      static:
+        - 1.1.1.1
+        - 8.8.8.8
+        - 9.9.9.9
+---
+apiVersion: monitoring.coreos.com/v1
+kind: Probe
+metadata:
+  name: internet-ssh
+  namespace: kube-prometheus-stack
+spec:
+  interval: 60s
+  module: ssh_banner
+  prober:
+    url: blackbox-exporter.kube-prometheus-stack.svc:9115
+  targets:
+    staticConfig:
+      labels:
+        group: internet
+      static:
+        - github.com:22
+        - ssh.github.com:443
+---
+apiVersion: monitoring.coreos.com/v1
+kind: Probe
+metadata:
+  name: internet-tcp
+  namespace: kube-prometheus-stack
+spec:
+  interval: 60s
+  module: tcp_connect
+  prober:
+    url: blackbox-exporter.kube-prometheus-stack.svc:9115
+  targets:
+    staticConfig:
+      labels:
+        group: internet
+      static:
+        - github.com:443
+        - ghcr.io:443
+        - api.myuplink.com:443
+        - opendata.fmi.fi:443
+        - discord.com:443

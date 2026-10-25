@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: Secret
 metadata:
-    name: telegraf-nibe
+    name: telegraf-cloud
     namespace: default
 type: Opaque
 stringData:
@@ -9,9 +9,11 @@ stringData:
     NIBE_CLIENT_SECRET: ENC[AES256_GCM,data:IAZ8yZ8Jaq0ru2+Vjufk6NTSd2eSVSEMgrjnS/tpjRo=,iv:x0NRmjupLxj5LAFWiiDcwNokmEtC6/APVa3WI0mxx0Q=,tag:ZaUJbL98G40Z8PsaKHHmGQ==,type:str]
     NIBE_DEVICE_ID: ENC[AES256_GCM,data:pbP/oxqXhNNxnlLrFU08qF36HsmPPKOm7EY/mMw+/MNG+b+xCOQVbGRcRbhoCpUdWgDJN22K,iv:psTcnSCK2XJ3t0xLTEdsfhtHSzYyVs5grG1jZYfiqoc=,tag:rgvj2ulbm5ySawOZcVqA/g==,type:str]
     INFLUX_TOKEN: ENC[AES256_GCM,data:ZHt07hbT/QptiPizdfmYUHNm8Q3PyjZwUaHXhBE6ISEHxmT7iad5s0+qpSMYGMC/ihPRoc0kQ9SraUKFT+IJeXbSLxF60Sil2SkT4KTBvTcCu8ugJRo7bw==,iv:X3daiAUhIJSUZzFMKIyGVGzb2EpaJEiFowf3KhQ08jc=,tag:bEE/vVVZcbnZTAqs9PCBgA==,type:str]
+    FMI_STATION: ENC[AES256_GCM,data:rgj74KTe,iv:W6Mi/NF4jOvYQt3PpPOWowbSRwtJA7bYvgxBpHiZpeQ=,tag:j2Pk4WQxSiQ6Jbq53YC7jg==,type:str]
+    HOME_LATLON: ENC[AES256_GCM,data:velNLhDWKpccJI3yEQ==,iv:74vR2lfndUQu+9CaFAROC0EZtba2yil5JptEWpp5MxM=,tag:Ags/XYHPV5wZXVqyuQsI/A==,type:str]
 sops:
-    lastmodified: "2026-10-25T04:36:24Z"
-    mac: ENC[AES256_GCM,data:NjiIbIRtjQVd4zcx0KvvBa8N7UhrjhuM7nuqcQA3aWAflEAO+shbtr/g5PTiE8/9Jw5bQr8jmhKtWQtO2tGT2I7MAC0ZmMbpmQQUxISGoO0NS9MAs6IzNNbQ1eL2Evb2WTV5hHM4ERkXRY3nvveYM38f+0mNjPQhMteOWpQ06lE=,iv:Af4KrmVtESg8/5eEMYNlXBH3fukKFlnQB3Sm9XGfVyo=,tag:Senct0y0he68QNOj4R2G3w==,type:str]
+    lastmodified: "2026-10-25T05:52:36Z"
+    mac: ENC[AES256_GCM,data:bPglFxUbKf7pI1ePV1P8OZK5LryKLMuFDt5MSijhEuHcyR4Gkl9mrUN0vpPglgtuX4qsN+HAPOfWcCixzmj3CfmkpUwvJHph3gSCeB4baet9qhYEmhMLqlj0l8VYk/lb95EuYQEBzklMNvBFkffOxvBkQi9qaKb61pWOA8uca10=,iv:TWK4iEIjxCUdpgFv3yqlRS90P7mnM0TI8L639LDBUQ0=,tag:oCILf21KeWLFvnkTRBN9MQ==,type:str]
     pgp:
         - created_at: "2026-10-25T04:36:24Z"
           enc: |-
