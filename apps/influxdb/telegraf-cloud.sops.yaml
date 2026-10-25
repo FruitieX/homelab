@@ -11,9 +11,10 @@ stringData:
     INFLUX_TOKEN: ENC[AES256_GCM,data:ZHt07hbT/QptiPizdfmYUHNm8Q3PyjZwUaHXhBE6ISEHxmT7iad5s0+qpSMYGMC/ihPRoc0kQ9SraUKFT+IJeXbSLxF60Sil2SkT4KTBvTcCu8ugJRo7bw==,iv:X3daiAUhIJSUZzFMKIyGVGzb2EpaJEiFowf3KhQ08jc=,tag:bEE/vVVZcbnZTAqs9PCBgA==,type:str]
     FMI_STATION: ENC[AES256_GCM,data:rgj74KTe,iv:W6Mi/NF4jOvYQt3PpPOWowbSRwtJA7bYvgxBpHiZpeQ=,tag:j2Pk4WQxSiQ6Jbq53YC7jg==,type:str]
     HOME_LATLON: ENC[AES256_GCM,data:velNLhDWKpccJI3yEQ==,iv:74vR2lfndUQu+9CaFAROC0EZtba2yil5JptEWpp5MxM=,tag:Ags/XYHPV5wZXVqyuQsI/A==,type:str]
+    FINGRID_API_KEY: ENC[AES256_GCM,data:5wQ9CX5i7wLn3uU2VXeAEAYJ5xkZKfDj/egxsc/EULk=,iv:eaMmzmZESf0nIRqQQG5Nt3tBxd+EHDfb8gTn/JGC9g0=,tag:/ULNunTAgIojQ6Vd7iVdpg==,type:str]
 sops:
-    lastmodified: "2026-10-25T05:52:36Z"
-    mac: ENC[AES256_GCM,data:bPglFxUbKf7pI1ePV1P8OZK5LryKLMuFDt5MSijhEuHcyR4Gkl9mrUN0vpPglgtuX4qsN+HAPOfWcCixzmj3CfmkpUwvJHph3gSCeB4baet9qhYEmhMLqlj0l8VYk/lb95EuYQEBzklMNvBFkffOxvBkQi9qaKb61pWOA8uca10=,iv:TWK4iEIjxCUdpgFv3yqlRS90P7mnM0TI8L639LDBUQ0=,tag:oCILf21KeWLFvnkTRBN9MQ==,type:str]
+    lastmodified: "2026-10-25T06:46:00Z"
+    mac: ENC[AES256_GCM,data:hEAH301opiVQCbondAFo1JSQqavTuO9w5M0Y/PRSawzDCm6vkk+PiId8aoQAGu0yjchWyWYErO/2KIdrB1Rl6qd3SYMR7mE/w09HmG7tQS5/17rntleTzt4Hl0h1XeCW/zF/mXnd/ImjMXmP+X/LAO65svgcuiPQh62inqE1SVs=,iv:5Dp7p0DAEjqY4GX+fGHTI+b3eAM6pCaG61OKvI41AxA=,tag:JewVSOvtPworpVdqa/EDQw==,type:str]
     pgp:
         - created_at: "2026-10-25T04:36:24Z"
           enc: |-

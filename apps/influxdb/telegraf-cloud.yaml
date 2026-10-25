@@ -3,7 +3,9 @@
 # - FMI open data: weather observations from the nearest station every 10 min
 #   (fmi_observation), daily mean temperatures (fmi_daily) and the forecast
 #   for home hourly (fmi_forecast).
-# Credentials, device id, station and home coordinates are in
+# - Fingrid open data every 3 min: CO2 intensity, national production and
+#   consumption, grid frequency and system state (fingrid).
+# API keys, NIBE device id, station and home coordinates are in
 # telegraf-cloud.sops.yaml.
 apiVersion: v1
 kind: ConfigMap
@@ -95,6 +97,207 @@ data:
           param = "BsWfs:ParameterName"
         [inputs.http.xpath.fields]
           value = "number(BsWfs:ParameterValue)"
+
+    # Fingrid open data: the latest 3-minute value of each dataset (measurement
+    # fingrid, tag series). The API allows one request per 2 s and 10 000 a
+    # day, so the inputs are staggered 10 s apart: 11 requests per 3 minutes.
+    [[inputs.http]]
+      interval = "3m"
+      collection_offset = "0s"
+      urls = ["https://data.fingrid.fi/api/datasets/265/data/latest"]
+      headers = {"x-api-key" = "${FINGRID_API_KEY}"}
+      timeout = "20s"
+      tagexclude = ["url"]
+      data_format = "json_v2"
+      [inputs.http.tags]
+        series = "co2_consumption"
+      [[inputs.http.json_v2]]
+        measurement_name = "fingrid"
+        timestamp_path = "startTime"
+        timestamp_format = "2006-01-02T15:04:05.000Z"
+        [[inputs.http.json_v2.field]]
+          path = "value"
+          type = "float"
+
+    [[inputs.http]]
+      interval = "3m"
+      collection_offset = "10s"
+      urls = ["https://data.fingrid.fi/api/datasets/266/data/latest"]
+      headers = {"x-api-key" = "${FINGRID_API_KEY}"}
+      timeout = "20s"
+      tagexclude = ["url"]
+      data_format = "json_v2"
+      [inputs.http.tags]
+        series = "co2_production"
+      [[inputs.http.json_v2]]
+        measurement_name = "fingrid"
+        timestamp_path = "startTime"
+        timestamp_format = "2006-01-02T15:04:05.000Z"
+        [[inputs.http.json_v2.field]]
+          path = "value"
+          type = "float"
+
+    [[inputs.http]]
+      interval = "3m"
+      collection_offset = "20s"
+      urls = ["https://data.fingrid.fi/api/datasets/193/data/latest"]
+      headers = {"x-api-key" = "${FINGRID_API_KEY}"}
+      timeout = "20s"
+      tagexclude = ["url"]
+      data_format = "json_v2"
+      [inputs.http.tags]
+        series = "consumption"
+      [[inputs.http.json_v2]]
+        measurement_name = "fingrid"
+        timestamp_path = "startTime"
+        timestamp_format = "2006-01-02T15:04:05.000Z"
+        [[inputs.http.json_v2.field]]
+          path = "value"
+          type = "float"
+
+    [[inputs.http]]
+      interval = "3m"
+      collection_offset = "30s"
+      urls = ["https://data.fingrid.fi/api/datasets/192/data/latest"]
+      headers = {"x-api-key" = "${FINGRID_API_KEY}"}
+      timeout = "20s"
+      tagexclude = ["url"]
+      data_format = "json_v2"
+      [inputs.http.tags]
+        series = "production"
+      [[inputs.http.json_v2]]
+        measurement_name = "fingrid"
+        timestamp_path = "startTime"
+        timestamp_format = "2006-01-02T15:04:05.000Z"
+        [[inputs.http.json_v2.field]]
+          path = "value"
+          type = "float"
+
+    [[inputs.http]]
+      interval = "3m"
+      collection_offset = "40s"
+      urls = ["https://data.fingrid.fi/api/datasets/194/data/latest"]
+      headers = {"x-api-key" = "${FINGRID_API_KEY}"}
+      timeout = "20s"
+      tagexclude = ["url"]
+      data_format = "json_v2"
+      [inputs.http.tags]
+        series = "net_import"
+      [[inputs.http.json_v2]]
+        measurement_name = "fingrid"
+        timestamp_path = "startTime"
+        timestamp_format = "2006-01-02T15:04:05.000Z"
+        [[inputs.http.json_v2.field]]
+          path = "value"
+          type = "float"
+
+    [[inputs.http]]
+      interval = "3m"
+      collection_offset = "50s"
+      urls = ["https://data.fingrid.fi/api/datasets/181/data/latest"]
+      headers = {"x-api-key" = "${FINGRID_API_KEY}"}
+      timeout = "20s"
+      tagexclude = ["url"]
+      data_format = "json_v2"
+      [inputs.http.tags]
+        series = "wind"
+      [[inputs.http.json_v2]]
+        measurement_name = "fingrid"
+        timestamp_path = "startTime"
+        timestamp_format = "2006-01-02T15:04:05.000Z"
+        [[inputs.http.json_v2.field]]
+          path = "value"
+          type = "float"
+
+    [[inputs.http]]
+      interval = "3m"
+      collection_offset = "60s"
+      urls = ["https://data.fingrid.fi/api/datasets/188/data/latest"]
+      headers = {"x-api-key" = "${FINGRID_API_KEY}"}
+      timeout = "20s"
+      tagexclude = ["url"]
+      data_format = "json_v2"
+      [inputs.http.tags]
+        series = "nuclear"
+      [[inputs.http.json_v2]]
+        measurement_name = "fingrid"
+        timestamp_path = "startTime"
+        timestamp_format = "2006-01-02T15:04:05.000Z"
+        [[inputs.http.json_v2.field]]
+          path = "value"
+          type = "float"
+
+    [[inputs.http]]
+      interval = "3m"
+      collection_offset = "70s"
+      urls = ["https://data.fingrid.fi/api/datasets/191/data/latest"]
+      headers = {"x-api-key" = "${FINGRID_API_KEY}"}
+      timeout = "20s"
+      tagexclude = ["url"]
+      data_format = "json_v2"
+      [inputs.http.tags]
+        series = "hydro"
+      [[inputs.http.json_v2]]
+        measurement_name = "fingrid"
+        timestamp_path = "startTime"
+        timestamp_format = "2006-01-02T15:04:05.000Z"
+        [[inputs.http.json_v2.field]]
+          path = "value"
+          type = "float"
+
+    [[inputs.http]]
+      interval = "3m"
+      collection_offset = "80s"
+      urls = ["https://data.fingrid.fi/api/datasets/177/data/latest"]
+      headers = {"x-api-key" = "${FINGRID_API_KEY}"}
+      timeout = "20s"
+      tagexclude = ["url"]
+      data_format = "json_v2"
+      [inputs.http.tags]
+        series = "frequency"
+      [[inputs.http.json_v2]]
+        measurement_name = "fingrid"
+        timestamp_path = "startTime"
+        timestamp_format = "2006-01-02T15:04:05.000Z"
+        [[inputs.http.json_v2.field]]
+          path = "value"
+          type = "float"
+
+    [[inputs.http]]
+      interval = "3m"
+      collection_offset = "90s"
+      urls = ["https://data.fingrid.fi/api/datasets/209/data/latest"]
+      headers = {"x-api-key" = "${FINGRID_API_KEY}"}
+      timeout = "20s"
+      tagexclude = ["url"]
+      data_format = "json_v2"
+      [inputs.http.tags]
+        series = "system_state"
+      [[inputs.http.json_v2]]
+        measurement_name = "fingrid"
+        timestamp_path = "startTime"
+        timestamp_format = "2006-01-02T15:04:05.000Z"
+        [[inputs.http.json_v2.field]]
+          path = "value"
+          type = "float"
+
+    [[inputs.http]]
+      interval = "3m"
+      collection_offset = "100s"
+      urls = ["https://data.fingrid.fi/api/datasets/336/data/latest"]
+      headers = {"x-api-key" = "${FINGRID_API_KEY}"}
+      timeout = "20s"
+      tagexclude = ["url"]
+      data_format = "json_v2"
+      [inputs.http.tags]
+        series = "shortage_status"
+      [[inputs.http.json_v2]]
+        measurement_name = "fingrid"
+        timestamp_path = "startTime"
+        timestamp_format = "2006-01-02T15:04:05.000Z"
+        [[inputs.http.json_v2.field]]
+          path = "value"
+          type = "float"
 
     [[processors.rename]]
       namepass = ["nibe"]
