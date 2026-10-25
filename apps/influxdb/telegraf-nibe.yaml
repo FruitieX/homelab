@@ -1,0 +1,112 @@
+# NIBE F750 heat pump: polls the myUplink cloud API once a minute and writes
+# the data points to InfluxDB (bucket home, measurement nibe). Credentials and
+# the device id are in telegraf-nibe.sops.yaml; see docs/monitoring.md.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: telegraf-nibe-config
+  namespace: default
+  annotations:
+    # Telegraf expands the ${...} variables itself.
+    kustomize.toolkit.fluxcd.io/substitute: disabled
+data:
+  telegraf.conf: |
+    [agent]
+      interval = "60s"
+      round_interval = true
+      omit_hostname = true
+
+    # NIBE F750 via the myUplink cloud API. The app only ever gets a READSYSTEM
+    # token, so this poller cannot change any pump setting.
+    [[inputs.http]]
+      urls = ["https://api.myuplink.com/v2/devices/${NIBE_DEVICE_ID}/points"]
+      token_url = "https://api.myuplink.com/oauth/token"
+      client_id = "${NIBE_CLIENT_ID}"
+      client_secret = "${NIBE_CLIENT_SECRET}"
+      scopes = ["READSYSTEM"]
+      timeout = "20s"
+      tagexclude = ["url"]
+      data_format = "json_v2"
+      [[inputs.http.json_v2]]
+        measurement_name = "nibe"
+        [[inputs.http.json_v2.object]]
+          path = "@this"
+          disable_prepend_keys = true
+          included_keys = ["parameterId", "parameterName", "parameterUnit", "value"]
+          tags = ["parameterId", "parameterName", "parameterUnit"]
+
+    # 65535 is a placeholder point with no data.
+    [inputs.http.tagdrop]
+      parameterId = ["65535"]
+
+    [[processors.rename]]
+      [[processors.rename.replace]]
+        tag = "parameterId"
+        dest = "id"
+      [[processors.rename.replace]]
+        tag = "parameterName"
+        dest = "name"
+      [[processors.rename.replace]]
+        tag = "parameterUnit"
+        dest = "unit"
+
+    # myUplink names carry soft hyphens for line breaking.
+    [[processors.strings]]
+      [[processors.strings.replace]]
+        tag = "name"
+        old = "­"
+        new = ""
+
+    [[outputs.influxdb_v2]]
+      urls = ["http://influxdb-influxdb2.influxdb.svc"]
+      token = "${INFLUX_TOKEN}"
+      organization = "influxdata"
+      bucket = "home"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: telegraf-nibe
+  namespace: default
+  annotations:
+    configmap.reloader.stakater.com/reload: "telegraf-nibe-config"
+    secret.reloader.stakater.com/reload: "telegraf-nibe"
+spec:
+  selector:
+    matchLabels:
+      app: telegraf-nibe
+  template:
+    metadata:
+      labels:
+        app: telegraf-nibe
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 999
+        seccompProfile:
+          type: RuntimeDefault
+      volumes:
+        - name: config
+          configMap:
+            name: telegraf-nibe-config
+      containers:
+        - name: telegraf
+          image: telegraf:1.38.4-alpine
+          args: ["--config", "/etc/telegraf/telegraf.conf"]
+          envFrom:
+            - secretRef:
+                name: telegraf-nibe
+          resources:
+            requests:
+              memory: 40Mi
+              cpu: 5m
+            limits:
+              memory: 150Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+          volumeMounts:
+            - mountPath: /etc/telegraf
+              name: config

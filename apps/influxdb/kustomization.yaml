@@ -3,4 +3,6 @@ kind: Kustomization
 resources:
   - ./config.yaml
   - ./telegraf.yaml
+  - ./telegraf-nibe.yaml
+  - ./telegraf-nibe.sops.yaml
 
