@@ -1903,7 +1903,7 @@
   },
   {
    "type": "row",
-   "title": "Water",
+   "title": "Finnish grid (Fingrid)",
    "collapsed": false,
    "id": 25,
    "gridPos": {
@@ -1911,6 +1911,655 @@
     "w": 24,
     "x": 0,
     "y": 56
+   },
+   "panels": []
+  },
+  {
+   "type": "stat",
+   "title": "CO₂ now",
+   "targets": [
+    {
+     "datasource": {
+      "type": "influxdb",
+      "uid": "influxdb-home"
+     },
+     "query": "import \"dict\"\nfrom(bucket: \"home\")\n  |> range(start: -30m, stop: now())\n  |> filter(fn: (r) => r._measurement == \"fingrid\" and r._field == \"value\")\n  |> filter(fn: (r) => r.series == \"co2_consumption\")\n  |> map(fn: (r) => ({_time: r._time, _value: r._value, series: dict.get(dict: [\"co2_consumption\": \"Consumed\"], key: r.series, default: r.series)}))\n  |> group(columns: [\"series\"])\n  |> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false)\n\n  |> last()",
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {},
+     "decimals": 0,
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "#3aa655",
+        "value": null
+       },
+       {
+        "color": "#e0a100",
+        "value": 50
+       },
+       {
+        "color": "#e5484d",
+        "value": 100
+       }
+      ]
+     },
+     "color": {
+      "mode": "thresholds"
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    },
+    "graphMode": "none",
+    "colorMode": "value",
+    "textMode": "value",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "wideLayout": true,
+    "showPercentChange": false
+   },
+   "datasource": {
+    "type": "influxdb",
+    "uid": "influxdb-home"
+   },
+   "description": "Grams of CO₂ per kWh of electricity consumed in Finland, including imports (Fingrid, 3 min).",
+   "id": 26,
+   "gridPos": {
+    "h": 5,
+    "w": 4,
+    "x": 0,
+    "y": 57
+   }
+  },
+  {
+   "type": "stat",
+   "title": "Grid state",
+   "targets": [
+    {
+     "datasource": {
+      "type": "influxdb",
+      "uid": "influxdb-home"
+     },
+     "query": "import \"dict\"\nfrom(bucket: \"home\")\n  |> range(start: -30m, stop: now())\n  |> filter(fn: (r) => r._measurement == \"fingrid\" and r._field == \"value\")\n  |> filter(fn: (r) => r.series == \"system_state\" or r.series == \"shortage_status\")\n  |> map(fn: (r) => ({_time: r._time, _value: r._value, series: dict.get(dict: [\"system_state\": \"System\", \"shortage_status\": \"Shortage\"], key: r.series, default: r.series)}))\n  |> group(columns: [\"series\"])\n  |> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false)\n\n  |> last()",
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {},
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "#7d7d7d",
+        "value": null
+       }
+      ]
+     },
+     "mappings": [
+      {
+       "type": "value",
+       "options": {
+        "0": {
+         "text": "Normal",
+         "color": "#3aa655",
+         "index": 0
+        },
+        "1": {
+         "text": "Normal",
+         "color": "#3aa655",
+         "index": 1
+        },
+        "2": {
+         "text": "Endangered",
+         "color": "#e0a100",
+         "index": 2
+        },
+        "3": {
+         "text": "Disturbed",
+         "color": "#e5484d",
+         "index": 3
+        },
+        "4": {
+         "text": "Serious",
+         "color": "#e5484d",
+         "index": 4
+        },
+        "5": {
+         "text": "Restoring",
+         "color": "#e0a100",
+         "index": 5
+        }
+       }
+      }
+     ],
+     "displayName": "${__field.labels.series}",
+     "color": {
+      "mode": "thresholds"
+     }
+    },
+    "overrides": [
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "Shortage"
+      },
+      "properties": [
+       {
+        "id": "mappings",
+        "value": [
+         {
+          "type": "value",
+          "options": {
+           "0": {
+            "text": "No shortage",
+            "color": "#3aa655",
+            "index": 0
+           },
+           "1": {
+            "text": "Possible",
+            "color": "#e0a100",
+            "index": 1
+           },
+           "2": {
+            "text": "High risk",
+            "color": "#e5484d",
+            "index": 2
+           },
+           "3": {
+            "text": "Shortage",
+            "color": "#e5484d",
+            "index": 3
+           }
+          }
+         }
+        ]
+       }
+      ]
+     }
+    ]
+   },
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    },
+    "graphMode": "none",
+    "colorMode": "background",
+    "textMode": "value_and_name",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "wideLayout": true,
+    "showPercentChange": false
+   },
+   "datasource": {
+    "type": "influxdb",
+    "uid": "influxdb-home"
+   },
+   "description": "Fingrid's power system state and electricity shortage status.",
+   "id": 27,
+   "gridPos": {
+    "h": 5,
+    "w": 8,
+    "x": 4,
+    "y": 57
+   }
+  },
+  {
+   "type": "stat",
+   "title": "Your CO₂, last 12 months",
+   "targets": [
+    {
+     "datasource": {
+      "type": "influxdb",
+      "uid": "influxdb-home"
+     },
+     "query": "hourly = from(bucket: \"home\")\n  |> range(start: -365d, stop: now())\n  |> filter(fn: (r) => r._measurement == \"fingrid_hourly\" and r.series == \"co2_consumption\")\nlive = from(bucket: \"home\")\n  |> range(start: -365d, stop: now())\n  |> filter(fn: (r) => r._measurement == \"fingrid\" and r.series == \"co2_consumption\")\n  |> aggregateWindow(every: 1h, fn: mean, createEmpty: false, timeSrc: \"_start\")\nco2 = union(tables: [hourly, live])\n  |> group()\n  |> aggregateWindow(every: 1h, fn: mean, createEmpty: false, timeSrc: \"_start\")\nuse = from(bucket: \"home\")\n  |> range(start: -365d, stop: now())\n  |> filter(fn: (r) => r._measurement == \"electricity\" and r._field == \"kwh\")\n  |> group()\n  |> aggregateWindow(every: 1h, fn: sum, createEmpty: false, timeSrc: \"_start\")\njoin(tables: {u: use, c: co2}, on: [\"_time\"])\n  |> map(fn: (r) => ({_time: r._time, _value: r._value_u * r._value_c / 1000.0}))\n  |> sum()",
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {},
+     "unit": "masskg",
+     "decimals": 0,
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "#d55181",
+        "value": null
+       }
+      ]
+     },
+     "color": {
+      "mode": "thresholds"
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    },
+    "graphMode": "none",
+    "colorMode": "value",
+    "textMode": "value",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "wideLayout": true,
+    "showPercentChange": false
+   },
+   "datasource": {
+    "type": "influxdb",
+    "uid": "influxdb-home"
+   },
+   "description": "Metered use each hour times that hour's CO₂ intensity of consumption.",
+   "id": 28,
+   "gridPos": {
+    "h": 5,
+    "w": 6,
+    "x": 12,
+    "y": 57
+   }
+  },
+  {
+   "type": "stat",
+   "title": "Import / export",
+   "targets": [
+    {
+     "datasource": {
+      "type": "influxdb",
+      "uid": "influxdb-home"
+     },
+     "query": "import \"dict\"\nfrom(bucket: \"home\")\n  |> range(start: -30m, stop: now())\n  |> filter(fn: (r) => r._measurement == \"fingrid\" and r._field == \"value\")\n  |> filter(fn: (r) => r.series == \"net_import\")\n  |> map(fn: (r) => ({_time: r._time, _value: r._value, series: dict.get(dict: [\"net_import\": \"Net import\"], key: r.series, default: r.series)}))\n  |> group(columns: [\"series\"])\n  |> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false)\n\n  |> last()",
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {},
+     "unit": "megwatt",
+     "decimals": 0,
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "#3987e5",
+        "value": null
+       }
+      ]
+     },
+     "color": {
+      "mode": "thresholds"
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    },
+    "graphMode": "none",
+    "colorMode": "value",
+    "textMode": "value",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "wideLayout": true,
+    "showPercentChange": false
+   },
+   "datasource": {
+    "type": "influxdb",
+    "uid": "influxdb-home"
+   },
+   "description": "Positive: Finland imports electricity; negative: exports.",
+   "id": 29,
+   "gridPos": {
+    "h": 5,
+    "w": 6,
+    "x": 18,
+    "y": 57
+   }
+  },
+  {
+   "type": "timeseries",
+   "title": "Production by source",
+   "targets": [
+    {
+     "datasource": {
+      "type": "influxdb",
+      "uid": "influxdb-home"
+     },
+     "query": "import \"dict\"\nfrom(bucket: \"home\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"fingrid\" and r._field == \"value\")\n  |> filter(fn: (r) => r.series == \"nuclear\" or r.series == \"hydro\" or r.series == \"wind\")\n  |> map(fn: (r) => ({_time: r._time, _value: r._value, series: dict.get(dict: [\"nuclear\": \"Nuclear\", \"hydro\": \"Hydro\", \"wind\": \"Wind\"], key: r.series, default: r.series)}))\n  |> group(columns: [\"series\"])\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)",
+     "refId": "A"
+    },
+    {
+     "datasource": {
+      "type": "influxdb",
+      "uid": "influxdb-home"
+     },
+     "query": "import \"timezone\"\noption location = timezone.location(name: \"Europe/Helsinki\")\nfrom(bucket: \"home\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"fingrid\" and r._field == \"value\")\n  |> filter(fn: (r) => r.series == \"production\" or r.series == \"nuclear\" or r.series == \"hydro\" or r.series == \"wind\")\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\n  |> pivot(rowKey: [\"_time\"], columnKey: [\"series\"], valueColumn: \"_value\")\n  |> filter(fn: (r) => exists r.production and exists r.nuclear and exists r.hydro and exists r.wind)\n  |> map(fn: (r) => ({_time: r._time, _value: r.production - r.nuclear - r.hydro - r.wind, series: \"Other\"}))\n  |> group(columns: [\"series\"])",
+     "refId": "B"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {
+      "drawStyle": "line",
+      "lineWidth": 2,
+      "fillOpacity": 60,
+      "gradientMode": "none",
+      "lineInterpolation": "smooth",
+      "showPoints": "never",
+      "spanNulls": true,
+      "stacking": {
+       "mode": "normal",
+       "group": "A"
+      },
+      "axisBorderShow": false,
+      "barAlignment": -1,
+      "thresholdsStyle": {
+       "mode": "off"
+      },
+      "insertNulls": 3600000
+     },
+     "unit": "megwatt",
+     "decimals": 0,
+     "displayName": "${__field.labels.series}",
+     "color": {
+      "mode": "palette-classic"
+     }
+    },
+    "overrides": [
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "Nuclear"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#9085e9"
+        }
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "Hydro"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#3987e5"
+        }
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "Wind"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#199e70"
+        }
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "Other"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#7d7d7d"
+        }
+       }
+      ]
+     }
+    ]
+   },
+   "options": {
+    "legend": {
+     "displayMode": "list",
+     "placement": "right",
+     "showLegend": true,
+     "calcs": []
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "desc"
+    }
+   },
+   "datasource": {
+    "type": "influxdb",
+    "uid": "influxdb-home"
+   },
+   "timeFrom": "7d",
+   "id": 30,
+   "gridPos": {
+    "h": 8,
+    "w": 16,
+    "x": 0,
+    "y": 62
+   }
+  },
+  {
+   "type": "timeseries",
+   "title": "CO₂ intensity",
+   "targets": [
+    {
+     "datasource": {
+      "type": "influxdb",
+      "uid": "influxdb-home"
+     },
+     "query": "import \"dict\"\nfrom(bucket: \"home\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"fingrid\" and r._field == \"value\")\n  |> filter(fn: (r) => r.series == \"co2_consumption\" or r.series == \"co2_production\")\n  |> map(fn: (r) => ({_time: r._time, _value: r._value, series: dict.get(dict: [\"co2_consumption\": \"Consumed\", \"co2_production\": \"Produced\"], key: r.series, default: r.series)}))\n  |> group(columns: [\"series\"])\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)",
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {
+      "drawStyle": "line",
+      "lineWidth": 2,
+      "fillOpacity": 0,
+      "gradientMode": "opacity",
+      "lineInterpolation": "smooth",
+      "showPoints": "never",
+      "spanNulls": true,
+      "stacking": {
+       "mode": "none",
+       "group": "A"
+      },
+      "axisBorderShow": false,
+      "barAlignment": -1,
+      "thresholdsStyle": {
+       "mode": "off"
+      },
+      "insertNulls": 3600000
+     },
+     "decimals": 0,
+     "displayName": "${__field.labels.series}",
+     "color": {
+      "mode": "palette-classic"
+     }
+    },
+    "overrides": [
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "Consumed"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#d55181"
+        }
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "Produced"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#c98500"
+        }
+       }
+      ]
+     }
+    ]
+   },
+   "options": {
+    "legend": {
+     "displayMode": "list",
+     "placement": "bottom",
+     "showLegend": true,
+     "calcs": []
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "desc"
+    }
+   },
+   "datasource": {
+    "type": "influxdb",
+    "uid": "influxdb-home"
+   },
+   "description": "gCO₂/kWh. Consumed includes imports.",
+   "timeFrom": "7d",
+   "id": 31,
+   "gridPos": {
+    "h": 8,
+    "w": 8,
+    "x": 16,
+    "y": 62
+   }
+  },
+  {
+   "type": "timeseries",
+   "title": "Your electricity CO₂ per month",
+   "targets": [
+    {
+     "datasource": {
+      "type": "influxdb",
+      "uid": "influxdb-home"
+     },
+     "query": "import \"timezone\"\noption location = timezone.location(name: \"Europe/Helsinki\")\n\nhourly = from(bucket: \"home\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"fingrid_hourly\" and r.series == \"co2_consumption\")\nlive = from(bucket: \"home\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"fingrid\" and r.series == \"co2_consumption\")\n  |> aggregateWindow(every: 1h, fn: mean, createEmpty: false, timeSrc: \"_start\")\nco2 = union(tables: [hourly, live])\n  |> group()\n  |> aggregateWindow(every: 1h, fn: mean, createEmpty: false, timeSrc: \"_start\")\nuse = from(bucket: \"home\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"electricity\" and r._field == \"kwh\")\n  |> group()\n  |> aggregateWindow(every: 1h, fn: sum, createEmpty: false, timeSrc: \"_start\")\njoin(tables: {u: use, c: co2}, on: [\"_time\"])\n  |> map(fn: (r) => ({_time: r._time, _value: r._value_u * r._value_c / 1000.0}))\n  |> aggregateWindow(every: 1mo, fn: sum, createEmpty: false, timeSrc: \"_start\")",
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {
+      "drawStyle": "bars",
+      "lineWidth": 1,
+      "fillOpacity": 80,
+      "gradientMode": "none",
+      "lineInterpolation": "linear",
+      "showPoints": "never",
+      "spanNulls": false,
+      "stacking": {
+       "mode": "none",
+       "group": "A"
+      },
+      "axisBorderShow": false,
+      "barAlignment": -1,
+      "thresholdsStyle": {
+       "mode": "off"
+      },
+      "insertNulls": false
+     },
+     "unit": "masskg",
+     "decimals": 0,
+     "color": {
+      "mode": "fixed",
+      "fixedColor": "#d55181"
+     },
+     "displayName": "CO₂"
+    },
+    "overrides": []
+   },
+   "options": {
+    "legend": {
+     "displayMode": "list",
+     "placement": "bottom",
+     "showLegend": true,
+     "calcs": []
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "desc"
+    }
+   },
+   "datasource": {
+    "type": "influxdb",
+    "uid": "influxdb-home"
+   },
+   "description": "The Finnish grid got much cleaner after Olkiluoto 3 and the wind build-out: similar use, a third of the emissions.",
+   "timeFrom": "6y",
+   "id": 32,
+   "gridPos": {
+    "h": 7,
+    "w": 24,
+    "x": 0,
+    "y": 70
+   }
+  },
+  {
+   "type": "row",
+   "title": "Water",
+   "collapsed": false,
+   "id": 33,
+   "gridPos": {
+    "h": 1,
+    "w": 24,
+    "x": 0,
+    "y": 77
    },
    "panels": []
   },
@@ -1974,12 +2623,12 @@
     "type": "influxdb",
     "uid": "influxdb-home"
    },
-   "id": 26,
+   "id": 34,
    "gridPos": {
     "h": 8,
     "w": 12,
     "x": 0,
-    "y": 57
+    "y": 78
    }
   },
   {
@@ -2043,12 +2692,12 @@
     "uid": "influxdb-home"
    },
    "timeFrom": "60d",
-   "id": 27,
+   "id": 35,
    "gridPos": {
     "h": 8,
     "w": 6,
     "x": 12,
-    "y": 57
+    "y": 78
    }
   },
   {
@@ -2129,12 +2778,12 @@
    },
    "description": "Water used between 02:00 and 05:00. A few litres every night points at a running toilet or a dripping tap.",
    "timeFrom": "60d",
-   "id": 28,
+   "id": 36,
    "gridPos": {
     "h": 8,
     "w": 6,
     "x": 18,
-    "y": 57
+    "y": 78
    }
   }
  ]

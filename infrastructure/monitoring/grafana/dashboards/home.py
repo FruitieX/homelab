@@ -1,7 +1,7 @@
 """Home dashboards: energy & water, climate, devices (InfluxDB home/nordpool)."""
 
 from lib import (BAD, GOOD, MUTED, SLOTS, WARN, Dashboard, barchart, bargauge, by_name, fixed_colors, flux,
-                 organize, reduce_rows, stat, status_history, table, text, thresholds, timeseries)
+                 organize, reduce_rows, stat, status_history, table, text, thresholds, timeseries, value_map)
 
 TZ = 'import "timezone"\noption location = timezone.location(name: "Europe/Helsinki")\n'
 
@@ -120,6 +120,54 @@ from(bucket: "home")
   |> filter(fn: (r) => r._measurement == "fmi_daily" and r.param == "tday")
   |> map(fn: (r) => ({{_time: date.truncate(t: r._time, unit: 1d), _value: {ELEC_BASE} + {ELEC_SLOPE} * (if r._value < {ELEC_BALANCE} then {ELEC_BALANCE} - r._value else 0.0), series: "Expected from weather"}}))
   |> group(columns: ["series"])'''
+
+
+def fingrid(series, fn="mean", start="v.timeRangeStart", stop="v.timeRangeStop"):
+    """Fingrid 3-minute data (measurement fingrid), one series per name, relabelled."""
+    return f'''
+import "dict"
+from(bucket: "home")
+  |> range(start: {start}, stop: {stop})
+  |> filter(fn: (r) => r._measurement == "fingrid" and r._field == "value")
+  |> filter(fn: (r) => {" or ".join(f'r.series == "{k}"' for k in series)})
+  |> map(fn: (r) => ({{_time: r._time, _value: r._value, series: dict.get(dict: {_dict(series)}, key: r.series, default: r.series)}}))
+  |> group(columns: ["series"])
+  |> aggregateWindow(every: v.windowPeriod, fn: {fn}, createEmpty: false)
+'''
+
+
+def fingrid_other():
+    return '''from(bucket: "home")
+  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)
+  |> filter(fn: (r) => r._measurement == "fingrid" and r._field == "value")
+  |> filter(fn: (r) => r.series == "production" or r.series == "nuclear" or r.series == "hydro" or r.series == "wind")
+  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)
+  |> pivot(rowKey: ["_time"], columnKey: ["series"], valueColumn: "_value")
+  |> filter(fn: (r) => exists r.production and exists r.nuclear and exists r.hydro and exists r.wind)
+  |> map(fn: (r) => ({_time: r._time, _value: r.production - r.nuclear - r.hydro - r.wind, series: "Other"}))
+  |> group(columns: ["series"])'''
+
+
+def household_co2(start="v.timeRangeStart", stop="v.timeRangeStop"):
+    """kg CO₂ per hour: metered kWh × the hour's consumption CO₂ intensity (backfilled hourly + live 3-min)."""
+    return f'''
+hourly = from(bucket: "home")
+  |> range(start: {start}, stop: {stop})
+  |> filter(fn: (r) => r._measurement == "fingrid_hourly" and r.series == "co2_consumption")
+live = from(bucket: "home")
+  |> range(start: {start}, stop: {stop})
+  |> filter(fn: (r) => r._measurement == "fingrid" and r.series == "co2_consumption")
+  |> aggregateWindow(every: 1h, fn: mean, createEmpty: false, timeSrc: "_start")
+co2 = union(tables: [hourly, live])
+  |> group()
+  |> aggregateWindow(every: 1h, fn: mean, createEmpty: false, timeSrc: "_start")
+use = from(bucket: "home")
+  |> range(start: {start}, stop: {stop})
+  |> filter(fn: (r) => r._measurement == "electricity" and r._field == "kwh")
+  |> group()
+  |> aggregateWindow(every: 1h, fn: sum, createEmpty: false, timeSrc: "_start")
+join(tables: {{u: use, c: co2}}, on: ["_time"])
+  |> map(fn: (r) => ({{_time: r._time, _value: r._value_u * r._value_c / 1000.0}}))'''
 
 
 PLUG_OVERRIDES = fixed_colors(PLUG_COLORS)
@@ -241,6 +289,43 @@ join(tables: {{u: used, e: exp}}, on: ["_time"])
                      color={"mode": "fixed", "fixedColor": SLOTS[4]},
                      desc="Median hourly use between 02 and 05, per week. In summer this is the always-on load "
                           "(fridge, freezer, network, homelab, ventilation)."), 12, 8)
+
+    d.row("Finnish grid (Fingrid)")
+    d.add(stat("CO₂ now", [flux(fingrid({"co2_consumption": "Consumed"}, start="-30m", stop="now()", fn="last")
+                                + "\n  |> last()")], decimals=0, graph=False,
+               thr=thresholds(GOOD, (50, WARN), (100, BAD)),
+               desc="Grams of CO₂ per kWh of electricity consumed in Finland, including imports (Fingrid, 3 min)."),
+          4, 5)
+    d.add(stat("Grid state", [flux(fingrid({"system_state": "System", "shortage_status": "Shortage"}, start="-30m",
+                                           stop="now()", fn="last") + "\n  |> last()")],
+               graph=False, text_mode="value_and_name", color_mode="background", display_name="${__field.labels.series}",
+               mappings=value_map([(0, "Normal", GOOD), (1, "Normal", GOOD), (2, "Endangered", WARN),
+                                   (3, "Disturbed", BAD), (4, "Serious", BAD), (5, "Restoring", WARN)]),
+               overrides=[by_name("Shortage", mappings=value_map([(0, "No shortage", GOOD), (1, "Possible", WARN),
+                                                                  (2, "High risk", BAD), (3, "Shortage", BAD)]))],
+               thr=thresholds(MUTED), desc="Fingrid's power system state and electricity shortage status."), 8, 5)
+    d.add(stat("Your CO₂, last 12 months", [flux(household_co2(start="-365d", stop="now()") + "\n  |> sum()")],
+               unit="masskg", decimals=0, graph=False, thr=thresholds(SLOTS[4]),
+               desc="Metered use each hour times that hour's CO₂ intensity of consumption."), 6, 5)
+    d.add(stat("Import / export", [flux(fingrid({"net_import": "Net import"}, start="-30m", stop="now()", fn="last")
+                                        + "\n  |> last()")], unit="megwatt", decimals=0, graph=False,
+               thr=thresholds(SLOTS[0]), desc="Positive: Finland imports electricity; negative: exports."), 6, 5)
+    d.add(timeseries("Production by source", [flux(fingrid({"nuclear": "Nuclear", "hydro": "Hydro", "wind": "Wind"})),
+                                               flux(TZ + fingrid_other())],
+                     unit="megwatt", stack=True, fill=60, gradient="none", decimals=0, legend="right",
+                     display_name="${__field.labels.series}",
+                     overrides=fixed_colors({"Nuclear": SLOTS[6], "Hydro": SLOTS[0], "Wind": SLOTS[2],
+                                             "Other": MUTED}), time_from="7d"), 16, 8)
+    d.add(timeseries("CO₂ intensity", [flux(fingrid({"co2_consumption": "Consumed", "co2_production": "Produced"}))],
+                     decimals=0, fill=0, display_name="${__field.labels.series}", time_from="7d",
+                     overrides=fixed_colors({"Consumed": SLOTS[4], "Produced": SLOTS[3]}),
+                     desc="gCO₂/kWh. Consumed includes imports."), 8, 8)
+    d.add(timeseries("Your electricity CO₂ per month", [flux(TZ + household_co2() + '''
+  |> aggregateWindow(every: 1mo, fn: sum, createEmpty: false, timeSrc: "_start")''')],
+                     unit="masskg", bars=True, decimals=0, display_name="CO₂", time_from="6y",
+                     color={"mode": "fixed", "fixedColor": SLOTS[4]},
+                     desc="The Finnish grid got much cleaner after Olkiluoto 3 and the wind build-out: "
+                          "similar use, a third of the emissions."), 24, 7)
 
     d.row("Water")
     d.add(timeseries("Water per hour", [flux(TZ + water() + '''
