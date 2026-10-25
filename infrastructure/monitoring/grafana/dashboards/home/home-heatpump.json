@@ -1,0 +1,2281 @@
+{
+ "uid": "home-heatpump",
+ "title": "Home · Heat pump",
+ "description": "The NIBE F750 exhaust-air heat pump through the myUplink API, polled once a minute. Read-only: the poller's token cannot change settings.",
+ "tags": [
+  "homelab-nav",
+  "home"
+ ],
+ "timezone": "browser",
+ "editable": true,
+ "graphTooltip": 1,
+ "schemaVersion": 39,
+ "time": {
+  "from": "now-24h",
+  "to": "now"
+ },
+ "refresh": "1m",
+ "fiscalYearStartMonth": 0,
+ "liveNow": false,
+ "weekStart": "monday",
+ "links": [
+  {
+   "type": "dashboards",
+   "tags": [
+    "homelab-nav"
+   ],
+   "asDropdown": false,
+   "includeVars": false,
+   "keepTime": true,
+   "title": "Dashboards",
+   "icon": "external link",
+   "targetBlank": false
+  }
+ ],
+ "annotations": {
+  "list": [
+   {
+    "builtIn": 1,
+    "datasource": {
+     "type": "grafana",
+     "uid": "-- Grafana --"
+    },
+    "enable": true,
+    "hide": true,
+    "iconColor": "rgba(0, 211, 255, 1)",
+    "name": "Annotations & Alerts",
+    "type": "dashboard"
+   }
+  ]
+ },
+ "templating": {
+  "list": []
+ },
+ "panels": [
+  {
+   "type": "row",
+   "title": "Now",
+   "collapsed": false,
+   "id": 1,
+   "gridPos": {
+    "h": 1,
+    "w": 24,
+    "x": 0,
+    "y": 0
+   },
+   "panels": []
+  },
+  {
+   "type": "stat",
+   "title": "Doing",
+   "targets": [
+    {
+     "datasource": {
+      "type": "influxdb",
+      "uid": "influxdb-home"
+     },
+     "query": "import \"dict\"\nnames = [\"49994\": \"49994\"]\nfrom(bucket: \"home\")\n  |> range(start: -15m, stop: now())\n  |> filter(fn: (r) => r._measurement == \"nibe\" and r._field == \"value\")\n  |> filter(fn: (r) => r.id == \"49994\")\n  |> map(fn: (r) => ({_time: r._time, _value: r._value, point: dict.get(dict: names, key: r.id, default: r.id)}))\n  |> group(columns: [\"point\"])\n  |> aggregateWindow(every: 15m, fn: last, createEmpty: false)\n\n  |> last()",
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {},
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "#7d7d7d",
+        "value": null
+       }
+      ]
+     },
+     "mappings": [
+      {
+       "type": "value",
+       "options": {
+        "10": {
+         "text": "Off",
+         "color": "#7d7d7d",
+         "index": 0
+        },
+        "20": {
+         "text": "Hot water",
+         "color": "#d95926",
+         "index": 1
+        },
+        "30": {
+         "text": "Heating",
+         "color": "#3987e5",
+         "index": 2
+        },
+        "60": {
+         "text": "Cooling",
+         "color": "#199e70",
+         "index": 3
+        }
+       }
+      }
+     ],
+     "color": {
+      "mode": "thresholds"
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    },
+    "graphMode": "none",
+    "colorMode": "background",
+    "textMode": "value",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "wideLayout": true,
+    "showPercentChange": false
+   },
+   "datasource": {
+    "type": "influxdb",
+    "uid": "influxdb-home"
+   },
+   "description": "What the compressor is working on.",
+   "id": 2,
+   "gridPos": {
+    "h": 4,
+    "w": 4,
+    "x": 0,
+    "y": 1
+   }
+  },
+  {
+   "type": "stat",
+   "title": "Hot water",
+   "targets": [
+    {
+     "datasource": {
+      "type": "influxdb",
+      "uid": "influxdb-home"
+     },
+     "query": "import \"dict\"\nnames = [\"40013\": \"40013\"]\nfrom(bucket: \"home\")\n  |> range(start: -15m, stop: now())\n  |> filter(fn: (r) => r._measurement == \"nibe\" and r._field == \"value\")\n  |> filter(fn: (r) => r.id == \"40013\")\n  |> map(fn: (r) => ({_time: r._time, _value: r._value, point: dict.get(dict: names, key: r.id, default: r.id)}))\n  |> group(columns: [\"point\"])\n  |> aggregateWindow(every: 15m, fn: last, createEmpty: false)\n\n  |> last()",
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {},
+     "unit": "celsius",
+     "decimals": 1,
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "#3987e5",
+        "value": null
+       },
+       {
+        "color": "#e0a100",
+        "value": 40
+       },
+       {
+        "color": "#d95926",
+        "value": 45
+       }
+      ]
+     },
+     "color": {
+      "mode": "thresholds"
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    },
+    "graphMode": "none",
+    "colorMode": "value",
+    "textMode": "value",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "wideLayout": true,
+    "showPercentChange": false
+   },
+   "datasource": {
+    "type": "influxdb",
+    "uid": "influxdb-home"
+   },
+   "description": "Top of the tank (BT7), where hot water is drawn from.",
+   "id": 3,
+   "gridPos": {
+    "h": 4,
+    "w": 4,
+    "x": 4,
+    "y": 1
+   }
+  },
+  {
+   "type": "stat",
+   "title": "Hot water left",
+   "targets": [
+    {
+     "datasource": {
+      "type": "influxdb",
+      "uid": "influxdb-home"
+     },
+     "query": "import \"dict\"\nnames = [\"50345\": \"50345\"]\nfrom(bucket: \"home\")\n  |> range(start: -15m, stop: now())\n  |> filter(fn: (r) => r._measurement == \"nibe\" and r._field == \"value\")\n  |> filter(fn: (r) => r.id == \"50345\")\n  |> map(fn: (r) => ({_time: r._time, _value: r._value, point: dict.get(dict: names, key: r.id, default: r.id)}))\n  |> group(columns: [\"point\"])\n  |> aggregateWindow(every: 15m, fn: last, createEmpty: false)\n\n  |> last()",
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {},
+     "unit": "m",
+     "decimals": 0,
+     "color": {
+      "mode": "thresholds"
+     },
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "#3987e5",
+        "value": null
+       }
+      ]
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    },
+    "graphMode": "none",
+    "colorMode": "value",
+    "textMode": "value",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "wideLayout": true,
+    "showPercentChange": false
+   },
+   "datasource": {
+    "type": "influxdb",
+    "uid": "influxdb-home"
+   },
+   "description": "The pump's estimate of shower minutes left in the tank.",
+   "id": 4,
+   "gridPos": {
+    "h": 4,
+    "w": 4,
+    "x": 8,
+    "y": 1
+   }
+  },
+  {
+   "type": "stat",
+   "title": "Compressor",
+   "targets": [
+    {
+     "datasource": {
+      "type": "influxdb",
+      "uid": "influxdb-home"
+     },
+     "query": "import \"dict\"\nnames = [\"41778\": \"41778\"]\nfrom(bucket: \"home\")\n  |> range(start: -15m, stop: now())\n  |> filter(fn: (r) => r._measurement == \"nibe\" and r._field == \"value\")\n  |> filter(fn: (r) => r.id == \"41778\")\n  |> map(fn: (r) => ({_time: r._time, _value: r._value, point: dict.get(dict: names, key: r.id, default: r.id)}))\n  |> group(columns: [\"point\"])\n  |> aggregateWindow(every: 15m, fn: last, createEmpty: false)\n\n  |> last()",
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {},
+     "unit": "hertz",
+     "decimals": 0,
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "#3987e5",
+        "value": null
+       }
+      ]
+     },
+     "color": {
+      "mode": "thresholds"
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    },
+    "graphMode": "none",
+    "colorMode": "value",
+    "textMode": "value",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "wideLayout": true,
+    "showPercentChange": false
+   },
+   "datasource": {
+    "type": "influxdb",
+    "uid": "influxdb-home"
+   },
+   "id": 5,
+   "gridPos": {
+    "h": 4,
+    "w": 4,
+    "x": 12,
+    "y": 1
+   }
+  },
+  {
+   "type": "stat",
+   "title": "Supply / target",
+   "targets": [
+    {
+     "datasource": {
+      "type": "influxdb",
+      "uid": "influxdb-home"
+     },
+     "query": "import \"dict\"\nnames = [\"40008\": \"Supply\"]\nfrom(bucket: \"home\")\n  |> range(start: -15m, stop: now())\n  |> filter(fn: (r) => r._measurement == \"nibe\" and r._field == \"value\")\n  |> filter(fn: (r) => r.id == \"40008\")\n  |> map(fn: (r) => ({_time: r._time, _value: r._value, point: dict.get(dict: names, key: r.id, default: r.id)}))\n  |> group(columns: [\"point\"])\n  |> aggregateWindow(every: 15m, fn: last, createEmpty: false)\n\n  |> last()",
+     "refId": "A"
+    },
+    {
+     "datasource": {
+      "type": "influxdb",
+      "uid": "influxdb-home"
+     },
+     "query": "import \"dict\"\nnames = [\"43009\": \"Target\"]\nfrom(bucket: \"home\")\n  |> range(start: -15m, stop: now())\n  |> filter(fn: (r) => r._measurement == \"nibe\" and r._field == \"value\")\n  |> filter(fn: (r) => r.id == \"43009\")\n  |> map(fn: (r) => ({_time: r._time, _value: r._value, point: dict.get(dict: names, key: r.id, default: r.id)}))\n  |> group(columns: [\"point\"])\n  |> aggregateWindow(every: 15m, fn: last, createEmpty: false)\n\n  |> last()",
+     "refId": "B"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {},
+     "unit": "celsius",
+     "decimals": 1,
+     "color": {
+      "mode": "thresholds"
+     },
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "#3987e5",
+        "value": null
+       }
+      ]
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    },
+    "graphMode": "none",
+    "colorMode": "value",
+    "textMode": "value_and_name",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "wideLayout": true,
+    "showPercentChange": false
+   },
+   "datasource": {
+    "type": "influxdb",
+    "uid": "influxdb-home"
+   },
+   "description": "Water going out to the radiators/floor (BT63) and the temperature the heating curve asks for.",
+   "id": 6,
+   "gridPos": {
+    "h": 4,
+    "w": 4,
+    "x": 16,
+    "y": 1
+   }
+  },
+  {
+   "type": "stat",
+   "title": "Outdoor",
+   "targets": [
+    {
+     "datasource": {
+      "type": "influxdb",
+      "uid": "influxdb-home"
+     },
+     "query": "import \"dict\"\nnames = [\"40004\": \"40004\"]\nfrom(bucket: \"home\")\n  |> range(start: -15m, stop: now())\n  |> filter(fn: (r) => r._measurement == \"nibe\" and r._field == \"value\")\n  |> filter(fn: (r) => r.id == \"40004\")\n  |> map(fn: (r) => ({_time: r._time, _value: r._value, point: dict.get(dict: names, key: r.id, default: r.id)}))\n  |> group(columns: [\"point\"])\n  |> aggregateWindow(every: 15m, fn: last, createEmpty: false)\n\n  |> last()",
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {},
+     "unit": "celsius",
+     "decimals": 1,
+     "color": {
+      "mode": "thresholds"
+     },
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "#3987e5",
+        "value": null
+       }
+      ]
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    },
+    "graphMode": "none",
+    "colorMode": "value",
+    "textMode": "value",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "wideLayout": true,
+    "showPercentChange": false
+   },
+   "datasource": {
+    "type": "influxdb",
+    "uid": "influxdb-home"
+   },
+   "description": "The pump's own outdoor sensor (BT1).",
+   "id": 7,
+   "gridPos": {
+    "h": 4,
+    "w": 4,
+    "x": 20,
+    "y": 1
+   }
+  },
+  {
+   "type": "stat",
+   "title": "Degree minutes",
+   "targets": [
+    {
+     "datasource": {
+      "type": "influxdb",
+      "uid": "influxdb-home"
+     },
+     "query": "import \"dict\"\nnames = [\"40941\": \"40941\"]\nfrom(bucket: \"home\")\n  |> range(start: -15m, stop: now())\n  |> filter(fn: (r) => r._measurement == \"nibe\" and r._field == \"value\")\n  |> filter(fn: (r) => r.id == \"40941\")\n  |> map(fn: (r) => ({_time: r._time, _value: r._value, point: dict.get(dict: names, key: r.id, default: r.id)}))\n  |> group(columns: [\"point\"])\n  |> aggregateWindow(every: 15m, fn: last, createEmpty: false)\n\n  |> last()",
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {},
+     "decimals": 0,
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "#e5484d",
+        "value": null
+       },
+       {
+        "color": "#e0a100",
+        "value": -700
+       },
+       {
+        "color": "#3987e5",
+        "value": -60
+       }
+      ]
+     },
+     "color": {
+      "mode": "thresholds"
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    },
+    "graphMode": "none",
+    "colorMode": "value",
+    "textMode": "value",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "wideLayout": true,
+    "showPercentChange": false
+   },
+   "datasource": {
+    "type": "influxdb",
+    "uid": "influxdb-home"
+   },
+   "description": "Heat deficit the pump is working off. The compressor starts at −60; the electric heater is allowed in from −700.",
+   "id": 8,
+   "gridPos": {
+    "h": 4,
+    "w": 4,
+    "x": 0,
+    "y": 5
+   }
+  },
+  {
+   "type": "stat",
+   "title": "Electric heater",
+   "targets": [
+    {
+     "datasource": {
+      "type": "influxdb",
+      "uid": "influxdb-home"
+     },
+     "query": "import \"dict\"\nnames = [\"49993\": \"49993\"]\nfrom(bucket: \"home\")\n  |> range(start: -15m, stop: now())\n  |> filter(fn: (r) => r._measurement == \"nibe\" and r._field == \"value\")\n  |> filter(fn: (r) => r.id == \"49993\")\n  |> map(fn: (r) => ({_time: r._time, _value: r._value, point: dict.get(dict: names, key: r.id, default: r.id)}))\n  |> group(columns: [\"point\"])\n  |> aggregateWindow(every: 15m, fn: last, createEmpty: false)\n\n  |> last()",
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {},
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "#7d7d7d",
+        "value": null
+       }
+      ]
+     },
+     "mappings": [
+      {
+       "type": "value",
+       "options": {
+        "0": {
+         "text": "Alarm",
+         "color": "#e5484d",
+         "index": 0
+        },
+        "1": {
+         "text": "Alarm",
+         "color": "#e5484d",
+         "index": 1
+        },
+        "2": {
+         "text": "On",
+         "color": "#e0a100",
+         "index": 2
+        },
+        "3": {
+         "text": "Off",
+         "color": "#7d7d7d",
+         "index": 3
+        },
+        "4": {
+         "text": "Blocked",
+         "color": "#7d7d7d",
+         "index": 4
+        },
+        "5": {
+         "text": "Off",
+         "color": "#7d7d7d",
+         "index": 5
+        },
+        "6": {
+         "text": "On",
+         "color": "#e0a100",
+         "index": 6
+        }
+       }
+      }
+     ],
+     "color": {
+      "mode": "thresholds"
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    },
+    "graphMode": "none",
+    "colorMode": "background",
+    "textMode": "value",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "wideLayout": true,
+    "showPercentChange": false
+   },
+   "datasource": {
+    "type": "influxdb",
+    "uid": "influxdb-home"
+   },
+   "description": "The built-in immersion heater (up to 6.5 kW).",
+   "id": 9,
+   "gridPos": {
+    "h": 4,
+    "w": 4,
+    "x": 4,
+    "y": 5
+   }
+  },
+  {
+   "type": "stat",
+   "title": "Heater power",
+   "targets": [
+    {
+     "datasource": {
+      "type": "influxdb",
+      "uid": "influxdb-home"
+     },
+     "query": "import \"dict\"\nnames = [\"43084\": \"43084\"]\nfrom(bucket: \"home\")\n  |> range(start: -15m, stop: now())\n  |> filter(fn: (r) => r._measurement == \"nibe\" and r._field == \"value\")\n  |> filter(fn: (r) => r.id == \"43084\")\n  |> map(fn: (r) => ({_time: r._time, _value: r._value, point: dict.get(dict: names, key: r.id, default: r.id)}))\n  |> group(columns: [\"point\"])\n  |> aggregateWindow(every: 15m, fn: last, createEmpty: false)\n\n  |> last()",
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {},
+     "unit": "kwatt",
+     "decimals": 1,
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "#3987e5",
+        "value": null
+       },
+       {
+        "color": "#e0a100",
+        "value": 0.1
+       }
+      ]
+     },
+     "color": {
+      "mode": "thresholds"
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    },
+    "graphMode": "none",
+    "colorMode": "value",
+    "textMode": "value",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "wideLayout": true,
+    "showPercentChange": false
+   },
+   "datasource": {
+    "type": "influxdb",
+    "uid": "influxdb-home"
+   },
+   "id": 10,
+   "gridPos": {
+    "h": 4,
+    "w": 4,
+    "x": 8,
+    "y": 5
+   }
+  },
+  {
+   "type": "stat",
+   "title": "Smart Price Adaption",
+   "targets": [
+    {
+     "datasource": {
+      "type": "influxdb",
+      "uid": "influxdb-home"
+     },
+     "query": "import \"dict\"\nnames = [\"41929\": \"41929\"]\nfrom(bucket: \"home\")\n  |> range(start: -15m, stop: now())\n  |> filter(fn: (r) => r._measurement == \"nibe\" and r._field == \"value\")\n  |> filter(fn: (r) => r.id == \"41929\")\n  |> map(fn: (r) => ({_time: r._time, _value: r._value, point: dict.get(dict: names, key: r.id, default: r.id)}))\n  |> group(columns: [\"point\"])\n  |> aggregateWindow(every: 15m, fn: last, createEmpty: false)\n\n  |> last()",
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {},
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "#7d7d7d",
+        "value": null
+       }
+      ]
+     },
+     "mappings": [
+      {
+       "type": "value",
+       "options": {
+        "0": {
+         "text": "Unknown",
+         "color": "#7d7d7d",
+         "index": 0
+        },
+        "1": {
+         "text": "Low price",
+         "color": "#199e70",
+         "index": 1
+        },
+        "2": {
+         "text": "Normal",
+         "color": "#7d7d7d",
+         "index": 2
+        },
+        "3": {
+         "text": "High price",
+         "color": "#c98500",
+         "index": 3
+        }
+       }
+      }
+     ],
+     "color": {
+      "mode": "thresholds"
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    },
+    "graphMode": "none",
+    "colorMode": "background",
+    "textMode": "value",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "wideLayout": true,
+    "showPercentChange": false
+   },
+   "datasource": {
+    "type": "influxdb",
+    "uid": "influxdb-home"
+   },
+   "description": "How the pump rates the current Nord Pool price.",
+   "id": 11,
+   "gridPos": {
+    "h": 4,
+    "w": 4,
+    "x": 12,
+    "y": 5
+   }
+  },
+  {
+   "type": "stat",
+   "title": "Exhaust fan",
+   "targets": [
+    {
+     "datasource": {
+      "type": "influxdb",
+      "uid": "influxdb-home"
+     },
+     "query": "import \"dict\"\nnames = [\"50221\": \"50221\"]\nfrom(bucket: \"home\")\n  |> range(start: -15m, stop: now())\n  |> filter(fn: (r) => r._measurement == \"nibe\" and r._field == \"value\")\n  |> filter(fn: (r) => r.id == \"50221\")\n  |> map(fn: (r) => ({_time: r._time, _value: r._value, point: dict.get(dict: names, key: r.id, default: r.id)}))\n  |> group(columns: [\"point\"])\n  |> aggregateWindow(every: 15m, fn: last, createEmpty: false)\n\n  |> last()",
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {},
+     "unit": "percent",
+     "decimals": 0,
+     "color": {
+      "mode": "thresholds"
+     },
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "#3987e5",
+        "value": null
+       }
+      ]
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    },
+    "graphMode": "none",
+    "colorMode": "value",
+    "textMode": "value",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "wideLayout": true,
+    "showPercentChange": false
+   },
+   "datasource": {
+    "type": "influxdb",
+    "uid": "influxdb-home"
+   },
+   "id": 12,
+   "gridPos": {
+    "h": 4,
+    "w": 4,
+    "x": 16,
+    "y": 5
+   }
+  },
+  {
+   "type": "stat",
+   "title": "Inverter",
+   "targets": [
+    {
+     "datasource": {
+      "type": "influxdb",
+      "uid": "influxdb-home"
+     },
+     "query": "import \"dict\"\nnames = [\"43140\": \"43140\"]\nfrom(bucket: \"home\")\n  |> range(start: -15m, stop: now())\n  |> filter(fn: (r) => r._measurement == \"nibe\" and r._field == \"value\")\n  |> filter(fn: (r) => r.id == \"43140\")\n  |> map(fn: (r) => ({_time: r._time, _value: r._value, point: dict.get(dict: names, key: r.id, default: r.id)}))\n  |> group(columns: [\"point\"])\n  |> aggregateWindow(every: 15m, fn: last, createEmpty: false)\n\n  |> last()",
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {},
+     "unit": "celsius",
+     "decimals": 0,
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "#3987e5",
+        "value": null
+       },
+       {
+        "color": "#e0a100",
+        "value": 60
+       },
+       {
+        "color": "#e5484d",
+        "value": 75
+       }
+      ]
+     },
+     "color": {
+      "mode": "thresholds"
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    },
+    "graphMode": "none",
+    "colorMode": "value",
+    "textMode": "value",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "wideLayout": true,
+    "showPercentChange": false
+   },
+   "datasource": {
+    "type": "influxdb",
+    "uid": "influxdb-home"
+   },
+   "id": 13,
+   "gridPos": {
+    "h": 4,
+    "w": 4,
+    "x": 20,
+    "y": 5
+   }
+  },
+  {
+   "type": "row",
+   "title": "Activity",
+   "collapsed": false,
+   "id": 14,
+   "gridPos": {
+    "h": 1,
+    "w": 24,
+    "x": 0,
+    "y": 9
+   },
+   "panels": []
+  },
+  {
+   "type": "state-timeline",
+   "title": "What it was doing",
+   "targets": [
+    {
+     "datasource": {
+      "type": "influxdb",
+      "uid": "influxdb-home"
+     },
+     "query": "import \"dict\"\nnames = [\"49994\": \"Priority\"]\nfrom(bucket: \"home\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"nibe\" and r._field == \"value\")\n  |> filter(fn: (r) => r.id == \"49994\")\n  |> map(fn: (r) => ({_time: r._time, _value: r._value, point: dict.get(dict: names, key: r.id, default: r.id)}))\n  |> group(columns: [\"point\"])\n  |> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false)",
+     "refId": "A"
+    },
+    {
+     "datasource": {
+      "type": "influxdb",
+      "uid": "influxdb-home"
+     },
+     "query": "import \"dict\"\nnames = [\"43427\": \"Compressor\"]\nfrom(bucket: \"home\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"nibe\" and r._field == \"value\")\n  |> filter(fn: (r) => r.id == \"43427\")\n  |> map(fn: (r) => ({_time: r._time, _value: r._value, point: dict.get(dict: names, key: r.id, default: r.id)}))\n  |> group(columns: [\"point\"])\n  |> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false)",
+     "refId": "B"
+    },
+    {
+     "datasource": {
+      "type": "influxdb",
+      "uid": "influxdb-home"
+     },
+     "query": "import \"dict\"\nnames = [\"49993\": \"Electric heater\"]\nfrom(bucket: \"home\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"nibe\" and r._field == \"value\")\n  |> filter(fn: (r) => r.id == \"49993\")\n  |> map(fn: (r) => ({_time: r._time, _value: r._value, point: dict.get(dict: names, key: r.id, default: r.id)}))\n  |> group(columns: [\"point\"])\n  |> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false)",
+     "refId": "C"
+    },
+    {
+     "datasource": {
+      "type": "influxdb",
+      "uid": "influxdb-home"
+     },
+     "query": "import \"dict\"\nnames = [\"41929\": \"Spot price\"]\nfrom(bucket: \"home\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"nibe\" and r._field == \"value\")\n  |> filter(fn: (r) => r.id == \"41929\")\n  |> map(fn: (r) => ({_time: r._time, _value: r._value, point: dict.get(dict: names, key: r.id, default: r.id)}))\n  |> group(columns: [\"point\"])\n  |> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false)",
+     "refId": "D"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {
+      "lineWidth": 0,
+      "fillOpacity": 80
+     },
+     "color": {
+      "mode": "thresholds"
+     },
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "#7d7d7d",
+        "value": null
+       }
+      ]
+     },
+     "mappings": [
+      {
+       "type": "value",
+       "options": {
+        "10": {
+         "text": "Off",
+         "color": "#7d7d7d",
+         "index": 0
+        },
+        "20": {
+         "text": "Hot water",
+         "color": "#d95926",
+         "index": 1
+        },
+        "30": {
+         "text": "Heating",
+         "color": "#3987e5",
+         "index": 2
+        },
+        "60": {
+         "text": "Cooling",
+         "color": "#199e70",
+         "index": 3
+        }
+       }
+      }
+     ],
+     "displayName": "${__field.labels.point}"
+    },
+    "overrides": [
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "Compressor"
+      },
+      "properties": [
+       {
+        "id": "mappings",
+        "value": [
+         {
+          "type": "value",
+          "options": {
+           "20": {
+            "text": "Off",
+            "color": "#7d7d7d",
+            "index": 0
+           },
+           "40": {
+            "text": "Starting",
+            "color": "#199e70",
+            "index": 1
+           },
+           "60": {
+            "text": "Running",
+            "color": "#3987e5",
+            "index": 2
+           },
+           "100": {
+            "text": "Stopping",
+            "color": "#199e70",
+            "index": 3
+           }
+          }
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "Electric heater"
+      },
+      "properties": [
+       {
+        "id": "mappings",
+        "value": [
+         {
+          "type": "value",
+          "options": {
+           "0": {
+            "text": "Alarm",
+            "color": "#e5484d",
+            "index": 0
+           },
+           "1": {
+            "text": "Alarm",
+            "color": "#e5484d",
+            "index": 1
+           },
+           "2": {
+            "text": "On",
+            "color": "#e0a100",
+            "index": 2
+           },
+           "3": {
+            "text": "Off",
+            "color": "#7d7d7d",
+            "index": 3
+           },
+           "4": {
+            "text": "Blocked",
+            "color": "#7d7d7d",
+            "index": 4
+           },
+           "5": {
+            "text": "Off",
+            "color": "#7d7d7d",
+            "index": 5
+           },
+           "6": {
+            "text": "On",
+            "color": "#e0a100",
+            "index": 6
+           }
+          }
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "Spot price"
+      },
+      "properties": [
+       {
+        "id": "mappings",
+        "value": [
+         {
+          "type": "value",
+          "options": {
+           "0": {
+            "text": "Unknown",
+            "color": "#7d7d7d",
+            "index": 0
+           },
+           "1": {
+            "text": "Low price",
+            "color": "#199e70",
+            "index": 1
+           },
+           "2": {
+            "text": "Normal",
+            "color": "#7d7d7d",
+            "index": 2
+           },
+           "3": {
+            "text": "High price",
+            "color": "#c98500",
+            "index": 3
+           }
+          }
+         }
+        ]
+       }
+      ]
+     }
+    ]
+   },
+   "options": {
+    "showValue": "never",
+    "rowHeight": 0.85,
+    "mergeValues": true,
+    "alignValue": "left",
+    "legend": {
+     "showLegend": false
+    },
+    "tooltip": {
+     "mode": "single",
+     "sort": "none"
+    }
+   },
+   "datasource": {
+    "type": "influxdb",
+    "uid": "influxdb-home"
+   },
+   "id": 15,
+   "gridPos": {
+    "h": 6,
+    "w": 24,
+    "x": 0,
+    "y": 10
+   }
+  },
+  {
+   "type": "timeseries",
+   "title": "Hot water tank",
+   "targets": [
+    {
+     "datasource": {
+      "type": "influxdb",
+      "uid": "influxdb-home"
+     },
+     "query": "import \"dict\"\nnames = [\"40013\": \"Top (BT7)\", \"40014\": \"Charging (BT6)\"]\nfrom(bucket: \"home\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"nibe\" and r._field == \"value\")\n  |> filter(fn: (r) => r.id == \"40013\" or r.id == \"40014\")\n  |> map(fn: (r) => ({_time: r._time, _value: r._value, point: dict.get(dict: names, key: r.id, default: r.id)}))\n  |> group(columns: [\"point\"])\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)",
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {
+      "drawStyle": "line",
+      "lineWidth": 2,
+      "fillOpacity": 0,
+      "gradientMode": "opacity",
+      "lineInterpolation": "smooth",
+      "showPoints": "never",
+      "spanNulls": true,
+      "stacking": {
+       "mode": "none",
+       "group": "A"
+      },
+      "axisBorderShow": false,
+      "barAlignment": -1,
+      "thresholdsStyle": {
+       "mode": "off"
+      },
+      "insertNulls": 3600000
+     },
+     "unit": "celsius",
+     "decimals": 1,
+     "displayName": "${__field.labels.point}",
+     "color": {
+      "mode": "palette-classic"
+     }
+    },
+    "overrides": [
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "Top (BT7)"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#d95926"
+        }
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "Charging (BT6)"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#c98500"
+        }
+       }
+      ]
+     }
+    ]
+   },
+   "options": {
+    "legend": {
+     "displayMode": "list",
+     "placement": "bottom",
+     "showLegend": true,
+     "calcs": []
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "desc"
+    }
+   },
+   "datasource": {
+    "type": "influxdb",
+    "uid": "influxdb-home"
+   },
+   "description": "The tank reheats when the charging sensor drops; a shower shows as a fall at the top.",
+   "id": 16,
+   "gridPos": {
+    "h": 8,
+    "w": 12,
+    "x": 0,
+    "y": 16
+   }
+  },
+  {
+   "type": "timeseries",
+   "title": "Water use",
+   "targets": [
+    {
+     "datasource": {
+      "type": "influxdb",
+      "uid": "influxdb-home"
+     },
+     "query": "import \"timezone\"\noption location = timezone.location(name: \"Europe/Helsinki\")\nfrom(bucket: \"home\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"mqtt_consumer\" and r.name == \"watermeter\" and r._field == \"rate\")\n  |> filter(fn: (r) => r._value > -20.0 and r._value < 20.0)\n  |> keep(columns: [\"_time\", \"_value\"])\n  |> aggregateWindow(every: 10m, fn: sum, createEmpty: false)",
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {
+      "drawStyle": "bars",
+      "lineWidth": 1,
+      "fillOpacity": 80,
+      "gradientMode": "none",
+      "lineInterpolation": "linear",
+      "showPoints": "never",
+      "spanNulls": false,
+      "stacking": {
+       "mode": "none",
+       "group": "A"
+      },
+      "axisBorderShow": false,
+      "barAlignment": -1,
+      "thresholdsStyle": {
+       "mode": "off"
+      },
+      "insertNulls": false
+     },
+     "unit": "litre",
+     "decimals": 1,
+     "color": {
+      "mode": "fixed",
+      "fixedColor": "#3987e5"
+     },
+     "displayName": "Water"
+    },
+    "overrides": []
+   },
+   "options": {
+    "legend": {
+     "displayMode": "list",
+     "placement": "bottom",
+     "showLegend": true,
+     "calcs": []
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "desc"
+    }
+   },
+   "datasource": {
+    "type": "influxdb",
+    "uid": "influxdb-home"
+   },
+   "description": "From the water meter, per 10 minutes. Hot-water reheats follow big draws.",
+   "id": 17,
+   "gridPos": {
+    "h": 8,
+    "w": 12,
+    "x": 12,
+    "y": 16
+   }
+  },
+  {
+   "type": "timeseries",
+   "title": "Heating circuit",
+   "targets": [
+    {
+     "datasource": {
+      "type": "influxdb",
+      "uid": "influxdb-home"
+     },
+     "query": "import \"dict\"\nnames = [\"40008\": \"Supply (BT63)\", \"40012\": \"Return (BT3)\", \"43009\": \"Target supply\"]\nfrom(bucket: \"home\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"nibe\" and r._field == \"value\")\n  |> filter(fn: (r) => r.id == \"40008\" or r.id == \"40012\" or r.id == \"43009\")\n  |> map(fn: (r) => ({_time: r._time, _value: r._value, point: dict.get(dict: names, key: r.id, default: r.id)}))\n  |> group(columns: [\"point\"])\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)",
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {
+      "drawStyle": "line",
+      "lineWidth": 2,
+      "fillOpacity": 0,
+      "gradientMode": "opacity",
+      "lineInterpolation": "smooth",
+      "showPoints": "never",
+      "spanNulls": true,
+      "stacking": {
+       "mode": "none",
+       "group": "A"
+      },
+      "axisBorderShow": false,
+      "barAlignment": -1,
+      "thresholdsStyle": {
+       "mode": "off"
+      },
+      "insertNulls": 3600000
+     },
+     "unit": "celsius",
+     "decimals": 1,
+     "displayName": "${__field.labels.point}",
+     "color": {
+      "mode": "palette-classic"
+     }
+    },
+    "overrides": [
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "Supply (BT63)"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#d95926"
+        }
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "Return (BT3)"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#3987e5"
+        }
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "Target supply"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#9085e9"
+        }
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "Target supply"
+      },
+      "properties": [
+       {
+        "id": "custom.lineStyle",
+        "value": {
+         "fill": "dash",
+         "dash": [
+          6,
+          4
+         ]
+        }
+       }
+      ]
+     }
+    ]
+   },
+   "options": {
+    "legend": {
+     "displayMode": "list",
+     "placement": "bottom",
+     "showLegend": true,
+     "calcs": []
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "desc"
+    }
+   },
+   "datasource": {
+    "type": "influxdb",
+    "uid": "influxdb-home"
+   },
+   "id": 18,
+   "gridPos": {
+    "h": 8,
+    "w": 12,
+    "x": 0,
+    "y": 24
+   }
+  },
+  {
+   "type": "timeseries",
+   "title": "Air",
+   "targets": [
+    {
+     "datasource": {
+      "type": "influxdb",
+      "uid": "influxdb-home"
+     },
+     "query": "import \"dict\"\nnames = [\"40025\": \"From rooms (BT20)\", \"40026\": \"Out of the house (BT21)\", \"40004\": \"Outdoor (BT1)\"]\nfrom(bucket: \"home\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"nibe\" and r._field == \"value\")\n  |> filter(fn: (r) => r.id == \"40025\" or r.id == \"40026\" or r.id == \"40004\")\n  |> map(fn: (r) => ({_time: r._time, _value: r._value, point: dict.get(dict: names, key: r.id, default: r.id)}))\n  |> group(columns: [\"point\"])\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)",
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {
+      "drawStyle": "line",
+      "lineWidth": 2,
+      "fillOpacity": 0,
+      "gradientMode": "opacity",
+      "lineInterpolation": "smooth",
+      "showPoints": "never",
+      "spanNulls": true,
+      "stacking": {
+       "mode": "none",
+       "group": "A"
+      },
+      "axisBorderShow": false,
+      "barAlignment": -1,
+      "thresholdsStyle": {
+       "mode": "off"
+      },
+      "insertNulls": 3600000
+     },
+     "unit": "celsius",
+     "decimals": 1,
+     "displayName": "${__field.labels.point}",
+     "color": {
+      "mode": "palette-classic"
+     }
+    },
+    "overrides": [
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "From rooms (BT20)"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#d95926"
+        }
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "Out of the house (BT21)"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#3987e5"
+        }
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "Outdoor (BT1)"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#199e70"
+        }
+       }
+      ]
+     }
+    ]
+   },
+   "options": {
+    "legend": {
+     "displayMode": "list",
+     "placement": "bottom",
+     "showLegend": true,
+     "calcs": []
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "desc"
+    }
+   },
+   "datasource": {
+    "type": "influxdb",
+    "uid": "influxdb-home"
+   },
+   "description": "Exhaust air from the rooms and what is left after the pump has taken its heat.",
+   "id": 19,
+   "gridPos": {
+    "h": 8,
+    "w": 12,
+    "x": 12,
+    "y": 24
+   }
+  },
+  {
+   "type": "timeseries",
+   "title": "Compressor frequency",
+   "targets": [
+    {
+     "datasource": {
+      "type": "influxdb",
+      "uid": "influxdb-home"
+     },
+     "query": "import \"dict\"\nnames = [\"41778\": \"Compressor\"]\nfrom(bucket: \"home\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"nibe\" and r._field == \"value\")\n  |> filter(fn: (r) => r.id == \"41778\")\n  |> map(fn: (r) => ({_time: r._time, _value: r._value, point: dict.get(dict: names, key: r.id, default: r.id)}))\n  |> group(columns: [\"point\"])\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)",
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {
+      "drawStyle": "line",
+      "lineWidth": 2,
+      "fillOpacity": 12,
+      "gradientMode": "opacity",
+      "lineInterpolation": "smooth",
+      "showPoints": "never",
+      "spanNulls": true,
+      "stacking": {
+       "mode": "none",
+       "group": "A"
+      },
+      "axisBorderShow": false,
+      "barAlignment": -1,
+      "thresholdsStyle": {
+       "mode": "off"
+      },
+      "insertNulls": 3600000
+     },
+     "unit": "hertz",
+     "decimals": 0,
+     "min": 0,
+     "color": {
+      "mode": "fixed",
+      "fixedColor": "#3987e5"
+     },
+     "displayName": "Compressor"
+    },
+    "overrides": []
+   },
+   "options": {
+    "legend": {
+     "displayMode": "list",
+     "placement": "bottom",
+     "showLegend": true,
+     "calcs": []
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "desc"
+    }
+   },
+   "datasource": {
+    "type": "influxdb",
+    "uid": "influxdb-home"
+   },
+   "id": 20,
+   "gridPos": {
+    "h": 7,
+    "w": 12,
+    "x": 0,
+    "y": 32
+   }
+  },
+  {
+   "type": "timeseries",
+   "title": "Degree minutes",
+   "targets": [
+    {
+     "datasource": {
+      "type": "influxdb",
+      "uid": "influxdb-home"
+     },
+     "query": "import \"dict\"\nnames = [\"40941\": \"Degree minutes\"]\nfrom(bucket: \"home\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"nibe\" and r._field == \"value\")\n  |> filter(fn: (r) => r.id == \"40941\")\n  |> map(fn: (r) => ({_time: r._time, _value: r._value, point: dict.get(dict: names, key: r.id, default: r.id)}))\n  |> group(columns: [\"point\"])\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)",
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {
+      "drawStyle": "line",
+      "lineWidth": 2,
+      "fillOpacity": 12,
+      "gradientMode": "opacity",
+      "lineInterpolation": "smooth",
+      "showPoints": "never",
+      "spanNulls": true,
+      "stacking": {
+       "mode": "none",
+       "group": "A"
+      },
+      "axisBorderShow": false,
+      "barAlignment": -1,
+      "thresholdsStyle": {
+       "mode": "dashed"
+      },
+      "insertNulls": 3600000
+     },
+     "decimals": 0,
+     "color": {
+      "mode": "fixed",
+      "fixedColor": "#c98500"
+     },
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "#7d7d7d",
+        "value": null
+       },
+       {
+        "color": "#7d7d7d",
+        "value": -60
+       }
+      ]
+     },
+     "displayName": "Degree minutes"
+    },
+    "overrides": []
+   },
+   "options": {
+    "legend": {
+     "displayMode": "list",
+     "placement": "bottom",
+     "showLegend": true,
+     "calcs": []
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "desc"
+    }
+   },
+   "datasource": {
+    "type": "influxdb",
+    "uid": "influxdb-home"
+   },
+   "description": "Below −60 the compressor starts; near 0 the house is warm enough.",
+   "id": 21,
+   "gridPos": {
+    "h": 7,
+    "w": 12,
+    "x": 12,
+    "y": 32
+   }
+  },
+  {
+   "type": "row",
+   "title": "Energy",
+   "collapsed": false,
+   "id": 22,
+   "gridPos": {
+    "h": 1,
+    "w": 24,
+    "x": 0,
+    "y": 39
+   },
+   "panels": []
+  },
+  {
+   "type": "timeseries",
+   "title": "Heat produced per day",
+   "targets": [
+    {
+     "datasource": {
+      "type": "influxdb",
+      "uid": "influxdb-home"
+     },
+     "query": "import \"timezone\"\nimport \"dict\"\noption location = timezone.location(name: \"Europe/Helsinki\")\n\nnames = [\"44308\": \"Heating, compressor\", \"44306\": \"Hot water, compressor\"]\nfrom(bucket: \"home\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"nibe\" and r._field == \"value\")\n  |> filter(fn: (r) => r.id == \"44308\" or r.id == \"44306\")\n  |> map(fn: (r) => ({_time: r._time, _value: r._value, point: dict.get(dict: names, key: r.id, default: r.id)}))\n  |> group(columns: [\"point\"])\n  |> aggregateWindow(every: 1d, fn: max, createEmpty: false)\n\n  |> difference(nonNegative: true)",
+     "refId": "A"
+    },
+    {
+     "datasource": {
+      "type": "influxdb",
+      "uid": "influxdb-home"
+     },
+     "query": "import \"timezone\"\nimport \"dict\"\noption location = timezone.location(name: \"Europe/Helsinki\")\n\ntotal = \nnames = [\"44300\": \"44300\", \"44298\": \"44298\"]\nfrom(bucket: \"home\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"nibe\" and r._field == \"value\")\n  |> filter(fn: (r) => r.id == \"44300\" or r.id == \"44298\")\n  |> map(fn: (r) => ({_time: r._time, _value: r._value, point: dict.get(dict: names, key: r.id, default: r.id)}))\n  |> group(columns: [\"point\"])\n  |> aggregateWindow(every: 1d, fn: max, createEmpty: false)\n\n  |> difference(nonNegative: true)\n  |> group() |> aggregateWindow(every: 1d, fn: sum, createEmpty: false)\ncomp = \nnames = [\"44308\": \"c\", \"44306\": \"c\"]\nfrom(bucket: \"home\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"nibe\" and r._field == \"value\")\n  |> filter(fn: (r) => r.id == \"44308\" or r.id == \"44306\")\n  |> map(fn: (r) => ({_time: r._time, _value: r._value, point: dict.get(dict: names, key: r.id, default: r.id)}))\n  |> group(columns: [\"point\"])\n  |> aggregateWindow(every: 1d, fn: max, createEmpty: false)\n\n  |> difference(nonNegative: true)\n  |> group() |> aggregateWindow(every: 1d, fn: sum, createEmpty: false)\njoin(tables: {t: total, c: comp}, on: [\"_time\"])\n  |> map(fn: (r) => ({_time: r._time, _value: r._value_t - r._value_c, point: \"Electric heater\"}))\n  |> group(columns: [\"point\"])",
+     "refId": "B"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {
+      "drawStyle": "bars",
+      "lineWidth": 1,
+      "fillOpacity": 80,
+      "gradientMode": "none",
+      "lineInterpolation": "linear",
+      "showPoints": "never",
+      "spanNulls": false,
+      "stacking": {
+       "mode": "normal",
+       "group": "A"
+      },
+      "axisBorderShow": false,
+      "barAlignment": -1,
+      "thresholdsStyle": {
+       "mode": "off"
+      },
+      "insertNulls": false
+     },
+     "unit": "kwatth",
+     "decimals": 1,
+     "displayName": "${__field.labels.point}",
+     "color": {
+      "mode": "palette-classic"
+     }
+    },
+    "overrides": [
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "Heating, compressor"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#3987e5"
+        }
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "Hot water, compressor"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#d95926"
+        }
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "Electric heater"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#c98500"
+        }
+       }
+      ]
+     }
+    ]
+   },
+   "options": {
+    "legend": {
+     "displayMode": "list",
+     "placement": "bottom",
+     "showLegend": true,
+     "calcs": []
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "desc"
+    }
+   },
+   "datasource": {
+    "type": "influxdb",
+    "uid": "influxdb-home"
+   },
+   "description": "From the pump's heat meters. History starts when the poller was added (2026-10-25).",
+   "timeFrom": "30d",
+   "id": 23,
+   "gridPos": {
+    "h": 8,
+    "w": 12,
+    "x": 0,
+    "y": 40
+   }
+  },
+  {
+   "type": "timeseries",
+   "title": "Compressor energy per day",
+   "targets": [
+    {
+     "datasource": {
+      "type": "influxdb",
+      "uid": "influxdb-home"
+     },
+     "query": "import \"timezone\"\nimport \"dict\"\noption location = timezone.location(name: \"Europe/Helsinki\")\n\nnames = [\"43144\": \"Compressor\"]\nfrom(bucket: \"home\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"nibe\" and r._field == \"value\")\n  |> filter(fn: (r) => r.id == \"43144\")\n  |> map(fn: (r) => ({_time: r._time, _value: r._value, point: dict.get(dict: names, key: r.id, default: r.id)}))\n  |> group(columns: [\"point\"])\n  |> aggregateWindow(every: 1d, fn: max, createEmpty: false)\n\n  |> difference(nonNegative: true)",
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {
+      "drawStyle": "bars",
+      "lineWidth": 1,
+      "fillOpacity": 80,
+      "gradientMode": "none",
+      "lineInterpolation": "linear",
+      "showPoints": "never",
+      "spanNulls": false,
+      "stacking": {
+       "mode": "none",
+       "group": "A"
+      },
+      "axisBorderShow": false,
+      "barAlignment": -1,
+      "thresholdsStyle": {
+       "mode": "off"
+      },
+      "insertNulls": false
+     },
+     "unit": "kwatth",
+     "decimals": 1,
+     "color": {
+      "mode": "fixed",
+      "fixedColor": "#d55181"
+     },
+     "displayName": "Compressor"
+    },
+    "overrides": []
+   },
+   "options": {
+    "legend": {
+     "displayMode": "list",
+     "placement": "bottom",
+     "showLegend": true,
+     "calcs": []
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "desc"
+    }
+   },
+   "datasource": {
+    "type": "influxdb",
+    "uid": "influxdb-home"
+   },
+   "description": "The pump's own compressor energy counter (myUplink calls it \"time factor\").",
+   "timeFrom": "30d",
+   "id": 24,
+   "gridPos": {
+    "h": 8,
+    "w": 6,
+    "x": 12,
+    "y": 40
+   }
+  },
+  {
+   "type": "timeseries",
+   "title": "Heat per compressor kWh",
+   "targets": [
+    {
+     "datasource": {
+      "type": "influxdb",
+      "uid": "influxdb-home"
+     },
+     "query": "import \"timezone\"\nimport \"dict\"\noption location = timezone.location(name: \"Europe/Helsinki\")\n\nheat = \nnames = [\"44308\": \"Heating, compressor\", \"44306\": \"Hot water, compressor\"]\nfrom(bucket: \"home\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"nibe\" and r._field == \"value\")\n  |> filter(fn: (r) => r.id == \"44308\" or r.id == \"44306\")\n  |> map(fn: (r) => ({_time: r._time, _value: r._value, point: dict.get(dict: names, key: r.id, default: r.id)}))\n  |> group(columns: [\"point\"])\n  |> aggregateWindow(every: 1d, fn: max, createEmpty: false)\n\n  |> difference(nonNegative: true)\n  |> group() |> aggregateWindow(every: 1d, fn: sum, createEmpty: false)\nelec = \nnames = [\"43144\": \"e\"]\nfrom(bucket: \"home\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"nibe\" and r._field == \"value\")\n  |> filter(fn: (r) => r.id == \"43144\")\n  |> map(fn: (r) => ({_time: r._time, _value: r._value, point: dict.get(dict: names, key: r.id, default: r.id)}))\n  |> group(columns: [\"point\"])\n  |> aggregateWindow(every: 1d, fn: max, createEmpty: false)\n\n  |> difference(nonNegative: true)\n  |> group()\njoin(tables: {h: heat, e: elec}, on: [\"_time\"])\n  |> filter(fn: (r) => r._value_e > 0.5)\n  |> map(fn: (r) => ({_time: r._time, _value: r._value_h / r._value_e}))",
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {
+      "drawStyle": "bars",
+      "lineWidth": 1,
+      "fillOpacity": 80,
+      "gradientMode": "none",
+      "lineInterpolation": "linear",
+      "showPoints": "never",
+      "spanNulls": false,
+      "stacking": {
+       "mode": "none",
+       "group": "A"
+      },
+      "axisBorderShow": false,
+      "barAlignment": -1,
+      "thresholdsStyle": {
+       "mode": "off"
+      },
+      "insertNulls": false
+     },
+     "decimals": 1,
+     "color": {
+      "mode": "fixed",
+      "fixedColor": "#199e70"
+     },
+     "displayName": "Ratio"
+    },
+    "overrides": []
+   },
+   "options": {
+    "legend": {
+     "displayMode": "list",
+     "placement": "bottom",
+     "showLegend": true,
+     "calcs": []
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "desc"
+    }
+   },
+   "datasource": {
+    "type": "influxdb",
+    "uid": "influxdb-home"
+   },
+   "description": "Compressor heat divided by the compressor energy counter: an efficiency estimate from the pump's own counters, not a measured COP (fans and pumps are not included).",
+   "timeFrom": "30d",
+   "id": 25,
+   "gridPos": {
+    "h": 8,
+    "w": 6,
+    "x": 18,
+    "y": 40
+   }
+  },
+  {
+   "type": "stat",
+   "title": "Lifetime",
+   "targets": [
+    {
+     "datasource": {
+      "type": "influxdb",
+      "uid": "influxdb-home"
+     },
+     "query": "import \"dict\"\nnames = [\"43420\": \"Running hours\", \"43424\": \"Hot water hours\", \"43416\": \"Compressor starts\", \"43081\": \"Heater hours (weighted)\"]\nfrom(bucket: \"home\")\n  |> range(start: -15m, stop: now())\n  |> filter(fn: (r) => r._measurement == \"nibe\" and r._field == \"value\")\n  |> filter(fn: (r) => r.id == \"43420\" or r.id == \"43424\" or r.id == \"43416\" or r.id == \"43081\")\n  |> map(fn: (r) => ({_time: r._time, _value: r._value, point: dict.get(dict: names, key: r.id, default: r.id)}))\n  |> group(columns: [\"point\"])\n  |> aggregateWindow(every: 15m, fn: last, createEmpty: false)\n\n  |> last()",
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {},
+     "decimals": 0,
+     "displayName": "${__field.labels.point}",
+     "color": {
+      "mode": "thresholds"
+     },
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "#3987e5",
+        "value": null
+       }
+      ]
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    },
+    "graphMode": "none",
+    "colorMode": "value",
+    "textMode": "value_and_name",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "wideLayout": true,
+    "showPercentChange": false
+   },
+   "datasource": {
+    "type": "influxdb",
+    "uid": "influxdb-home"
+   },
+   "description": "Since installation. Heater hours are weighted by heater power.",
+   "id": 26,
+   "gridPos": {
+    "h": 5,
+    "w": 12,
+    "x": 0,
+    "y": 48
+   }
+  },
+  {
+   "type": "stat",
+   "title": "Lifetime heat",
+   "targets": [
+    {
+     "datasource": {
+      "type": "influxdb",
+      "uid": "influxdb-home"
+     },
+     "query": "import \"dict\"\nnames = [\"44300\": \"Heating\", \"44298\": \"Hot water\"]\nfrom(bucket: \"home\")\n  |> range(start: -15m, stop: now())\n  |> filter(fn: (r) => r._measurement == \"nibe\" and r._field == \"value\")\n  |> filter(fn: (r) => r.id == \"44300\" or r.id == \"44298\")\n  |> map(fn: (r) => ({_time: r._time, _value: r._value, point: dict.get(dict: names, key: r.id, default: r.id)}))\n  |> group(columns: [\"point\"])\n  |> aggregateWindow(every: 15m, fn: last, createEmpty: false)\n\n  |> last()",
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {},
+     "unit": "kwatth",
+     "decimals": 0,
+     "displayName": "${__field.labels.point}",
+     "color": {
+      "mode": "thresholds"
+     },
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "#3987e5",
+        "value": null
+       }
+      ]
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    },
+    "graphMode": "none",
+    "colorMode": "value",
+    "textMode": "value_and_name",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "wideLayout": true,
+    "showPercentChange": false
+   },
+   "datasource": {
+    "type": "influxdb",
+    "uid": "influxdb-home"
+   },
+   "description": "All heat delivered, including the electric heater.",
+   "id": 27,
+   "gridPos": {
+    "h": 5,
+    "w": 12,
+    "x": 12,
+    "y": 48
+   }
+  },
+  {
+   "type": "row",
+   "title": "Settings",
+   "collapsed": false,
+   "id": 28,
+   "gridPos": {
+    "h": 1,
+    "w": 24,
+    "x": 0,
+    "y": 53
+   },
+   "panels": []
+  },
+  {
+   "type": "table",
+   "title": "Settings",
+   "targets": [
+    {
+     "datasource": {
+      "type": "influxdb",
+      "uid": "influxdb-home"
+     },
+     "query": "import \"dict\"\nnames = [\"47007\": \"Heating curve\", \"47011\": \"Curve offset\", \"47041\": \"Hot water demand (0 eco, 1 normal, 2 lux)\",\n         \"47137\": \"Operating mode (0 auto)\", \"47212\": \"Max electric heater (×10 W)\", \"47206\": \"Compressor starts at (DM)\",\n         \"48072\": \"Heater allowed from (DM below start)\", \"47375\": \"Stop heating above (°C)\",\n         \"47376\": \"Stop electric heater above (°C)\", \"48442\": \"Smart Price Adaption on\",\n         \"48444\": \"Price effect on room temperature\", \"48566\": \"Price effect on hot water\",\n         \"47050\": \"Periodic hot-water boost on\", \"47051\": \"Boost every (days)\"]\nfrom(bucket: \"home\")\n  |> range(start: -1h)\n  |> filter(fn: (r) => r._measurement == \"nibe\" and r._field == \"value\")\n  |> filter(fn: (r) => dict.get(dict: names, key: r.id, default: \"\") != \"\")\n  |> last()\n  |> map(fn: (r) => ({Setting: dict.get(dict: names, key: r.id, default: r.id), Value: r._value, Since: r._time}))\n  |> group()\n  |> keep(columns: [\"Setting\", \"Value\"])",
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {
+      "align": "auto",
+      "cellOptions": {
+       "type": "auto"
+      },
+      "inspect": false
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "showHeader": true,
+    "cellHeight": "sm",
+    "footer": {
+     "show": false,
+     "reducer": [
+      "sum"
+     ],
+     "countRows": false,
+     "fields": ""
+    }
+   },
+   "datasource": {
+    "type": "influxdb",
+    "uid": "influxdb-home"
+   },
+   "description": "Current values of settings that matter for comfort and cost. Change them on the pump or in myUplink.",
+   "id": 29,
+   "gridPos": {
+    "h": 10,
+    "w": 12,
+    "x": 0,
+    "y": 54
+   }
+  },
+  {
+   "type": "timeseries",
+   "title": "Setting changes",
+   "targets": [
+    {
+     "datasource": {
+      "type": "influxdb",
+      "uid": "influxdb-home"
+     },
+     "query": "import \"dict\"\nnames = [\"47007\": \"Heating curve\", \"47011\": \"Curve offset\", \"47041\": \"Hot water demand\"]\nfrom(bucket: \"home\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"nibe\" and r._field == \"value\")\n  |> filter(fn: (r) => r.id == \"47007\" or r.id == \"47011\" or r.id == \"47041\")\n  |> map(fn: (r) => ({_time: r._time, _value: r._value, point: dict.get(dict: names, key: r.id, default: r.id)}))\n  |> group(columns: [\"point\"])\n  |> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false)",
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {
+      "drawStyle": "line",
+      "lineWidth": 2,
+      "fillOpacity": 0,
+      "gradientMode": "opacity",
+      "lineInterpolation": "smooth",
+      "showPoints": "never",
+      "spanNulls": true,
+      "stacking": {
+       "mode": "none",
+       "group": "A"
+      },
+      "axisBorderShow": false,
+      "barAlignment": -1,
+      "thresholdsStyle": {
+       "mode": "off"
+      },
+      "insertNulls": 3600000
+     },
+     "decimals": 0,
+     "displayName": "${__field.labels.point}",
+     "color": {
+      "mode": "palette-classic"
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "legend": {
+     "displayMode": "list",
+     "placement": "right",
+     "showLegend": true,
+     "calcs": []
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "desc"
+    }
+   },
+   "datasource": {
+    "type": "influxdb",
+    "uid": "influxdb-home"
+   },
+   "description": "Step changes show when someone adjusted the pump.",
+   "id": 30,
+   "gridPos": {
+    "h": 10,
+    "w": 12,
+    "x": 12,
+    "y": 54
+   }
+  }
+ ]
+}

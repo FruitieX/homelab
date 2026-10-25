@@ -30,6 +30,12 @@ configMapGenerator:
     options:
       annotations:
         grafana_folder: Home
+  - name: grafana-dashboard-home-heatpump
+    files:
+      - home-heatpump.json=home/home-heatpump.json
+    options:
+      annotations:
+        grafana_folder: Home
   - name: grafana-dashboard-home-printing
     files:
       - home-printing.json=home/home-printing.json

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Generate the provisioned Grafana dashboards.
 
-The dashboards are code: edit home.py / lab.py (helpers in lib.py), then run
+The dashboards are code: edit home.py / heatpump.py / printing.py / lab.py (helpers in lib.py), then run
 
     python3 infrastructure/monitoring/grafana/dashboards/generate.py
 
@@ -16,6 +16,7 @@ import sys
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 
+import heatpump  # noqa: E402
 import home  # noqa: E402
 import lab  # noqa: E402
 import printing  # noqa: E402
@@ -25,6 +26,7 @@ DASHBOARDS = [
     home.energy_dashboard(),
     home.climate_dashboard(),
     home.devices_dashboard(),
+    heatpump.heatpump_dashboard(),
     printing.printing_dashboard(),
     lab.services_dashboard(),
     lab.workloads_dashboard(),
