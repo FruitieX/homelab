@@ -161,13 +161,18 @@ live = from(bucket: "home")
 co2 = union(tables: [hourly, live])
   |> group()
   |> aggregateWindow(every: 1h, fn: mean, createEmpty: false, timeSrc: "_start")
+  |> set(key: "_field", value: "c")
 use = from(bucket: "home")
   |> range(start: {start}, stop: {stop})
   |> filter(fn: (r) => r._measurement == "electricity" and r._field == "kwh")
   |> group()
-  |> aggregateWindow(every: 1h, fn: sum, createEmpty: false, timeSrc: "_start")
-join(tables: {{u: use, c: co2}}, on: ["_time"])
-  |> map(fn: (r) => ({{_time: r._time, _value: r._value_u * r._value_c / 1000.0}}))'''
+  |> keep(columns: ["_time", "_value"])
+  |> set(key: "_field", value: "u")
+union(tables: [use, co2])
+  |> keep(columns: ["_time", "_field", "_value"])
+  |> pivot(rowKey: ["_time"], columnKey: ["_field"], valueColumn: "_value")
+  |> filter(fn: (r) => exists r.u and exists r.c)
+  |> map(fn: (r) => ({{_time: r._time, _value: r.u * r.c / 1000.0}}))'''
 
 
 PLUG_OVERRIDES = fixed_colors(PLUG_COLORS)
