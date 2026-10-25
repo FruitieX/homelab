@@ -337,6 +337,28 @@ def network_dashboard():
     d.add(timeseries("Clients by network", [prom('sum by (subsystem) (unpoller_site_users)', legend="{{subsystem}}")],
                      stack=True, fill=40, gradient="none", decimals=0,
                      overrides=fixed_colors({"lan": SLOTS[0], "wlan": SLOTS[1], "vpn": SLOTS[2]})), 8, 8)
+    d.add(timeseries("Ping to public resolvers", [prom('probe_icmp_duration_seconds{phase="rtt"}',
+                                                       legend="{{instance}}")],
+                     unit="s", decimals=1, fill=0,
+                     overrides=fixed_colors({"1.1.1.1": SLOTS[0], "8.8.8.8": SLOTS[1], "9.9.9.9": SLOTS[2]}),
+                     desc="Round trip from the cluster, every 30 s. Gaps are lost pings."), 12, 8)
+    d.add(status_history("Reachable from the cluster", [prom('min by (instance) (probe_success{group="internet"})',
+                                                              legend="{{instance}}", interval="5m")],
+                         mappings=value_map([(1, "Up", GOOD), (0, "Down", BAD)]), color={"mode": "thresholds"},
+                         thr=thresholds(BAD, (0.5, WARN), (1, GOOD)), max_dp=60,
+                         desc="Public services the homelab depends on, 5-minute buckets; one failed probe "
+                              "colours the bucket. GitHub SSH on port 22 is checked next to its port 443 "
+                              "fallback (ssh.github.com:443)."), 12, 8)
+    d.add(timeseries("Personal devices at home", [prom(
+        'count(unpoller_client_uptime_seconds{oui="", wired="false", network="Default"}) or vector(0)',
+        legend="Devices")], decimals=0, fill=20, display_name="Devices", interval="5m",
+        color={"mode": "fixed", "fixedColor": SLOTS[4]},
+        desc="Wi-Fi clients on the main network with private (randomised) MAC addresses: phones, tablets "
+             "and laptops. A rough stand-in for how many people are home."), 24, 6)
+    d.add(bargauge("Success rate in range", [prom('avg_over_time(probe_success{group="internet"}[$__range])',
+                                                  legend="{{instance}}", instant=True)],
+                   unit="percentunit", decimals=1, minv=0, maxv=1, display_name="${__field.labels.instance}",
+                   thr=thresholds(BAD, (0.95, WARN), (0.999, GOOD))), 24, 7)
 
     d.row("Clients")
     traffic = ('sum by (name) (increase(unpoller_client_receive_bytes_total[$__range]) + '

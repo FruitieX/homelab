@@ -224,15 +224,23 @@
   },
   {
    "type": "stat",
-   "title": "Hot water left",
+   "title": "Shower time left",
    "targets": [
     {
      "datasource": {
       "type": "influxdb",
       "uid": "influxdb-home"
      },
-     "query": "import \"dict\"\nfrom(bucket: \"home\")\n  |> range(start: -15m, stop: now())\n  |> filter(fn: (r) => r._measurement == \"nibe\" and r._field == \"value\")\n  |> filter(fn: (r) => r.id == \"50345\")\n  |> map(fn: (r) => ({_time: r._time, _value: r._value, point: dict.get(dict: [\"50345\": \"50345\"], key: r.id, default: r.id)}))\n  |> group(columns: [\"point\"])\n  |> aggregateWindow(every: 15m, fn: last, createEmpty: false)\n\n  |> last()",
+     "query": "import \"date\"\nimport \"math\"\nmonth = float(v: date.month(t: now()))\ncold = 9.0 + 4.0 * math.cos(x: 2.0 * math.pi * (month - 8.5) / 12.0)\nfrom(bucket: \"home\")\n  |> range(start: -15m)\n  |> filter(fn: (r) => r._measurement == \"nibe\" and r._field == \"value\" and r.id == \"40013\")\n  |> last()\n  |> map(fn: (r) => ({_time: r._time, _value: if r._value <= 40.0 then 0.0 else\n      180.0 * 0.86 * (r._value - cold) / (40.0 - cold) / 4.8}))\n  |> keep(columns: [\"_time\", \"_value\"])\n  |> set(key: \"_field\", value: \"Our estimate\")",
      "refId": "A"
+    },
+    {
+     "datasource": {
+      "type": "influxdb",
+      "uid": "influxdb-home"
+     },
+     "query": "import \"dict\"\nfrom(bucket: \"home\")\n  |> range(start: -15m, stop: now())\n  |> filter(fn: (r) => r._measurement == \"nibe\" and r._field == \"value\")\n  |> filter(fn: (r) => r.id == \"50345\")\n  |> map(fn: (r) => ({_time: r._time, _value: r._value, point: dict.get(dict: [\"50345\": \"NIBE\"], key: r.id, default: r.id)}))\n  |> group(columns: [\"point\"])\n  |> aggregateWindow(every: 15m, fn: last, createEmpty: false)\n\n  |> last()",
+     "refId": "B"
     }
    ],
    "fieldConfig": {
@@ -253,7 +261,20 @@
       ]
      }
     },
-    "overrides": []
+    "overrides": [
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "Our estimate"
+      },
+      "properties": [
+       {
+        "id": "decimals",
+        "value": 0
+       }
+      ]
+     }
+    ]
    },
    "options": {
     "reduceOptions": {
@@ -265,7 +286,7 @@
     },
     "graphMode": "none",
     "colorMode": "value",
-    "textMode": "value",
+    "textMode": "value_and_name",
     "justifyMode": "auto",
     "orientation": "auto",
     "wideLayout": true,
@@ -275,7 +296,7 @@
     "type": "influxdb",
     "uid": "influxdb-home"
    },
-   "description": "The pump's estimate of shower minutes left in the tank.",
+   "description": "Our estimate uses this household's showers: 4.8 L/min of mixed water, measured from the water meter. NIBE's own figure assumes a higher flow.",
    "id": 4,
    "gridPos": {
     "h": 4,
@@ -863,36 +884,35 @@
   },
   {
    "type": "stat",
-   "title": "Inverter",
+   "title": "Showers left",
    "targets": [
     {
      "datasource": {
       "type": "influxdb",
       "uid": "influxdb-home"
      },
-     "query": "import \"dict\"\nfrom(bucket: \"home\")\n  |> range(start: -15m, stop: now())\n  |> filter(fn: (r) => r._measurement == \"nibe\" and r._field == \"value\")\n  |> filter(fn: (r) => r.id == \"43140\")\n  |> map(fn: (r) => ({_time: r._time, _value: r._value, point: dict.get(dict: [\"43140\": \"43140\"], key: r.id, default: r.id)}))\n  |> group(columns: [\"point\"])\n  |> aggregateWindow(every: 15m, fn: last, createEmpty: false)\n\n  |> last()",
+     "query": "import \"date\"\nimport \"math\"\nmonth = float(v: date.month(t: now()))\ncold = 9.0 + 4.0 * math.cos(x: 2.0 * math.pi * (month - 8.5) / 12.0)\nfrom(bucket: \"home\")\n  |> range(start: -15m)\n  |> filter(fn: (r) => r._measurement == \"nibe\" and r._field == \"value\" and r.id == \"40013\")\n  |> last()\n  |> map(fn: (r) => ({_time: r._time, _value: if r._value <= 40.0 then 0.0 else\n      180.0 * 0.86 * (r._value - cold) / (40.0 - cold) / 65.0}))\n  |> keep(columns: [\"_time\", \"_value\"])\n  |> set(key: \"_field\", value: \"Showers\")",
      "refId": "A"
     }
    ],
    "fieldConfig": {
     "defaults": {
      "custom": {},
-     "unit": "celsius",
-     "decimals": 0,
+     "decimals": 1,
      "thresholds": {
       "mode": "absolute",
       "steps": [
        {
-        "color": "#3987e5",
+        "color": "#e5484d",
         "value": null
        },
        {
         "color": "#e0a100",
-        "value": 60
+        "value": 1
        },
        {
-        "color": "#e5484d",
-        "value": 75
+        "color": "#3987e5",
+        "value": 2
        }
       ]
      },
@@ -922,6 +942,7 @@
     "type": "influxdb",
     "uid": "influxdb-home"
    },
+   "description": "Typical showers (65 L at 4.8 L/min) the tank can give right now.",
    "id": 13,
    "gridPos": {
     "h": 4,

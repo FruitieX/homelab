@@ -249,7 +249,51 @@ from(bucket: "home")
                      unit="celsius", decimals=1, display_name=BY_PLACE, time_from="60d", fill=0, points="always",
                      overrides=fixed_colors({"Low": SLOTS[0], "High": SLOTS[1]})), 8, 8)
 
+    d.row("Weather (FMI)")
+    d.add(barchart("Forecast, next 48 hours", [flux(TZ + fmi_forecast("Temperature"))], unit="celsius", decimals=0,
+                   thr=thresholds(SLOTS[0], (0, SLOTS[2]), (15, SLOTS[1])), color={"mode": "thresholds"},
+                   label_spacing=100, desc="The Finnish Meteorological Institute's forecast for home, updated hourly."),
+          16, 7)
+    d.add(barchart("Rain, next 48 hours", [flux(TZ + fmi_forecast("Precipitation1h"))], unit="lengthmm",
+                   decimals=1, color={"mode": "fixed", "fixedColor": SLOTS[0]}, label_spacing=100), 8, 7)
+    d.add(timeseries("Outside: own sensor vs FMI", [
+        flux(ble("tempc", {OUTSIDE_ID: "Front yard sensor"})),
+        flux(fmi_observed({"t2m": "FMI Espoo Tapiola"}))],
+        unit="celsius", decimals=1, fill=0, display_name=BY_PLACE,
+        overrides=fixed_colors({"Front yard sensor": SLOTS[1], "FMI Espoo Tapiola": SLOTS[0]}),
+        desc="The front-yard SwitchBot next to the nearest official station, about 4 km away. Sun on the "
+             "sensor shows up as afternoon peaks."), 12, 8)
+    d.add(timeseries("Wind", [flux(fmi_observed({"ws_10min": "Wind", "wg_10min": "Gusts"}))], unit="velocityms",
+                     decimals=1, fill=0, display_name=BY_PLACE,
+                     overrides=fixed_colors({"Wind": SLOTS[0], "Gusts": SLOTS[3]})), 6, 8)
+    d.add(timeseries("Rain", [flux(fmi_observed({"r_1h": "Rain"}, every="1h", fn="max"))], unit="lengthmm",
+                     decimals=1, bars=True, display_name="Rain", color={"mode": "fixed", "fixedColor": SLOTS[0]},
+                     desc="Hourly precipitation at the station."), 6, 8)
+
     return d
+
+
+def fmi_observed(params, every="v.windowPeriod", fn="mean"):
+    """FMI station observations (measurement fmi_observation), one series per param, labelled `place`."""
+    return f'''
+import "dict"
+from(bucket: "home")
+  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)
+  |> filter(fn: (r) => r._measurement == "fmi_observation" and r._field == "value")
+  |> filter(fn: (r) => {" or ".join(f'r.param == "{k}"' for k in params)})
+  |> map(fn: (r) => ({{_time: r._time, _value: r._value, place: dict.get(dict: {_dict(params)}, key: r.param, default: r.param)}}))
+  |> group(columns: ["place"])
+  |> aggregateWindow(every: {every}, fn: {fn}, createEmpty: false)
+'''
+
+
+def fmi_forecast(param):
+    """The latest FMI forecast for home, from the current hour on."""
+    return f'''import "date"
+from(bucket: "home")
+  |> range(start: date.truncate(t: now(), unit: 1h), stop: 48h)
+  |> filter(fn: (r) => r._measurement == "fmi_forecast" and r._field == "value" and r.param == "{param}")
+  |> keep(columns: ["_time", "_value"])'''
 
 
 def devices_dashboard():

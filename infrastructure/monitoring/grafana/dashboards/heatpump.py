@@ -22,6 +22,34 @@ HEAT_TOTAL = {"44300": "44308", "44298": "44306"}  # incl. electric heater -> co
 COMPRESSOR_KWH = "43144"  # labelled "time factor:" in myUplink; compressor energy in kWh
 
 
+# Hot water, from the F750 technical data and this household's water meter history (13 months to
+# 2026-10): evening showers run a steady ~4.8 L/min for 13-15 minutes, about 65 L of mixed water.
+TANK_L = 180
+TANK_EFFICIENCY = 0.86  # EN 16147: 227 L at 40 °C from a 54 °C tank, vs 264 L if fully usable
+MIX_C = 40.0
+SHOWER_LPM = 4.8
+SHOWER_L = 65
+
+
+def hot_water_left(per):
+    """Mixed 40 °C water the tank can give at its current top temperature, as shower minutes or showers.
+    Cold water is estimated by season: about 5 °C in February, 13 °C in August (HSY tap water)."""
+    div = SHOWER_LPM if per == "minute" else SHOWER_L
+    label = "Our estimate" if per == "minute" else "Showers"
+    return f'''import "date"
+import "math"
+month = float(v: date.month(t: now()))
+cold = 9.0 + 4.0 * math.cos(x: 2.0 * math.pi * (month - 8.5) / 12.0)
+from(bucket: "home")
+  |> range(start: -15m)
+  |> filter(fn: (r) => r._measurement == "nibe" and r._field == "value" and r.id == "40013")
+  |> last()
+  |> map(fn: (r) => ({{_time: r._time, _value: if r._value <= {MIX_C} then 0.0 else
+      {TANK_L}.0 * {TANK_EFFICIENCY} * (r._value - cold) / ({MIX_C} - cold) / {float(div)}}}))
+  |> keep(columns: ["_time", "_value"])
+  |> set(key: "_field", value: "{label}")'''
+
+
 def _ids(points):
     return " or ".join(f'r.id == "{k}"' for k in points)
 
@@ -65,8 +93,10 @@ def heatpump_dashboard():
     d.add(stat("Hot water", [now("40013")], unit="celsius", decimals=1, graph=False,
                thr=thresholds(SLOTS[0], (40, WARN), (45, SLOTS[1])),
                desc="Top of the tank (BT7), where hot water is drawn from."), 4, 4)
-    d.add(stat("Hot water left", [now("50345")], unit="m", decimals=0, graph=False,
-               desc="The pump's estimate of shower minutes left in the tank."), 4, 4)
+    d.add(stat("Shower time left", [flux(hot_water_left(per="minute")), now("50345", "NIBE")], unit="m", decimals=0,
+               graph=False, text_mode="value_and_name", overrides=[by_name("Our estimate", decimals=0)],
+               desc=f"Our estimate uses this household's showers: {SHOWER_LPM} L/min of mixed water, measured "
+                    "from the water meter. NIBE's own figure assumes a higher flow."), 4, 4)
     d.add(stat("Compressor", [now("41778")], unit="hertz", decimals=0, graph=False,
                thr=thresholds(SLOTS[0])), 4, 4)
     d.add(stat("Supply / target", [now("40008", "Supply"), now("43009", "Target")], unit="celsius", decimals=1,
@@ -86,8 +116,9 @@ def heatpump_dashboard():
     d.add(stat("Smart Price Adaption", [now("41929")], graph=False, mappings=PRICE_MODE, color_mode="background",
                thr=thresholds(MUTED), desc="How the pump rates the current Nord Pool price."), 4, 4)
     d.add(stat("Exhaust fan", [now("50221")], unit="percent", decimals=0, graph=False), 4, 4)
-    d.add(stat("Inverter", [now("43140")], unit="celsius", decimals=0, graph=False,
-               thr=thresholds(SLOTS[0], (60, WARN), (75, BAD))), 4, 4)
+    d.add(stat("Showers left", [flux(hot_water_left(per="shower"))], decimals=1, graph=False,
+               thr=thresholds(BAD, (1, WARN), (2, SLOTS[0])),
+               desc=f"Typical showers ({SHOWER_L} L at {SHOWER_LPM} L/min) the tank can give right now."), 4, 4)
 
     d.row("Activity")
     d.add(state_timeline("What it was doing", [
