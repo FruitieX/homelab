@@ -77,6 +77,11 @@ oma.datahub.fi and run `KUBECONFIG=kubeconfig python3 scripts/datahub-import.py 
 `electricity`, field `kwh`, hourly until the meter is replaced). Exports can overlap. The energy dashboard's
 "expected from weather" line is a model fitted on 2021–2024 (`ELEC_*` in `home.py`).
 
+History before the live collectors started was backfilled from 2020 with scripts that can be re-run:
+`scripts/spot-price-backfill.py` (Nord Pool FI prices from Elering's public API, written in nordpool-mqtt's
+format with the VAT of each day) and `scripts/fmi-backfill.py` (hourly FMI observations; live data is
+10-minute). The FMI daily means and Fingrid's hourly CO₂ intensity were loaded the same way.
+
 The heat pump dashboard's shower estimate uses constants in `heatpump.py`. They come from the water meter
 history: evening showers run about 4.8 L/min for 13–15 minutes. Re-measure them if the shower head changes.
 
