@@ -1,0 +1,35 @@
+apiVersion: v1
+kind: Secret
+metadata:
+    name: postgres-ha-superuser
+    namespace: default
+type: kubernetes.io/basic-auth
+stringData:
+    username: ENC[AES256_GCM,data:ExCSAa2IM7o=,iv:zg/kbQ3jzdsX3ffbkcGOryUE6N9NBCBohb522EETxqI=,tag:HCOaGCpVu4sYKDaUAMi1HA==,type:str]
+    password: ENC[AES256_GCM,data:ptDEfvtOU/W+Zr1EqVl9pdlDq1w=,iv:rB1ru0h+7VU10o5ECoDJirkYT7BZzdxU/GLNDbUjoLg=,tag:oE0nHbSCZsnmCS3FE4ugOQ==,type:str]
+sops:
+    encrypted_regex: ^(data|stringData)$
+    lastmodified: "2026-10-26T08:23:37Z"
+    mac: ENC[AES256_GCM,data:5JkQvUyR8nBORQ8BpWnZsGUCR8UdfBjjysvCrNNNFj8vZ2gmkI/JbMtPWooUBGv3P91eb1d5ymosYSXbmAZTWCNMYFB/nV7tFi4BcJXfj4Ozv0WzGepeQy8XRTmALr+YqL2MR3y0YIF2rFXYjHWLGtW2r9/dUCf1B1ir+3T98m8=,iv:7/Dl57jaULyeyDSzFTQNDdrwBirC/OF/6qLPnXyHNzM=,tag:9lKvrm339dTyO1u1D9FczQ==,type:str]
+    pgp:
+        - created_at: "2026-10-26T08:23:37Z"
+          enc: |-
+            -----BEGIN PGP MESSAGE-----
+
+            hQIMA8WjeZLD+fxwAQ/8D2E75AL1/68w6TLuKMsgvohTMutOx5MBqr/OnkT94rfq
+            +yRVaWmBBT9QWexs4us+xGnucBsFefR0p1XrzBUk6vOYPXGRCt7ml4PprfeJFW8A
+            UUOlbUfhRsGufFx3/XWI5n+LPAwAFZHVqdJZc1bYrXtGMI03N1MoHiQ4JDD3U+VH
+            B07m01Er4FopPbT6yBUdNqUYrky4mvrciNv8fm3/+RmlJuqgpOQW35f3tAcgEda5
+            wkLx2JJ1pN+164tGhBG5YaX2NWwyt4QYPmBCep6LpQMX/2Ijgj9nQhbfAcoP1ii2
+            9fWaYi0ekaIotBFG1mLXt2s27Rd+EBqTPB9N7NO07ntEfN2+JjuJ34QDYAJBgJWj
+            6ESbMV6J8KSWkSCpHnxk5PZAeW4s0sAEfvNMsI/B07ng1Go14uH3hQDNFkFVoBmj
+            W97Ya0mN/4ffjF/+T4uu7SL3wHiOZenFjKgI1O9MfUA0lv4KCRHX/L/cENUlJFE7
+            7JQMM4ns3n1KtRjsP7IhD5XljNl6F7zgPhGktAxJKc6sRtO78VfhHq/hKSGX9Aem
+            Y8SI2cxbzcPvjhMDsSj3nfGAk1S+VF95neynYoSnQR+G+O+uvuCN0OwoZACD/kLb
+            0tFgPvecHkhosrWN7uoSMVWsIXXw+I+FyECpz9ZwPxnCOIi5DSOLlu4HjLkU39PS
+            XAH1wSkEi/XsE4fUr/VyqgVGRK0jp3Q7JoSsTvCkDmdvUx824DwZ7y8ZQYfGT6Dw
+            lAKg0UxdQKRnQapvq9Edycg1IV1vDySqbHg58PRN7LqKeoUlGrYhmlgi+dz3
+            =xJaH
+            -----END PGP MESSAGE-----
+          fp: 3536F7F9345D96C86FB7F9CD21FAFEE575B18815
+    version: 3.13.3

@@ -3,3 +3,6 @@ kind: Kustomization
 resources:
   - ./postgres-config.yaml
   - ./postgres.yaml
+  - ./postgres-ha-superuser.sops.yaml
+  - ./postgres-ha.yaml
+  - ./postgres-dump.yaml

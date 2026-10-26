@@ -1,0 +1,92 @@
+# Shared PostgreSQL, highly available via CloudNativePG: a primary and one
+# streaming replica on different physical hosts (topology.kubernetes.io/zone).
+# Apps keep connecting to the `postgres` Service (postgres.yaml), which selects
+# the current CNPG primary; postgres-ha-rw/-ro/-r are the CNPG-managed Services.
+#
+# Storage is nfs-csi on purpose (NFS-first storage policy; hard NFS 4.1
+# mounts). Both instances' volumes are on the same NAS, so the NAS is still a
+# single point of failure: this cluster survives losing a node or a host, not
+# the NAS. Consistent backups come from the postgres-dump CronJob.
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: postgres-ha
+  namespace: default
+spec:
+  instances: 2
+  imageName: ghcr.io/cloudnative-pg/postgresql:18.6-202610190957-standard-trixie@sha256:d72ace96f5803b12c341bb5dac48532e8c1f92f69e8a717a59d779bfc038dea9
+  priorityClassName: homelab-critical
+
+  # Apps use the `postgres` superuser (credentials in each app's SOPS env).
+  enableSuperuserAccess: true
+  superuserSecret:
+    name: postgres-ha-superuser
+
+  # The monolith import does not carry role memberships over. No
+  # passwordSecret: the imported password hash is left as it is.
+  managed:
+    roles:
+      - name: grafana_ro
+        ensure: present
+        login: true
+        inRoles:
+          - pg_monitor
+
+  # Quorum commit to the replica while it is connected; writes continue
+  # (asynchronously) when it is not, so one instance being down never blocks.
+  postgresql:
+    synchronous:
+      method: any
+      number: 1
+      dataDurability: preferred
+    parameters:
+      max_connections: "100"
+      shared_buffers: 128MB
+      effective_cache_size: 384MB
+      work_mem: 4MB
+      maintenance_work_mem: 32MB
+      timezone: Etc/UTC
+      log_timezone: Etc/UTC
+
+  affinity:
+    enablePodAntiAffinity: true
+    podAntiAffinityType: required
+    topologyKey: topology.kubernetes.io/zone
+
+  resources:
+    requests:
+      cpu: 50m
+      memory: 256Mi
+    limits:
+      memory: 768Mi
+
+  storage:
+    storageClass: nfs-csi
+    size: 10Gi
+
+  # Only used when the cluster is first created: imported every database and
+  # role from the PostgreSQL 16 Deployment (2026-10-26). Ignored afterwards.
+  bootstrap:
+    initdb:
+      encoding: UTF8
+      localeCollate: en_US.utf8
+      localeCType: en_US.utf8
+      import:
+        type: monolith
+        databases:
+          - "*"
+        roles:
+          - "*"
+        source:
+          externalCluster: postgres-legacy
+  externalClusters:
+    - name: postgres-legacy
+      connectionParameters:
+        host: postgres-legacy.default.svc
+        port: "5432"
+        user: postgres
+        dbname: postgres
+        sslmode: disable
+      password:
+        name: postgres-config
+        key: POSTGRES_PASSWORD
