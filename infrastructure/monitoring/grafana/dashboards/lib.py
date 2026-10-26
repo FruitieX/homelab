@@ -149,7 +149,8 @@ def timeseries(title, targets, *, stack=False, fill=12, bars=False, legend="bott
 
 def stat(title, targets, *, graph=True, color_mode="value", text_mode="value", reduce="lastNotNull",
          orientation="auto", justify="auto", fields="", **kw):
-    """fields: which fields to show; the default shows numbers only, so text values need e.g. "/^Value$/" (Grafana names a Flux _value column Value)."""
+    """fields: which fields to show. The default shows numbers only, so text values need e.g. "/^Value$/"
+    (Grafana names a Flux _value column Value)."""
     p = _panel("stat", title, targets, **kw)
     p["fieldConfig"]["defaults"].setdefault("color", {"mode": "thresholds"})
     p["fieldConfig"]["defaults"].setdefault("thresholds", thresholds(SLOTS[0]))
