@@ -90,3 +90,19 @@ spec:
         - name: postgres-data
           persistentVolumeClaim:
             claimName: postgres-data
+---
+# Cluster-internal name for the PostgreSQL 16 Deployment, kept for the CNPG
+# import source and as the rollback path.
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-legacy
+  namespace: default
+spec:
+  selector:
+    app: postgres
+  ports:
+    - name: psql
+      protocol: TCP
+      port: 5432
+      targetPort: 5432

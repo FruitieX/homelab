@@ -17,7 +17,14 @@ metadata:
     kustomize.toolkit.fluxcd.io/prune: disabled
 spec:
   replicas: 3
+  # Same as Talos'; Flux's apply needs them.
+  selector:
+    matchLabels:
+      k8s-app: kube-dns
   template:
+    metadata:
+      labels:
+        k8s-app: kube-dns
     spec:
       topologySpreadConstraints:
         - maxSkew: 1
