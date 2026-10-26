@@ -59,6 +59,11 @@ To follow this guide, you need the following:
   (`talos/patches/all.yaml`), so the cluster keeps working when any one
   control plane is down. Point `kubeconfig` at the virtual IP, not at a node.
 
+  Each node is labelled with the Proxmox host it runs on
+  (`talos/patches/hosts`, applied per node). To drain and reboot or upgrade
+  a node or a whole host, use `scripts/node-maintenance.sh`; see
+  [node and host maintenance](/docs/maintenance.md).
+
   NOTE: While installing, write down the following details into an .envrc file:
 
   ```
