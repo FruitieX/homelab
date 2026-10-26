@@ -106,7 +106,9 @@ from that database.
   else stays in the Alertmanager UI.
 - Grafana-managed rules for the InfluxDB data are in `grafana/grafana-alerting.sops.yaml` and go to the same
   Discord webhook. They cover the freezer, the fridge, water flowing non-stop for 3 hours (normal use always pauses within
-  about 2 hours), and home sensors going silent.
+  about 2 hours), home sensors going silent, and the sauna being ready — the upstairs BLE sensor (device `D83431306571`)
+  reaching 30 °C, evaluated every minute so it posts immediately; only that rule has its own route (`group_wait: 0s`,
+  `repeat_interval: 0s`) so the ready message is sent once, without the 12 h repeats of the other alerts.
 
 ## Pitfalls
 
