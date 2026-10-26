@@ -21,7 +21,7 @@ spec:
     spec:
       containers:
         - name: pve-exporter
-          image: prompve/prometheus-pve-exporter:3.10.1
+          image: prompve/prometheus-pve-exporter:3.10.2
           args:
             - --config.file=/config/pve.yml
           ports:
