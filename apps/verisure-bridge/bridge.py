@@ -18,6 +18,13 @@ existing Verisure notification seeds the state.
   <prefix>/mode           armed_away / armed_home / disarmed from Verisure's API (retained); needs
                           VERISURE_USERNAME/PASSWORD, see verisure_api.py
   <prefix>/arm_state      the API's armState as JSON (retained)
+
+For homectl (generic MQTT integration, topic home/sensors/verisure/{id}), retained JSON sensors:
+  home/sensors/verisure/alarm       sensor_value armed_away / armed_home / disarmed (or "armed" until the
+                                    API answers)
+  home/sensors/verisure/armed       sensor_value true / false
+  home/sensors/verisure/changed_by  sensor_value the name from the notification
+Nothing subscribes to commands: these devices are read-only.
 """
 import json, os, re, subprocess, sys, threading, time
 
@@ -103,6 +110,25 @@ def state_of(n):
 
 
 API = verisure_api.from_env()
+HOMECTL = os.environ.get("HOMECTL_PREFIX", "home/sensors/verisure")
+current = {}
+
+
+def publish_homectl(**changes):
+    """Keep homectl's sensor devices in step with what we know."""
+    current.update({k: v for k, v in changes.items() if v is not None})
+    extra = {k: current.get(k) for k in ("state", "mode", "changed_by", "changed_via", "changed_at")}
+    devices = {
+        "alarm": ("Alarm", current.get("mode") or current.get("state")),
+        "armed": ("Alarm armed", None if "state" not in current else current["state"] == "armed"),
+        "changed_by": ("Alarm changed by", current.get("changed_by")),
+    }
+    for dev_id, (name, value) in devices.items():
+        if value is None:
+            continue
+        payload = {"id": dev_id, "name": name, "sensor_value": value, **extra}
+        subprocess.run(["mosquitto_pub", "-h", MQTT, "-t", f"{HOMECTL}/{dev_id}", "-r", "-q", "1",
+                        "-m", json.dumps(payload, ensure_ascii=False)], timeout=15, check=False)
 MODES = {"ARMED_AWAY": "armed_away", "ARMED_HOME": "armed_home", "DISARMED": "disarmed"}
 
 
@@ -129,6 +155,7 @@ def lookup_mode(expected=None):
     publish("arm_state", json.dumps(s, ensure_ascii=False), retain=True)
     if mode:
         publish("mode", mode, retain=True)
+        publish_homectl(mode=mode, changed_via=s.get("changedVia"), changed_at=s.get("date"))
     log("mode", s.get("statusType"), "by", s.get("name"), "via", s.get("changedVia"))
 
 
@@ -138,6 +165,12 @@ def publish_state(n):
         publish("state", state, retain=True)
         publish("changed_by", who or "", retain=True)
         log("state", state, "by", who)
+        # A new state invalidates the old mode until the API answers.
+        mode = current.get("mode")
+        stale = mode and ((mode == "disarmed") != (state == "disarmed"))
+        if stale:
+            current.pop("mode", None)
+        publish_homectl(state=state, changed_by=who or "")
         if API:
             threading.Thread(target=lookup_mode, args=(state,), daemon=True).start()
 

@@ -5,6 +5,7 @@
 #   for home hourly (fmi_forecast).
 # - Fingrid open data every 3 min: CO2 intensity, national production and
 #   consumption, grid frequency and system state (fingrid).
+# - The Verisure alarm state from verisure-bridge over MQTT (verisure).
 # API keys, NIBE device id, station and home coordinates are in
 # telegraf-cloud.sops.yaml.
 apiVersion: v1
@@ -298,6 +299,17 @@ data:
         [[inputs.http.json_v2.field]]
           path = "value"
           type = "float"
+
+    # Verisure alarm state from verisure-bridge (retained, so a restart picks up
+    # the current state). Measurement verisure, tag topic, string field value.
+    [[inputs.mqtt_consumer]]
+      servers = ["tcp://mqtt:1883"]
+      topics = ["home/verisure/state", "home/verisure/mode"]
+      client_id = "telegraf-cloud-verisure"
+      qos = 1
+      data_format = "value"
+      data_type = "string"
+      name_override = "verisure"
 
     [[processors.rename]]
       namepass = ["nibe"]

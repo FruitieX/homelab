@@ -1,7 +1,8 @@
 """Home dashboards: energy & water, climate, devices (InfluxDB home/nordpool)."""
 
 from lib import (BAD, GOOD, MUTED, SLOTS, WARN, Dashboard, barchart, bargauge, by_name, fixed_colors, flux,
-                 organize, reduce_rows, stat, status_history, table, text, thresholds, timeseries, value_map)
+                 organize, reduce_rows, stat, state_timeline, status_history, table, text, thresholds, timeseries,
+                 value_map)
 
 TZ = 'import "timezone"\noption location = timezone.location(name: "Europe/Helsinki")\n'
 
@@ -174,6 +175,41 @@ union(tables: [use, co2])
   |> pivot(rowKey: ["_time"], columnKey: ["_field"], valueColumn: "_value")
   |> filter(fn: (r) => exists r.u and exists r.c)
   |> map(fn: (r) => ({{_time: r._time, _value: r.u * r.c / 1000.0}}))'''
+
+
+# Verisure alarm (verisure-bridge -> MQTT -> telegraf-cloud): measurement verisure, tag topic, string field.
+ALARM = value_map([("armed_away", "Armed away", SLOTS[1]), ("armed_home", "Armed stay", SLOTS[3]),
+                   ("armed", "Armed", SLOTS[1]), ("disarmed", "Disarmed", MUTED)])
+
+
+def alarm(start="v.timeRangeStart", stop="v.timeRangeStop", last=False):
+    """The alarm mode over a range, carrying the state from before the range in (points only exist on change)."""
+    sel = '''
+  |> filter(fn: (r) => r._measurement == "verisure" and r._field == "value" and r.topic == "home/verisure/mode")
+  |> keep(columns: ["_time", "_value"])'''
+    if last:
+        return f'''from(bucket: "home")
+  |> range(start: -365d)''' + sel + "\n  |> last()"
+    return f'''before = from(bucket: "home")
+  |> range(start: -365d, stop: {start})''' + sel + f'''
+  |> last()
+  |> map(fn: (r) => ({{r with _time: {start}}}))
+during = from(bucket: "home")
+  |> range(start: {start}, stop: {stop})''' + sel + '''
+union(tables: [before, during])
+  |> sort(columns: ["_time"])
+  |> set(key: "_field", value: "Alarm")'''
+
+
+def overview_house_extra(d, showers_left, co2_now):
+    """Second line of house tiles on the overview."""
+    d.add(stat("Alarm", [flux(alarm(last=True))], graph=False, mappings=ALARM, color_mode="background",
+               thr=thresholds(MUTED), desc="Verisure, from the app's push notifications (verisure-bridge).",
+               links=[{"title": "Devices", "url": "/d/home-devices"}]), 3, 4)
+    d.add(state_timeline("Alarm, last 24 h", [flux(alarm())], mappings=ALARM, color={"mode": "thresholds"},
+                         thr=thresholds(MUTED), time_from="24h", show_values="auto"), 9, 4)
+    d.add(showers_left, 3, 4)
+    d.add(co2_now, 3, 4)
 
 
 PLUG_OVERRIDES = fixed_colors(PLUG_COLORS)
@@ -456,6 +492,12 @@ from(bucket: "home")
 def devices_dashboard():
     d = Dashboard("home-devices", "Home · Devices", folder="Home", tags=["home"], time="now-7d", refresh="5m",
                   description="Batteries, radio links and silent sensors.")
+
+    d.row("Alarm")
+    d.add(state_timeline("Verisure alarm", [flux(alarm())], mappings=ALARM, color={"mode": "thresholds"},
+                         thr=thresholds(MUTED), show_values="auto",
+                         desc="Mode from Verisure's API, looked up on each arm/disarm push. 'Armed' means the push "
+                              "arrived but the mode lookup did not answer."), 24, 4)
 
     battery_q = f'''import "dict"
 names = {_dict(ALL_BLE)}

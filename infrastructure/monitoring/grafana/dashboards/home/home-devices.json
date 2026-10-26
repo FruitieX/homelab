@@ -54,7 +54,7 @@
  "panels": [
   {
    "type": "row",
-   "title": "Batteries",
+   "title": "Alarm",
    "collapsed": false,
    "id": 1,
    "gridPos": {
@@ -62,6 +62,106 @@
     "w": 24,
     "x": 0,
     "y": 0
+   },
+   "panels": []
+  },
+  {
+   "type": "state-timeline",
+   "title": "Verisure alarm",
+   "targets": [
+    {
+     "datasource": {
+      "type": "influxdb",
+      "uid": "influxdb-home"
+     },
+     "query": "before = from(bucket: \"home\")\n  |> range(start: -365d, stop: v.timeRangeStart)\n  |> filter(fn: (r) => r._measurement == \"verisure\" and r._field == \"value\" and r.topic == \"home/verisure/mode\")\n  |> keep(columns: [\"_time\", \"_value\"])\n  |> last()\n  |> map(fn: (r) => ({r with _time: v.timeRangeStart}))\nduring = from(bucket: \"home\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"verisure\" and r._field == \"value\" and r.topic == \"home/verisure/mode\")\n  |> keep(columns: [\"_time\", \"_value\"])\nunion(tables: [before, during])\n  |> sort(columns: [\"_time\"])\n  |> set(key: \"_field\", value: \"Alarm\")",
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {
+      "lineWidth": 0,
+      "fillOpacity": 80
+     },
+     "color": {
+      "mode": "thresholds"
+     },
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "#7d7d7d",
+        "value": null
+       }
+      ]
+     },
+     "mappings": [
+      {
+       "type": "value",
+       "options": {
+        "armed_away": {
+         "text": "Armed away",
+         "color": "#d95926",
+         "index": 0
+        },
+        "armed_home": {
+         "text": "Armed stay",
+         "color": "#c98500",
+         "index": 1
+        },
+        "armed": {
+         "text": "Armed",
+         "color": "#d95926",
+         "index": 2
+        },
+        "disarmed": {
+         "text": "Disarmed",
+         "color": "#7d7d7d",
+         "index": 3
+        }
+       }
+      }
+     ]
+    },
+    "overrides": []
+   },
+   "options": {
+    "showValue": "auto",
+    "rowHeight": 0.85,
+    "mergeValues": true,
+    "alignValue": "left",
+    "legend": {
+     "showLegend": false
+    },
+    "tooltip": {
+     "mode": "single",
+     "sort": "none"
+    }
+   },
+   "datasource": {
+    "type": "influxdb",
+    "uid": "influxdb-home"
+   },
+   "description": "Mode from Verisure's API, looked up on each arm/disarm push. 'Armed' means the push arrived but the mode lookup did not answer.",
+   "id": 2,
+   "gridPos": {
+    "h": 4,
+    "w": 24,
+    "x": 0,
+    "y": 1
+   }
+  },
+  {
+   "type": "row",
+   "title": "Batteries",
+   "collapsed": false,
+   "id": 3,
+   "gridPos": {
+    "h": 1,
+    "w": 24,
+    "x": 0,
+    "y": 5
    },
    "panels": []
   },
@@ -261,12 +361,12 @@
      }
     }
    ],
-   "id": 2,
+   "id": 4,
    "gridPos": {
     "h": 16,
     "w": 14,
     "x": 0,
-    "y": 1
+    "y": 6
    }
   },
   {
@@ -326,12 +426,12 @@
     "uid": "influxdb-home"
    },
    "description": "Devices to swap batteries in soon.",
-   "id": 3,
+   "id": 5,
    "gridPos": {
     "h": 4,
     "w": 5,
     "x": 14,
-    "y": 1
+    "y": 6
    }
   },
   {
@@ -391,12 +491,12 @@
     "uid": "influxdb-home"
    },
    "description": "Battery devices that reported nothing for a day: dead battery or out of range.",
-   "id": 4,
+   "id": 6,
    "gridPos": {
     "h": 4,
     "w": 5,
     "x": 19,
-    "y": 1
+    "y": 6
    }
   },
   {
@@ -466,24 +566,24 @@
     "uid": "influxdb-home"
    },
    "description": "Average link quality over the last day (0–255). Under ~40 the device needs a closer router.",
-   "id": 5,
+   "id": 7,
    "gridPos": {
     "h": 12,
     "w": 10,
     "x": 0,
-    "y": 17
+    "y": 22
    }
   },
   {
    "type": "row",
    "title": "BLE sensors",
    "collapsed": false,
-   "id": 6,
+   "id": 8,
    "gridPos": {
     "h": 1,
     "w": 24,
     "x": 0,
-    "y": 29
+    "y": 34
    },
    "panels": []
   },
@@ -548,12 +648,12 @@
     "uid": "influxdb-home"
    },
    "timeFrom": "30d",
-   "id": 7,
+   "id": 9,
    "gridPos": {
     "h": 9,
     "w": 24,
     "x": 0,
-    "y": 30
+    "y": 35
    }
   }
  ]

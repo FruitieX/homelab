@@ -615,6 +615,336 @@
    }
   },
   {
+   "type": "stat",
+   "title": "Alarm",
+   "targets": [
+    {
+     "datasource": {
+      "type": "influxdb",
+      "uid": "influxdb-home"
+     },
+     "query": "from(bucket: \"home\")\n  |> range(start: -365d)\n  |> filter(fn: (r) => r._measurement == \"verisure\" and r._field == \"value\" and r.topic == \"home/verisure/mode\")\n  |> keep(columns: [\"_time\", \"_value\"])\n  |> last()",
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {},
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "#7d7d7d",
+        "value": null
+       }
+      ]
+     },
+     "mappings": [
+      {
+       "type": "value",
+       "options": {
+        "armed_away": {
+         "text": "Armed away",
+         "color": "#d95926",
+         "index": 0
+        },
+        "armed_home": {
+         "text": "Armed stay",
+         "color": "#c98500",
+         "index": 1
+        },
+        "armed": {
+         "text": "Armed",
+         "color": "#d95926",
+         "index": 2
+        },
+        "disarmed": {
+         "text": "Disarmed",
+         "color": "#7d7d7d",
+         "index": 3
+        }
+       }
+      }
+     ],
+     "links": [
+      {
+       "title": "Devices",
+       "url": "/d/home-devices"
+      }
+     ],
+     "color": {
+      "mode": "thresholds"
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    },
+    "graphMode": "none",
+    "colorMode": "background",
+    "textMode": "value",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "wideLayout": true,
+    "showPercentChange": false
+   },
+   "datasource": {
+    "type": "influxdb",
+    "uid": "influxdb-home"
+   },
+   "description": "Verisure, from the app's push notifications (verisure-bridge).",
+   "id": 10,
+   "gridPos": {
+    "h": 4,
+    "w": 3,
+    "x": 0,
+    "y": 5
+   }
+  },
+  {
+   "type": "state-timeline",
+   "title": "Alarm, last 24 h",
+   "targets": [
+    {
+     "datasource": {
+      "type": "influxdb",
+      "uid": "influxdb-home"
+     },
+     "query": "before = from(bucket: \"home\")\n  |> range(start: -365d, stop: v.timeRangeStart)\n  |> filter(fn: (r) => r._measurement == \"verisure\" and r._field == \"value\" and r.topic == \"home/verisure/mode\")\n  |> keep(columns: [\"_time\", \"_value\"])\n  |> last()\n  |> map(fn: (r) => ({r with _time: v.timeRangeStart}))\nduring = from(bucket: \"home\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"verisure\" and r._field == \"value\" and r.topic == \"home/verisure/mode\")\n  |> keep(columns: [\"_time\", \"_value\"])\nunion(tables: [before, during])\n  |> sort(columns: [\"_time\"])\n  |> set(key: \"_field\", value: \"Alarm\")",
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {
+      "lineWidth": 0,
+      "fillOpacity": 80
+     },
+     "color": {
+      "mode": "thresholds"
+     },
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "#7d7d7d",
+        "value": null
+       }
+      ]
+     },
+     "mappings": [
+      {
+       "type": "value",
+       "options": {
+        "armed_away": {
+         "text": "Armed away",
+         "color": "#d95926",
+         "index": 0
+        },
+        "armed_home": {
+         "text": "Armed stay",
+         "color": "#c98500",
+         "index": 1
+        },
+        "armed": {
+         "text": "Armed",
+         "color": "#d95926",
+         "index": 2
+        },
+        "disarmed": {
+         "text": "Disarmed",
+         "color": "#7d7d7d",
+         "index": 3
+        }
+       }
+      }
+     ]
+    },
+    "overrides": []
+   },
+   "options": {
+    "showValue": "auto",
+    "rowHeight": 0.85,
+    "mergeValues": true,
+    "alignValue": "left",
+    "legend": {
+     "showLegend": false
+    },
+    "tooltip": {
+     "mode": "single",
+     "sort": "none"
+    }
+   },
+   "datasource": {
+    "type": "influxdb",
+    "uid": "influxdb-home"
+   },
+   "timeFrom": "24h",
+   "id": 11,
+   "gridPos": {
+    "h": 4,
+    "w": 9,
+    "x": 3,
+    "y": 5
+   }
+  },
+  {
+   "type": "stat",
+   "title": "Showers left",
+   "targets": [
+    {
+     "datasource": {
+      "type": "influxdb",
+      "uid": "influxdb-home"
+     },
+     "query": "import \"date\"\nimport \"math\"\nmonth = float(v: date.month(t: now()))\ncold = 9.0 + 4.0 * math.cos(x: 2.0 * math.pi * (month - 8.5) / 12.0)\nfrom(bucket: \"home\")\n  |> range(start: -15m)\n  |> filter(fn: (r) => r._measurement == \"nibe\" and r._field == \"value\" and r.id == \"40013\")\n  |> last()\n  |> map(fn: (r) => ({_time: r._time, _value: if r._value <= 40.0 then 0.0 else\n      180.0 * 0.86 * (r._value - cold) / (40.0 - cold) / 65.0}))\n  |> keep(columns: [\"_time\", \"_value\"])\n  |> set(key: \"_field\", value: \"Showers\")",
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {},
+     "decimals": 1,
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "#e5484d",
+        "value": null
+       },
+       {
+        "color": "#e0a100",
+        "value": 1
+       },
+       {
+        "color": "#3987e5",
+        "value": 2
+       }
+      ]
+     },
+     "links": [
+      {
+       "title": "Heat pump",
+       "url": "/d/home-heatpump"
+      }
+     ],
+     "color": {
+      "mode": "thresholds"
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    },
+    "graphMode": "none",
+    "colorMode": "value",
+    "textMode": "value",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "wideLayout": true,
+    "showPercentChange": false
+   },
+   "datasource": {
+    "type": "influxdb",
+    "uid": "influxdb-home"
+   },
+   "description": "Typical showers the hot-water tank can give now (heat pump dashboard).",
+   "id": 12,
+   "gridPos": {
+    "h": 4,
+    "w": 3,
+    "x": 12,
+    "y": 5
+   }
+  },
+  {
+   "type": "stat",
+   "title": "Grid CO₂",
+   "targets": [
+    {
+     "datasource": {
+      "type": "influxdb",
+      "uid": "influxdb-home"
+     },
+     "query": "import \"dict\"\nfrom(bucket: \"home\")\n  |> range(start: -30m, stop: now())\n  |> filter(fn: (r) => r._measurement == \"fingrid\" and r._field == \"value\")\n  |> filter(fn: (r) => r.series == \"co2_consumption\")\n  |> map(fn: (r) => ({_time: r._time, _value: r._value, series: dict.get(dict: [\"co2_consumption\": \"Consumed\"], key: r.series, default: r.series)}))\n  |> group(columns: [\"series\"])\n  |> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false)\n\n  |> last()",
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {},
+     "unit": "suffix: g/kWh",
+     "decimals": 0,
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "#3aa655",
+        "value": null
+       },
+       {
+        "color": "#e0a100",
+        "value": 50
+       },
+       {
+        "color": "#e5484d",
+        "value": 100
+       }
+      ]
+     },
+     "links": [
+      {
+       "title": "Energy",
+       "url": "/d/home-energy"
+      }
+     ],
+     "color": {
+      "mode": "thresholds"
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    },
+    "graphMode": "none",
+    "colorMode": "value",
+    "textMode": "value",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "wideLayout": true,
+    "showPercentChange": false
+   },
+   "datasource": {
+    "type": "influxdb",
+    "uid": "influxdb-home"
+   },
+   "id": 13,
+   "gridPos": {
+    "h": 4,
+    "w": 3,
+    "x": 15,
+    "y": 5
+   }
+  },
+  {
    "type": "barchart",
    "title": "Spot price today and tomorrow",
    "targets": [
@@ -685,12 +1015,12 @@
     "type": "influxdb",
     "uid": "influxdb-home"
    },
-   "id": 10,
+   "id": 14,
    "gridPos": {
     "h": 7,
     "w": 12,
     "x": 0,
-    "y": 5
+    "y": 9
    }
   },
   {
@@ -858,24 +1188,24 @@
     "type": "influxdb",
     "uid": "influxdb-home"
    },
-   "id": 11,
+   "id": 15,
    "gridPos": {
     "h": 7,
     "w": 12,
     "x": 12,
-    "y": 5
+    "y": 9
    }
   },
   {
    "type": "row",
    "title": "Homelab",
    "collapsed": false,
-   "id": 12,
+   "id": 16,
    "gridPos": {
     "h": 1,
     "w": 24,
     "x": 0,
-    "y": 12
+    "y": 16
    },
    "panels": []
   },
@@ -943,12 +1273,12 @@
     "type": "prometheus",
     "uid": "prometheus"
    },
-   "id": 13,
+   "id": 17,
    "gridPos": {
     "h": 4,
     "w": 3,
     "x": 0,
-    "y": 13
+    "y": 17
    }
   },
   {
@@ -1009,12 +1339,12 @@
     "type": "prometheus",
     "uid": "prometheus"
    },
-   "id": 14,
+   "id": 18,
    "gridPos": {
     "h": 4,
     "w": 3,
     "x": 3,
-    "y": 13
+    "y": 17
    }
   },
   {
@@ -1075,12 +1405,12 @@
     "type": "prometheus",
     "uid": "prometheus"
    },
-   "id": 15,
+   "id": 19,
    "gridPos": {
     "h": 4,
     "w": 3,
     "x": 6,
-    "y": 13
+    "y": 17
    }
   },
   {
@@ -1152,12 +1482,12 @@
     "type": "prometheus",
     "uid": "prometheus"
    },
-   "id": 16,
+   "id": 20,
    "gridPos": {
     "h": 4,
     "w": 3,
     "x": 9,
-    "y": 13
+    "y": 17
    }
   },
   {
@@ -1224,12 +1554,12 @@
     "type": "prometheus",
     "uid": "prometheus"
    },
-   "id": 17,
+   "id": 21,
    "gridPos": {
     "h": 4,
     "w": 3,
     "x": 12,
-    "y": 13
+    "y": 17
    }
   },
   {
@@ -1296,12 +1626,12 @@
     "type": "prometheus",
     "uid": "prometheus"
    },
-   "id": 18,
+   "id": 22,
    "gridPos": {
     "h": 4,
     "w": 3,
     "x": 15,
-    "y": 13
+    "y": 17
    }
   },
   {
@@ -1374,12 +1704,12 @@
     "type": "prometheus",
     "uid": "prometheus"
    },
-   "id": 19,
+   "id": 23,
    "gridPos": {
     "h": 4,
     "w": 3,
     "x": 18,
-    "y": 13
+    "y": 17
    }
   },
   {
@@ -1444,12 +1774,12 @@
     "type": "prometheus",
     "uid": "prometheus"
    },
-   "id": 20,
+   "id": 24,
    "gridPos": {
     "h": 4,
     "w": 3,
     "x": 21,
-    "y": 13
+    "y": 17
    }
   },
   {
@@ -1529,12 +1859,12 @@
     "type": "prometheus",
     "uid": "prometheus"
    },
-   "id": 21,
+   "id": 25,
    "gridPos": {
     "h": 14,
     "w": 12,
     "x": 0,
-    "y": 17
+    "y": 21
    }
   },
   {
@@ -1596,12 +1926,12 @@
     "type": "loki",
     "uid": "loki"
    },
-   "id": 22,
+   "id": 26,
    "gridPos": {
     "h": 7,
     "w": 12,
     "x": 12,
-    "y": 17
+    "y": 21
    }
   },
   {
@@ -1664,12 +1994,12 @@
     "type": "prometheus",
     "uid": "prometheus"
    },
-   "id": 23,
+   "id": 27,
    "gridPos": {
     "h": 7,
     "w": 12,
     "x": 0,
-    "y": 31
+    "y": 35
    }
   }
  ]
