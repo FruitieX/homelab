@@ -1,0 +1,9 @@
+# Every node reaches the API through KubePrism (a local load balancer on
+# 127.0.0.1:7445 across all API servers). kube-proxy and flannel use it too,
+# so losing one control plane doesn't freeze Service routing, as it did on
+# 2026-10-26 when everything pointed at a single control-plane address.
+machine:
+  features:
+    kubePrism:
+      enabled: true
+      port: 7445

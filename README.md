@@ -54,11 +54,16 @@ To follow this guide, you need the following:
   `regen-configs.sh` when changing Talos versions, Image Factory extensions, or
   Kubernetes versions.
 
+  The cluster endpoint is a virtual IP that the control planes share
+  (`talos/patches/controlplane.yaml`), and every node runs KubePrism
+  (`talos/patches/all.yaml`), so the cluster keeps working when any one
+  control plane is down. Point `kubeconfig` at the virtual IP, not at a node.
+
   NOTE: While installing, write down the following details into an .envrc file:
 
   ```
-  # IP address of your control plane node, printed to machine TTY in the `Start Control Plane Node` section.
-  export CONTROL_PLANE_IP="192.168.10.206"
+  # Control plane node addresses for talosctl (see regen-configs.sh).
+  export CONTROL_PLANE_IPS="192.168.10.97 192.168.10.248 192.168.10.232"
 
   # Path to your talosconfig, created in the `Generate Machine Configurations` section.
   export TALOSCONFIG="_out/talosconfig"

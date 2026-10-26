@@ -4,14 +4,22 @@ set -eu
 TALOS_VERSION=v1.13.9
 TALOS_SCHEMATIC=c9078f9419961640c712a8bf2bb9174933dfcf1da383fd8ea2b7dc21493f8bac
 KUBERNETES_VERSION=1.36.3
-CONTROL_PLANE_IP="${CONTROL_PLANE_IP:-192.168.10.97}"
+# Cluster endpoint: the control planes' shared virtual IP
+# (talos/patches/controlplane.yaml), not any single node.
+API_VIP="${API_VIP:-192.168.10.5}"
+# The control planes' own addresses, for talosctl.
+CONTROL_PLANE_IPS="${CONTROL_PLANE_IPS:-192.168.10.97 192.168.10.248 192.168.10.232}"
+OUTPUT_DIR="${OUTPUT_DIR:-_out}"
 
-talosctl gen config homelab-cluster "https://${CONTROL_PLANE_IP}:6443" \
+talosctl gen config homelab-cluster "https://${API_VIP}:6443" \
   --with-secrets secrets.yaml \
   --install-image "factory.talos.dev/installer/${TALOS_SCHEMATIC}:${TALOS_VERSION}" \
   --kubernetes-version "${KUBERNETES_VERSION}" \
-  --output-dir _out \
+  --config-patch @talos/patches/all.yaml \
+  --config-patch-control-plane @talos/patches/controlplane.yaml \
+  --output-dir "${OUTPUT_DIR}" \
   --force
 
-talosctl --talosconfig _out/talosconfig config endpoint "${CONTROL_PLANE_IP}"
-talosctl --talosconfig _out/talosconfig config node "${CONTROL_PLANE_IP}"
+# shellcheck disable=SC2086
+talosctl --talosconfig "${OUTPUT_DIR}/talosconfig" config endpoint ${CONTROL_PLANE_IPS}
+talosctl --talosconfig "${OUTPUT_DIR}/talosconfig" config node "${CONTROL_PLANE_IPS%% *}"

@@ -1,0 +1,23 @@
+# Shared virtual IP for the Kubernetes API, held by one control plane at a
+# time and moved by Talos when that node goes away. It is the cluster
+# endpoint (see regen-configs.sh) and what kubeconfig points at.
+machine:
+  network:
+    interfaces:
+      - interface: eth0
+        dhcp: true
+        vip:
+          ip: 192.168.10.5
+cluster:
+  apiServer:
+    certSANs:
+      - 192.168.10.5
+      - 192.168.10.97
+    extraArgs:
+      # The endpoint used to be the first control plane's own address. Pods'
+      # service-account tokens carry it as issuer and audience, so keep
+      # accepting it; the first issuer signs new tokens.
+      service-account-issuer:
+        - https://192.168.10.5:6443
+        - https://192.168.10.97:6443
+      api-audiences: https://192.168.10.5:6443,https://192.168.10.97:6443
