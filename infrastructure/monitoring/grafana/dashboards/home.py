@@ -204,7 +204,7 @@ union(tables: [before, during])
 def overview_house_extra(d, showers_left, co2_now):
     """Second line of house tiles on the overview."""
     d.add(stat("Alarm", [flux(alarm(last=True))], graph=False, mappings=ALARM, color_mode="background",
-               fields="/^_value$/",
+               fields="/^Value$/",
                thr=thresholds(MUTED), desc="Verisure, from the app's push notifications (verisure-bridge).",
                links=[{"title": "Devices", "url": "/d/home-devices"}]), 3, 4)
     d.add(state_timeline("Alarm, last 24 h", [flux(alarm())], mappings=ALARM, color={"mode": "thresholds"},

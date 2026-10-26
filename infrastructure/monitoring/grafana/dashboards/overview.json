@@ -683,7 +683,7 @@
      "calcs": [
       "lastNotNull"
      ],
-     "fields": "/^_value$/",
+     "fields": "/^Value$/",
      "values": false
     },
     "graphMode": "none",
