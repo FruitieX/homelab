@@ -21,10 +21,26 @@ spec:
           priorityClassName: homelab-critical
           labels:
             homelab.fruitiex.org/gateway: public
+          # One replica per physical host (zone = Proxmox host, see
+          # talos/patches/hosts), and never two on the same node. Tainted
+          # nodes (control planes, cordoned or dead nodes) don't count as
+          # domains, so rollouts and drains still find room.
           topologySpreadConstraints:
+            - maxSkew: 1
+              topologyKey: topology.kubernetes.io/zone
+              whenUnsatisfiable: DoNotSchedule
+              nodeTaintsPolicy: Honor
+              matchLabelKeys:
+                - pod-template-hash
+              labelSelector:
+                matchLabels:
+                  homelab.fruitiex.org/gateway: public
             - maxSkew: 1
               topologyKey: kubernetes.io/hostname
               whenUnsatisfiable: DoNotSchedule
+              nodeTaintsPolicy: Honor
+              matchLabelKeys:
+                - pod-template-hash
               labelSelector:
                 matchLabels:
                   homelab.fruitiex.org/gateway: public
@@ -66,10 +82,26 @@ spec:
           priorityClassName: homelab-critical
           labels:
             homelab.fruitiex.org/gateway: private
+          # One replica per physical host (zone = Proxmox host, see
+          # talos/patches/hosts), and never two on the same node. Tainted
+          # nodes (control planes, cordoned or dead nodes) don't count as
+          # domains, so rollouts and drains still find room.
           topologySpreadConstraints:
+            - maxSkew: 1
+              topologyKey: topology.kubernetes.io/zone
+              whenUnsatisfiable: DoNotSchedule
+              nodeTaintsPolicy: Honor
+              matchLabelKeys:
+                - pod-template-hash
+              labelSelector:
+                matchLabels:
+                  homelab.fruitiex.org/gateway: private
             - maxSkew: 1
               topologyKey: kubernetes.io/hostname
               whenUnsatisfiable: DoNotSchedule
+              nodeTaintsPolicy: Honor
+              matchLabelKeys:
+                - pod-template-hash
               labelSelector:
                 matchLabels:
                   homelab.fruitiex.org/gateway: private

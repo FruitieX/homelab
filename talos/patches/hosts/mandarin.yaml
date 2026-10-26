@@ -1,0 +1,5 @@
+# Physical Proxmox host this Talos VM runs on. Applied per node, see
+# talos/patches/hosts/README.md.
+machine:
+  nodeLabels:
+    topology.kubernetes.io/zone: mandarin

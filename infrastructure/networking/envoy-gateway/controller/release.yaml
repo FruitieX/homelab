@@ -41,10 +41,23 @@ spec:
           limits:
             memory: 512Mi
       pod:
+        # One replica per physical host and node; see envoy-proxies.yaml.
         topologySpreadConstraints:
+          - maxSkew: 1
+            topologyKey: topology.kubernetes.io/zone
+            whenUnsatisfiable: DoNotSchedule
+            nodeTaintsPolicy: Honor
+            matchLabelKeys:
+              - pod-template-hash
+            labelSelector:
+              matchLabels:
+                control-plane: envoy-gateway
           - maxSkew: 1
             topologyKey: kubernetes.io/hostname
             whenUnsatisfiable: DoNotSchedule
+            nodeTaintsPolicy: Honor
+            matchLabelKeys:
+              - pod-template-hash
             labelSelector:
               matchLabels:
                 control-plane: envoy-gateway
