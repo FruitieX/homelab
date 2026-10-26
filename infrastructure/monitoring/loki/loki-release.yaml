@@ -105,8 +105,9 @@ spec:
         labels:
           release: kube-prometheus-stack
 
-    # Reduce memcached chunks-cache footprint to fit worker capacity
+    # The memcached caches reserved ~1.4 GiB while using ~35 MiB; a single
+    # Loki with this little log volume doesn't benefit from them.
     chunksCache:
-      enabled: true
-      replicas: 1
-      allocatedMemory: 128
+      enabled: false
+    resultsCache:
+      enabled: false

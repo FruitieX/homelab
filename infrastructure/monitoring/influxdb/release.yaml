@@ -17,7 +17,10 @@ spec:
   values:
     resources:
       requests:
-        memory: 4Gi
+        # Process memory (RSS) peaked at ~1.5 GiB over a week; the working
+        # set reaches several GiB only through reclaimable file cache of the
+        # TSM files. The write cache is capped at 1 GiB by default.
+        memory: 1536Mi
     adminUser:
       existingSecret: influxdb-auth
     persistence:

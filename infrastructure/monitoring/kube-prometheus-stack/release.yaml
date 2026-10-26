@@ -42,6 +42,20 @@ spec:
           enabled: false
         darwin:
           enabled: false
+    # The API servers produced ~38% of all series, mostly histogram buckets no
+    # dashboard or alert here uses. Keep the chart's default drop rule (a list
+    # here replaces it) and drop those buckets entirely; *_count/_sum stay.
+    # apiserver_request_sli_duration_seconds and apiserver_request_duration_
+    # seconds stay: the availability/burn-rate rules and the dashboard use them.
+    kubeApiServer:
+      serviceMonitor:
+        metricRelabelings:
+          - action: drop
+            regex: (etcd_request|apiserver_request_slo|apiserver_request_sli|apiserver_request)_duration_seconds_bucket;(0\.15|0\.2|0\.3|0\.35|0\.4|0\.45|0\.6|0\.7|0\.8|0\.9|1\.25|1\.5|1\.75|2|3|3\.5|4|4\.5|6|7|8|9|15|20|40|45|50)(\.0)?
+            sourceLabels: [__name__, le]
+          - action: drop
+            regex: (etcd_request_duration_seconds|apiserver_request_body_size_bytes|apiserver_watch_list_duration_seconds|apiserver_watch_cache_read_wait_seconds|apiserver_response_sizes|apiserver_watch_events_sizes)_bucket
+            sourceLabels: [__name__]
     # Talos binds these to localhost, so the scrapes (and their alerts and
     # dashboards) only ever reported "down".
     kubeControllerManager:
