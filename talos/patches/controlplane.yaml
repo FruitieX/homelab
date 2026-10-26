@@ -21,3 +21,7 @@ cluster:
         - https://192.168.10.5:6443
         - https://192.168.10.97:6443
       api-audiences: https://192.168.10.5:6443,https://192.168.10.97:6443
+      # Move pods off a dead node after 30 s instead of the default 5 min.
+      # Applies to pods created after the change.
+      default-not-ready-toleration-seconds: "30"
+      default-unreachable-toleration-seconds: "30"
