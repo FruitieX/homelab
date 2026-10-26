@@ -88,7 +88,9 @@ history: evening showers run about 4.8 L/min for 13–15 minutes. Re-measure the
 Grafana also queries the apps' PostgreSQL databases directly as `grafana_ro`. That is a SELECT-only role with
 `pg_monitor`, set to read-only by default with a 30 s statement timeout. It exists on `postgres` (ferrotune,
 homectl, bambuddy) and on `immich-postgres`; the password is in 1Password ("homelab PostgreSQL grafana_ro"). The role was
-created by hand, so recreate it if a database is restored from scratch.
+created by hand, so recreate it if a database is restored from scratch. On the shared CloudNativePG cluster its
+`pg_monitor` membership is declared in `apps/postgres/postgres-ha.yaml`; reapply the role settings by hand
+(`ALTER ROLE grafana_ro SET default_transaction_read_only = on`, `... SET statement_timeout = '30s'`).
 
 Bambuddy stores its data in the shared PostgreSQL (`bambuddy` database, `DATABASE_URL` in
 `apps/bambuddy/database.sops.yaml`, connection pool capped at 15). It moved off SQLite on 2026-10-24 with

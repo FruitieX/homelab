@@ -59,6 +59,24 @@ I make use of the following pieces of software and infrastructure:
   - NFS is the default StorageClass for the current workloads
   - Nothing of value resides on the compute nodes' disks and as such they can be considered "throwaways"
 
+### CloudNativePG (shared PostgreSQL)
+
+- The shared PostgreSQL that most apps use (`postgres` Service, `postgres.default.svc:5432`) is the CloudNativePG
+  cluster `postgres-ha` ([apps/postgres/postgres-ha.yaml](/apps/postgres/postgres-ha.yaml)): PostgreSQL 18, a
+  primary and one streaming replica on different physical hosts, quorum commit while the replica is connected
+  - The `postgres` Service selects the current primary, so app connection strings never change; a failover takes
+    about 15 s and apps reconnect on their own
+  - Both instances keep their data on `nfs-csi`, so the NAS remains a single point of failure: the cluster survives
+    losing a node or a host, not the NAS
+  - `postgres-dump` dumps every database plus roles nightly to the `postgres-dumps` volume (14 days kept), which
+    the NAS backs up. Restore: `psql -f roles-with-passwords.sql postgres`, then `pg_restore --create -d postgres <db>.dump`
+  - Status and switchover: `kubectl cnpg status postgres-ha`, `kubectl cnpg promote postgres-ha <instance>`
+  - Role memberships and per-role settings (`ALTER ROLE ... SET`) are not carried over by a CNPG import;
+    `grafana_ro`'s `pg_monitor` membership is declared in the Cluster, its settings were set by hand
+- Rollback to the old PostgreSQL 16 Deployment (scaled to 0, PVC `postgres-data` kept, data as of the 2026-10-26
+  cutover): stop the apps, dump the newer data from `postgres-ha` if it should be kept, set the `postgres`
+  Service selector back to `app: postgres` and the Deployment to `replicas: 1`
+
 ### kube-prometheus-stack
 
 - Metrics, alerts and dashboards; see [monitoring](monitoring.md)
