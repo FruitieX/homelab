@@ -75,6 +75,17 @@ spec:
           annotations:
             summary: "{{ $labels.namespace }}/{{ $labels.pod }} ({{ $labels.container }}) was OOM-killed"
             description: "Raise its memory limit or find the leak (Homelab → Workloads dashboard)."
+        - alert: PostgresReplicationDegraded
+          expr: |
+            (sum(cnpg_collector_up{job="default/postgres-ha"}) or vector(0)) < 2
+            or (sum(cnpg_pg_replication_streaming_replicas{job="default/postgres-ha"}) or vector(0)) < 1
+          for: 15m
+          labels:
+            homelab: "true"
+            severity: warning
+          annotations:
+            summary: "Shared PostgreSQL (CNPG postgres-ha) is running without a streaming replica"
+            description: "A host or node loss now means downtime. kubectl get cluster postgres-ha; kubectl cnpg status postgres-ha."
     - name: homelab.hardware
       rules:
         - alert: NasVolumeFillingUp

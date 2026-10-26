@@ -21,8 +21,12 @@ metadata:
     external-dns.alpha.kubernetes.io/hostname: postgres.fruitiex.org
 spec:
   type: LoadBalancer
+  # The current primary of the CloudNativePG cluster (postgres-ha.yaml).
+  # Apps and LAN clients keep using this name and address. Rollback to the
+  # PostgreSQL 16 Deployment below: selector `app: postgres` and replicas: 1.
   selector:
-    app: postgres
+    cnpg.io/cluster: postgres-ha
+    cnpg.io/instanceRole: primary
   ports:
     - name: psql
       protocol: TCP
@@ -35,7 +39,11 @@ metadata:
   name: postgres
   namespace: default
 spec:
-  replicas: 1
+  # Retired 2026-10-26 after the move to CloudNativePG (postgres-ha.yaml);
+  # kept with its postgres-data PVC as the rollback path. Delete both once
+  # postgres-ha has run without trouble for a few weeks and a postgres-dump
+  # backup has been restored somewhere as a test.
+  replicas: 0
   strategy:
     type: Recreate
   selector:

@@ -269,8 +269,8 @@ def hardware_dashboard():
     d.add(stat("System temperature", [prom(f'temperature{nas}')], unit="celsius", decimals=0,
                thr=thresholds(GOOD, (50, WARN), (60, BAD))), 4, 4)
     d.add(stat("Volume 3 full in", [prom(
-        'max(kubelet_volume_stats_available_bytes{persistentvolumeclaim="postgres-data"}) / '
-        'clamp_min(-deriv(max(kubelet_volume_stats_available_bytes{persistentvolumeclaim="postgres-data"})[14d:1h]), 1) / 86400',
+        'max(kubelet_volume_stats_available_bytes{persistentvolumeclaim=~"postgres-ha-.*"}) / '
+        'clamp_min(-deriv(max(kubelet_volume_stats_available_bytes{persistentvolumeclaim=~"postgres-ha-.*"})[14d:1h]), 1) / 86400',
         instant=True)], unit="d", decimals=0, graph=False, thr=thresholds(BAD, (30, WARN), (180, GOOD)),
         desc="Free space divided by the last 14 days' growth rate. Very large means the volume is not growing."), 4, 4)
     d.add(stat("DSM update", [prom(f'upgradeAvailable{nas}')], graph=False,
@@ -303,9 +303,9 @@ def hardware_dashboard():
     d.add(bargauge("Volumes", [prom('1 - raidFreeSize{job="nas-snmp", raidName=~"Volume.*"} / raidTotalSize{job="nas-snmp", raidName=~"Volume.*"}', legend="{{raidName}}",
                                           instant=True)], unit="percentunit", decimals=1, minv=0, maxv=1,
                    display_name="${__field.labels.raidName}", thr=thresholds(GOOD, (0.8, WARN), (0.9, BAD))), 8, 6)
-    d.add(timeseries("Volume 3 used", [prom('max(kubelet_volume_stats_used_bytes{persistentvolumeclaim="postgres-data"})',
+    d.add(timeseries("Volume 3 used", [prom('max(kubelet_volume_stats_used_bytes{persistentvolumeclaim=~"postgres-ha-.*"})',
                                             legend="Used"),
-                                       prom('max(kubelet_volume_stats_capacity_bytes{persistentvolumeclaim="postgres-data"})',
+                                       prom('max(kubelet_volume_stats_capacity_bytes{persistentvolumeclaim=~"postgres-ha-.*"})',
                                             legend="Capacity")],
                      unit="bytes", decimals=1, fill=0, time_from="90d",
                      overrides=fixed_colors({"Used": SLOTS[0], "Capacity": MUTED}),
