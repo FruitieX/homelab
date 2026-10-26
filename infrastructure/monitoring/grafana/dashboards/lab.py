@@ -3,8 +3,8 @@
 import heatpump
 import home
 from lib import (BAD, GOOD, LOKI, MUTED, SLOTS, WARN, Dashboard, barchart, bargauge, by_name, deploy_annotation,
-                 fixed_colors, flux, labels_to_fields, logs, loki, merge, organize, prom, reduce_rows, sort_by, sql, stat,
-                 state_timeline, status_history, table, thresholds, timeseries, value_map)
+                 fixed_colors, flux, labels_to_fields, logs, loki, merge, organize, prom, reduce_rows, sort_by, sql,
+                 stat, state_timeline, status_history, table, thresholds, timeseries, value_map)
 
 UP_DOWN = value_map([(1, "Up", GOOD), (0, "Down", BAD)])
 APPS = 'label_replace({metric}{{job=~"probe/kube-prometheus-stack/apps-.*"}}, "app", "$1", "instance", "https://([^/]+).*")'
@@ -24,9 +24,10 @@ def services_dashboard():
     d.add(stat("Apps down", [prom(f'count({APPS.format(metric="probe_success")} == 0) or vector(0)', instant=True)],
                graph=False, thr=thresholds(GOOD, (1, BAD)), color_mode="background",
                desc="Blackbox HTTPS probes of every app hostname, once a minute."), 4, 4)
-    d.add(stat("Firing alerts", [prom('count(ALERTS{alertstate="firing", alertname!~"Watchdog|InfoInhibitor"}) or vector(0)',
-                                      instant=True)], graph=False, thr=thresholds(GOOD, (1, WARN)),
-               color_mode="background"), 4, 4)
+    d.add(stat("Firing alerts", [prom('count(ALERTS{alertstate="firing", alertname!~"Watchdog|InfoInhibitor", '
+                                      'severity=~"warning|critical"}) or vector(0)', instant=True)],
+               graph=False, thr=thresholds(GOOD, (1, WARN)), color_mode="background",
+               desc="Warning and critical alerts. The table below lists every firing alert, info included."), 4, 4)
     d.add(stat("Flux not ready", [prom('count(gotk_resource_info{ready="False"}) or vector(0)', instant=True)],
                graph=False, thr=thresholds(GOOD, (1, BAD)), color_mode="background"), 4, 4)
     d.add(stat("Earliest TLS expiry", [prom('min(probe_ssl_earliest_cert_expiry - time()) / 86400', instant=True)],
@@ -574,9 +575,12 @@ def overview_dashboard():
     d.add(stat("Apps down", [prom(f'count({APPS.format(metric="probe_success")} == 0) or vector(0)', instant=True)],
                graph=False, thr=thresholds(GOOD, (1, BAD)), color_mode="background",
                links=[{"title": "Services", "url": "/d/lab-services"}]), 3, 4)
-    d.add(stat("Firing alerts", [prom('count(ALERTS{alertstate="firing", alertname!~"Watchdog|InfoInhibitor"}) or vector(0)',
-                                      instant=True)], graph=False, thr=thresholds(GOOD, (1, WARN)), color_mode="background"),
-          3, 4)
+    d.add(stat("Firing alerts", [prom('count(ALERTS{alertstate="firing", alertname!~"Watchdog|InfoInhibitor", '
+                                      'severity=~"warning|critical"}) or vector(0)', instant=True)],
+               graph=False, thr=thresholds(GOOD, (1, WARN)), color_mode="background",
+               links=[{"title": "Firing alerts (Services)", "url": "/d/lab-services"},
+                      {"title": "Alertmanager", "url": "https://alertmanager.fruitiex.org", "targetBlank": True}],
+               desc="Warning and critical alerts; info alerts are listed on the Services dashboard only."), 3, 4)
     d.add(stat("Flux not ready", [prom('count(gotk_resource_info{ready="False"}) or vector(0)', instant=True)],
                graph=False, thr=thresholds(GOOD, (1, BAD)), color_mode="background"), 3, 4)
     d.add(stat("Restarts (24 h)", [prom('sum(increase(kube_pod_container_status_restarts_total[24h]))', instant=True)],

@@ -156,7 +156,7 @@
       "type": "prometheus",
       "uid": "prometheus"
      },
-     "expr": "count(ALERTS{alertstate=\"firing\", alertname!~\"Watchdog|InfoInhibitor\"}) or vector(0)",
+     "expr": "count(ALERTS{alertstate=\"firing\", alertname!~\"Watchdog|InfoInhibitor\", severity=~\"warning|critical\"}) or vector(0)",
      "legendFormat": "",
      "range": false,
      "instant": true,
@@ -205,6 +205,7 @@
     "type": "prometheus",
     "uid": "prometheus"
    },
+   "description": "Warning and critical alerts. The table below lists every firing alert, info included.",
    "id": 3,
    "gridPos": {
     "h": 4,

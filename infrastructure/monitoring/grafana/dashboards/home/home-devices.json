@@ -74,7 +74,7 @@
       "type": "influxdb",
       "uid": "influxdb-home"
      },
-     "query": "before = from(bucket: \"home\")\n  |> range(start: -365d, stop: v.timeRangeStart)\n  |> filter(fn: (r) => r._measurement == \"verisure\" and r._field == \"value\" and r.topic == \"home/verisure/mode\")\n  |> keep(columns: [\"_time\", \"_value\"])\n  |> last()\n  |> map(fn: (r) => ({r with _time: v.timeRangeStart}))\nduring = from(bucket: \"home\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"verisure\" and r._field == \"value\" and r.topic == \"home/verisure/mode\")\n  |> keep(columns: [\"_time\", \"_value\"])\nunion(tables: [before, during])\n  |> sort(columns: [\"_time\"])\n  |> set(key: \"_field\", value: \"Alarm\")",
+     "query": "before = from(bucket: \"home\")\n  |> range(start: -365d, stop: v.timeRangeStart)\n  |> filter(fn: (r) => r._measurement == \"verisure\" and r._field == \"value\" and r.topic == \"home/verisure/mode\")\n  |> keep(columns: [\"_time\", \"_value\"])\n  |> last()\n  |> map(fn: (r) => ({r with _time: v.timeRangeStart}))\nduring = from(bucket: \"home\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"verisure\" and r._field == \"value\" and r.topic == \"home/verisure/mode\")\n  |> keep(columns: [\"_time\", \"_value\"])\nunion(tables: [before, during])\n  |> group()\n  |> sort(columns: [\"_time\"])",
      "refId": "A"
     }
    ],
@@ -122,7 +122,8 @@
         }
        }
       }
-     ]
+     ],
+     "displayName": "Alarm"
     },
     "overrides": []
    },

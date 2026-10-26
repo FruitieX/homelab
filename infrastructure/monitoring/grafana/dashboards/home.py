@@ -197,16 +197,18 @@ def alarm(start="v.timeRangeStart", stop="v.timeRangeStop", last=False):
 during = from(bucket: "home")
   |> range(start: {start}, stop: {stop})''' + sel + '''
 union(tables: [before, during])
-  |> sort(columns: ["_time"])
-  |> set(key: "_field", value: "Alarm")'''
+  |> group()
+  |> sort(columns: ["_time"])'''
 
 
 def overview_house_extra(d, showers_left, co2_now):
     """Second line of house tiles on the overview."""
     d.add(stat("Alarm", [flux(alarm(last=True))], graph=False, mappings=ALARM, color_mode="background",
+               fields="/^_value$/",
                thr=thresholds(MUTED), desc="Verisure, from the app's push notifications (verisure-bridge).",
                links=[{"title": "Devices", "url": "/d/home-devices"}]), 3, 4)
     d.add(state_timeline("Alarm, last 24 h", [flux(alarm())], mappings=ALARM, color={"mode": "thresholds"},
+                         display_name="Alarm",
                          thr=thresholds(MUTED), time_from="24h", show_values="auto"), 9, 4)
     d.add(showers_left, 3, 4)
     d.add(co2_now, 3, 4)
@@ -495,6 +497,7 @@ def devices_dashboard():
 
     d.row("Alarm")
     d.add(state_timeline("Verisure alarm", [flux(alarm())], mappings=ALARM, color={"mode": "thresholds"},
+                         display_name="Alarm",
                          thr=thresholds(MUTED), show_values="auto",
                          desc="Mode from Verisure's API, looked up on each arm/disarm push. 'Armed' means the push "
                               "arrived but the mode lookup did not answer."), 24, 4)
