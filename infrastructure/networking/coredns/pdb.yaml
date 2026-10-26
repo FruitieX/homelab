@@ -1,0 +1,11 @@
+# Drains take down at most one CoreDNS replica at a time.
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: coredns
+  namespace: kube-system
+spec:
+  maxUnavailable: 1
+  selector:
+    matchLabels:
+      k8s-app: kube-dns

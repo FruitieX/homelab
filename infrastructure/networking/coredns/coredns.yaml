@@ -1,0 +1,33 @@
+# CoreDNS itself is a Talos bootstrap manifest (kube-system/coredns, from
+# `talosctl get manifests 11-core-dns`): Talos creates it and
+# `talosctl upgrade-k8s` re-applies it. This is NOT the whole Deployment,
+# only the fields we change, server-side applied on top of Talos' copy.
+# Flux owns these fields; if upgrade-k8s resets `replicas` to Talos' 2,
+# Flux puts it back on its next reconcile. See docs/dns.md.
+#
+# Three replicas, one per Proxmox host (zone, see talos/patches/hosts), so
+# losing a host or rebooting a node leaves two serving DNS.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: coredns
+  namespace: kube-system
+  annotations:
+    # Never delete CoreDNS, even if this file goes away.
+    kustomize.toolkit.fluxcd.io/prune: disabled
+spec:
+  replicas: 3
+  template:
+    spec:
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: topology.kubernetes.io/zone
+          whenUnsatisfiable: DoNotSchedule
+          # Dead or cordoned nodes don't count as domains, so the
+          # replacement for a lost replica can still be scheduled.
+          nodeTaintsPolicy: Honor
+          matchLabelKeys:
+            - pod-template-hash
+          labelSelector:
+            matchLabels:
+              k8s-app: kube-dns
