@@ -5,7 +5,7 @@ metadata:
   namespace: default
 spec:
   parentRefs:
-    - name: private
+    - name: bambuddy
       namespace: envoy-gateway-system
       sectionName: https
   hostnames:
