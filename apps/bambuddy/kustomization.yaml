@@ -4,6 +4,7 @@ resources:
   - volume.yaml
   - deployment.yaml
   - service.yaml
+  - gateway.yaml
   - ingress.yaml
   - secret.sops.yaml
   - database.sops.yaml
