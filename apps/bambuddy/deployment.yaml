@@ -37,7 +37,7 @@ spec:
               value: "8000"
             # Pocket ID sign-in (admins only; the client is group-restricted in Pocket ID).
             # Break-glass local admin: 1Password "Bambuddy break-glass admin (homelab)";
-            # sign in at /login?fallback=local (autologin skips there). Set
+            # sign in at /login?fallback=local. Set
             # BAMBUDDY_LOCAL_LOGIN=true if local login ever gets disabled in the UI.
             - name: APP_URL
               value: https://bambuddy.fruitiex.org
@@ -62,7 +62,9 @@ spec:
             - name: BAMBUDDY_OIDC_DEFAULT_GROUP
               value: Administrators
             - name: BAMBUDDY_OIDC_AUTOLOGIN
-              value: "true"
+              # An exchange failure returns to /login; autologin immediately
+              # retries SSO and traps the browser in a redirect loop.
+              value: "false"
             # The shared PostgreSQL allows 100 connections in total; Bambuddy's
             # PostgreSQL default (20 + 60 overflow) could starve the other apps.
             - name: DB_POOL_SIZE
