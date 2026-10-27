@@ -35,7 +35,6 @@ def hot_water_left(per):
     """Mixed 40 °C water the tank can give at its current top temperature, as shower minutes or showers.
     Cold water is estimated by season: about 5 °C in February, 13 °C in August (HSY tap water)."""
     div = SHOWER_LPM if per == "minute" else SHOWER_L
-    label = "Our estimate" if per == "minute" else "Showers"
     return f'''import "date"
 import "math"
 month = float(v: date.month(t: now()))
@@ -46,8 +45,7 @@ from(bucket: "home")
   |> last()
   |> map(fn: (r) => ({{_time: r._time, _value: if r._value <= {MIX_C} then 0.0 else
       {TANK_L}.0 * {TANK_EFFICIENCY} * (r._value - cold) / ({MIX_C} - cold) / {float(div)}}}))
-  |> keep(columns: ["_time", "_value"])
-  |> set(key: "_field", value: "{label}")'''
+  |> keep(columns: ["_time", "_value"])'''
 
 
 def _ids(points):
@@ -93,7 +91,8 @@ def heatpump_dashboard():
     d.add(stat("Hot water", [now("40013")], unit="celsius", decimals=1, graph=False,
                thr=thresholds(SLOTS[0], (40, WARN), (45, SLOTS[1])),
                desc="Top of the tank (BT7), where hot water is drawn from."), 4, 4)
-    d.add(stat("Shower time left", [flux(hot_water_left(per="minute")), now("50345", "NIBE")], unit="m", decimals=0,
+    d.add(stat("Shower time left", [flux(hot_water_left(per="minute"), legend="Our estimate"),
+               now("50345", "NIBE")], unit="m", decimals=0,
                graph=False, text_mode="value_and_name", overrides=[by_name("Our estimate", decimals=0)],
                desc=f"Our estimate uses this household's showers: {SHOWER_LPM} L/min of mixed water, measured "
                     "from the water meter. NIBE's own figure assumes a higher flow."), 4, 4)
@@ -116,7 +115,7 @@ def heatpump_dashboard():
     d.add(stat("Smart Price Adaption", [now("41929")], graph=False, mappings=PRICE_MODE, color_mode="background",
                thr=thresholds(MUTED), desc="How the pump rates the current Nord Pool price."), 4, 4)
     d.add(stat("Exhaust fan", [now("50221")], unit="percent", decimals=0, graph=False), 4, 4)
-    d.add(stat("Showers left", [flux(hot_water_left(per="shower"))], decimals=1, graph=False,
+    d.add(stat("Showers left", [flux(hot_water_left(per="shower"), legend="Showers")], decimals=1, graph=False,
                thr=thresholds(BAD, (1, WARN), (2, SLOTS[0])),
                desc=f"Typical showers ({SHOWER_L} L at {SHOWER_LPM} L/min) the tank can give right now."), 4, 4)
 

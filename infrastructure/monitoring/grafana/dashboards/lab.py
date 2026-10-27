@@ -560,7 +560,7 @@ def overview_dashboard():
     home.overview_house(d)
     home.overview_house_extra(
         d,
-        stat("Showers left", [flux(heatpump.hot_water_left(per="shower"))], decimals=1, graph=False,
+        stat("Showers left", [flux(heatpump.hot_water_left(per="shower"), legend="Showers")], decimals=1, graph=False,
              thr=thresholds(BAD, (1, WARN), (2, SLOTS[0])), links=[{"title": "Heat pump", "url": "/d/home-heatpump"}],
              desc="Typical showers the hot-water tank can give now (heat pump dashboard)."),
         stat("Grid CO₂", [flux(home.fingrid({"co2_consumption": "Consumed"}, start="-30m", stop="now()", fn="last")

@@ -33,12 +33,15 @@ def loki(expr, legend="", instant=False, max_lines=None):
     return t
 
 
-def flux(query):
+def flux(query, legend=""):
     """Flux requires imports before anything else; hoist (and dedupe) them."""
     lines = query.strip().splitlines()
     imports = list(dict.fromkeys(l for l in lines if l.startswith("import ")))
     body = [l for l in lines if not l.startswith("import ")]
-    return {"datasource": INFLUX, "query": "\n".join(imports + body).strip()}
+    t = {"datasource": INFLUX, "query": "\n".join(imports + body).strip()}
+    if legend:
+        t["legendFormat"] = legend
+    return t
 
 
 def sql(db, query, fmt="table"):

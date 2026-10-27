@@ -804,7 +804,8 @@
       "type": "influxdb",
       "uid": "influxdb-home"
      },
-     "query": "import \"date\"\nimport \"math\"\nmonth = float(v: date.month(t: now()))\ncold = 9.0 + 4.0 * math.cos(x: 2.0 * math.pi * (month - 8.5) / 12.0)\nfrom(bucket: \"home\")\n  |> range(start: -15m)\n  |> filter(fn: (r) => r._measurement == \"nibe\" and r._field == \"value\" and r.id == \"40013\")\n  |> last()\n  |> map(fn: (r) => ({_time: r._time, _value: if r._value <= 40.0 then 0.0 else\n      180.0 * 0.86 * (r._value - cold) / (40.0 - cold) / 65.0}))\n  |> keep(columns: [\"_time\", \"_value\"])\n  |> set(key: \"_field\", value: \"Showers\")",
+     "query": "import \"date\"\nimport \"math\"\nmonth = float(v: date.month(t: now()))\ncold = 9.0 + 4.0 * math.cos(x: 2.0 * math.pi * (month - 8.5) / 12.0)\nfrom(bucket: \"home\")\n  |> range(start: -15m)\n  |> filter(fn: (r) => r._measurement == \"nibe\" and r._field == \"value\" and r.id == \"40013\")\n  |> last()\n  |> map(fn: (r) => ({_time: r._time, _value: if r._value <= 40.0 then 0.0 else\n      180.0 * 0.86 * (r._value - cold) / (40.0 - cold) / 65.0}))\n  |> keep(columns: [\"_time\", \"_value\"])",
+     "legendFormat": "Showers",
      "refId": "A"
     }
    ],
