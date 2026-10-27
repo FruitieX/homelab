@@ -11,11 +11,19 @@ API_VIP="${API_VIP:-192.168.10.5}"
 CONTROL_PLANE_IPS="${CONTROL_PLANE_IPS:-192.168.10.97 192.168.10.248 192.168.10.232}"
 OUTPUT_DIR="${OUTPUT_DIR:-_out}"
 
+# Runtime credentials stay encrypted in Git. Remove the decrypted patch even
+# when configuration generation fails; do not pass credentials in argv.
+umask 077
+REGISTRY_PATCH=$(mktemp)
+trap 'rm -f "$REGISTRY_PATCH"' EXIT HUP INT TERM
+sops --decrypt talos/patches/registries.sops.yaml > "$REGISTRY_PATCH"
+
 talosctl gen config homelab-cluster "https://${API_VIP}:6443" \
   --with-secrets secrets.yaml \
   --install-image "factory.talos.dev/installer/${TALOS_SCHEMATIC}:${TALOS_VERSION}" \
   --kubernetes-version "${KUBERNETES_VERSION}" \
   --config-patch @talos/patches/all.yaml \
+  --config-patch "@$REGISTRY_PATCH" \
   --config-patch-control-plane @talos/patches/controlplane.yaml \
   --output-dir "${OUTPUT_DIR}" \
   --force

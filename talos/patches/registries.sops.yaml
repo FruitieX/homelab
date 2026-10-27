@@ -1,0 +1,33 @@
+machine:
+    registries:
+        config:
+            nectarine.internal.fruitiex.org:5050:
+                auth:
+                    username: node-reader
+                    password: ENC[AES256_GCM,data:oodDP+UbCftusb/aNCezouQRrkHmFnb+To9t+sI5E7jM/lpE6vQmA2YjI3ojHWTa,iv:XAJOsTM2otcfa783mKZmNCgZxl9wNbDVbng172oOZsA=,tag:nxN5c4RkXDikilu3WXvygw==,type:str]
+sops:
+    lastmodified: "2026-10-27T13:48:23Z"
+    mac: ENC[AES256_GCM,data:Ca0Du5dMSdOJtuJpKfqYujkI0uJmT79ek0jFonrM0qt9mXZSZ241HzfYGXS4KMYN9pbdXOxz+TuBfjRP6KtUIGK4dteol4ExfUC6ohJltTQiTUIpdSamNooWfd6Ppv5ELOi3vvC4ADbZki0TRbulDRyUEMv6xBZqtGag4WV7N2o=,iv:tC95gwH3K5Fj5Fvhdp7Or3Pg3ehS706j6gyyzmLK9e0=,tag:VzSVHMwWLdaDxBjHnrNHHw==,type:str]
+    pgp:
+        - created_at: "2026-10-27T13:48:23Z"
+          enc: |-
+            -----BEGIN PGP MESSAGE-----
+
+            hQIMA8WjeZLD+fxwAQ//ebIHqE/B54XnmxbtbT5+R5tA82+cnovZJYEPhWnFeqAl
+            JDch0x3AktzB6FYW9bBHVM4V+zotjby/XBbyjgZMX6uZf0S559ZDs/X1TmJizSU7
+            Md09vNDqHsh6ffAr3HUOs6JfK2wAZ8/LltInHa2rF0EtYT0G+YR6WgCqUWr18e7H
+            B8fZlYqhR4cU9k6PBnE9fuu/9liTs4Yu6KbcYi1Xz+mMGAVart9Ax2pBMYIQPZ3R
+            gJST7A8Gkrz6gl+MCh6DCZDsQ/vy5ikOo1+Lt3CP6zPX0XuludjwSPVzJS8Th6p1
+            DLEipJQaviLz/5rQ2VJR4iP+MyPGTK2LHL6Mc9pRt9AlaumrIMWpScl4rytN5ajl
+            x3agmwdTSdKmMlJb/QU+onAjdjH/uDkF05DU9oUlfqRq95CB+UsNSV/7MqE6m4Bk
+            VpQs0K9vv4pTpm8kBGSEjTR3aIEjSpL86DH6MC8keTBclHJskOaLyq77iSkxcldP
+            osXhOem8hGd8wjBhsA57AylYTAeUdHfQqn0K+RRkWcgMTzmiR15aVD/DaYqWQ00B
+            P6R2ZbI0LHrSHZ5Av2rjib/L9El1QoxMb+GXtD1Z+vBjEidpOppd9kmQceitFRmv
+            xFwjr6FIMQhJzY4hn8pu5jWbwnpa7Zm1jChV6r6XiyEV7a6mAMl+GS9YZ5ipmEDS
+            UQGbTmXYYDa22UcbdWHdN+Bd+aqJCchrMOUkpz8WYf4K9+75xBFTMdbceb5dcF+8
+            +l6eyB9KzfCk1mj6j5x/xMcfH/ZQHWQmRAevm033b0+R2A==
+            =kZJt
+            -----END PGP MESSAGE-----
+          fp: 3536F7F9345D96C86FB7F9CD21FAFEE575B18815
+    encrypted_regex: ^password$
+    version: 3.11.0

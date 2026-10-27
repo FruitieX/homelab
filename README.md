@@ -14,6 +14,7 @@ In summary, the homelab is built up using:
 - [MetalLB](https://metallb.universe.tf/) & [external-dns](https://github.com/kubernetes-sigs/external-dns) expose apps on separate IP addresses with associated DNS records
 - [Envoy Gateway](https://gateway.envoyproxy.io/) & [cert-manager](https://cert-manager.io/) route subdomain HTTP requests with auto-renewing [Let's Encrypt](https://letsencrypt.org/) certificates
 - [csi-driver-nfs](https://github.com/kubernetes-csi/csi-driver-nfs) & [synology-csi](https://github.com/SynologyOpenSource/synology-csi) provide persistent storage on the NAS
+- [Zot](/nas/zot/README.md) runs on the NAS as a pull-through image cache and private registry; Talos mirrors keep workload image references unchanged
 - [kube-prometheus-stack](https://github.com/prometheus-operator/kube-prometheus), Loki and Grafana provide metrics, logs, dashboards and Discord alerts ([monitoring](/docs/monitoring.md))
 
 [More detailed writeup](/docs/components.md)

@@ -7,3 +7,32 @@ machine:
     kubePrism:
       enabled: true
       port: 7445
+  # Containerd fetches through the NAS without changing workload image names.
+  # Keep upstream fallback for availability when the NAS registry is unavailable.
+  registries:
+    mirrors:
+      docker.io:
+        endpoints:
+          - https://nectarine.internal.fruitiex.org:5050/v2/dockerhub
+        overridePath: true
+      ghcr.io:
+        endpoints:
+          - https://nectarine.internal.fruitiex.org:5050/v2/ghcr
+        overridePath: true
+      quay.io:
+        endpoints:
+          - https://nectarine.internal.fruitiex.org:5050/v2/quay
+        overridePath: true
+      registry.k8s.io:
+        endpoints:
+          - https://nectarine.internal.fruitiex.org:5050/v2/k8s
+        overridePath: true
+      factory.talos.dev:
+        endpoints:
+          - https://nectarine.internal.fruitiex.org:5050/v2/factory
+        overridePath: true
+    config:
+      nectarine.internal.fruitiex.org:5050:
+        tls:
+          # Public CA from nas/zot/ca.crt; credentials are in registries.sops.yaml.
+          ca: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUJwRENDQVVxZ0F3SUJBZ0lVYmd5ajdNcnMveHBlWU9NOHlyQytsRkZtQ0JBd0NnWUlLb1pJemowRUF3SXcKSGpFY01Cb0dBMVVFQXd3VFNHOXRaV3hoWWlCeVpXZHBjM1J5ZVNCRFFUQWVGdzB5TmpFd01qWXhNelEzTVRoYQpGdzB6TmpFd01qUXhNelEzTVRoYU1CNHhIREFhQmdOVkJBTU1FMGh2YldWc1lXSWdjbVZuYVhOMGNua2dRMEV3CldUQVRCZ2NxaGtqT1BRSUJCZ2dxaGtqT1BRTUJCd05DQUFRU3ZjbHV2S0xiNHNIZWdhRUtoUGtXYXZXNmhWaXUKYnNGVk4vbGQydjBDQlA0ejFtQWlmQmIrU3ZYY1lxaUR4alVaazVZMDlQZ1lYSjVtZXgzeU9HeVpvMll3WkRBUwpCZ05WSFJNQkFmOEVDREFHQVFIL0FnRUFNQTRHQTFVZER3RUIvd1FFQXdJQmhqQWRCZ05WSFE0RUZnUVVPUlEyCmlQWnJsYUhEbnE0RlIxeWN3L2k5bzdVd0h3WURWUjBqQkJnd0ZvQVVPUlEyaVBacmxhSERucTRGUjF5Y3cvaTkKbzdVd0NnWUlLb1pJemowRUF3SURTQUF3UlFJaEFQdlZQZjhtclc2cFUrQVNqdkl2d1ppL2pRc1lVVXRVajJrLwpXcjBwVER4dEFpQkswZEZvNWxtYXRqMXRsVzR5cjVmZzFyYmdGcG9HNGdMc3hZVXUyOGUrK1E9PQotLS0tLUVORCBDRVJUSUZJQ0FURS0tLS0tCg==

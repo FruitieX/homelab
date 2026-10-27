@@ -1,0 +1,10 @@
+services:
+  zot:
+    image: ghcr.io/project-zot/zot-linux-amd64:v2.1.22@sha256:46f688dc26315a35a247e1784368829e66a67bf91de94c7d8d1645044fac1d5b
+    restart: unless-stopped
+    ports:
+      - "5050:5000"
+    volumes:
+      - ./config.json:/etc/zot/config.json:ro
+      - ./secrets:/etc/zot/secrets:ro
+      - ./data:/var/lib/registry

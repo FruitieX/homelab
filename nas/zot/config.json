@@ -1,0 +1,170 @@
+{
+  "storage": {
+    "rootDirectory": "/var/lib/registry",
+    "dedupe": true,
+    "gc": false,
+    "retention": {
+      "policies": [
+        {
+          "repositories": [
+            "**"
+          ],
+          "deleteUntagged": false,
+          "deleteReferrers": false
+        }
+      ]
+    }
+  },
+  "http": {
+    "address": "0.0.0.0",
+    "port": "5000",
+    "compat": [
+      "docker2s2"
+    ],
+    "tls": {
+      "cert": "/etc/zot/secrets/server.crt",
+      "key": "/etc/zot/secrets/server.key"
+    },
+    "auth": {
+      "htpasswd": {
+        "path": "/etc/zot/secrets/htpasswd"
+      }
+    },
+    "accessControl": {
+      "repositories": {
+        "**": {
+          "policies": [
+            {
+              "users": [
+                "node-reader",
+                "builder"
+              ],
+              "actions": [
+                "read"
+              ]
+            }
+          ]
+        },
+        "private/**": {
+          "policies": [
+            {
+              "users": [
+                "builder"
+              ],
+              "actions": [
+                "read",
+                "create",
+                "update"
+              ]
+            },
+            {
+              "users": [
+                "node-reader"
+              ],
+              "actions": [
+                "read"
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "writeTimeout": "30m"
+  },
+  "log": {
+    "level": "info"
+  },
+  "extensions": {
+    "sync": {
+      "enable": true,
+      "credentialsFile": "/etc/zot/secrets/upstreams.json",
+      "registries": [
+        {
+          "urls": [
+            "https://index.docker.io"
+          ],
+          "onDemand": true,
+          "tlsVerify": true,
+          "maxRetries": 2,
+          "retryDelay": "1s",
+          "syncTimeout": "30m",
+          "content": [
+            {
+              "prefix": "**",
+              "destination": "/dockerhub"
+            }
+          ],
+          "manifestCheckInterval": "5m"
+        },
+        {
+          "urls": [
+            "https://ghcr.io"
+          ],
+          "onDemand": true,
+          "tlsVerify": true,
+          "maxRetries": 2,
+          "retryDelay": "1s",
+          "syncTimeout": "30m",
+          "content": [
+            {
+              "prefix": "**",
+              "destination": "/ghcr"
+            }
+          ],
+          "manifestCheckInterval": "5m"
+        },
+        {
+          "urls": [
+            "https://quay.io"
+          ],
+          "onDemand": true,
+          "tlsVerify": true,
+          "maxRetries": 2,
+          "retryDelay": "1s",
+          "syncTimeout": "30m",
+          "content": [
+            {
+              "prefix": "**",
+              "destination": "/quay"
+            }
+          ],
+          "manifestCheckInterval": "5m"
+        },
+        {
+          "urls": [
+            "https://registry.k8s.io"
+          ],
+          "onDemand": true,
+          "tlsVerify": true,
+          "maxRetries": 2,
+          "retryDelay": "1s",
+          "syncTimeout": "30m",
+          "content": [
+            {
+              "prefix": "**",
+              "destination": "/k8s"
+            }
+          ],
+          "manifestCheckInterval": "5m"
+        },
+        {
+          "urls": [
+            "https://factory.talos.dev"
+          ],
+          "onDemand": true,
+          "tlsVerify": true,
+          "maxRetries": 2,
+          "retryDelay": "1s",
+          "syncTimeout": "30m",
+          "content": [
+            {
+              "prefix": "**",
+              "destination": "/factory"
+            }
+          ],
+          "manifestCheckInterval": "5m"
+        }
+      ]
+    }
+  }
+}
