@@ -118,8 +118,8 @@ Then authenticate without placing the password in command arguments:
 op-agent read 'op://Agents/homelab - zot registry/password' |
   docker login nectarine.internal.fruitiex.org:5050 -u builder --password-stdin
 
-docker build -t nectarine.internal.fruitiex.org:5050/private/radiator-server:feature-<commit> .
-docker push nectarine.internal.fruitiex.org:5050/private/radiator-server:feature-<commit>
+docker build -t nectarine.internal.fruitiex.org:5050/private/my-app:feature-<commit> .
+docker push nectarine.internal.fruitiex.org:5050/private/my-app:feature-<commit>
 ```
 
 Use the resulting digest in the workload manifest. Talos' node credentials
