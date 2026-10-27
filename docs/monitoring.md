@@ -107,11 +107,18 @@ from that database.
 - Grafana-managed rules for the InfluxDB data are in `grafana/grafana-alerting.sops.yaml` and go to the same
   Discord webhook. They cover the freezer, the fridge, water flowing non-stop for 3 hours (normal use always pauses within
   about 2 hours), home sensors going silent, and the sauna being ready — the upstairs BLE sensor (device `D83431306571`)
-  reaching 30 °C, evaluated every minute so it posts immediately; only that rule has its own route (`group_wait: 0s`,
-  `repeat_interval: 0s`) so the ready message is sent once, without the 12 h repeats of the other alerts.
+  evaluated every minute over a 20-minute window: temp has risen at least 2 °C over the window, relative humidity has
+  stayed flat (rise at most 5 pct points), and the current reading is at least 26 °C. Rate-of-change, not absolute
+  levels, is what separates dry sauna heating from shower steam (a shower raises humidity steeply while barely moving
+  the temperature). Only that rule has its own route (`group_wait: 0s`, `repeat_interval: 0s`) so the ready message is
+  sent once, without the 12 h repeats of the other alerts.
 
 ## Pitfalls
 
+- **Provisioned MIP `matchers` are not a free map.** In `grafana-alerting.sops.yaml` a route's `matchers` must be an
+  array of `label=value` strings or `object_matchers`; a plain object fails the reload (`cannot unmarshal object
+  into Go struct field Route.matchers of type []string`) and the whole `home-alerts.json` then fails to provision,
+  silently killing every rule in the file.
 - **In-cluster clients must not use the public InfluxDB URL.** The `influxdb.fruitiex.org` route requires
   Pocket ID sign-in. A machine client writing to it gets the login page, and Telegraf treated that as success,
   so data was silently lost. In-cluster clients use `http://influxdb-influxdb2.influxdb.svc`. homectl's InfluxDB
