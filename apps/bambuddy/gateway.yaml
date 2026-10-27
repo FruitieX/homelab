@@ -107,6 +107,9 @@ kind: HTTPRoute
 metadata:
   name: bambuddy-http-redirect
   namespace: default
+  annotations:
+    # The HTTPS route owns DNS, including during gateway cutovers.
+    external-dns.alpha.kubernetes.io/exclude: "true"
 spec:
   parentRefs:
     - name: bambuddy
