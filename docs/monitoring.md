@@ -101,11 +101,12 @@ from that database.
 
 ## Alerts
 
-- Prometheus rules in `targets/rules.yaml` carry `homelab="true"`. Alertmanager sends those, plus any
-  `critical` alert and a few chosen stock alerts, to the Discord channel that Flux notifications use. Everything
-  else stays in the Alertmanager UI.
-- Grafana-managed rules for the InfluxDB data are in `grafana/grafana-alerting.sops.yaml` and go to the same
-  Discord webhook. They cover the freezer, the fridge, water flowing non-stop for 3 hours (normal use always pauses within
+- Discord channels: `#flux-notifications` gets only Flux's own notifications (its notification provider);
+  Alertmanager's `homelab="true"`, `critical` and chosen stock alerts go to `#homelab`
+  (`alertmanager-discord.sops.yaml`), as do Grafana rules outside the Home folder. Home-folder rules go to `#home`.
+  The Flux webhook stays in `notification-provider/discord-webhook-url.yaml`; the other two are "Discord webhook
+  home" and "Discord webhook homelab" in the Agents vault.
+- Grafana-managed rules for the InfluxDB data are in `grafana/grafana-alerting.sops.yaml`. They cover the freezer, the fridge, water flowing non-stop for 3 hours (normal use always pauses within
   about 2 hours), home sensors going silent, and the sauna being ready — the upstairs BLE sensor (device `D83431306571`)
   evaluated every minute over a 20-minute window: temp has risen at least 2 °C over the window, relative humidity has
   stayed flat (rise at most 5 pct points), and the current reading is at least 26 °C. Rate-of-change, not absolute
