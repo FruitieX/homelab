@@ -5,11 +5,12 @@ metadata:
   namespace: metallb-system
 spec:
   interval: 30m
-  timeout: 3m
+  # Rolling the speaker DaemonSet across all nodes can take a few minutes.
+  timeout: 10m
   chart:
     spec:
       chart: metallb
-      version: 0.13.9
+      version: 0.16.1
       sourceRef:
         kind: HelmRepository
         name: metallb
@@ -26,3 +27,7 @@ spec:
       resources:
         requests:
           memory: 48Mi
+    # Only L2 advertisements are used. Since 0.16 the chart deploys the
+    # frr-k8s BGP backend by default; keep the native (FRR-less) speaker.
+    frrk8s:
+      enabled: false
