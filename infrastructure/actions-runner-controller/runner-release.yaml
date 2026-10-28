@@ -41,3 +41,6 @@ spec:
     template:
       spec:
         priorityClassName: homelab-batch
+        # May only trigger Flux reconciles (flux-reconcile-rbac.yaml).
+        serviceAccountName: homelab-runner
+        automountServiceAccountToken: true

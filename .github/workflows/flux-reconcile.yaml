@@ -1,0 +1,32 @@
+name: Flux reconcile
+
+# Tells Flux to fetch main right away. Runs on the in-cluster runner, which
+# polls GitHub for jobs, so no webhook needs to reach the cluster. The
+# runner's service account may only annotate the flux-system GitRepository.
+on:
+  push:
+    branches: [main]
+  workflow_call:
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: flux-reconcile
+  cancel-in-progress: false
+
+jobs:
+  reconcile:
+    runs-on: homelab
+    timeout-minutes: 5
+    steps:
+      - name: Request a GitRepository reconcile
+        run: |
+          sa=/var/run/secrets/kubernetes.io/serviceaccount
+          curl -fsS --cacert "$sa/ca.crt" \
+            -H "Authorization: Bearer $(cat "$sa/token")" \
+            -H 'Content-Type: application/merge-patch+json' \
+            -X PATCH \
+            -d "{\"metadata\":{\"annotations\":{\"reconcile.fluxcd.io/requestedAt\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"}}}" \
+            https://kubernetes.default.svc/apis/source.toolkit.fluxcd.io/v1/namespaces/flux-system/gitrepositories/flux-system \
+            -o /dev/null -w 'HTTP %{http_code}\n'

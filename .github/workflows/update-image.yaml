@@ -117,3 +117,9 @@ jobs:
           done
           echo "::error::Could not push image update"
           exit 1
+
+  # Pushes made with GITHUB_TOKEN don't trigger other workflows, so ask Flux
+  # to pick up the new digest from here.
+  reconcile:
+    needs: update
+    uses: ./.github/workflows/flux-reconcile.yaml
