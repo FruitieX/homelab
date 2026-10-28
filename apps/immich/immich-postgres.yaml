@@ -1,4 +1,9 @@
 ---
+# PostgreSQL 14 data directory, no longer mounted since the upgrade to 18
+# (2026-10-28). Kept for rollback: revert the upgrade commit and Immich runs on
+# PostgreSQL 14 again with the data as of the upgrade. Delete this PVC (and its
+# PV, reclaim policy Retain) together with immich-postgres-upgrade-dump once
+# PostgreSQL 18 has run without problems for a few weeks.
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
@@ -79,15 +84,21 @@ spec:
       priorityClassName: homelab-apps
       containers:
         - name: immich-postgres
-          image: ghcr.io/immich-app/postgres:14-vectorchord0.4.3-pgvectors0.2.0 
+          image: ghcr.io/immich-app/postgres:18-vectorchord1.1.1-pgvector0.8.5
           imagePullPolicy: "IfNotPresent"
           ports:
             - containerPort: 5432
+          env:
+            # The image refuses to start on NFS. The database has always lived
+            # on nfs-csi (no block storage class in the cluster); accept that.
+            - name: IGNORE_DATABASE_FSTYPE
+              value: "true"
           envFrom:
             - secretRef:
                 name: immich-postgres-config
           volumeMounts:
-            - mountPath: /var/lib/postgresql/data
+            # PostgreSQL 18 images keep PGDATA in /var/lib/postgresql/18/docker.
+            - mountPath: /var/lib/postgresql
               name: immich-postgres-data
           resources:
             limits:
@@ -99,5 +110,5 @@ spec:
       volumes:
         - name: immich-postgres-data
           persistentVolumeClaim:
-            claimName: immich-postgres-data
+            claimName: immich-postgres18-data
 
