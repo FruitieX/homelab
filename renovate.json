@@ -92,12 +92,13 @@
       "automerge": false
     },
     {
-      "description": "Talos: one PR per patch or minor (minors must go one at a time), covering the tuppr plan and regen-configs.sh. Patches automerge and tuppr rolls them out at night; minors wait for review",
+      "description": "Talos: one PR per patch and per minor step (minors must go one at a time), covering the tuppr plan and regen-configs.sh. Patches automerge and tuppr rolls them out at night; minors wait for review",
       "matchPackageNames": [
         "ghcr.io/siderolabs/installer"
       ],
       "groupName": "talos",
-      "separateMinorPatch": true
+      "separateMinorPatch": true,
+      "separateMultipleMinor": true
     },
     {
       "description": "Kubernetes: same as Talos",
@@ -105,7 +106,8 @@
         "ghcr.io/siderolabs/kubelet"
       ],
       "groupName": "kubernetes",
-      "separateMinorPatch": true
+      "separateMinorPatch": true,
+      "separateMultipleMinor": true
     },
     {
       "description": "Talos and Kubernetes minor upgrades wait for review",
