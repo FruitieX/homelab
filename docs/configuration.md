@@ -133,51 +133,6 @@ DNS provider in order to prove ownership of a domain.
 
 - Add `cert-manager.yaml` and `crds.yaml` back in [/clusters/homelab/infrastructure/kustomization.yaml](/clusters/homelab/infrastructure/kustomization.yaml). Commit and push.
 
-## synology-csi
-
-[synology-csi](https://github.com/SynologyOpenSource/synology-csi) is a Container Storage Interface driver for Synology NAS. It
-automatically manages iSCSI targets and LUNs so you don't need to create them by
-hand.
-
-synology-csi makes it possible have persistent storage in your containers by
-creating and mounting iSCSI targets from a Synology NAS.
-
-- Replace the contents of [/infrastructure/storage/synology-csi/client-info.yaml](/infrastructure/storage/synology-csi/client-info.yaml) with:
-
-  ```
-  apiVersion: v1
-  kind: Secret
-  metadata:
-      name: client-info-secret
-      namespace: synology-csi
-  stringData:
-      client-info.yaml: |
-          ---
-          clients:
-            - host: <hostname or IP of synology NAS>
-              port: 5000
-              https: false
-              username: <username>
-              password: <password>
-  ```
-
-  See [/docs/sops.md](/docs/sops.md) for more information on how to store secrets.
-
-  Remember to encrypt the secrets file before you commit.
-
-- Add `synology-csi.yaml` back in [/clusters/homelab/infrastructure/kustomization.yaml](/clusters/homelab/infrastructure/kustomization.yaml). Commit and push.
-
-- You should now be able to create PersistentVolumeClaims and mount them as volumes into containers. See [/apps/postgres/postgres.yaml](/apps/postgres/postgres.yaml) for an example.
-
-- Use `kubectl get pvc` and `kubectl get pv` to list PersistentVolumeClaims and PersistentVolumes respectively.
-
-- Debugging tips if containers are stuck waiting for volumes forever:
-  - List all synology-csi pods: `kubectl get pod -n synology-csi`
-  - Follow logs from a particular pod: `kubectl logs pod/synology-csi-controller-0 -n synology-csi --all-containers -f`
-  - See if you can find relevant any error messages
-  - Check in the Synology NAS' SAN Manager if the iSCSI targets & LUNs get created, if not then there may be some authentication/permission problems with your Synology user account.
-  - More info: https://github.com/SynologyOpenSource/synology-csi
-
 ## NFS storage
 
 NFS storage is provided by [csi-driver-nfs](https://github.com/kubernetes-csi/csi-driver-nfs) and is the default StorageClass for this cluster. The `nfs-csi` StorageClass is configured in [/infrastructure/storage/csi-driver-nfs/storage-class.yaml](/infrastructure/storage/csi-driver-nfs/storage-class.yaml).

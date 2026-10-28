@@ -13,7 +13,7 @@ In summary, the homelab is built up using:
 - [Flux CD](https://fluxcd.io/) reconciling cluster configuration from this git repo
 - [MetalLB](https://metallb.universe.tf/) & [external-dns](https://github.com/kubernetes-sigs/external-dns) expose apps on separate IP addresses with associated DNS records
 - [Envoy Gateway](https://gateway.envoyproxy.io/) & [cert-manager](https://cert-manager.io/) route subdomain HTTP requests with auto-renewing [Let's Encrypt](https://letsencrypt.org/) certificates
-- [csi-driver-nfs](https://github.com/kubernetes-csi/csi-driver-nfs) & [synology-csi](https://github.com/SynologyOpenSource/synology-csi) provide persistent storage on the NAS
+- [csi-driver-nfs](https://github.com/kubernetes-csi/csi-driver-nfs) provides persistent storage on the NAS
 - [Zot](/nas/zot/README.md) runs on the NAS as a pull-through image cache and private registry; Talos mirrors keep workload image references unchanged
 - [kube-prometheus-stack](https://github.com/prometheus-operator/kube-prometheus), Loki and Grafana provide metrics, logs, dashboards and Discord alerts ([monitoring](/docs/monitoring.md))
 
@@ -28,7 +28,7 @@ To follow this guide, you need the following:
 - [A fork of this repo](https://github.com/FruitieX/homelab/fork).
 - A GitHub personal access token with repo permissions. This is needed by Flux to read your (possibly private) repo and push some initial manifests. See the GitHub documentation on [creating a personal access token](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token).
 - A GPG key for encrypting & decrypting secrets with Mozilla SOPS. Follow [this guide](https://fluxcd.io/flux/guides/mozilla-sops/#generate-a-gpg-key) until `Store the key fingerprint as an environment variable`.
-- NFS or iSCSI mounts on a NAS if any of your workloads need persistent storage.
+- NFS mounts on a NAS if any of your workloads need persistent storage.
 - A domain name if you want to provide access to certain cluster services from outside your home network.
 
   [Click here for more info on my DNS provider and router setup](/docs/dns.md)
