@@ -32,18 +32,32 @@ spec:
           - name: pods
             hostPath:
               path: /var/log/pods
+          # Positions survive pod restarts, so files are not re-read.
           - name: storage
+            hostPath:
+              path: /var/lib/alloy
+              type: DirectoryOrCreate
+          - name: tmp
             emptyDir: {}
+          # TEMPORARY: Promtail's positions, imported on Alloy's first start.
+          - name: promtail-positions
+            hostPath:
+              path: /run/promtail
     alloy:
       enableReporting: false
-      storagePath: /tmp/alloy
+      storagePath: /var/lib/alloy
       mounts:
         extra:
           - name: pods
             mountPath: /var/log/pods
             readOnly: true
           - name: storage
-            mountPath: /tmp/alloy
+            mountPath: /var/lib/alloy
+          - name: tmp
+            mountPath: /tmp
+          - name: promtail-positions
+            mountPath: /run/promtail
+            readOnly: true
       securityContext:
         # Pod log files are root-owned; root needs no capabilities to read them.
         runAsUser: 0
@@ -129,17 +143,14 @@ spec:
               target_label  = "__path__"
               replacement   = "/var/log/pods/*$1/*.log"
             }
-            // TEMPORARY: marks Alloy's streams while it runs next to Promtail.
-            rule {
-              target_label = "collector"
-              replacement  = "alloy"
-            }
           }
 
           loki.source.file "pods" {
             targets       = discovery.relabel.pods.output
             forward_to    = [loki.process.pods.receiver]
-            tail_from_end = true
+            // TEMPORARY: continue from Promtail's offsets at cutover (only read
+            // while Alloy's own positions file doesn't exist yet).
+            legacy_positions_file = "/run/promtail/positions.yaml"
             file_match {
               enabled = true
             }

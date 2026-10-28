@@ -52,6 +52,11 @@ ids are ignored on purpose, because neighbours' sensors show up too.
 - **Internet:** ICMP to public resolvers, the SSH banner of GitHub on ports 22 and 443, and TCP to the cloud APIs
   the homelab uses (`group="internet"`). ICMP works unprivileged through the pod's `ping_group_range` sysctl.
 
+**Pod logs:** Grafana Alloy (`infrastructure/monitoring/loki/alloy-release.yaml`, a DaemonSet on every node) tails
+`/var/log/pods`, decodes the CRI format and pushes to Loki. It sets the same labels Promtail did (`namespace`, `pod`,
+`container`, `app`, `job`, `instance`, `component`, `node_name`, `stream`, `filename`). The Loki security rules and
+the log dashboards select on these, so keep them unchanged. Read offsets are kept in `/var/lib/alloy` on each node.
+
 `apps/influxdb/telegraf-cloud.yaml` fetches cloud data into InfluxDB (bucket `home`, field `value`). Its
 credentials, the NIBE device id, the FMI station and the home coordinates are in `telegraf-cloud.sops.yaml`,
 and its InfluxDB token ("homelab InfluxDB telegraf-nibe token" in 1Password) can only write to `home`.

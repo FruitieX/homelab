@@ -4,7 +4,6 @@ namespace: loki
 resources:
   - namespace.yaml
   - loki-release.yaml
-  - promtail-release.yaml
   - alloy-release.yaml
   - grafana-datasource.yaml
   - security-rules.yaml
