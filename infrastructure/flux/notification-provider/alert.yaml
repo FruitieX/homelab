@@ -14,3 +14,12 @@ spec:
       name: '*'
     - kind: Kustomization
       name: '*'
+  # Transient API-server errors while control planes restart (node and
+  # Kubernetes upgrades) resolve on the next reconcile; real failures (build
+  # errors, failed health checks) still notify.
+  exclusionList:
+    - "failed to update status"
+    - "connection reset by peer"
+    - "connection refused"
+    - "context canceled"
+    - "unable to update the healthy status to progressing: timed out waiting for the condition"
