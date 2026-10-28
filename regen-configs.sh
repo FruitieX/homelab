@@ -3,7 +3,7 @@ set -eu
 
 TALOS_VERSION=v1.13.12
 TALOS_SCHEMATIC=c9078f9419961640c712a8bf2bb9174933dfcf1da383fd8ea2b7dc21493f8bac
-KUBERNETES_VERSION=1.36.6
+KUBERNETES_VERSION=1.37.2
 # Cluster endpoint: the control planes' shared virtual IP
 # (talos/patches/controlplane.yaml), not any single node.
 API_VIP="${API_VIP:-192.168.10.5}"
