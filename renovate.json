@@ -119,6 +119,16 @@
         "minor"
       ],
       "automerge": false
+    },
+    {
+      "description": "Helm chart majors (kube-prometheus-stack, Loki, Grafana, ...) often need values or CRD changes: review, don't automerge",
+      "matchManagers": [
+        "flux"
+      ],
+      "matchUpdateTypes": [
+        "major"
+      ],
+      "automerge": false
     }
   ],
   "customManagers": [
@@ -157,5 +167,10 @@
       "depNameTemplate": "ghcr.io/siderolabs/kubelet",
       "extractVersionTemplate": "^v(?<version>.+)$"
     }
-  ]
+  ],
+  "flux": {
+    "managerFilePatterns": [
+      "/\\.yaml$/"
+    ]
+  }
 }
