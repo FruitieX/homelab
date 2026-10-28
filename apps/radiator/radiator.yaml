@@ -2118,6 +2118,26 @@ spec:
             runAsUser: 1000
             runAsGroup: 1000
             runAsNonRoot: true
+        # The custom Radiator image has no CA bundle; its OpenID Connect
+        # client needs one to reach https://id.fruitiex.org.
+        - name: ca-certificates
+          image: alpine:3.22@sha256:2e0b81d60597f449baa56dc25d355367869d2dca4cd57e866f1e2b52af3eb55f
+          command:
+            - cp
+            - /etc/ssl/certs/ca-certificates.crt
+            - /ca-certificates/ca-certificates.crt
+          securityContext:
+            runAsUser: 1000
+            runAsGroup: 1000
+            runAsNonRoot: true
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
+          volumeMounts:
+            - name: ca-certificates
+              mountPath: /ca-certificates
       containers:
         - name: radiator
           # Custom build with native OpenID Connect sign-in
@@ -2150,6 +2170,8 @@ spec:
                 secretKeyRef:
                   name: radiator-secrets
                   key: POSTGRES_PASSWORD
+            - name: SSL_CERT_FILE
+              value: /etc/ssl/certs/ca-certificates.crt
             # Pocket ID clients: radiator-ui (management.radconf) and
             # radiator-wifi (wifi-provisioning.radconf).
             - name: RADIATOR_UI_OIDC_CLIENT_SECRET
@@ -2206,6 +2228,9 @@ spec:
             - name: license
               mountPath: /var/lib/radiator/licenses
               readOnly: true
+            - name: ca-certificates
+              mountPath: /etc/ssl/certs
+              readOnly: true
           livenessProbe:
             httpGet:
               path: /live
@@ -2258,6 +2283,8 @@ spec:
         - name: passpoint-tls
           secret:
             secretName: radiator-passpoint-tls
+        - name: ca-certificates
+          emptyDir: {}
         - name: license
           secret:
             secretName: radiator-license
