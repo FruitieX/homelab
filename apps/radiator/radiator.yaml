@@ -26,6 +26,18 @@ data:
 
             clients "MANAGEMENT_ACCESS_ALLOW_LIST";
             policy "MANAGEMENT";
+
+            # "Sign in with Pocket ID" (client radiator-ui); management-auth.radconf
+            # maps the groups claim. Password sign-in stays for break-glass.
+            oidc "pocket-id" {
+                title "Pocket ID";
+                issuer "https://id.fruitiex.org";
+                client_id "radiator-ui";
+                client_secret env.RADIATOR_UI_OIDC_CLIENT_SECRET;
+                redirect_url "https://radiator.fruitiex.org/api/v1/auth/oidc/pocket-id/callback";
+                scopes "openid profile email groups";
+                identity_claim "preferred_username";
+            }
         }
     }
   logging.radconf: |
@@ -137,45 +149,39 @@ data:
                 http.management == true;
             }
 
-            # Requests through the private gateway after Pocket ID sign-in
-            # (apps/radiator/sso.yaml). The gateway's ClientTrafficPolicy removes
-            # client copies of x-sso-*, the SecurityPolicy adds them from the
-            # validated ID token, and an HTTPRouteFilter injects the proxy secret.
-            handler "SSO" {
-                conditions all {
-                    # Without this guard an unset variable matches a missing header.
-                    env.RADIATOR_PROXY_SECRET == /^.{32,}$/;
-                    http.header.x-radiator-proxy-secret == env.RADIATOR_PROXY_SECRET;
-                    http.header.x-sso-user == any;
-                }
-
-                @execute {
-                    user.username = http.header.x-sso-user;
-                    user.privilege = "monitor";
-
-                    # Envoy sends array claims as Base64 of the JSON array.
-                    vars.groups = http.header.x-sso-groups | base64_decode | string | json | jsonpath("$[*]");
-
-                    if all {
-                        vars.groups == "admins";
-                    } then {
-                        user.privilege = "all";
-                        user.radiatordb_role = "admin";
-                    }
-
-                    accept;
-                }
-            }
-
-            # Break-glass: password users, for example through kubectl port-forward.
             handler "AUTHENTICATION" {
                 @execute {
-                    backend {
-                        name "MANAGEMENT_USERS";
-                        query "FIND_USER";
-                    }
+                    http_management_authentication {
+                        # Runs at sign-in and when the session authorization is
+                        # refreshed; Pocket ID sessions keep their claims.
+                        @resolve {
+                            if all {
+                                oidc.provider == "pocket-id";
+                            } then {
+                                user.username = aaa.identity;
+                                user.privilege = "monitor";
 
-                    http-management-authentication;
+                                if all {
+                                    oidc.claims.groups == "admins";
+                                } then {
+                                    user.privilege = "all";
+                                    user.radiatordb_role = "admin";
+                                }
+                            } else {
+                                # Break-glass: password users, for example through
+                                # kubectl port-forward.
+                                backend {
+                                    name "MANAGEMENT_USERS";
+                                    query "FIND_USER";
+                                }
+                            }
+                        }
+
+                        # Password sign-in only; Pocket ID verified its users.
+                        @verify {
+                            http_basic_auth;
+                        }
+                    }
                 }
             }
         }
@@ -688,11 +694,15 @@ data:
     }
   wifi-provisioning.radconf: |
     # Passpoint onboarding for the SSID "dragonfruit-radiator" at
-    # https://wifi.fruitiex.org (public and private gateway, apps/radiator/sso.yaml).
+    # https://wifi.fruitiex.org (public and private gateway, HTTPRoute radiator-wifi).
     #
-    # Envoy runs the Pocket ID sign-in (client radiator-wifi, group family) for
-    # everything except /guest*, and forwards x-sso-user / x-sso-groups plus the
-    # proxy secret. Radiator issues a random per-device EAP-TTLS/PAP credential
+    # Radiator runs the Pocket ID sign-in itself (oidc "POCKET_ID", client
+    # radiator-wifi, group family) for everything except /guest*. The callback
+    # stores the user and groups in the WIFI_SESSION_* caches under a random
+    # session id, sent back as the radiator_wifi_session cookie (8 h, HttpOnly,
+    # SameSite=Lax); a restart signs everyone out.
+    #
+    # Radiator issues a random per-device EAP-TTLS/PAP credential
     # (argon2-hashed in RadiatorDB wifi_credentials, 365 days) and returns it as an
     # Android Passpoint config or an Apple configuration profile. The phone can be
     # on any network, including mobile data.
@@ -702,6 +712,7 @@ data:
     #   /revoke               revoke one of your own devices
     #   /admin                admins: every credential, revoke any
     #   /approve?t=           admins: approve a guest request (from its QR code)
+    #   /oidc/callback        Pocket ID returns here after sign-in
     #   /guest                public: guest request with a QR code; once an admin
     #                         approves, the page offers the profile downloads
     #   /guest/profile/android|apple?t=  issue a guest credential (VLAN 81), once
@@ -711,8 +722,7 @@ data:
 
     clients {
         http "PORTAL_PROXY" {
-            # Envoy Gateway data plane (pod network). Requests must also carry
-            # the proxy secret the gateways inject.
+            # Envoy Gateway data plane (pod network).
             client "GATEWAYS" {
                 source {
                     ip 10.244.0.0/16;
@@ -734,6 +744,27 @@ data:
                 "Cache-Control" "no-store";
                 "X-Content-Type-Options" "nosniff";
             }
+
+            # Dedicated client, restricted to the "family" group in Pocket ID.
+            oidc "POCKET_ID" {
+                issuer "https://id.fruitiex.org";
+                client_id "radiator-wifi";
+                client_secret env.RADIATOR_WIFI_OIDC_CLIENT_SECRET;
+                redirect_url "https://wifi.fruitiex.org/oidc/callback";
+                scopes "openid profile email groups";
+                identity_claim "preferred_username";
+            }
+        }
+    }
+
+    # Portal sessions: random id (radiator_wifi_session cookie) -> user, groups.
+    caches {
+        cache "WIFI_SESSION_USERS" {
+            timeout 8h;
+        }
+
+        cache "WIFI_SESSION_GROUPS" {
+            timeout 8h;
         }
     }
 
@@ -1006,10 +1037,11 @@ data:
                 """;
         }
 
+        # The signed-in user of the radiator_wifi_session cookie (CALLBACK).
         @pipeline "SSO_IDENTITY" {
-            vars.sso_user = http.header.x-sso-user;
-            # Envoy sends array claims as Base64 of the JSON array.
-            vars.groups = http.header.x-sso-groups | base64_decode | string | json | jsonpath("$[*]");
+            vars.session_id = http.cookie.radiator_wifi_session;
+            vars.sso_user = cache.WIFI_SESSION_USERS[vars.session_id];
+            vars.groups = cache.WIFI_SESSION_GROUPS[vars.session_id][*];
             vars.is_admin = "no";
             if all {
                 vars.groups == "admins";
@@ -1241,17 +1273,116 @@ data:
             conditions all {
                 aaa.protocol == protocol.HTTP;
                 http.server == "PORTAL";
-                # Only requests through the gateways. Without the length guard an
-                # unset variable would match a missing header.
-                env.RADIATOR_PROXY_SECRET == /^.{32,}$/;
-                http.header.x-radiator-proxy-secret == env.RADIATOR_PROXY_SECRET;
+            }
+
+            # Pocket ID returns the browser here (oidc "POCKET_ID" redirect_url).
+            handler "CALLBACK" {
+                conditions all {
+                    http.method == "GET";
+                    http.path == "/oidc/callback";
+                }
+
+                @execute {
+                    invoke "PAGE";
+                    http.json = false;
+
+                    until end {
+                        oidc_complete "POCKET_ID";
+                    } when reject {
+                        accept;
+                        vars.forbidden_reason = """%{aaa.reason}. <a href="/">Try again</a>""";
+                        invoke "FORBIDDEN_PAGE";
+                        reject;
+                    }
+
+                    if none {
+                        oidc.claims.groups == "family";
+                    } then {
+                        vars.forbidden_reason = "This account can't add devices to the Wi-Fi network.";
+                        invoke "FORBIDDEN_PAGE";
+                        reject;
+                    }
+
+                    vars.session_id = util.rand.32 | base64url_encode;
+                    cache {
+                        cache "WIFI_SESSION_USERS";
+                        key vars.session_id;
+                        value aaa.identity;
+                    }
+                    cache {
+                        cache "WIFI_SESSION_GROUPS";
+                        key vars.session_id;
+                        value oidc.claims.groups;
+                    }
+
+                    # Replaces oidc_complete's removal of the login state cookie,
+                    # which then expires by itself (10 min, single use anyway).
+                    http.response_header.Set-Cookie = "radiator_wifi_session=%{vars.session_id}; Path=/; Max-Age=28800; HttpOnly; Secure; SameSite=Lax";
+                    http.status = http.SEE_OTHER;
+                    # SIGN_IN only keeps paths it built itself.
+                    http.response_header.Location = oidc.data | default("/");
+                    http.response = none;
+                    accept;
+                }
+            }
+
+            # Signed-in pages without a portal session: sign in with Pocket ID,
+            # then come back to the page (GET only; a POST restarts at /).
+            handler "SIGN_IN" {
+                conditions all {
+                    http.path == /^\/(devices|profile\/(android|apple|linux)|revoke|admin|admin\/revoke|approve)?$/;
+                    cache.WIFI_SESSION_USERS[http.cookie.radiator_wifi_session] == none;
+                }
+
+                @execute {
+                    invoke "PAGE";
+                    http.json = false;
+
+                    # The home page's background refresh can't follow a sign-in.
+                    if all {
+                        http.path == "/devices";
+                    } then {
+                        http.status = http.UNAUTHORIZED;
+                        http.response = "";
+                        reject;
+                    }
+
+                    vars.return_to = "/";
+                    if all {
+                        http.method == "GET";
+                        http.path == "/admin";
+                    } then {
+                        vars.return_to = "/admin";
+                    } else if all {
+                        http.method == "GET";
+                        http.path == "/approve";
+                        http.query.t == any;
+                    } then {
+                        vars.return_to = "/approve?t=%{http.query.t | url_escape}";
+                    }
+
+                    until end {
+                        oidc_start "POCKET_ID" {
+                            data vars.return_to;
+                        }
+                    } when error {
+                        http.status = http.SERVICE_UNAVAILABLE;
+                        http.response = """
+                            %{vars.page_head}
+                            <h1>Sign-in unavailable</h1>
+                            <p>Pocket ID can't be reached. Try again in a moment.</p>
+                            %{vars.page_foot}
+                            """;
+                        reject;
+                    }
+                }
             }
 
             handler "HOME" {
                 conditions all {
                     http.method == "GET";
                     http.path == "/";
-                    http.header.x-sso-user == any;
+                    cache.WIFI_SESSION_USERS[http.cookie.radiator_wifi_session] == any;
                 }
 
                 @execute {
@@ -1331,7 +1462,7 @@ data:
                 conditions all {
                     http.method == "GET";
                     http.path == "/devices";
-                    http.header.x-sso-user == any;
+                    cache.WIFI_SESSION_USERS[http.cookie.radiator_wifi_session] == any;
                 }
 
                 @execute {
@@ -1348,7 +1479,7 @@ data:
                 conditions all {
                     http.method == "POST";
                     http.path == /^\/profile\/(android|apple|linux)$/;
-                    http.header.x-sso-user == any;
+                    cache.WIFI_SESSION_USERS[http.cookie.radiator_wifi_session] == any;
                 }
 
                 @execute {
@@ -1391,7 +1522,7 @@ data:
                 conditions all {
                     http.method == "POST";
                     http.path == /^\/(admin\/)?revoke$/;
-                    http.header.x-sso-user == any;
+                    cache.WIFI_SESSION_USERS[http.cookie.radiator_wifi_session] == any;
                     http.request.device == any;
                 }
 
@@ -1449,7 +1580,7 @@ data:
                 conditions all {
                     http.method == "GET";
                     http.path == "/admin";
-                    http.header.x-sso-user == any;
+                    cache.WIFI_SESSION_USERS[http.cookie.radiator_wifi_session] == any;
                 }
 
                 @execute {
@@ -1502,7 +1633,7 @@ data:
             handler "APPROVE" {
                 conditions all {
                     http.path == "/approve";
-                    http.header.x-sso-user == any;
+                    cache.WIFI_SESSION_USERS[http.cookie.radiator_wifi_session] == any;
                     http.query.t == any;
                 }
 
@@ -1748,23 +1879,6 @@ data:
                 }
             }
         }
-
-        # Requests without the gateways' proxy secret.
-        policy "WIFI_PORTAL_DENIED" {
-            conditions all {
-                aaa.protocol == protocol.HTTP;
-                http.server == "PORTAL";
-            }
-
-            handler "DENIED" {
-                @execute {
-                    http.status = http.FORBIDDEN;
-                    http.json = false;
-                    http.response = "Forbidden";
-                    reject;
-                }
-            }
-        }
     }
 ---
 # Public root CA of the Passpoint Wi-Fi PKI, embedded in the device profiles
@@ -1922,7 +2036,7 @@ spec:
       port: 8443
       targetPort: 8443
 ---
-# Passpoint onboarding behind https://wifi.fruitiex.org (sso.yaml).
+# Passpoint onboarding behind https://wifi.fruitiex.org (HTTPRoute radiator-wifi).
 apiVersion: v1
 kind: Service
 metadata:
@@ -1965,13 +2079,13 @@ spec:
             - -c
           args:
             - >-
-              if [ ! -f /var/lib/radiator/.bootstrap-complete-v14 ]; then
+              if [ ! -f /var/lib/radiator/.bootstrap-complete-v15 ]; then
                 rm -f /var/lib/radiator/*.radconf /var/lib/radiator/..data;
                 rm -rf /var/lib/radiator/..20*;
                 for config in /bootstrap/*.radconf; do
                   cp -L "$config" "/var/lib/radiator/$(basename "$config")";
                 done;
-                touch /var/lib/radiator/.bootstrap-complete-v14;
+                touch /var/lib/radiator/.bootstrap-complete-v15;
               fi;
               mkdir -p /var/lib/radiator/licenses /var/lib/radiator/tmp /var/lib/radiator/management/tls/certs /var/lib/radiator/management/tls/keys /var/log/radiator;
               chown -R 1000:1000 /var/lib/radiator /var/log/radiator;
@@ -2002,7 +2116,9 @@ spec:
             runAsNonRoot: true
       containers:
         - name: radiator
-          image: radiatorsoftware/radiator-server:nightly@sha256:30a7a571a24e30860f1355579ae7231f3c61916ac0cd21d2c0c5b6735ae53137
+          # Custom build with native OpenID Connect sign-in
+          # (tag feature-oidc-55c73ac70b4d).
+          image: nectarine.internal.fruitiex.org:5050/private/radiator-server@sha256:351de7ee1ce0d817d4f12e748f0193c5ade116ba1b951b3a0c11100b96aee437
           imagePullPolicy: IfNotPresent
           securityContext:
             runAsUser: 1000
@@ -2030,12 +2146,18 @@ spec:
                 secretKeyRef:
                   name: radiator-secrets
                   key: POSTGRES_PASSWORD
-            # Shared with the private gateway's HTTPRouteFilter (sso.yaml).
-            - name: RADIATOR_PROXY_SECRET
+            # Pocket ID clients: radiator-ui (management.radconf) and
+            # radiator-wifi (wifi-provisioning.radconf).
+            - name: RADIATOR_UI_OIDC_CLIENT_SECRET
               valueFrom:
                 secretKeyRef:
-                  name: radiator-proxy-secret
-                  key: credential
+                  name: radiator-ui-oidc
+                  key: client-secret
+            - name: RADIATOR_WIFI_OIDC_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: radiator-wifi-oidc
+                  key: client-secret
             # Public root CA for the Passpoint device profiles.
             - name: PASSPOINT_CA_DER_B64
               valueFrom:
@@ -2074,6 +2196,11 @@ spec:
               mountPath: /var/log/radiator
             - name: passpoint-tls
               mountPath: /var/lib/radiator/passpoint/tls
+              readOnly: true
+            # Loaded from <config dir>/licenses; read-only, so licenses can't be
+            # uploaded in Radiator UI.
+            - name: license
+              mountPath: /var/lib/radiator/licenses
               readOnly: true
           livenessProbe:
             httpGet:
@@ -2127,6 +2254,12 @@ spec:
         - name: passpoint-tls
           secret:
             secretName: radiator-passpoint-tls
+        - name: license
+          secret:
+            secretName: radiator-license
+            items:
+              - key: homelab.radlicense
+                path: homelab.radlicense
 ---
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
@@ -2145,12 +2278,37 @@ spec:
         - path:
             type: PathPrefix
             value: /
-      filters:
-        - type: ExtensionRef
-          extensionRef:
-            group: gateway.envoyproxy.io
-            kind: HTTPRouteFilter
-            name: radiator-proxy-secret
       backendRefs:
         - name: radiator-management
           port: 8443
+---
+# Passpoint onboarding (wifi-provisioning.radconf). On both gateways, so
+# phones can add themselves over mobile data; the DNS name is the
+# *.fruitiex.org wildcard (public address), hence no external-dns record.
+# Radiator runs the Pocket ID sign-in itself (client radiator-wifi); /guest
+# needs none.
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: radiator-wifi
+  namespace: default
+  annotations:
+    external-dns.alpha.kubernetes.io/exclude: "true"
+spec:
+  parentRefs:
+    - name: public
+      namespace: envoy-gateway-system
+      sectionName: https
+    - name: private
+      namespace: envoy-gateway-system
+      sectionName: https
+  hostnames:
+    - wifi.fruitiex.org
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /
+      backendRefs:
+        - name: radiator-portal
+          port: 8088
