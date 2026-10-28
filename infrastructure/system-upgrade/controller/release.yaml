@@ -29,6 +29,11 @@ spec:
         memory: 64Mi
       limits:
         memory: 256Mi
+    # Lets the plans hold Alertmanager silences while a run is active.
+    silences:
+      enabled: true
+      alertmanager:
+        address: http://kube-prometheus-stack-alertmanager.kube-prometheus-stack.svc:9093
     monitoring:
       serviceMonitor:
         enabled: true

@@ -18,6 +18,15 @@ spec:
       - start: "0 2 * * *"
         duration: 3h
         timezone: Europe/Helsinki
+  # Alerts that a rolling upgrade causes by design, silenced in Alertmanager
+  # only while the run is active (tuppr re-extends a short lease), so a real
+  # breakage still fires once the run ends.
+  silences:
+    - matchers:
+        - name: alertname
+          matchType: "=~"
+          value: "KubeClientCertificateExpiration|KubeNodeNotReady|KubeNodeUnreachable|KubeletDown|TargetDown|AppDown|KubePodNotReady|KubePodCrashLooping|KubeDeploymentReplicasMismatch|KubeStatefulSetReplicasMismatch|KubeDaemonSetRolloutStuck|KubeDaemonSetMisScheduled|KubeAPIDown|KubeAPIErrorBudgetBurn|etcd.*"
+      maxDuration: 4h
   healthChecks:
     - apiVersion: v1
       kind: Node

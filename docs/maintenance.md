@@ -93,6 +93,12 @@ nightly window (02:00-05:00 Europe/Helsinki) and only while every node is
 Ready and postgres-ha is healthy. Installs from the Image Factory keep their
 schematic; tuppr reads it from each node.
 
+While a TalosUpgrade run is active, tuppr holds an Alertmanager silence for the alerts a rolling upgrade causes
+by design (nodes NotReady, brief app and API outages); it lapses when the run ends. KubernetesUpgrade has no
+silences, so its short-lived upgrade client certificate can raise KubeClientCertificateExpiration during the
+run; that is expected. Flux's Discord alert ignores the transient API errors of control-plane restarts
+(`infrastructure/flux/notification-provider/alert.yaml`).
+
 Renovate bumps the plans and `regen-configs.sh` together. Patch releases
 automerge after three days and roll out the next night; minor releases stay
 as PRs, because Talos supports only one minor step at a time.
