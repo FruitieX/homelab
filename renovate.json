@@ -55,6 +55,16 @@
       "platformAutomerge": false
     },
     {
+      "description": "A Python minor release (3.13 -> 3.15) is a new runtime for the scripts that use it; review it",
+      "matchDepNames": [
+        "python"
+      ],
+      "matchUpdateTypes": [
+        "minor"
+      ],
+      "automerge": false
+    },
+    {
       "description": "Major updates stay as PRs for review",
       "matchUpdateTypes": [
         "major"
