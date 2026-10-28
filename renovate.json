@@ -129,6 +129,14 @@
         "major"
       ],
       "automerge": false
+    },
+    {
+      "description": "On 0.x versions a minor bump may break things (MetalLB, actions-runner-controller): review, don't automerge",
+      "matchCurrentVersion": "/^v?0\\./",
+      "matchUpdateTypes": [
+        "minor"
+      ],
+      "automerge": false
     }
   ],
   "customManagers": [
