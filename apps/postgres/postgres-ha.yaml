@@ -21,7 +21,7 @@ spec:
   # 180 s for them before failing over; switch to a fast shutdown quickly.
   smartShutdownTimeout: 10
 
-  # Apps use the `postgres` superuser (credentials in each app's SOPS env).
+  # Only maintenance (postgres-dump, operators) uses the superuser.
   enableSuperuserAccess: true
   superuserSecret:
     name: postgres-ha-superuser
@@ -35,12 +35,15 @@ spec:
         login: true
         inRoles:
           - pg_monitor
-      # Spliit is public and unauthenticated, so it gets a role that owns only
-      # its own database instead of the superuser. One-time setup, already
-      # done (CNPG doesn't manage ownership or database ACLs):
-      #   ALTER DATABASE spliit OWNER TO spliit; and, in spliit, ALTER ... OWNER
-      #   TO spliit for every table, sequence and enum type in public;
-      #   REVOKE CONNECT ON DATABASE <every other app database> FROM PUBLIC;
+      # Each app logs in as a role that owns only its own database, so a
+      # compromised app can't reach the others or run commands as the
+      # superuser. Login secrets: <app>-role.sops.yaml. One-time setup per
+      # app, already done (CNPG manages neither ownership nor database ACLs):
+      #   ALTER DATABASE <app> OWNER TO <app>; then, in <app>,
+      #   ALTER ... OWNER TO <app> for every table, sequence and enum type,
+      #   ALTER DEFAULT PRIVILEGES FOR ROLE <app> IN SCHEMA public
+      #     GRANT SELECT ON TABLES TO grafana_ro;  (if Grafana reads it)
+      #   REVOKE CONNECT ON DATABASE <app> FROM PUBLIC;
       - name: spliit
         ensure: present
         login: true
@@ -50,6 +53,24 @@ spec:
         connectionLimit: 20
         passwordSecret:
           name: postgres-spliit
+      - name: ferrotune
+        ensure: present
+        login: true
+        superuser: false
+        createdb: false
+        createrole: false
+        connectionLimit: 30
+        passwordSecret:
+          name: postgres-ferrotune
+      - name: homectl
+        ensure: present
+        login: true
+        superuser: false
+        createdb: false
+        createrole: false
+        connectionLimit: 30
+        passwordSecret:
+          name: postgres-homectl
 
   # Quorum commit to the replica while it is connected; writes continue
   # (asynchronously) when it is not, so one instance being down never blocks.

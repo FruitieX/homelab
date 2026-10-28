@@ -1,0 +1,39 @@
+# Login for the homectl role (managed by the postgres-ha Cluster). Password
+# backed up in the Agents vault item "homelab - homectl postgres".
+apiVersion: v1
+kind: Secret
+metadata:
+    name: postgres-homectl
+    namespace: default
+    labels:
+        cnpg.io/reload: "true"
+type: kubernetes.io/basic-auth
+stringData:
+    username: ENC[AES256_GCM,data:Yj5NKn7+DA==,iv:TCXKnVYWE0ShZh38bXdTsy++quC+XZ/X8TSz0NeRoGk=,tag:+hn5zjvr7zcFJovLFYQh/Q==,type:str]
+    password: ENC[AES256_GCM,data:U0k7e+meWMxisLN3GnkPlQOvlHtcJY/OAmVgl+FslmqMPCzPEv8/RQ==,iv:uW6FC7OGr2MlHJ0pPRfzNqjTPjEmjBB5tdRkGAnWizs=,tag:Q1X1sLKKE6mky4pf3uuJbA==,type:str]
+sops:
+    lastmodified: "2026-10-28T11:27:58Z"
+    mac: ENC[AES256_GCM,data:0GQfOLVDytsdMi1CBpOT2O9vVDaISr/k3m0B5lz+zRwXTAqiP7Lu2q89VwnOnjvRUu5fM5UN8uRdF+kLkOsHPF5Uatt0bLrlVPrlJhSfsLVFmGbblWMRqEBsXSzdMweiDGZ1xGD8f2RhbUtPAh6RJ72SXcErgg18zCbWPf2ETrg=,iv:XY6xfsvJ92wSpfvSm8AWMddQY7sc00f+BeeCNyxIqUk=,tag:J6qJ7B7qjwBMNic1di+02A==,type:str]
+    pgp:
+        - created_at: "2026-10-28T11:27:58Z"
+          enc: |-
+            -----BEGIN PGP MESSAGE-----
+
+            hQIMA8WjeZLD+fxwAQ//SGUY6jkhiePzOYupDAaHtp1NXByYbGxOc8pHIHwqzSwU
+            qwxI8hygdnooGaNvS71D/zPojvJ+83xfrji6d+pGaL3wT/WR2n/TcxVkS08ydXcD
+            09cbY+H+jcVJ4bbBk0eB5iTRpYC1i/PHVpA8tWf0PlNjKw6Vml/dn7c+2Gc+5zS0
+            lON/28pGY92yZMrx48tYISwnnU6n9+6TONmjbv5N76BAC3vwgOLsmUZuXkTx/I/Z
+            5s+vqiOeog4Q1qk6smwSJkElMX8dio/PGSX46eyDbEur6OfY33QI6YgKDYzOVTLS
+            csTOxI7o1UMizAaJ623jPP5NoZIBKvwyfzzl212qkM+VPyFevNr997f/YH/v4Zdk
+            0jwXsZ8nhj23ojoJs7KvxIzDsEhfyMUxSXfz5ZgdrhRp42GOobYAfD8A5UUytpAD
+            qZTNaXL9L7sy4zxQcPuAK1lP5fypIEtr5mh2fmRqDqd1Kx6mjSgW55E08Cp2VMup
+            B2NZOY3eQFvRhHvZaCjQbQrUaG3Ko7Xj5b8dP2XtyPuosIagv+DKPoQx2/nlF1xu
+            +eHXPBZRlWv3NY6dwkEE09dD2GIn2F1f8WfJc55+zdRmsiZDn926H8sYo7rTxdYM
+            sldmqVy++hIkuW7Tzxw4VOTXgUNfMKaHb2fbeA1Hr2EC/ERlE/OAwamDRMvU9HDS
+            XgFByN5Ml42fxtQohypMmxtfOjlKLpDFR7EEUpqrd1YAzCQCKq5uYUPd2EhUAg8Q
+            PXqvfLOdTd+Ewasm3fLUssC4JH2baJB+qWQyqwlsrWh9sBHI7d7B7vL153CGNm4=
+            =+XeX
+            -----END PGP MESSAGE-----
+          fp: 3536F7F9345D96C86FB7F9CD21FAFEE575B18815
+    encrypted_regex: ^(data|stringData)$
+    version: 3.11.0

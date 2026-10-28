@@ -1,0 +1,39 @@
+# Login for the ferrotune role (managed by the postgres-ha Cluster). Password
+# backed up in the Agents vault item "homelab - ferrotune postgres".
+apiVersion: v1
+kind: Secret
+metadata:
+    name: postgres-ferrotune
+    namespace: default
+    labels:
+        cnpg.io/reload: "true"
+type: kubernetes.io/basic-auth
+stringData:
+    username: ENC[AES256_GCM,data:mrmJ+Su6/qG/,iv:ZQtNrcXGCMqu2t//Hfz40o8eH+Ukqv0Y6VD3YhBHQgU=,tag:uyt/xutS1IO7CmsHM7Y71A==,type:str]
+    password: ENC[AES256_GCM,data:7RSdQ4FzSkcGEpx5i4LLJ/YhAeI6gzzz48IHXluqUfl/Dyzu6Lq0Sw==,iv:P+fni/e/fNYLVv9XY3y1x1TUrbXQPS49uKTru2HMFeE=,tag:alZdSuxP+A9R89jpuqLOYA==,type:str]
+sops:
+    lastmodified: "2026-10-28T11:27:51Z"
+    mac: ENC[AES256_GCM,data:xHRp++HC8UE/wkoWknKMIOaCZmAQGiMqhbNdvBDjZf5EXA7D2IPvmFjluPNba0m3pV0ZFR4MdMmPTq29A67uacVUHjq3Lm+p3M01/3p4F/+DkSvVwUFflodng2IhsAldSfB3fgW3ZZUopkcEZlo+GvYEMYRDtJLHPGNF44XAmiw=,iv:ld2lAreyrwg6dbHZ6Kc/yAesAyg83zDKsOps4YLEhxs=,tag:z5oPpzrSrnYE6t7v3NXawA==,type:str]
+    pgp:
+        - created_at: "2026-10-28T11:27:51Z"
+          enc: |-
+            -----BEGIN PGP MESSAGE-----
+
+            hQIMA8WjeZLD+fxwARAAuFa4z0QYKQPNSrSK0240IL5DzZyOfu+FhxAnJ6Qzp4b2
+            d/AxjH8hextQDY3iPa94yWhLNwhpbgPYypJKuvoFQHtqTXvHyj6wly+HVGITH0jk
+            9lTOBfS4TRDDdF08pUiLoGMrVEyy/8N+3l1p8x5QTWtDUVWlegqZaG+O703iXgnj
+            Y8ZtY1AnRKnS9UQzsI/8drV1E9T/bD6P5zPNiodDJRkVdXYWv7obpHYCHBC+oM9X
+            ch9CUdzzlLmpCNLAykp4KnsoroMkUVdWUBtMPonawm40KdvQEbaFWicTuz2avJdQ
+            gUQPZqbmnw6ljY5s2DM8KKRou8EX5vIjd3WzhD/VGJQpCcZE38bN2PBEjfeaOkc+
+            Nx1a59twZ5Unof417FPYOn1AADGs2oOVJSGB++khsgE2cw6qMDhPKQv9k9XfAFby
+            gnZdXLkTD+/T9xCAQpCe7GTw2DHhn1lHKeLqscvtXTShrLBXAtGCeofb6hSteUkG
+            tG6WMxxCAPyR0J5LhY11jnqUCWJoRo0ldZu7HaCFHeb0FP2n7jQhPPytckMZSnyU
+            UhEn4JECL2zthlEoqTsb4PYpNEneLhvNLTh6tkUVw8pgP1P/S086KpJ55CNeFrtS
+            bA9TqSC/zCpkBiCaIJpKovJIl8zHj1Vuxwi8lzJK4RO4TlWhIM3F3aToP2G3qOjS
+            XgEzbbySR264HxsFi3ihUBDC5pgwRST4cOG0nciO6ksKXj6r9BrKc+4jPVgpAQGA
+            mK9UDFIu8Oprrn7ZOevOu0hYIlgzo1Wup5v7BjnBMOQYT1LAE5LVlXta/t1o670=
+            =kUor
+            -----END PGP MESSAGE-----
+          fp: 3536F7F9345D96C86FB7F9CD21FAFEE575B18815
+    encrypted_regex: ^(data|stringData)$
+    version: 3.11.0

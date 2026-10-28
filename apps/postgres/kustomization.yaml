@@ -5,5 +5,7 @@ resources:
   - ./postgres.yaml
   - ./postgres-ha-superuser.sops.yaml
   - ./spliit-role.sops.yaml
+  - ./ferrotune-role.sops.yaml
+  - ./homectl-role.sops.yaml
   - ./postgres-ha.yaml
   - ./postgres-dump.yaml
