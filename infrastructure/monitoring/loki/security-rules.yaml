@@ -1,0 +1,46 @@
+# Log-based security alerts, evaluated by Loki's ruler and sent to
+# Alertmanager; homelab="true" routes them to Discord. The loki-sc-rules
+# sidecar loads ConfigMaps labelled loki_rule.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: loki-security-rules
+  labels:
+    loki_rule: "1"
+data:
+  security.yaml: |
+    groups:
+      - name: homelab-security
+        interval: 1m
+        rules:
+          # apps/pocket-id/ingress.yaml denies X-API-Key requests from outside
+          # the LAN, VPN and cluster; a denial means the key is in someone
+          # else's hands.
+          - alert: PocketIdApiKeyUsedFromInternet
+            expr: |
+              sum(count_over_time({namespace="envoy-gateway-system", container="envoy"} |= "id.fruitiex.org" |= "rbac_access_denied" [10m])) > 0
+            labels:
+              homelab: "true"
+              severity: critical
+            annotations:
+              summary: Pocket ID admin API key used from the internet (blocked); rotate STATIC_API_KEY
+          # Admin changes (users, groups, clients, API keys, settings) made
+          # from outside the LAN/VPN, e.g. with a stolen admin session.
+          - alert: PocketIdAdminChangeFromInternet
+            expr: |
+              sum by (ip, method, path) (count_over_time({namespace="default", container="pocket-id"} |= "HTTP request completed" | logfmt | method=~"POST|PUT|DELETE|PATCH" | path=~"/api/(users|user-groups|oidc/clients|api-keys|application-configuration|custom-claims).*" | status=~"2.." | ip!~`(10|192\.168)\..*` [10m])) > 0
+            labels:
+              homelab: "true"
+              severity: critical
+            annotations:
+              summary: "Pocket ID admin change from {{ $labels.ip }}: {{ $labels.method }} {{ $labels.path }}"
+          # Group membership changes, from anywhere: someone may have been
+          # made an admin. Agents on the LAN trigger this too.
+          - alert: PocketIdGroupMembershipChanged
+            expr: |
+              sum by (ip) (count_over_time({namespace="default", container="pocket-id"} |= "HTTP request completed" | logfmt | method=~"POST|PUT|DELETE" | path=~"/api/(users/[^/]+/user-groups|user-groups/[^/]+/users)" | status=~"2.." [10m])) > 0
+            labels:
+              homelab: "true"
+              severity: info
+            annotations:
+              summary: "Pocket ID group membership changed from {{ $labels.ip }}; check who is in admins"

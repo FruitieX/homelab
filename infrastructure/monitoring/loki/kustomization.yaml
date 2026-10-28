@@ -6,3 +6,4 @@ resources:
   - loki-release.yaml
   - promtail-release.yaml
   - grafana-datasource.yaml
+  - security-rules.yaml

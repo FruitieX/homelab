@@ -16,11 +16,15 @@ spec:
         namespace: flux-system
   values:
     deploymentMode: SingleBinary
-    # loki-sc-rules sidecar
+    # loki-sc-rules sidecar: loads ConfigMaps labelled loki_rule (e.g.
+    # security-rules.yaml) for the ruler. With auth disabled the tenant is
+    # "fake", hence the folder.
     sidecar:
       resources:
         requests:
           memory: 64Mi
+      rules:
+        folder: /rules/fake
     singleBinary:
       replicas: 1
       resources:
@@ -85,6 +89,16 @@ spec:
             index:
               prefix: loki_index_
               period: 24h
+      rulerConfig:
+        wal:
+          dir: /var/loki/ruler-wal
+        storage:
+          type: local
+          local:
+            directory: /rules
+        rule_path: /var/loki/rules-temp
+        alertmanager_url: http://kube-prometheus-stack-alertmanager.kube-prometheus-stack.svc:9093
+        enable_api: true
       compactor:
         retention_enabled: true
         # Required when retention is enabled; use filesystem since object_store is filesystem
