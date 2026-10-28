@@ -5,7 +5,6 @@ resources:
   - sources.yaml
   - actions-runner-controller.yaml
   - cert-manager.yaml
-  - notification-receiver.yaml
   - notification-provider.yaml
   - cloudnative-pg.yaml
   - synology-csi.yaml

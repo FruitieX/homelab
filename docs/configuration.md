@@ -69,39 +69,9 @@ MetalLB allows k8s services to appear under their own unique IP address in your 
 
 - You should now start seeing DNS records appear in Pi-hole's admin web interface under Local DNS -> DNS Records.
 
-## Flux CD notification receiver
+## Flux reconcile on push
 
-Normally, flux will poll your repository for changes. This means there will be a delay between when you push until flux picks up on the changes. You can get around this by manually running `flux reconcile kustomization flux-system`, or by setting up webhook receivers so that GitHub will notify your cluster of the push event.
-
-- [/infrastructure/flux/notification-receiver/github-webhook-token.yaml](/infrastructure/flux/notification-receiver/github-webhook-token.yaml)
-
-  If you do want to use [flux webhook receivers](https://fluxcd.io/flux/guides/webhook-receivers/), then this file should contain a randomly generated `token` that flux will use to verify that it's GitHub sending the HTTP request and not somebody else.
-
-  See [/docs/sops.md](/docs/sops.md) for more information on how to store secrets.
-
-  Replace the `token` value with the output of `head -c 12 /dev/urandom | shasum | cut -d ' ' -f1`. Take note of the value, as you will need it later.
-
-  Remember to encrypt the secrets file before you commit.
-
-- The domain name for the receiver's ingress is set in cluster config (or secrets if you want) with the `FLUX_NOTIFICATION_DOMAIN_NAME` key, for example:
-
-  ```
-  FLUX_NOTIFICATION_DOMAIN_NAME: flux-notification.example.org
-  ```
-
-- Add `notification-receiver.yaml` back in [/clusters/homelab/infrastructure/kustomization.yaml](/clusters/homelab/infrastructure/kustomization.yaml). Commit and push.
-
-- Wait for reconciliation. After reconciliation finishes, you should be able to run `kubectl -n flux-system get receiver`. Note down the receiver URL (i.e. `/hook/...`)
-
-- On GitHub, navigate to your repository and click on the “Add webhook” button under “Settings/Webhooks”. Fill the form with:
-
-  - Payload URL: combine `FLUX_NOTIFICATION_DOMAIN_NAME` and the hook URL from above:
-
-    `http://<FLUX_NOTIFICATION_DOMAIN_NAME>/<ReceiverURL>`
-
-  - Secret: use the `token` string from above
-
-- Next time you commit a change, Flux should start reconciliation almost immediately. You can see this take place with `flux logs --tail 20 -f`.
+Flux polls the repository, so a push would otherwise wait for the next poll. Instead, [/.github/workflows/flux-reconcile.yaml](/.github/workflows/flux-reconcile.yaml) runs on every push to `main` on the in-cluster `homelab` runner ([/infrastructure/actions-runner-controller](/infrastructure/actions-runner-controller)) and annotates the `flux-system` GitRepository, which makes Flux fetch at once. The runner polls GitHub for jobs, so nothing on the internet needs to reach the cluster, and its service account may only annotate that one GitRepository ([flux-reconcile-rbac.yaml](/infrastructure/actions-runner-controller/flux-reconcile-rbac.yaml)). `update-image.yaml` calls the same workflow after its commits, because pushes made with `GITHUB_TOKEN` don't start other workflows. Run it by hand with `gh workflow run flux-reconcile.yaml`, or use `flux reconcile source git flux-system`.
 
 ## Flux CD notification provider
 
