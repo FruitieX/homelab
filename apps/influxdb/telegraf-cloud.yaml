@@ -365,7 +365,7 @@ spec:
             name: telegraf-cloud-config
       containers:
         - name: telegraf
-          image: telegraf:1.38.4-alpine
+          image: telegraf:1.40.2-alpine
           args: ["--config", "/etc/telegraf/telegraf.conf"]
           envFrom:
             - secretRef:
