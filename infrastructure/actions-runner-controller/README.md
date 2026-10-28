@@ -53,3 +53,25 @@ jobs:
 These runners use Docker-in-Docker and are privileged. Do not send untrusted
 pull-request code to them, and avoid sharing this runner group with workflows
 that handle sensitive credentials.
+
+## Upgrading
+
+Helm cannot upgrade ARC's CRDs, so a version bump is not a plain chart
+update. Following [GitHub's upgrade steps](https://docs.github.com/en/actions/how-tos/manage-runners/use-actions-runner-controller/deploy-runner-scale-sets#upgrading-arc),
+with all three chart versions bumped in one commit:
+
+```sh
+flux suspend kustomization actions-runner-controller
+kubectl -n arc-runners delete helmrelease homelab-runners add-bot-rs-runners
+# wait until arc-runners has no pods and arc-systems has no listener pods
+kubectl -n arc-systems delete helmrelease actions-runner-controller
+# only if the chart's crds/ changed between the versions:
+kubectl delete crd autoscalinglisteners.actions.github.com \
+  autoscalingrunnersets.actions.github.com \
+  ephemeralrunnersets.actions.github.com ephemeralrunners.actions.github.com
+git push   # the version bump
+flux resume kustomization actions-runner-controller
+```
+
+The push cannot trigger Flux through the homelab runner while it is gone;
+`flux resume` reconciles the new revision.
