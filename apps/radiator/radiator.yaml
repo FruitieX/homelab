@@ -2069,6 +2069,10 @@ spec:
         app: radiator
     spec:
       priorityClassName: homelab-home
+      # Private Zot image (node-reader). The nodes' Talos registry auth only
+      # takes effect after containerd restarts.
+      imagePullSecrets:
+        - name: radiator-registry
       securityContext:
         runAsNonRoot: true
       initContainers:

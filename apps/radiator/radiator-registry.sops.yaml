@@ -1,0 +1,34 @@
+apiVersion: v1
+data:
+    .dockerconfigjson: ENC[AES256_GCM,data:PfPFj1+9qk35ltugrMQ+RLwsj9COKpZCJfz3cWW2defYQNGmZimsfk6V5u1/M0EjfJ52DKPG8JULBHl3igT25BfOKbow9Q90z97MP0GJNVXFRTlZeevaFMnbqNlY8hutWwjJjxh3NyCTFpbe5TdMDMC6zQOxen9T7G6n/EP89yuBj6JsEzTy1ZPDa7j0N4kHdYk7lK8oCWfu7/5ye3mKaXfr99RmG131qWUdlh1SkFwkVpc6eluzsAS0if0yiCYgv5In78v/PsnrLCoXKFgV2Fcaa9u6ppE8xhi89rDsWY6zJeDT0+nPNfgYb1K7Cxg+EL3wkdtAEWZ2F8Q9DKwU8usgLHkx4wQ3/jbksogu5m111bdiVdmMMsGENCqZ44O/j0zCCgTsLQ1LanfbyoUqApR7ZZ4=,iv:C22P2QV8XjxeVaiGYDaAPdXyKOSTGM2330lWZPJPFxc=,tag:VSp80fbp6CjfExzBP+rWsg==,type:str]
+kind: Secret
+metadata:
+    name: radiator-registry
+    namespace: default
+type: kubernetes.io/dockerconfigjson
+sops:
+    lastmodified: "2026-10-28T13:31:06Z"
+    mac: ENC[AES256_GCM,data:T/QChW+sKk4AJqR4H4TI3t9a3mNsSeqGqRlPylxq01OZ5QakB+1EbDtQlkPA3hli+cTqUXgFiQJrZScefNVY0lnExHEDqySloaiw1B/4Fudou6Hrtewv5hdkfaemO9fs5iYLbiodr96CotIBzD9giWC/sYxVqiCCeBGpWN/JidY=,iv:DkP5I6x1gnridWl/OTSHgwvH373nRwkykohYbs0Opz8=,tag:qCeXWMLR+zRL1vdfnU7sWg==,type:str]
+    pgp:
+        - created_at: "2026-10-28T13:31:06Z"
+          enc: |-
+            -----BEGIN PGP MESSAGE-----
+
+            hQIMA8WjeZLD+fxwARAAvFeiqz3+bjBmOUDhE8euuTcq4TcauZ1rN8s05BW5WjxM
+            ywVd8+WBmUeJ8fmzHBui3Rm3QTGosWhJIU0+hL8zCubULidnNGIt+6Qp4bC4CBn1
+            LOYlK5y1mrv6VeKNqsAbtHjWactuspOJxrvziuDJYMQHjB2kOYg7ybErkKgJextM
+            QFERUqliE/Vxg1EEo26vnLjgmMbVtjASzCnn2WalAADMRFxO3PqQoyhUNX5Qw3Cg
+            CcNjFnmC/l28m+IDqapvy61c/DWvJXrb9WS1l2ir9E07kUJgfpPv3rBfpc+t9v/8
+            2+i78wtC3uVnMBX4+KqXjqT8BnVSk2b6hfgSErMSF/Puatnmmw+gKvKfhdltAuFG
+            FqIyL46y6nrfVnsTvD87K8grob1Ix7kk8cYx9ihcIyVE8GS+/RzznAF2zFg7Tyzh
+            myfNfYlVkr8FZ8x6a4aYZLh3mvgX1gQioJY0r3a1uewDhM5YpWJJirP1D7AcEx+9
+            5gTbu3DBlhHw0hDtiHJgIdhYEvOC/3oFz6SbJUY1p6ym/mr2EAQzcz3AKewCKypX
+            TIVPq1yA+5CWSSK7UkRSweJvfjGsNhHEw3175TLjvixehwRsbGR3fjXr7szcFv4g
+            HSIBdT20blUINok0D+bNT2EAwkcqkqGvPLLIJvYhjl/0sbKlwFxTkBjibEbICSvS
+            XAGhu9UF79Xx8PGBIgsuKyBPtPVZfq0afZT8LW490cgx+tDsCNEdJwbxtqIvRscz
+            lqMcDN1L1b9BIoIhvvtsNrJ9d0E4RcKM4OeGvBuuk8psWgqh/ZF+is6YfNgv
+            =y4bT
+            -----END PGP MESSAGE-----
+          fp: 3536F7F9345D96C86FB7F9CD21FAFEE575B18815
+    encrypted_regex: ^(data|stringData)$
+    version: 3.11.0
