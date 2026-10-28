@@ -37,13 +37,19 @@ class ManifestTests(unittest.TestCase):
                 self.assertEqual(rule["verbs"], ["get"])
                 for kind in rule["resources"]:
                     permissions[(role["metadata"]["namespace"], kind)] = set(rule["resourceNames"])
+        # File names may differ from Kustomization names (littlecupboard.yaml holds "forkbasket").
+        flux_kustomizations = {}
+        for path in (ROOT / "clusters/homelab/apps").glob("*.yaml"):
+            for document in yaml.safe_load_all(path.read_text()):
+                if document and document.get("kind") == "Kustomization" and "spec" in document:
+                    flux_kustomizations[document["metadata"]["name"]] = document
         for service in services:
             self.assertIn(service["deployment"], permissions[(service["namespace"], "deployments")])
             self.assertIn(service["kustomization"], permissions[("flux-system", "kustomizations")])
             if service.get("registry_secret"):
                 self.assertIn(service["registry_secret"], permissions[(service["namespace"], "secrets")])
-            flux = yaml.safe_load((ROOT / "clusters/homelab/apps" / (service["kustomization"] + ".yaml")).read_text())
-            self.assertTrue(flux["spec"]["wait"])
+            self.assertIn(service["kustomization"], flux_kustomizations)
+            self.assertTrue(flux_kustomizations[service["kustomization"]]["spec"]["wait"])
         for (namespace, kind), names in permissions.items():
             field = {"deployments": "deployment", "kustomizations": "kustomization",
                      "secrets": "registry_secret"}[kind]
