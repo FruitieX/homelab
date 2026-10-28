@@ -10,6 +10,8 @@
 # - Flux postBuild variables (${VAR}) get values from cluster-config, their
 #   default, or a placeholder; the secret ones are never known here.
 # - CRDs missing from the datreeio catalog are skipped (-ignore-missing-schemas).
+#   tuppr's are skipped too: the catalog's copy predates fields we use
+#   (spec.maintenance, spec.policy.drainTimeout).
 set -euo pipefail
 
 cd "$(dirname "$0")/.."
@@ -66,7 +68,7 @@ kubeconform \
   -summary \
   -output text \
   -kubernetes-version "${KUBERNETES_VERSION:-1.36.0}" \
-  -skip Secret \
+  -skip Secret,TalosUpgrade,KubernetesUpgrade \
   -ignore-missing-schemas \
   -schema-location default \
   -schema-location 'https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/{{.Group}}/{{.ResourceKind}}_{{.ResourceAPIVersion}}.json' \

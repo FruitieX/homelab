@@ -1,0 +1,13 @@
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: OCIRepository
+metadata:
+  name: tuppr
+spec:
+  interval: 24h
+  url: oci://ghcr.io/home-operations/charts/tuppr
+  ref:
+    tag: 0.5.10
+    digest: sha256:e0462839e4ace5e7a2565b612b81c3e3185ed33ec2da60d9ab17640097acf40a
+  layerSelector:
+    mediaType: application/vnd.cncf.helm.chart.content.v1.tar+gzip
+    operation: copy

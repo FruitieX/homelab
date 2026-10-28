@@ -15,6 +15,10 @@ spec:
         name: influxdata
         namespace: flux-system
   values:
+    # A minAvailable 1 budget on a single replica blocks every node drain,
+    # including tuppr's unattended upgrades; accept the restart instead.
+    pdb:
+      create: false
     resources:
       requests:
         # Process memory (RSS) peaked at ~1.5 GiB over a week; the working

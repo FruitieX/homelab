@@ -1,0 +1,31 @@
+# Talos version for every node. Changing it rolls the upgrade through the
+# cluster at night; keep regen-configs.sh's TALOS_VERSION in step (Renovate
+# bumps both). Talos only supports upgrading one minor at a time.
+apiVersion: tuppr.home-operations.com/v1alpha1
+kind: TalosUpgrade
+metadata:
+  name: cluster
+spec:
+  talos:
+    # renovate: datasource=docker depName=ghcr.io/siderolabs/installer
+    version: v1.13.9
+  policy:
+    # Per node, including the drain and coming back Ready.
+    timeout: 30m
+    drainTimeout: 10m
+  maintenance:
+    windows:
+      - start: "0 2 * * *"
+        duration: 3h
+        timezone: Europe/Helsinki
+  healthChecks:
+    - apiVersion: v1
+      kind: Node
+      expr: status.conditions.filter(c, c.type == "Ready").all(c, c.status == "True")
+      timeout: 10m
+    - apiVersion: postgresql.cnpg.io/v1
+      kind: Cluster
+      name: postgres-ha
+      namespace: default
+      expr: status.phase == "Cluster in healthy state"
+      timeout: 15m

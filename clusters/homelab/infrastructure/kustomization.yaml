@@ -24,3 +24,4 @@ resources:
   - monitoring-loki.yaml
   - metrics-server.yaml
   - coredns.yaml
+  - system-upgrade.yaml

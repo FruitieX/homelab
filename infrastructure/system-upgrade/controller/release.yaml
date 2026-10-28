@@ -1,0 +1,36 @@
+# tuppr upgrades Talos and Kubernetes to the versions in ../plans, one node at
+# a time, draining each and waiting for it to come back healthy. See
+# docs/maintenance.md.
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: tuppr
+  namespace: system-upgrade
+spec:
+  interval: 30m
+  timeout: 5m
+  releaseName: tuppr
+  chartRef:
+    kind: OCIRepository
+    name: tuppr
+    namespace: flux-system
+  install:
+    crds: CreateReplace
+    remediation:
+      retries: 3
+  upgrade:
+    crds: CreateReplace
+    remediation:
+      retries: 3
+  values:
+    resources:
+      requests:
+        cpu: 10m
+        memory: 64Mi
+      limits:
+        memory: 256Mi
+    monitoring:
+      serviceMonitor:
+        enabled: true
+      prometheusRule:
+        enabled: true

@@ -1,0 +1,20 @@
+# Kubernetes version of the cluster (no node reboots). Keep regen-configs.sh's
+# KUBERNETES_VERSION in step (Renovate bumps both).
+apiVersion: tuppr.home-operations.com/v1alpha1
+kind: KubernetesUpgrade
+metadata:
+  name: kubernetes
+spec:
+  kubernetes:
+    # renovate: datasource=docker depName=ghcr.io/siderolabs/kubelet
+    version: v1.36.3
+  maintenance:
+    windows:
+      - start: "0 2 * * *"
+        duration: 3h
+        timezone: Europe/Helsinki
+  healthChecks:
+    - apiVersion: v1
+      kind: Node
+      expr: status.conditions.filter(c, c.type == "Ready").all(c, c.status == "True")
+      timeout: 10m
