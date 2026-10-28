@@ -3,7 +3,6 @@ kind: Kustomization
 resources:
   - radiator-secrets.yaml
   - radiator-wifi-oidc.sops.yaml
-  # Not committed yet; see MIGRATION-native-oidc.md.
   - radiator-ui-oidc.sops.yaml
   - radiator-license.sops.yaml
   - radiator-passpoint-tls.sops.yaml

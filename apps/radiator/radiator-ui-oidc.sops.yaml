@@ -1,0 +1,33 @@
+apiVersion: v1
+data:
+    client-secret: ENC[AES256_GCM,data:QHQNdL2rrZvecvxWOlbAstpObnIJEoPJTrDOdAjGM9VhEduCJjG06elrXqA=,iv:Xd7OpCis/W2yDVK9WiDa2gKQVssm6Qd3ajn8YXxCofg=,tag:XWIl5JPAS/wYNKmqIstsYw==,type:str]
+kind: Secret
+metadata:
+    name: radiator-ui-oidc
+    namespace: default
+sops:
+    lastmodified: "2026-10-28T13:12:59Z"
+    mac: ENC[AES256_GCM,data:F22wXYsMbGUWCx0ZuRJsyxp89En7x9grn8yK1RxfnmlQFQJc1w89Utp9mbfDvL4Z4qJ98Yheua2A6vcgLRpfHLqhwSzIrLNHbyWdYahdQBQdeDvQKzAbhDmmcb94bSN3THHqWiHtjVsbtv+xykuWtkDQRi7lF+eBj/S1FIKh0Kk=,iv:1acFBLB7SWD/TBd0co9tm3GFwyB3gE4WHK0YwXPZwrU=,tag:BkyZz0Aaw2XAsu6F8t1UPw==,type:str]
+    pgp:
+        - created_at: "2026-10-28T13:12:59Z"
+          enc: |-
+            -----BEGIN PGP MESSAGE-----
+
+            hQIMA8WjeZLD+fxwARAAh3iE3+jPjhcj5kJA+AXp4PJJ2kkhk8eGf1ya2u26S5i3
+            JLgok8k8cnpUBs7PlWqsttZSC3OGbWjaR0qWTb3WG/oYpW/f/Nc01kKVbL2jlKvF
+            URMU7ii1EY61LW/IgEUHHs8O0TjzQkod0Q/NG+mgit3ptrfVjlbZnKtwmRjS0WpZ
+            rnbuRize1mrwmVzgviwu7OFsUAzMUUaAGSxW9tCsZEE4XiHue6jT5s784JSZ+v4G
+            IFed/D4PinQlaNA0hOMgot8zAV+Dau0ocxBVR5X6iXSaoDOazZkxwi9OoqV52MDA
+            fwxT+5h0ypfaOY1bvcQn2rMezs5XM39CivSF3A4gAXo5Q8RBeHXKkRWJPd4Tu+Vs
+            oXo0V1Ua7e2N2Pq3rpfvhq7azRFI6lXeYVchyqFQN4CMJagh6TIpDz4AHK7tM3zg
+            0RWIMw6IECpo2q7IPZZnAZbwUP7/Tk4wyeunYd+xiMlBCD3u3Bsgjaye7G3tLisQ
+            AcB3yiXR5aCHoc7V5ebM4XT2Xycv5x+eVxjAiFahrIfJ62o4E/ZYoiz/0Ww3U9U0
+            02DsHb0vQ48NqXBXM93UUTkUaue8pBczKS+WwHUC4OgMPlTNy/UQ3saKna1vYYcO
+            24vXxMxDGVrfPh2b2srkzpU9xI4LB1V52kq68j8iD4Cb9Jxu80WgzUma7NONmrPS
+            XgGh3rOnEO5AduiMOlfHguEqOg8brPMu0dnDhyig74sA4CSYPBoy3cmfnzofRPzn
+            rRH1pZQmOMdoZ0MnLi3qmrx0+aBRyjCqQYqz4oG3E76h7xKC7hA2Nx8/ha53Sl0=
+            =GWn5
+            -----END PGP MESSAGE-----
+          fp: 3536F7F9345D96C86FB7F9CD21FAFEE575B18815
+    encrypted_regex: ^(data|stringData)$
+    version: 3.11.0

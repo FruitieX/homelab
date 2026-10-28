@@ -1,0 +1,33 @@
+apiVersion: v1
+data:
+    homelab.radlicense: ENC[AES256_GCM,data:13J/ij0ziAwW8p4uZWmLNvbjkhb+DtouH45ijs2YjfAgAbiCwLOLcduGJyoWADyEVfhMCuOhkG9VbBK1cRLN+x4/ZarwXsSK0jgR+bGjE++0tMlrBErF/amJIjO+wtcp/eu1vGlNANMG9swwoOMeqFhfzRYgNxkBx7i9V3vnqKvMTkmvn5BtlV5NvjVofnYjp/BvbnFziulcoZFS9C39ijlQTprciVNhg3b0qTAlPAMxtzsmwLJQFYJqwSxjC/kFHVvCjF2pCsp2BwalQXjmoPnHxtrkaXK9rJFgC6AEypSqdOrP6Hh3oxWK9CmjlDm0Bwaj2jYcjmLykAGxR53ubDKXFZj4wyp2KtXbGavrLJrqDerjzN6EK6rnK0/d8zSnhxvZrZmd1r6YgdguPkTLvUTMuOA9q1KxzVzp86mhnO+bPX/i,iv:nBI7f8DbaB8ZlzIsLbbpTwQ48Q1U8NcokIYbUvvIUG0=,tag:UqhP9vyMCHRzpoGZa19mGg==,type:str]
+kind: Secret
+metadata:
+    name: radiator-license
+    namespace: default
+sops:
+    lastmodified: "2026-10-28T13:12:59Z"
+    mac: ENC[AES256_GCM,data:0s7RKgezG3wSP0PylyEc1uEvrliOZKQZxxUhz38mgGnf2ZnJcH07c3qZwyYrL17RVxXCBx7olU/wbAOqtw7+H4e8JI0XdHyymbefML5iLOevJlOzR1gH17A80WIq2bivmJck5HKD4og2XIRy6ZCGzWWiwY0N6QD5ZJ3f4rJXAWU=,iv:f8yKS3V67l7v2zLxBx4zff6brsEDlmwJ36XgSbi9knc=,tag:cmcLPqyFAxgXUJuO/tfVXA==,type:str]
+    pgp:
+        - created_at: "2026-10-28T13:12:59Z"
+          enc: |-
+            -----BEGIN PGP MESSAGE-----
+
+            hQIMA8WjeZLD+fxwAQ/9HXCxd2lrehmjsYLxEiH8mo9/XdKD7OGY/z8oFzb7A/yk
+            fieGBaVW/tyPFixfKsZEAUojInIWONl83s356RjpoH59oA1xc0QslKfB2wRFp2zN
+            ZmKjcQbETvLxm+XugGYaZpPJFyzs3mxD6q9WyfeEZMTihQGtDyT+Gp/RpGO2+2bl
+            og8PKq2h1y2WWkbQDIFHy0W4rc4QLdRyHg55kJxvzixLgYIzbGBuwc4eXA0lY8Yp
+            iRyqgfWnxmCkoCrzzGYofHwfaGYK7QURXSlviX9M1vsWlHrcCda1lX+KjiGsCE6O
+            clZqneuR2Ab/jHFVDJGgmfpHCeF8tuOz+qdu8h82Fh6e1aY4CAIeDtm05G/wqLTo
+            ZmuwrMvfwHa1AHfHh35V3UP+ChFjmAY4WsXEqAGwdBr5ywxxGi48I4c+wUvIyTuG
+            khow6bi9K+xKNJGf7pOj1OCZ0Os0ahTYd+kiltgf0fteTrqt778XFIcSoA8xLBdA
+            9rKjA6AyW4OKjA6DFZtbA+76L5ulGINQVrUeGO9iNoq12lbU8JyanOIOcTnRNCwe
+            9hIUjdQK3QsdsUnrEDOdm1CvpEVBAdzXfEwCvcjcIxIHs0BeOs58idGmqioHmaWH
+            lFpCNOEuqeAyJe4N8hB1zm/WPPdlq0oq9xJzpJE6JfTBKAsv2QD5DwAbe+V6oSDS
+            XAGNBC7Folu3VYDAVbgIzZDjGrKQTEBnliL/SbV2uZTHbCi2/Y6b9cRal8aY3BHN
+            9RdKgwppCsNzArHlGdkKJDP9BrGI4q3RLrQkaKgEyA6boVJ6jZ4ghwbunREj
+            =tLi4
+            -----END PGP MESSAGE-----
+          fp: 3536F7F9345D96C86FB7F9CD21FAFEE575B18815
+    encrypted_regex: ^(data|stringData)$
+    version: 3.11.0
