@@ -72,7 +72,13 @@ spec:
     spec:
       priorityClassName: homelab-apps
       # The image's non-root nginx keeps listening on port 80.
+      automountServiceAccountToken: false
       securityContext:
+        runAsNonRoot: true
+        runAsUser: 101
+        runAsGroup: 101
+        seccompProfile:
+          type: RuntimeDefault
         sysctls:
           - name: net.ipv4.ip_unprivileged_port_start
             value: "0"
@@ -80,6 +86,14 @@ spec:
         - name: fruitiex-org
           image: ghcr.io/fruitiex/fruitiex.org:main@sha256:1f9e435de5f70d1a29e74475b18bacdeb8dcad7915f7014a82df255d7d161f9e
           imagePullPolicy: IfNotPresent
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
           ports:
             - name: http
               containerPort: 80
@@ -90,3 +104,7 @@ spec:
             limits:
               memory: 128Mi
               cpu: 100m
+      volumes:
+        - name: tmp
+          emptyDir:
+            sizeLimit: 64Mi
