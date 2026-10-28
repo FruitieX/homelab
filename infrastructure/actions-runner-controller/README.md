@@ -70,8 +70,12 @@ kubectl delete crd autoscalinglisteners.actions.github.com \
   autoscalingrunnersets.actions.github.com \
   ephemeralrunnersets.actions.github.com ephemeralrunners.actions.github.com
 git push   # the version bump
+flux reconcile source git flux-system   # before resuming, see below
 flux resume kustomization actions-runner-controller
 ```
 
-The push cannot trigger Flux through the homelab runner while it is gone;
-`flux resume` reconciles the new revision.
+Fetch the new revision before resuming: resuming first reinstalls the old
+chart, whose CRDs then stay in place (Helm skips CRDs on upgrade) and the
+new scale sets fail with `field not declared in schema`. If that happens,
+apply the new chart's `crds/` with `kubectl apply --server-side
+--force-conflicts` and reconcile the scale set HelmReleases with `--force`.
