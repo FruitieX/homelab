@@ -1,9 +1,9 @@
-{ pkgs ? import (fetchTarball "https://github.com/NixOS/nixpkgs/archive/356294f35290bf10442bfc60408cbe5ccde5a202.tar.gz") {}
-, talosPkgs ? import (fetchTarball {
-    # Talos 1.13 machine configs need a matching client; the older package
-    # set's 1.11 client cannot patch their multi-document configuration.
-    url = "https://github.com/NixOS/nixpkgs/archive/5e2305d577ca00acbba631b05cb1094d172b29f3.tar.gz";
-    sha256 = "sha256-/eLCD/X9kaWJqPR47+fDozEC87Hjmm3i8gJbYmDAD7g=";
+{ pkgs ? import (fetchTarball {
+    # nixos-unstable, 2026-10-28: kubectl 1.37 and talosctl 1.14 match the
+    # cluster (kubectl supports one minor of skew; talosctl should match the
+    # Talos minor). Bump when the cluster moves on.
+    url = "https://github.com/NixOS/nixpkgs/archive/31ecbaca1bdefa45dffc409f0250bd8039ea0010.tar.gz";
+    sha256 = "sha256-dhoW6VgFWlaodSY5jrBn+CF2FLmaUvDVgM7+C7T2+NM=";
   }) {}
 }:
 pkgs.mkShell {
@@ -13,7 +13,7 @@ pkgs.mkShell {
     kubectl
     sops
     fluxcd
-    talosPkgs.talosctl
+    talosctl
     sshpass
     pre-commit
     (python3.withPackages (ps: [ ps.pyyaml ]))
