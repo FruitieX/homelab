@@ -7,12 +7,15 @@ metadata:
 spec:
   kubernetes:
     # renovate: datasource=docker depName=ghcr.io/siderolabs/kubelet
-    version: v1.36.6
+    version: v1.37.2
   maintenance:
     windows:
       - start: "0 2 * * *"
         duration: 3h
         timezone: Europe/Helsinki
+      # TEMPORARY: rollout now; remove once it completes.
+      - start: "* * * * *"
+        duration: 1h
   healthChecks:
     - apiVersion: v1
       kind: Node
