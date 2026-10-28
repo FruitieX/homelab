@@ -33,7 +33,12 @@ I make use of the following pieces of software and infrastructure:
   - `git push` automatically reconciles cluster to match new configuration
   - Rollbacks normally amount to running `git revert`
 - Discord notifications on reconciliation errors
-- Auto updates with Renovate
+- Auto updates with Renovate ([renovate.json](/renovate.json)): patch, minor and
+  digest updates automerge after a 3-day wait once the
+  [validate](/.github/workflows/validate.yaml) check passes; majors, Flux and
+  auth/ingress/database control planes stay as PRs. The check renders every
+  Flux Kustomization path and runs kubeconform
+  (`nix-shell --run scripts/validate-manifests.sh`)
 - Safely commit secrets to git thanks to Mozilla SOPS
 - In case of emergency, redeployment of the entire cluster (including OS
   installations, assuming configuration is already adapted to environment) takes < 30 min

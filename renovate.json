@@ -1,30 +1,85 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
-    "config:base",
-    ":automergeDigest",
+    "config:recommended",
+    ":dependencyDashboard",
     ":semanticCommits",
     ":prHourlyLimitNone",
     ":prConcurrentLimitNone"
   ],
   "kubernetes": {
-    "fileMatch": [
-      "\\.yaml$"
+    "managerFilePatterns": [
+      "/\\.yaml$/"
     ]
   },
-  "docker": {
-    "pinDigests": true
-  },
+  "dependencyDashboardApproval": false,
   "packageRules": [
+    {
+      "description": "Pin container images to digests",
+      "matchCategories": [
+        "docker"
+      ],
+      "pinDigests": true
+    },
     {
       "description": "Ignore self-hosted GHCR images (managed by cross-repo dispatch)",
       "matchDatasources": [
         "docker"
       ],
-      "matchPackagePrefixes": [
-        "ghcr.io/fruitiex/"
+      "matchPackageNames": [
+        "ghcr.io/fruitiex/**"
       ],
       "enabled": false
+    },
+    {
+      "description": "Let new releases settle for a few days before proposing them; digests stay quick. Registries without release timestamps are not held forever",
+      "matchUpdateTypes": [
+        "major",
+        "minor",
+        "patch"
+      ],
+      "minimumReleaseAge": "3 days",
+      "minimumReleaseAgeBehaviour": "timestamp-optional"
+    },
+    {
+      "description": "Automerge non-major updates once all status checks (validate workflow) pass; Renovate merges itself, so direct pushes to main stay unrestricted",
+      "matchUpdateTypes": [
+        "minor",
+        "patch",
+        "digest",
+        "pin",
+        "pinDigest"
+      ],
+      "automerge": true,
+      "automergeType": "pr",
+      "platformAutomerge": false
+    },
+    {
+      "description": "Major updates stay as PRs for review",
+      "matchUpdateTypes": [
+        "major"
+      ],
+      "automerge": false
+    },
+    {
+      "description": "Flux upgrades the GitOps engine itself: one grouped PR, reviewed by hand",
+      "matchPackageNames": [
+        "ghcr.io/fluxcd/**",
+        "docker.io/fluxcd/**",
+        "fluxcd/**"
+      ],
+      "groupName": "flux",
+      "automerge": false
+    },
+    {
+      "description": "Auth, ingress and database control planes deserve a glance before rollout",
+      "matchPackageNames": [
+        "ghcr.io/pocket-id/**",
+        "docker.io/envoyproxy/**",
+        "envoyproxy/**",
+        "ghcr.io/cloudnative-pg/cloudnative-pg"
+      ],
+      "automerge": false
     }
   ]
 }

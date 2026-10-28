@@ -18,5 +18,7 @@ pkgs.mkShell {
     pre-commit
     (python3.withPackages (ps: [ ps.pyyaml ]))
     kustomize
+    kubeconform
+    yq-go
   ];
 }
