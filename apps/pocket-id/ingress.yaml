@@ -18,6 +18,20 @@ spec:
   hostnames:
     - id.fruitiex.org
   rules:
+    # Admin API calls with the static key (X-API-Key); admin-api-lan-only
+    # below rejects them from outside the LAN, VPN and cluster.
+    - name: admin-api
+      matches:
+        - path:
+            type: PathPrefix
+            value: /
+          headers:
+            - name: X-API-Key
+              type: RegularExpression
+              value: ".*"
+      backendRefs:
+        - name: pocket-id
+          port: 1411
     - matches:
         - path:
             type: PathPrefix
@@ -25,3 +39,25 @@ spec:
       backendRefs:
         - name: pocket-id
           port: 1411
+---
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: SecurityPolicy
+metadata:
+  name: admin-api-lan-only
+spec:
+  targetRefs:
+    - group: gateway.networking.k8s.io
+      kind: HTTPRoute
+      name: pocket-id
+      sectionName: admin-api
+  authorization:
+    defaultAction: Deny
+    rules:
+      - name: lan-vpn-cluster
+        action: Allow
+        principal:
+          # Envoy sees the TCP peer address (no X-Forwarded-For trust), so this
+          # can't be spoofed. 192.168.0.0/16 covers the LAN, VLANs and VPN.
+          clientCIDRs:
+            - 192.168.0.0/16
+            - 10.0.0.0/8
