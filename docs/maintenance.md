@@ -102,6 +102,13 @@ kubectl -n system-upgrade get talosupgrade,kubernetesupgrade
 kubectl -n system-upgrade describe talosupgrade cluster     # phase, current node, events
 ```
 
+tuppr runs one plan at a time, but if its controller restarts mid-run (its
+node is drained, for instance) both plans can end up `Pending` with reason
+`WaitingForOtherUpgrade`, each waiting for the other. Suspend one plan
+(`tuppr.home-operations.com/suspend=true`), reset the other
+(`tuppr.home-operations.com/reset`), and unsuspend the first once the other
+completes.
+
 A failed run stops until you act: fix the cause, then
 `kubectl -n system-upgrade annotate talosupgrade cluster tuppr.home-operations.com/reset="$(date)"`.
 Pause with the `tuppr.home-operations.com/suspend=true` annotation; stop
