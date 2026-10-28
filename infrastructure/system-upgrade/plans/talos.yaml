@@ -8,7 +8,7 @@ metadata:
 spec:
   talos:
     # renovate: datasource=docker depName=ghcr.io/siderolabs/installer
-    version: v1.13.9
+    version: v1.13.12
   policy:
     # Per node, including the drain and coming back Ready.
     timeout: 30m

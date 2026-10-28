@@ -1,7 +1,7 @@
 #!/usr/bin/env sh
 set -eu
 
-TALOS_VERSION=v1.13.9
+TALOS_VERSION=v1.13.12
 TALOS_SCHEMATIC=c9078f9419961640c712a8bf2bb9174933dfcf1da383fd8ea2b7dc21493f8bac
 KUBERNETES_VERSION=1.36.3
 # Cluster endpoint: the control planes' shared virtual IP
