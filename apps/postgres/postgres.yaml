@@ -57,7 +57,7 @@ spec:
       priorityClassName: homelab-critical
       containers:
         - name: postgres
-          image: postgres:16@sha256:e2135391c55eb2ecabaaaeef4a9538bb8915c1980953fb6ce41a2d6d3e4b5695
+          image: postgres:18@sha256:979bccfde35445db618c65107d27d08c6c21339d8dc3ad4c830c6633947be0e4
           imagePullPolicy: "IfNotPresent"
           ports:
             - containerPort: 5432
