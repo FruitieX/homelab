@@ -16,16 +16,11 @@ spec:
         gateway: public
       static:
         - https://busmap.fruitiex.org
-        - https://drive.fruitiex.org
         - https://fruitiex.org
         - https://id.fruitiex.org
-        - https://immich.fruitiex.org
-        - https://jellyfin.fruitiex.org
         - https://littlecupboard.fruitiex.org
         - https://lovegren.fi
-        - https://nectarine.fruitiex.org
         - https://oriel.fruitiex.org/healthz
-        - https://photos.fruitiex.org
         - https://rsfinity.fruitiex.org
         - https://spliit.fruitiex.org
 ---
@@ -47,15 +42,20 @@ spec:
         - https://alertmanager.fruitiex.org
         - https://bambuddy.fruitiex.org
         - https://chores.fruitiex.org
+        - https://drive.fruitiex.org
         - https://feedback.fruitiex.org
         - https://ferrotune.fruitiex.org
         - https://grafana.fruitiex.org
         - https://homectl.fruitiex.org
+        - https://immich.fruitiex.org
         - https://influxdb.fruitiex.org
+        - https://jellyfin.fruitiex.org
         - https://kubedash.fruitiex.org
         - https://littlewardrobe.fruitiex.org
         - https://llm-wiki.fruitiex.org
+        - https://nectarine.fruitiex.org
         - https://photoframe.fruitiex.org
+        - https://photos.fruitiex.org
         - https://prometheus.fruitiex.org
         - https://radiator.fruitiex.org
         - https://redoor.fruitiex.org
