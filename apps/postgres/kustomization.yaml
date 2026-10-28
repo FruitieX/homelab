@@ -4,5 +4,6 @@ resources:
   - ./postgres-config.yaml
   - ./postgres.yaml
   - ./postgres-ha-superuser.sops.yaml
+  - ./spliit-role.sops.yaml
   - ./postgres-ha.yaml
   - ./postgres-dump.yaml

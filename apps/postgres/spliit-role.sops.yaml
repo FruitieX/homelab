@@ -1,0 +1,39 @@
+# Login for the spliit role (managed by the postgres-ha Cluster). Password
+# backed up in the Agents vault item "homelab - spliit postgres".
+apiVersion: v1
+kind: Secret
+metadata:
+    name: postgres-spliit
+    namespace: default
+    labels:
+        cnpg.io/reload: "true"
+type: kubernetes.io/basic-auth
+stringData:
+    username: ENC[AES256_GCM,data:dLpwyiJz,iv:iQ19ywamE4udM5R4hL4g4Z6z7lVgTmca8fuVyV65up8=,tag:MP3s781P20jxMWtZdUHpFg==,type:str]
+    password: ENC[AES256_GCM,data:4/rifwD7sJWJLJnvZNvgt4I4F6/SAz4rZnhRapIXgDNThsD3TKPeGw==,iv:08VozbKn/1Q7t9N8JhnJlPJT4ZlTAPkzm+Bs+Muo8JA=,tag:517GA+g/tL0IuZcI6gRA+Q==,type:str]
+sops:
+    lastmodified: "2026-10-28T11:12:24Z"
+    mac: ENC[AES256_GCM,data:bfu29whACybPHgtyvW6ZZwyF5pSTYHE3F1JVVWPd8/TEsVNanN8lO9VGX0xoKemMMqPCAmbI6WI3vomsEeufcLnbGBU4o8o16OTgr7fItpxBAiYDP7ubvuXma3FL2fqLurC6tqzxxVCBdkNJcecypFyv9mUL+3JbSig9FtVLtHc=,iv:J2NAsTFeud/Z/mJvcxhdAJocgki+NlKWPkxz7z12LKI=,tag:mVwE6pEbLaW9okqoQlwiaw==,type:str]
+    pgp:
+        - created_at: "2026-10-28T11:12:24Z"
+          enc: |-
+            -----BEGIN PGP MESSAGE-----
+
+            hQIMA8WjeZLD+fxwAQ//cpYbp8c/E2Xa5rD9pcGOQ24jXRoJSvRfRemJiZsZ+9Zo
+            +waSG1XNh3Y1vrprYF2NhbMxabU5e/hHIIcoNfz7JN7PdS8ae1o4t68Zlvi8erey
+            +Vxmtz/AwJZNiUI/IUrCzybioTf/Haj0cizBS2U7jymnsZn6rP9IoOfUrTNc5y0C
+            +MncF+pPX3oQZY7ztQWU7mPmKJZMRAkxw4i+vLjb0vVWKWwFgq2xkeW6vPQFL4kZ
+            u0S5kgvn9eEmr8vZZEQ/O1PWntQ+W/IeO27qFz2zyRpJjN1xY/N0yGtFKDT8et45
+            te2+W8wxvvAuygKg4c1zY1ct+4GEldhRdIf4JstVeerJvQNyrm2nZ4hLUInYei/c
+            HNCCYe0Dz2G0MOVHQ8IBDpMH2k3mnUi89FbUCBMGZ2qMxHzZgf6SUIpRRFHik1Tt
+            wsojn3OQ97t5EZAVEjtFi2JcyZx7hWqYiMvhYSFT6kuo6Z3niZ4Vw4vA5jrFqjxe
+            RGE7Jx/e7AerQMVq09onuYlkB/snQ2eX4kJmpvl0Rj7gl0lXstVamsv7Snr3M+lp
+            txWuHLFTD7GQJPr4Jw9uwZ71cee/F86C41U/d71FU3Z9bIis4bZyVSaPhtN4BQNf
+            7anwUiw+uI3cqV14q93kDs2y/uV1ZmTNbN8gTMnmzw2855K69f0EFAobLqB0a6nS
+            XgETXRE4rIy5PBf2/pRbkRKpR78NQvqJdzVQGMmYbe76/M7zH7sEhcqXwiPgIdpZ
+            TwsuqojFZUc5DUErXQM+ZSsjisDH2XsYpcWF59RQHjSHCoujMmqIjj78blREwp0=
+            =DZS5
+            -----END PGP MESSAGE-----
+          fp: 3536F7F9345D96C86FB7F9CD21FAFEE575B18815
+    encrypted_regex: ^(data|stringData)$
+    version: 3.11.0

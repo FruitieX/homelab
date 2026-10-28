@@ -1,5 +1,6 @@
-# Private, VPN-only build of busmap (public site: busmap.netlify.app). The
-# gateway injects the feedback-hub widget here; see apps/feedback-hub.
+# Self-hosted build of busmap (also at busmap.netlify.app): a static site on
+# both gateways. The gateway injects the feedback-hub widget; see
+# apps/feedback-hub.
 apiVersion: apps/v1
 kind: Deployment
 metadata:

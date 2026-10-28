@@ -35,6 +35,21 @@ spec:
         login: true
         inRoles:
           - pg_monitor
+      # Spliit is public and unauthenticated, so it gets a role that owns only
+      # its own database instead of the superuser. One-time setup, already
+      # done (CNPG doesn't manage ownership or database ACLs):
+      #   ALTER DATABASE spliit OWNER TO spliit; and, in spliit, ALTER ... OWNER
+      #   TO spliit for every table, sequence and enum type in public;
+      #   REVOKE CONNECT ON DATABASE <every other app database> FROM PUBLIC;
+      - name: spliit
+        ensure: present
+        login: true
+        superuser: false
+        createdb: false
+        createrole: false
+        connectionLimit: 20
+        passwordSecret:
+          name: postgres-spliit
 
   # Quorum commit to the replica while it is connected; writes continue
   # (asynchronously) when it is not, so one instance being down never blocks.
