@@ -39,10 +39,6 @@ spec:
               type: DirectoryOrCreate
           - name: tmp
             emptyDir: {}
-          # TEMPORARY: Promtail's positions, imported on Alloy's first start.
-          - name: promtail-positions
-            hostPath:
-              path: /run/promtail
     alloy:
       enableReporting: false
       storagePath: /var/lib/alloy
@@ -55,9 +51,6 @@ spec:
             mountPath: /var/lib/alloy
           - name: tmp
             mountPath: /tmp
-          - name: promtail-positions
-            mountPath: /run/promtail
-            readOnly: true
       securityContext:
         # Pod log files are root-owned; root needs no capabilities to read them.
         runAsUser: 0
@@ -148,9 +141,6 @@ spec:
           loki.source.file "pods" {
             targets       = discovery.relabel.pods.output
             forward_to    = [loki.process.pods.receiver]
-            // TEMPORARY: continue from Promtail's offsets at cutover (only read
-            // while Alloy's own positions file doesn't exist yet).
-            legacy_positions_file = "/run/promtail/positions.yaml"
             file_match {
               enabled = true
             }
