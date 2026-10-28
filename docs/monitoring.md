@@ -107,12 +107,11 @@ from that database.
   The Flux webhook stays in `notification-provider/discord-webhook-url.yaml`; the other two are "Discord webhook
   home" and "Discord webhook homelab" in the Agents vault.
 - Grafana-managed rules for the InfluxDB data are in `grafana/grafana-alerting.sops.yaml`. They cover the freezer, the fridge, water flowing non-stop for 3 hours (normal use always pauses within
-  about 2 hours), home sensors going silent, and the sauna being ready — the upstairs BLE sensor (device `D83431306571`)
-  evaluated every minute over a 20-minute window: temp has risen at least 2 °C over the window, relative humidity has
-  stayed flat (rise at most 5 pct points), and the current reading is at least 26 °C. Rate-of-change, not absolute
-  levels, is what separates dry sauna heating from shower steam (a shower raises humidity steeply while barely moving
-  the temperature). Only that rule has its own route (`group_wait: 0s`, `repeat_interval: 4h`; Grafana rejects a zero repeat interval and the whole file then fails to load) so the ready message is
-  sent once, without the 12 h repeats of the other alerts.
+  about 2 hours), home sensors going silent, and the sauna being ready: the upstairs bathroom BLE sensor (device `D83431306571`) averaging above 30 °C over
+  15 minutes. In Oct 2026 data, showers never took the bathroom above 25.6 °C, while every sauna session climbed
+  steadily (about 1.5 °C per 10 min) to 34–39 °C and passed 30 °C 30–50 minutes in, about when people started
+  bathing. The alert stays firing for the whole session, so it notifies once; its own route only sets
+  `group_wait: 0s` for an immediate message (a zero `repeat_interval` is invalid and breaks the whole file).
 
 ## Pitfalls
 
