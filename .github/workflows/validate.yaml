@@ -10,7 +10,8 @@ permissions:
   contents: read
 
 concurrency:
-  group: validate-${{ github.ref }}
+  group: validate-${{ github.event_name == 'pull_request' && github.ref || github.sha }}
+  # Superseded PR pushes are cancelled; every main commit keeps its result.
   cancel-in-progress: true
 
 jobs:
