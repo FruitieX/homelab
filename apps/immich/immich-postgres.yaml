@@ -12,6 +12,36 @@ spec:
     requests:
       storage: 10Gi
 ---
+# Data directory for the PostgreSQL 18 cluster (see the Deployment below).
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: immich-postgres18-data
+  namespace: default
+spec:
+  storageClassName: nfs-csi
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+---
+# pg_dumpall of the PostgreSQL 14 cluster taken right before the 14 -> 18
+# upgrade (2026-10-28). Kept apart from /data/backups so Immich's backup
+# rotation never deletes it.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: immich-postgres-upgrade-dump
+  namespace: default
+spec:
+  storageClassName: nfs-csi
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 10Gi
+---
 apiVersion: v1
 kind: Service
 metadata:
