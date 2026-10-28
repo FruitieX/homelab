@@ -2,16 +2,9 @@ apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
   name: oriel-hub
-  annotations:
-    # Use the existing public wildcard DNS instead of publishing gateway LAN IPs.
-    external-dns.alpha.kubernetes.io/exclude: "true"
 spec:
-  # Public: devices away from home log in and find their computers here;
-  # every API call needs a device credential from a passkey login.
+  # Private: devices away from home reach it over the VPN.
   parentRefs:
-    - name: public
-      namespace: envoy-gateway-system
-      sectionName: https
     - name: private
       namespace: envoy-gateway-system
       sectionName: https

@@ -44,11 +44,11 @@ spec:
             - name: ORIEL_HUB_OIDC_ALLOWED_GROUPS
               value: admins
             # Relayed connections: UDP through the oriel-hub-relay service,
-            # forwarded from the router's WAN port 48700.
+            # reachable on the LAN and over the VPN.
             - name: ORIEL_HUB_RELAY_BIND
               value: 0.0.0.0:48700
             - name: ORIEL_HUB_RELAY_PUBLIC
-              value: oriel.fruitiex.org:48700
+              value: 192.168.11.97:48700
             - name: RUST_LOG
               value: oriel_hub=info
           ports:

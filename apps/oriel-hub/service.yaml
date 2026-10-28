@@ -10,7 +10,7 @@ spec:
       port: 8080
       targetPort: http
 ---
-# Relayed oriel connections (UDP); the router forwards WAN UDP 48700 here.
+# Relayed oriel connections (UDP), on the LAN and over the VPN.
 apiVersion: v1
 kind: Service
 metadata:

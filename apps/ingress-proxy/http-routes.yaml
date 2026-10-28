@@ -3,15 +3,13 @@ kind: HTTPRoute
 metadata:
     name: nectarine
     namespace: ingress-proxy
-    annotations:
-        external-dns.alpha.kubernetes.io/exclude: "true"
 spec:
     parentRefs:
-        - name: public
+        - name: private
           namespace: envoy-gateway-system
           sectionName: https
     hostnames:
-        - ENC[AES256_GCM,data:TQp7CGmsO3GmsaajV0YgkLXBjcyXEg==,iv:p0gZK81L4y+HmZ+y1FPdiS/GX5XEWe6kk/rk+opEN+Y=,tag:KQTIM5XsFcGSkqzN3jVmyQ==,type:str]
+        - ENC[AES256_GCM,data:a6KH7EImtzmPWPIhnGLCawQCjVDJ/g==,iv:QaJ6ddEQLzq9wPh2eQZmK9rU906q+2pidkcfKycvWU4=,tag:IovT6wtCYRuDRjnEkYzXAw==,type:str]
     rules:
         - matches:
             - path:
@@ -22,46 +20,44 @@ spec:
               kind: Backend
               name: nectarine-5000
 sops:
-    encrypted_regex: ^(hosts?|hostnames?)$
-    lastmodified: "2026-08-29T13:22:04Z"
-    mac: ENC[AES256_GCM,data:YTeRiqIH7e2F+bCVw57tNcKIk/WhT7RDiv+rQq2WQjPh1mvW32D4tQQibrr2Hzlz1EAVWzqy+zDn4IGhn6+giM14TszqvDiX+VxzDpWc4/gkwFt5EDPNUSDlus8YwXH8LmjFrjrjDu13TzFPVoT5uiy/mJsMG/+3AohK5B12E2U=,iv:HPFt2ZqBwr52tFh7c5kXsgY1fYyg3wnoAK0anwRyshQ=,tag:vpKNq3iBPm8HwPlhsHWxZA==,type:str]
+    lastmodified: "2026-10-28T10:53:16Z"
+    mac: ENC[AES256_GCM,data:nHBHZOgkgitRkTKcutdbtO+YwUZDBjuIh62eittoZcYbxfc2H8VlfeNlWD/ubfeFrBzBa36zxb0Z9bgxAHQ6LcWrxzOErMWTdumrPFYvrmMSKIQEtZ+oS3RVREABnO/pdGSiEqBv0mG1Y4ECYshaSMQs5m21lhkoCoh9T1dcsMo=,iv:Wuouq3LmYaNLL2z/29HBsWt7BgW9bxMGBdmqarAG9s0=,tag:oJfQpjo+UXy1FAFPY2Bwuw==,type:str]
     pgp:
-        - created_at: "2026-08-29T13:22:04Z"
+        - created_at: "2026-10-28T10:53:16Z"
           enc: |-
             -----BEGIN PGP MESSAGE-----
 
-            hQIMA8WjeZLD+fxwAQ/+KwQMsloOnJckFLnLtRZu7t/gHXMfPKfLD4XhatZTL7ki
-            60ukeE8tyDW6fM+b4cR6SbZB2B88yh1+qavwbvMbXHxF7VMzJ8eEyx0YQe2D733L
-            0PiwtA4fY5JubDeG+UzIyiZOxJGyfdp0mzWooRbvf8/M/ljqEJck8vhzehNIxu77
-            UGgz40ipfcZXkXQ8eD5vPC1C9eK3943X9jiW+U/CexsMJYp30/nr8wY/5/6omUlG
-            9duuW3nMNROuIVCUpK2wMIyou5IBXsF1RvHi9ZjOCELLY2iGTmalLjEkk3qHszRQ
-            c6tVMaUOVZsclurczUip8CR/OP10vG3kaWUvdFtoZZGTKEEbnJnbtIps26vCVMok
-            Z4daCx0Ho/6TshWSqIq2QeatUS9xyH93frHvbrrfTy/UMdvdQiK1svJ8noKxCTKX
-            aNYvFkwrz4Gp8lzytPmHJH1L8UPlDPnnMNpGm6BeC4PKVJQaKGCy+nvQ2Si7VQUd
-            7Bl6PkaRY1YZTvKdVsRQayqTSLFeuFyTCJmbO0EL7M6rzBLVJiA+ET0kLWQQ8AvU
-            08Z89T7j9qnzlOu3B/SwrejhaPCwsJuqr+Pw2oM/9vL9ILlO9JAfe5P/+PxHWeAG
-            PKOl8+fZQ2QMoz+IQe0ZaAmpuGtB7z7w8oJ6abb3v0tRl5L0190aorLbtWjzMNrS
-            XgEjYhpGEvg1pGEq/YhBpyHL1rDJhL/fmQ5eXCEuzn9KPr7xr0ZdHF+4HrrZ2AAn
-            jgcxTfFC9cNBcPX0AvOXciNFAr4PwBcAszEA2bed6Hl7OTqJlmiDF9AMcB1hSlw=
-            =cMGA
+            hQIMA8WjeZLD+fxwAQ/+JVayEx20YL/98dUuEkYWLzVFLqlVelhZRpfdDJ48ltvG
+            4f99elTWPPk5KGMZJdxZx+aC7DkUp7VKASqelF+CmEZ/mySiVMwRupa6Ca4REWf7
+            Yo4WtYyJhB5eKd6SOP+gu8HNiPsw6MEGZle1VEhSVvbPBCUnrktKsZ+DHp7n40Ww
+            KV1kl1yGCFssXNg0v3QyoLAhxcqSazmb+0lBbSZdw9PUApIKynynweAeuC9poCYY
+            TNynPm9MgxzOunB4CrAGMkvUMDVN0m+kWoCZw5FkZCuCpKQQin0KxwobPXV3Eu3d
+            XaBnQGoLa3cusUA1MMFu5w0SUwf9natyYhrbLMrZHY4zj5I20SQRdxnl9zBFYT5X
+            pi/LF9zxHFZ0dxUEeyg7Cp9B2JNVStYKqkRCOzjv2gfk2zgCww4rU9EbImOraAJX
+            hrc35WeEabrQL//vaPMl2gB9NDzlO0QmfEi6ydOE7nZXdzf3rIk6pIKlAWQBg1vR
+            F5/2ckNnedwcWpPcKEijmk/5H7T5uD6egHbJ/6tpNaVaKBpga9CMozeq8kTdUow4
+            lBc8Ca34P9fdDIk1fp4FJ6yjmIEsl/KdIwMSQ8XFQuQnWT0AVqy5QUcYeBdbPFS3
+            Q1WQrUJo5ToScGveJEfHoK4zWZyqT1GT9YCi7Badv54LOnXVtz+/KxmsdEoj8aXS
+            XgHPgK5F7DIppkWxaFPYy42npX2FU8GCEGo0k8J2a14OjEE1EHzGmmxwIcbaiu+4
+            bzWBVlZOoepX+ZnqheAIm5FGGc2JzAbj5N3GI98ecJstWD8Z6zz2u6Da/gJsh4M=
+            =yBhY
             -----END PGP MESSAGE-----
           fp: 3536F7F9345D96C86FB7F9CD21FAFEE575B18815
-    version: 3.13.3
+    encrypted_regex: ^(hosts?|hostnames?)$
+    version: 3.11.0
 ---
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
     name: drive-primary
     namespace: ingress-proxy
-    annotations:
-        external-dns.alpha.kubernetes.io/exclude: "true"
 spec:
     parentRefs:
-        - name: public
+        - name: private
           namespace: envoy-gateway-system
           sectionName: https
     hostnames:
-        - ENC[AES256_GCM,data:xiJwGW8ufz7QNfiKWQns+u5C,iv:ejCdU8C/q0hI8b9fKE/LFsXpfbPtzP9BtHBx933i86E=,tag:BiNO0aRrZe1N0fxBuOKO7Q==,type:str]
+        - ENC[AES256_GCM,data:cve+6nSssxIZqiNPZFFg/6f0,iv:WDVRpA5WN/NaJCTB5Fr+iWvRJFn/growiI+fCiQ7PNo=,tag:lNxpMpnG/gZn5irIHDPoKg==,type:str]
     rules:
         - matches:
             - path:
@@ -72,46 +68,44 @@ spec:
               kind: Backend
               name: nectarine-10002
 sops:
-    encrypted_regex: ^(hosts?|hostnames?)$
-    lastmodified: "2026-08-29T13:22:04Z"
-    mac: ENC[AES256_GCM,data:YTeRiqIH7e2F+bCVw57tNcKIk/WhT7RDiv+rQq2WQjPh1mvW32D4tQQibrr2Hzlz1EAVWzqy+zDn4IGhn6+giM14TszqvDiX+VxzDpWc4/gkwFt5EDPNUSDlus8YwXH8LmjFrjrjDu13TzFPVoT5uiy/mJsMG/+3AohK5B12E2U=,iv:HPFt2ZqBwr52tFh7c5kXsgY1fYyg3wnoAK0anwRyshQ=,tag:vpKNq3iBPm8HwPlhsHWxZA==,type:str]
+    lastmodified: "2026-10-28T10:53:16Z"
+    mac: ENC[AES256_GCM,data:nHBHZOgkgitRkTKcutdbtO+YwUZDBjuIh62eittoZcYbxfc2H8VlfeNlWD/ubfeFrBzBa36zxb0Z9bgxAHQ6LcWrxzOErMWTdumrPFYvrmMSKIQEtZ+oS3RVREABnO/pdGSiEqBv0mG1Y4ECYshaSMQs5m21lhkoCoh9T1dcsMo=,iv:Wuouq3LmYaNLL2z/29HBsWt7BgW9bxMGBdmqarAG9s0=,tag:oJfQpjo+UXy1FAFPY2Bwuw==,type:str]
     pgp:
-        - created_at: "2026-08-29T13:22:04Z"
+        - created_at: "2026-10-28T10:53:16Z"
           enc: |-
             -----BEGIN PGP MESSAGE-----
 
-            hQIMA8WjeZLD+fxwAQ/+KwQMsloOnJckFLnLtRZu7t/gHXMfPKfLD4XhatZTL7ki
-            60ukeE8tyDW6fM+b4cR6SbZB2B88yh1+qavwbvMbXHxF7VMzJ8eEyx0YQe2D733L
-            0PiwtA4fY5JubDeG+UzIyiZOxJGyfdp0mzWooRbvf8/M/ljqEJck8vhzehNIxu77
-            UGgz40ipfcZXkXQ8eD5vPC1C9eK3943X9jiW+U/CexsMJYp30/nr8wY/5/6omUlG
-            9duuW3nMNROuIVCUpK2wMIyou5IBXsF1RvHi9ZjOCELLY2iGTmalLjEkk3qHszRQ
-            c6tVMaUOVZsclurczUip8CR/OP10vG3kaWUvdFtoZZGTKEEbnJnbtIps26vCVMok
-            Z4daCx0Ho/6TshWSqIq2QeatUS9xyH93frHvbrrfTy/UMdvdQiK1svJ8noKxCTKX
-            aNYvFkwrz4Gp8lzytPmHJH1L8UPlDPnnMNpGm6BeC4PKVJQaKGCy+nvQ2Si7VQUd
-            7Bl6PkaRY1YZTvKdVsRQayqTSLFeuFyTCJmbO0EL7M6rzBLVJiA+ET0kLWQQ8AvU
-            08Z89T7j9qnzlOu3B/SwrejhaPCwsJuqr+Pw2oM/9vL9ILlO9JAfe5P/+PxHWeAG
-            PKOl8+fZQ2QMoz+IQe0ZaAmpuGtB7z7w8oJ6abb3v0tRl5L0190aorLbtWjzMNrS
-            XgEjYhpGEvg1pGEq/YhBpyHL1rDJhL/fmQ5eXCEuzn9KPr7xr0ZdHF+4HrrZ2AAn
-            jgcxTfFC9cNBcPX0AvOXciNFAr4PwBcAszEA2bed6Hl7OTqJlmiDF9AMcB1hSlw=
-            =cMGA
+            hQIMA8WjeZLD+fxwAQ/+JVayEx20YL/98dUuEkYWLzVFLqlVelhZRpfdDJ48ltvG
+            4f99elTWPPk5KGMZJdxZx+aC7DkUp7VKASqelF+CmEZ/mySiVMwRupa6Ca4REWf7
+            Yo4WtYyJhB5eKd6SOP+gu8HNiPsw6MEGZle1VEhSVvbPBCUnrktKsZ+DHp7n40Ww
+            KV1kl1yGCFssXNg0v3QyoLAhxcqSazmb+0lBbSZdw9PUApIKynynweAeuC9poCYY
+            TNynPm9MgxzOunB4CrAGMkvUMDVN0m+kWoCZw5FkZCuCpKQQin0KxwobPXV3Eu3d
+            XaBnQGoLa3cusUA1MMFu5w0SUwf9natyYhrbLMrZHY4zj5I20SQRdxnl9zBFYT5X
+            pi/LF9zxHFZ0dxUEeyg7Cp9B2JNVStYKqkRCOzjv2gfk2zgCww4rU9EbImOraAJX
+            hrc35WeEabrQL//vaPMl2gB9NDzlO0QmfEi6ydOE7nZXdzf3rIk6pIKlAWQBg1vR
+            F5/2ckNnedwcWpPcKEijmk/5H7T5uD6egHbJ/6tpNaVaKBpga9CMozeq8kTdUow4
+            lBc8Ca34P9fdDIk1fp4FJ6yjmIEsl/KdIwMSQ8XFQuQnWT0AVqy5QUcYeBdbPFS3
+            Q1WQrUJo5ToScGveJEfHoK4zWZyqT1GT9YCi7Badv54LOnXVtz+/KxmsdEoj8aXS
+            XgHPgK5F7DIppkWxaFPYy42npX2FU8GCEGo0k8J2a14OjEE1EHzGmmxwIcbaiu+4
+            bzWBVlZOoepX+ZnqheAIm5FGGc2JzAbj5N3GI98ecJstWD8Z6zz2u6Da/gJsh4M=
+            =yBhY
             -----END PGP MESSAGE-----
           fp: 3536F7F9345D96C86FB7F9CD21FAFEE575B18815
-    version: 3.13.3
+    encrypted_regex: ^(hosts?|hostnames?)$
+    version: 3.11.0
 ---
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
     name: photos-primary
     namespace: ingress-proxy
-    annotations:
-        external-dns.alpha.kubernetes.io/exclude: "true"
 spec:
     parentRefs:
-        - name: public
+        - name: private
           namespace: envoy-gateway-system
           sectionName: https
     hostnames:
-        - ENC[AES256_GCM,data:eH0bIJ/4/ZPrXbVv+2uJll0hfw==,iv:JUKljRrGW5TO+nr93V1WF4KeOW0lYsXeWJ1lls1CYgI=,tag:qB4kMUAgyPcB523sieOpyw==,type:str]
+        - ENC[AES256_GCM,data:/Tp8+yWWbtdaAuBeVLZt0AXRfg==,iv:2qTkq+XHypRZHGnotdZvVeGa+mW7NBE7taSEyYfidSI=,tag:7ZKn6l5lX63R25FGXRytaA==,type:str]
     rules:
         - matches:
             - path:
@@ -122,46 +116,44 @@ spec:
               kind: Backend
               name: nectarine-5081
 sops:
-    encrypted_regex: ^(hosts?|hostnames?)$
-    lastmodified: "2026-08-29T13:22:04Z"
-    mac: ENC[AES256_GCM,data:YTeRiqIH7e2F+bCVw57tNcKIk/WhT7RDiv+rQq2WQjPh1mvW32D4tQQibrr2Hzlz1EAVWzqy+zDn4IGhn6+giM14TszqvDiX+VxzDpWc4/gkwFt5EDPNUSDlus8YwXH8LmjFrjrjDu13TzFPVoT5uiy/mJsMG/+3AohK5B12E2U=,iv:HPFt2ZqBwr52tFh7c5kXsgY1fYyg3wnoAK0anwRyshQ=,tag:vpKNq3iBPm8HwPlhsHWxZA==,type:str]
+    lastmodified: "2026-10-28T10:53:16Z"
+    mac: ENC[AES256_GCM,data:nHBHZOgkgitRkTKcutdbtO+YwUZDBjuIh62eittoZcYbxfc2H8VlfeNlWD/ubfeFrBzBa36zxb0Z9bgxAHQ6LcWrxzOErMWTdumrPFYvrmMSKIQEtZ+oS3RVREABnO/pdGSiEqBv0mG1Y4ECYshaSMQs5m21lhkoCoh9T1dcsMo=,iv:Wuouq3LmYaNLL2z/29HBsWt7BgW9bxMGBdmqarAG9s0=,tag:oJfQpjo+UXy1FAFPY2Bwuw==,type:str]
     pgp:
-        - created_at: "2026-08-29T13:22:04Z"
+        - created_at: "2026-10-28T10:53:16Z"
           enc: |-
             -----BEGIN PGP MESSAGE-----
 
-            hQIMA8WjeZLD+fxwAQ/+KwQMsloOnJckFLnLtRZu7t/gHXMfPKfLD4XhatZTL7ki
-            60ukeE8tyDW6fM+b4cR6SbZB2B88yh1+qavwbvMbXHxF7VMzJ8eEyx0YQe2D733L
-            0PiwtA4fY5JubDeG+UzIyiZOxJGyfdp0mzWooRbvf8/M/ljqEJck8vhzehNIxu77
-            UGgz40ipfcZXkXQ8eD5vPC1C9eK3943X9jiW+U/CexsMJYp30/nr8wY/5/6omUlG
-            9duuW3nMNROuIVCUpK2wMIyou5IBXsF1RvHi9ZjOCELLY2iGTmalLjEkk3qHszRQ
-            c6tVMaUOVZsclurczUip8CR/OP10vG3kaWUvdFtoZZGTKEEbnJnbtIps26vCVMok
-            Z4daCx0Ho/6TshWSqIq2QeatUS9xyH93frHvbrrfTy/UMdvdQiK1svJ8noKxCTKX
-            aNYvFkwrz4Gp8lzytPmHJH1L8UPlDPnnMNpGm6BeC4PKVJQaKGCy+nvQ2Si7VQUd
-            7Bl6PkaRY1YZTvKdVsRQayqTSLFeuFyTCJmbO0EL7M6rzBLVJiA+ET0kLWQQ8AvU
-            08Z89T7j9qnzlOu3B/SwrejhaPCwsJuqr+Pw2oM/9vL9ILlO9JAfe5P/+PxHWeAG
-            PKOl8+fZQ2QMoz+IQe0ZaAmpuGtB7z7w8oJ6abb3v0tRl5L0190aorLbtWjzMNrS
-            XgEjYhpGEvg1pGEq/YhBpyHL1rDJhL/fmQ5eXCEuzn9KPr7xr0ZdHF+4HrrZ2AAn
-            jgcxTfFC9cNBcPX0AvOXciNFAr4PwBcAszEA2bed6Hl7OTqJlmiDF9AMcB1hSlw=
-            =cMGA
+            hQIMA8WjeZLD+fxwAQ/+JVayEx20YL/98dUuEkYWLzVFLqlVelhZRpfdDJ48ltvG
+            4f99elTWPPk5KGMZJdxZx+aC7DkUp7VKASqelF+CmEZ/mySiVMwRupa6Ca4REWf7
+            Yo4WtYyJhB5eKd6SOP+gu8HNiPsw6MEGZle1VEhSVvbPBCUnrktKsZ+DHp7n40Ww
+            KV1kl1yGCFssXNg0v3QyoLAhxcqSazmb+0lBbSZdw9PUApIKynynweAeuC9poCYY
+            TNynPm9MgxzOunB4CrAGMkvUMDVN0m+kWoCZw5FkZCuCpKQQin0KxwobPXV3Eu3d
+            XaBnQGoLa3cusUA1MMFu5w0SUwf9natyYhrbLMrZHY4zj5I20SQRdxnl9zBFYT5X
+            pi/LF9zxHFZ0dxUEeyg7Cp9B2JNVStYKqkRCOzjv2gfk2zgCww4rU9EbImOraAJX
+            hrc35WeEabrQL//vaPMl2gB9NDzlO0QmfEi6ydOE7nZXdzf3rIk6pIKlAWQBg1vR
+            F5/2ckNnedwcWpPcKEijmk/5H7T5uD6egHbJ/6tpNaVaKBpga9CMozeq8kTdUow4
+            lBc8Ca34P9fdDIk1fp4FJ6yjmIEsl/KdIwMSQ8XFQuQnWT0AVqy5QUcYeBdbPFS3
+            Q1WQrUJo5ToScGveJEfHoK4zWZyqT1GT9YCi7Badv54LOnXVtz+/KxmsdEoj8aXS
+            XgHPgK5F7DIppkWxaFPYy42npX2FU8GCEGo0k8J2a14OjEE1EHzGmmxwIcbaiu+4
+            bzWBVlZOoepX+ZnqheAIm5FGGc2JzAbj5N3GI98ecJstWD8Z6zz2u6Da/gJsh4M=
+            =yBhY
             -----END PGP MESSAGE-----
           fp: 3536F7F9345D96C86FB7F9CD21FAFEE575B18815
-    version: 3.13.3
+    encrypted_regex: ^(hosts?|hostnames?)$
+    version: 3.11.0
 ---
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
     name: drive-secondary
     namespace: ingress-proxy
-    annotations:
-        external-dns.alpha.kubernetes.io/exclude: "true"
 spec:
     parentRefs:
-        - name: public
+        - name: private
           namespace: envoy-gateway-system
           sectionName: https
     hostnames:
-        - ENC[AES256_GCM,data:WR1HXwsc48rylBzk0PW3WmI=,iv:PeZI2pokglx14g7EYq5n+wQGPD1JK/K2r6O2VGeq1Zw=,tag:fsoO9INvrWvj0XZj2uSC9A==,type:str]
+        - ENC[AES256_GCM,data:bIESRLNDZ5dWSzDkHIDVVOE=,iv:j3DTUmn8iTRnZfVa6XFKR9eG+EJa/+YP8TGqKSa+cmQ=,tag:BewE81m/tV8NSH946rpkcA==,type:str]
     rules:
         - matches:
             - path:
@@ -172,46 +164,44 @@ spec:
               kind: Backend
               name: nectarine-10002
 sops:
-    encrypted_regex: ^(hosts?|hostnames?)$
-    lastmodified: "2026-08-29T13:22:04Z"
-    mac: ENC[AES256_GCM,data:YTeRiqIH7e2F+bCVw57tNcKIk/WhT7RDiv+rQq2WQjPh1mvW32D4tQQibrr2Hzlz1EAVWzqy+zDn4IGhn6+giM14TszqvDiX+VxzDpWc4/gkwFt5EDPNUSDlus8YwXH8LmjFrjrjDu13TzFPVoT5uiy/mJsMG/+3AohK5B12E2U=,iv:HPFt2ZqBwr52tFh7c5kXsgY1fYyg3wnoAK0anwRyshQ=,tag:vpKNq3iBPm8HwPlhsHWxZA==,type:str]
+    lastmodified: "2026-10-28T10:53:16Z"
+    mac: ENC[AES256_GCM,data:nHBHZOgkgitRkTKcutdbtO+YwUZDBjuIh62eittoZcYbxfc2H8VlfeNlWD/ubfeFrBzBa36zxb0Z9bgxAHQ6LcWrxzOErMWTdumrPFYvrmMSKIQEtZ+oS3RVREABnO/pdGSiEqBv0mG1Y4ECYshaSMQs5m21lhkoCoh9T1dcsMo=,iv:Wuouq3LmYaNLL2z/29HBsWt7BgW9bxMGBdmqarAG9s0=,tag:oJfQpjo+UXy1FAFPY2Bwuw==,type:str]
     pgp:
-        - created_at: "2026-08-29T13:22:04Z"
+        - created_at: "2026-10-28T10:53:16Z"
           enc: |-
             -----BEGIN PGP MESSAGE-----
 
-            hQIMA8WjeZLD+fxwAQ/+KwQMsloOnJckFLnLtRZu7t/gHXMfPKfLD4XhatZTL7ki
-            60ukeE8tyDW6fM+b4cR6SbZB2B88yh1+qavwbvMbXHxF7VMzJ8eEyx0YQe2D733L
-            0PiwtA4fY5JubDeG+UzIyiZOxJGyfdp0mzWooRbvf8/M/ljqEJck8vhzehNIxu77
-            UGgz40ipfcZXkXQ8eD5vPC1C9eK3943X9jiW+U/CexsMJYp30/nr8wY/5/6omUlG
-            9duuW3nMNROuIVCUpK2wMIyou5IBXsF1RvHi9ZjOCELLY2iGTmalLjEkk3qHszRQ
-            c6tVMaUOVZsclurczUip8CR/OP10vG3kaWUvdFtoZZGTKEEbnJnbtIps26vCVMok
-            Z4daCx0Ho/6TshWSqIq2QeatUS9xyH93frHvbrrfTy/UMdvdQiK1svJ8noKxCTKX
-            aNYvFkwrz4Gp8lzytPmHJH1L8UPlDPnnMNpGm6BeC4PKVJQaKGCy+nvQ2Si7VQUd
-            7Bl6PkaRY1YZTvKdVsRQayqTSLFeuFyTCJmbO0EL7M6rzBLVJiA+ET0kLWQQ8AvU
-            08Z89T7j9qnzlOu3B/SwrejhaPCwsJuqr+Pw2oM/9vL9ILlO9JAfe5P/+PxHWeAG
-            PKOl8+fZQ2QMoz+IQe0ZaAmpuGtB7z7w8oJ6abb3v0tRl5L0190aorLbtWjzMNrS
-            XgEjYhpGEvg1pGEq/YhBpyHL1rDJhL/fmQ5eXCEuzn9KPr7xr0ZdHF+4HrrZ2AAn
-            jgcxTfFC9cNBcPX0AvOXciNFAr4PwBcAszEA2bed6Hl7OTqJlmiDF9AMcB1hSlw=
-            =cMGA
+            hQIMA8WjeZLD+fxwAQ/+JVayEx20YL/98dUuEkYWLzVFLqlVelhZRpfdDJ48ltvG
+            4f99elTWPPk5KGMZJdxZx+aC7DkUp7VKASqelF+CmEZ/mySiVMwRupa6Ca4REWf7
+            Yo4WtYyJhB5eKd6SOP+gu8HNiPsw6MEGZle1VEhSVvbPBCUnrktKsZ+DHp7n40Ww
+            KV1kl1yGCFssXNg0v3QyoLAhxcqSazmb+0lBbSZdw9PUApIKynynweAeuC9poCYY
+            TNynPm9MgxzOunB4CrAGMkvUMDVN0m+kWoCZw5FkZCuCpKQQin0KxwobPXV3Eu3d
+            XaBnQGoLa3cusUA1MMFu5w0SUwf9natyYhrbLMrZHY4zj5I20SQRdxnl9zBFYT5X
+            pi/LF9zxHFZ0dxUEeyg7Cp9B2JNVStYKqkRCOzjv2gfk2zgCww4rU9EbImOraAJX
+            hrc35WeEabrQL//vaPMl2gB9NDzlO0QmfEi6ydOE7nZXdzf3rIk6pIKlAWQBg1vR
+            F5/2ckNnedwcWpPcKEijmk/5H7T5uD6egHbJ/6tpNaVaKBpga9CMozeq8kTdUow4
+            lBc8Ca34P9fdDIk1fp4FJ6yjmIEsl/KdIwMSQ8XFQuQnWT0AVqy5QUcYeBdbPFS3
+            Q1WQrUJo5ToScGveJEfHoK4zWZyqT1GT9YCi7Badv54LOnXVtz+/KxmsdEoj8aXS
+            XgHPgK5F7DIppkWxaFPYy42npX2FU8GCEGo0k8J2a14OjEE1EHzGmmxwIcbaiu+4
+            bzWBVlZOoepX+ZnqheAIm5FGGc2JzAbj5N3GI98ecJstWD8Z6zz2u6Da/gJsh4M=
+            =yBhY
             -----END PGP MESSAGE-----
           fp: 3536F7F9345D96C86FB7F9CD21FAFEE575B18815
-    version: 3.13.3
+    encrypted_regex: ^(hosts?|hostnames?)$
+    version: 3.11.0
 ---
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
     name: photos-secondary
     namespace: ingress-proxy
-    annotations:
-        external-dns.alpha.kubernetes.io/exclude: "true"
 spec:
     parentRefs:
-        - name: public
+        - name: private
           namespace: envoy-gateway-system
           sectionName: https
     hostnames:
-        - ENC[AES256_GCM,data:ZHjvtwNxoYhMjV3CMl1Qbsnv,iv:nZggSQrkaAg4JFJn5vaKkscw/VKy7iaVqhPi9Y7+uV4=,tag:haRb3/0Lm1yyziihIJV3yw==,type:str]
+        - ENC[AES256_GCM,data:Do0c/lyZ8SOIZMFA1B99cssU,iv:Ada9kI2Jy3bJ50SNxYwRZBhv8aplSBmIQr4y15n6QLM=,tag:j9gT4bNzr1k7hzpr8r0msA==,type:str]
     rules:
         - matches:
             - path:
@@ -222,28 +212,28 @@ spec:
               kind: Backend
               name: nectarine-5081
 sops:
-    encrypted_regex: ^(hosts?|hostnames?)$
-    lastmodified: "2026-08-29T13:22:04Z"
-    mac: ENC[AES256_GCM,data:YTeRiqIH7e2F+bCVw57tNcKIk/WhT7RDiv+rQq2WQjPh1mvW32D4tQQibrr2Hzlz1EAVWzqy+zDn4IGhn6+giM14TszqvDiX+VxzDpWc4/gkwFt5EDPNUSDlus8YwXH8LmjFrjrjDu13TzFPVoT5uiy/mJsMG/+3AohK5B12E2U=,iv:HPFt2ZqBwr52tFh7c5kXsgY1fYyg3wnoAK0anwRyshQ=,tag:vpKNq3iBPm8HwPlhsHWxZA==,type:str]
+    lastmodified: "2026-10-28T10:53:16Z"
+    mac: ENC[AES256_GCM,data:nHBHZOgkgitRkTKcutdbtO+YwUZDBjuIh62eittoZcYbxfc2H8VlfeNlWD/ubfeFrBzBa36zxb0Z9bgxAHQ6LcWrxzOErMWTdumrPFYvrmMSKIQEtZ+oS3RVREABnO/pdGSiEqBv0mG1Y4ECYshaSMQs5m21lhkoCoh9T1dcsMo=,iv:Wuouq3LmYaNLL2z/29HBsWt7BgW9bxMGBdmqarAG9s0=,tag:oJfQpjo+UXy1FAFPY2Bwuw==,type:str]
     pgp:
-        - created_at: "2026-08-29T13:22:04Z"
+        - created_at: "2026-10-28T10:53:16Z"
           enc: |-
             -----BEGIN PGP MESSAGE-----
 
-            hQIMA8WjeZLD+fxwAQ/+KwQMsloOnJckFLnLtRZu7t/gHXMfPKfLD4XhatZTL7ki
-            60ukeE8tyDW6fM+b4cR6SbZB2B88yh1+qavwbvMbXHxF7VMzJ8eEyx0YQe2D733L
-            0PiwtA4fY5JubDeG+UzIyiZOxJGyfdp0mzWooRbvf8/M/ljqEJck8vhzehNIxu77
-            UGgz40ipfcZXkXQ8eD5vPC1C9eK3943X9jiW+U/CexsMJYp30/nr8wY/5/6omUlG
-            9duuW3nMNROuIVCUpK2wMIyou5IBXsF1RvHi9ZjOCELLY2iGTmalLjEkk3qHszRQ
-            c6tVMaUOVZsclurczUip8CR/OP10vG3kaWUvdFtoZZGTKEEbnJnbtIps26vCVMok
-            Z4daCx0Ho/6TshWSqIq2QeatUS9xyH93frHvbrrfTy/UMdvdQiK1svJ8noKxCTKX
-            aNYvFkwrz4Gp8lzytPmHJH1L8UPlDPnnMNpGm6BeC4PKVJQaKGCy+nvQ2Si7VQUd
-            7Bl6PkaRY1YZTvKdVsRQayqTSLFeuFyTCJmbO0EL7M6rzBLVJiA+ET0kLWQQ8AvU
-            08Z89T7j9qnzlOu3B/SwrejhaPCwsJuqr+Pw2oM/9vL9ILlO9JAfe5P/+PxHWeAG
-            PKOl8+fZQ2QMoz+IQe0ZaAmpuGtB7z7w8oJ6abb3v0tRl5L0190aorLbtWjzMNrS
-            XgEjYhpGEvg1pGEq/YhBpyHL1rDJhL/fmQ5eXCEuzn9KPr7xr0ZdHF+4HrrZ2AAn
-            jgcxTfFC9cNBcPX0AvOXciNFAr4PwBcAszEA2bed6Hl7OTqJlmiDF9AMcB1hSlw=
-            =cMGA
+            hQIMA8WjeZLD+fxwAQ/+JVayEx20YL/98dUuEkYWLzVFLqlVelhZRpfdDJ48ltvG
+            4f99elTWPPk5KGMZJdxZx+aC7DkUp7VKASqelF+CmEZ/mySiVMwRupa6Ca4REWf7
+            Yo4WtYyJhB5eKd6SOP+gu8HNiPsw6MEGZle1VEhSVvbPBCUnrktKsZ+DHp7n40Ww
+            KV1kl1yGCFssXNg0v3QyoLAhxcqSazmb+0lBbSZdw9PUApIKynynweAeuC9poCYY
+            TNynPm9MgxzOunB4CrAGMkvUMDVN0m+kWoCZw5FkZCuCpKQQin0KxwobPXV3Eu3d
+            XaBnQGoLa3cusUA1MMFu5w0SUwf9natyYhrbLMrZHY4zj5I20SQRdxnl9zBFYT5X
+            pi/LF9zxHFZ0dxUEeyg7Cp9B2JNVStYKqkRCOzjv2gfk2zgCww4rU9EbImOraAJX
+            hrc35WeEabrQL//vaPMl2gB9NDzlO0QmfEi6ydOE7nZXdzf3rIk6pIKlAWQBg1vR
+            F5/2ckNnedwcWpPcKEijmk/5H7T5uD6egHbJ/6tpNaVaKBpga9CMozeq8kTdUow4
+            lBc8Ca34P9fdDIk1fp4FJ6yjmIEsl/KdIwMSQ8XFQuQnWT0AVqy5QUcYeBdbPFS3
+            Q1WQrUJo5ToScGveJEfHoK4zWZyqT1GT9YCi7Badv54LOnXVtz+/KxmsdEoj8aXS
+            XgHPgK5F7DIppkWxaFPYy42npX2FU8GCEGo0k8J2a14OjEE1EHzGmmxwIcbaiu+4
+            bzWBVlZOoepX+ZnqheAIm5FGGc2JzAbj5N3GI98ecJstWD8Z6zz2u6Da/gJsh4M=
+            =yBhY
             -----END PGP MESSAGE-----
           fp: 3536F7F9345D96C86FB7F9CD21FAFEE575B18815
-    version: 3.13.3
+    encrypted_regex: ^(hosts?|hostnames?)$
+    version: 3.11.0
