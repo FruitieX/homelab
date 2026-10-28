@@ -71,6 +71,11 @@ spec:
         app: fruitiex-org
     spec:
       priorityClassName: homelab-apps
+      # The image's non-root nginx keeps listening on port 80.
+      securityContext:
+        sysctls:
+          - name: net.ipv4.ip_unprivileged_port_start
+            value: "0"
       containers:
         - name: fruitiex-org
           image: ghcr.io/fruitiex/fruitiex.org:main@sha256:6f17c22856aeeb67accb709acfcf8d0c20aca12f0468d76dcace0221abd26113
