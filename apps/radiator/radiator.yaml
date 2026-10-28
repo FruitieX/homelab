@@ -2002,7 +2002,7 @@ spec:
             runAsNonRoot: true
       containers:
         - name: radiator
-          image: radiatorsoftware/radiator-server:nightly@sha256:30a7a571a24e30860f1355579ae7231f3c61916ac0cd21d2c0c5b6735ae53137
+          image: radiatorsoftware/radiator-server:nightly@sha256:ed277470e60ab1672b113a50738655b465bb380ab00254d225fd18224e092bda
           imagePullPolicy: IfNotPresent
           securityContext:
             runAsUser: 1000
