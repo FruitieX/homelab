@@ -115,3 +115,30 @@ Pause with the `tuppr.home-operations.com/suspend=true` annotation; stop
 everything with `kubectl -n system-upgrade scale deploy/tuppr --replicas=0`.
 It needs `kubernetesTalosAPIAccess` for the system-upgrade namespace on the
 control planes (`talos/patches/controlplane.yaml`).
+
+## Proxmox host updates
+
+Each Proxmox host upgrades itself weekly with `homelab-pve-autoupgrade.timer`
+(installed by hand): mango on Monday, mandarin on Tuesday, mulberry on
+Wednesday, around 04:30 Europe/Helsinki, so a bad update reaches one host at a
+time. The service runs `/usr/local/sbin/homelab-pve-autoupgrade`, which does
+`apt-get update`, a non-interactive `apt-get full-upgrade` (keeping changed
+config files) and `autoremove --purge`, from the repos already configured
+(pve-no-subscription and Debian). Full-upgrade is what Proxmox expects: it
+installs new kernel and ZFS packages, which a plain upgrade or
+`unattended-upgrades` would hold back.
+
+```
+systemctl list-timers homelab-pve-autoupgrade.timer
+journalctl -u homelab-pve-autoupgrade.service      # last run; ends with REBOOT REQUIRED if a newer kernel waits
+systemctl start homelab-pve-autoupgrade.service    # run now
+```
+
+Running VMs keep their old QEMU until they are restarted. SSH to the host
+drops for a few seconds when `pve-cluster` restarts, because root's
+`authorized_keys` lives in `/etc/pve`.
+
+Hosts never reboot automatically. A new kernel or ZFS module takes effect on
+the next reboot, which you do by hand: drain the host with
+`scripts/node-maintenance.sh <host>`, reboot it in Proxmox, and let it
+uncordon. All VMs have `onboot` set, so they come back by themselves.
