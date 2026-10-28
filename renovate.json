@@ -90,6 +90,70 @@
         "ghcr.io/cloudnative-pg/cloudnative-pg"
       ],
       "automerge": false
+    },
+    {
+      "description": "Talos: one PR per patch or minor (minors must go one at a time), covering the tuppr plan and regen-configs.sh. Patches automerge and tuppr rolls them out at night; minors wait for review",
+      "matchPackageNames": [
+        "ghcr.io/siderolabs/installer"
+      ],
+      "groupName": "talos",
+      "separateMinorPatch": true
+    },
+    {
+      "description": "Kubernetes: same as Talos",
+      "matchPackageNames": [
+        "ghcr.io/siderolabs/kubelet"
+      ],
+      "groupName": "kubernetes",
+      "separateMinorPatch": true
+    },
+    {
+      "description": "Talos and Kubernetes minor upgrades wait for review",
+      "matchPackageNames": [
+        "ghcr.io/siderolabs/installer",
+        "ghcr.io/siderolabs/kubelet"
+      ],
+      "matchUpdateTypes": [
+        "minor"
+      ],
+      "automerge": false
+    }
+  ],
+  "customManagers": [
+    {
+      "description": "Talos and Kubernetes versions in the tuppr plans (\"# renovate:\" comments)",
+      "customType": "regex",
+      "managerFilePatterns": [
+        "/^infrastructure/system-upgrade/plans/.+\\.yaml$/"
+      ],
+      "matchStrings": [
+        "#\\s*renovate:\\s*datasource=(?<datasource>\\S+)\\s+depName=(?<depName>\\S+)\\s*\\n\\s*version:\\s*(?<currentValue>\\S+)"
+      ]
+    },
+    {
+      "description": "Talos version used by regen-configs.sh for new nodes",
+      "customType": "regex",
+      "managerFilePatterns": [
+        "/^regen-configs\\.sh$/"
+      ],
+      "matchStrings": [
+        "TALOS_VERSION=(?<currentValue>v\\S+)"
+      ],
+      "datasourceTemplate": "docker",
+      "depNameTemplate": "ghcr.io/siderolabs/installer"
+    },
+    {
+      "description": "Kubernetes version used by regen-configs.sh (written without the v)",
+      "customType": "regex",
+      "managerFilePatterns": [
+        "/^regen-configs\\.sh$/"
+      ],
+      "matchStrings": [
+        "KUBERNETES_VERSION=(?<currentValue>\\S+)"
+      ],
+      "datasourceTemplate": "docker",
+      "depNameTemplate": "ghcr.io/siderolabs/kubelet",
+      "extractVersionTemplate": "^v(?<version>.+)$"
     }
   ]
 }

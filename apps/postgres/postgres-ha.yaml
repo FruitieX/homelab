@@ -20,6 +20,10 @@ spec:
   # primary (pod deletion, rolling update) would otherwise wait the default
   # 180 s for them before failing over; switch to a fast shutdown quickly.
   smartShutdownTimeout: 10
+  # No PodDisruptionBudget for the primary: draining its node (tuppr's
+  # unattended upgrades, node-maintenance.sh) evicts it and CNPG fails over
+  # to the replica within seconds, instead of the drain blocking forever.
+  enablePDB: false
 
   # Only maintenance (postgres-dump, operators) uses the superuser.
   enableSuperuserAccess: true

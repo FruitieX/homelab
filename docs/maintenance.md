@@ -51,12 +51,12 @@ The script stops, lists the pods still on the node and leaves the nodes
 cordoned (undo with `--uncordon-only`). Usual causes:
 
 - A PodDisruptionBudget allowing no disruptions on a single-replica workload,
-  e.g. `influxdb/influxdb-influxdb2` (minAvailable 1 with one replica).
   Rerun with `--disable-eviction` to delete such pods anyway, accepting their
   downtime.
-- A CloudNativePG primary (`postgres-ha-primary` PDB): switch over to a
-  replica first (`kubectl cnpg promote` with the cnpg plugin), or accept downtime with
-  `--disable-eviction`.
+- A CloudNativePG primary: postgres-ha has no PodDisruptionBudget
+  (`enablePDB: false`), so a drain evicts it and CNPG fails over to the
+  replica within seconds. Switch over first (`kubectl cnpg promote`) to avoid
+  even that.
 - Bare pods without a controller (one-off debug or job pods): delete them.
 
 ## Rebalancing afterwards
@@ -82,3 +82,29 @@ leave database pods to their owners. Compare hosts with `kubectl top nodes`.
 There is deliberately no descheduler: almost every app runs a single replica,
 so each eviction it made would be a short outage, traded for balance that
 only matters until the next maintenance.
+
+## Unattended Talos and Kubernetes upgrades (tuppr)
+
+[tuppr](https://tuppr.home-operations.com/) (`infrastructure/system-upgrade`)
+upgrades the cluster to the versions in `infrastructure/system-upgrade/plans`:
+`TalosUpgrade cluster` (one node at a time: drain, upgrade, reboot, wait for
+Ready) and `KubernetesUpgrade kubernetes` (no reboots). Runs start only in the
+nightly window (02:00-05:00 Europe/Helsinki) and only while every node is
+Ready and postgres-ha is healthy. Installs from the Image Factory keep their
+schematic; tuppr reads it from each node.
+
+Renovate bumps the plans and `regen-configs.sh` together. Patch releases
+automerge after three days and roll out the next night; minor releases stay
+as PRs, because Talos supports only one minor step at a time.
+
+```
+kubectl -n system-upgrade get talosupgrade,kubernetesupgrade
+kubectl -n system-upgrade describe talosupgrade cluster     # phase, current node, events
+```
+
+A failed run stops until you act: fix the cause, then
+`kubectl -n system-upgrade annotate talosupgrade cluster tuppr.home-operations.com/reset="$(date)"`.
+Pause with the `tuppr.home-operations.com/suspend=true` annotation; stop
+everything with `kubectl -n system-upgrade scale deploy/tuppr --replicas=0`.
+It needs `kubernetesTalosAPIAccess` for the system-upgrade namespace on the
+control planes (`talos/patches/controlplane.yaml`).

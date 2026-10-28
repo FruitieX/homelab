@@ -2,6 +2,16 @@
 # time and moved by Talos when that node goes away. It is the cluster
 # endpoint (see regen-configs.sh) and what kubeconfig points at.
 machine:
+  # tuppr (infrastructure/system-upgrade) upgrades Talos and Kubernetes through
+  # the Talos API from the system-upgrade namespace. Talos allows this on
+  # control planes only; they reach the workers on tuppr's behalf.
+  features:
+    kubernetesTalosAPIAccess:
+      enabled: true
+      allowedRoles:
+        - os:admin
+      allowedKubernetesNamespaces:
+        - system-upgrade
   network:
     interfaces:
       - interface: eth0

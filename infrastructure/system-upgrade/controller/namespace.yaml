@@ -1,0 +1,6 @@
+# Must match machine.features.kubernetesTalosAPIAccess.allowedKubernetesNamespaces
+# in talos/patches/controlplane.yaml.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: system-upgrade
