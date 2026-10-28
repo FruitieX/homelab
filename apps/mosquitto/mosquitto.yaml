@@ -47,7 +47,7 @@ spec:
           type: RuntimeDefault
       containers:
         - name: mosquitto
-          image: eclipse-mosquitto:2.0@sha256:eca7dcecf2498396b5217bc06ffcc2da889d3a8f65fc0761fc5c4c071b3c272a
+          image: eclipse-mosquitto:2.0@sha256:09b62ff32c2e7b64d4b431b9a89236073289b68db273de2b089edeb9b0d92b5c
           command: ["mosquitto"]
           args: ["-c", "/mosquitto/config/mosquitto.conf"]
           ports:
