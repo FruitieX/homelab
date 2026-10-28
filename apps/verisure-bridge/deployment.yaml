@@ -1,6 +1,7 @@
-# Verisure notification bridge (see bridge.py and llm-wiki entities/house-systems):
-# reads the Verisure app's Android notifications from the android-bliss VM over
-# adb and publishes them to MQTT. Read-only: it never sends input to the device.
+# Verisure notification bridge (https://github.com/FruitieX/verisure-bridge, private; see llm-wiki
+# entities/house-systems): reads the Verisure app's Android notifications from the android-bliss VM
+# over adb and publishes them to MQTT. Read-only: it never sends input to the device.
+# CI updates the image digest here on pushes to main.
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
@@ -20,7 +21,6 @@ metadata:
   name: verisure-bridge
   namespace: default
   annotations:
-    configmap.reloader.stakater.com/reload: "verisure-bridge"
     secret.reloader.stakater.com/reload: "verisure-bridge"
 spec:
   replicas: 1
@@ -35,19 +35,30 @@ spec:
         app: verisure-bridge
     spec:
       priorityClassName: homelab-home
+      imagePullSecrets:
+        - name: ghcr-credentials
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        # Group access to the cookie file on NFS (/data)
+        fsGroup: 10001
+        fsGroupChangePolicy: OnRootMismatch
       volumes:
-        - name: script
-          configMap:
-            name: verisure-bridge
+        # adb keeps its key in ~/.android and its server log in /tmp
         - name: home
           emptyDir: {}
+        - name: tmp
+          emptyDir: {}
+        # Verisure login and MFA trust cookies
         - name: data
           persistentVolumeClaim:
             claimName: verisure-bridge-data
       containers:
         - name: bridge
-          image: python:3.13.13-alpine3.23
-          command: ["sh", "-c", "apk add --no-cache -q android-tools mosquitto-clients && exec python -u /app/bridge.py"]
+          image: ghcr.io/fruitiex/verisure-bridge:main@sha256:98ec21610532acb9e29bcc334a52038b1496ecd5912721bb0f3fa99fd9568296
           env:
             - name: HOME
               value: /home/bridge
@@ -59,13 +70,19 @@ spec:
           resources:
             requests:
               cpu: 5m
-              memory: 48Mi
+              memory: 32Mi
             limits:
-              memory: 160Mi
+              memory: 128Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
           volumeMounts:
-            - name: script
-              mountPath: /app
             - name: home
               mountPath: /home/bridge
+            - name: tmp
+              mountPath: /tmp
             - name: data
               mountPath: /data

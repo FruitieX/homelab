@@ -3,11 +3,3 @@ kind: Kustomization
 resources:
   - ./deployment.yaml
   - ./secret.sops.yaml
-configMapGenerator:
-  - name: verisure-bridge
-    namespace: default
-    files:
-      - bridge.py
-      - verisure_api.py
-generatorOptions:
-  disableNameSuffixHash: true
