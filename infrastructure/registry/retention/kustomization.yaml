@@ -1,0 +1,15 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: registry-maintenance
+resources:
+  - namespace.yaml
+  - rbac.yaml
+  - credentials.sops.yaml
+  - cronjob.yaml
+  - alerts.yaml
+  - ../../../nas/zot
+configMapGenerator:
+  - name: zot-protection
+    files:
+      - protect.py
+      - policy.json

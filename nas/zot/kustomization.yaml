@@ -1,0 +1,7 @@
+# Public trust material for Kubernetes registry clients; Zot itself runs on DSM.
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+configMapGenerator:
+  - name: zot-registry-ca
+    files:
+      - ca.crt

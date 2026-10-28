@@ -2,18 +2,93 @@
   "storage": {
     "rootDirectory": "/var/lib/registry",
     "dedupe": true,
-    "gc": false,
+    "gc": true,
     "retention": {
+      "dryRun": true,
+      "delay": "24h",
       "policies": [
+        {
+          "repositories": [
+            "private/**"
+          ],
+          "deleteUntagged": true,
+          "deleteReferrers": true,
+          "keepTags": [
+            {
+              "patterns": [
+                "^retain-[0-9a-f]{64}$"
+              ]
+            },
+            {
+              "patterns": [
+                "^(feature|dev|test|scratch)-.*"
+              ],
+              "pulledWithin": "720h",
+              "pushedWithin": "720h",
+              "mostRecentlyPushedCount": 4
+            },
+            {
+              "patterns": [
+                ".*"
+              ]
+            }
+          ],
+          "keepUntagged": {
+            "pulledWithin": "720h",
+            "pushedWithin": "720h",
+            "mostRecentlyPushedCount": 4
+          }
+        },
+        {
+          "repositories": [
+            "dockerhub/**",
+            "ghcr/**",
+            "quay/**",
+            "k8s/**",
+            "factory/**"
+          ],
+          "deleteUntagged": true,
+          "deleteReferrers": true,
+          "keepTags": [
+            {
+              "patterns": [
+                "^retain-[0-9a-f]{64}$"
+              ]
+            },
+            {
+              "patterns": [
+                ".*"
+              ],
+              "pulledWithin": "2160h",
+              "pushedWithin": "2160h",
+              "mostRecentlyPushedCount": 4
+            }
+          ],
+          "keepUntagged": {
+            "pulledWithin": "2160h",
+            "pushedWithin": "2160h",
+            "mostRecentlyPushedCount": 4
+          }
+        },
         {
           "repositories": [
             "**"
           ],
           "deleteUntagged": false,
-          "deleteReferrers": false
+          "deleteReferrers": false,
+          "keepTags": [
+            {
+              "patterns": [
+                ".*"
+              ]
+            }
+          ]
         }
       ]
-    }
+    },
+    "gcDelay": "24h",
+    "gcInterval": "1h",
+    "gcTimeWindow": "03:00-04:00"
   },
   "http": {
     "address": "0.0.0.0",
@@ -42,6 +117,17 @@
               "actions": [
                 "read"
               ]
+            },
+            {
+              "users": [
+                "retention"
+              ],
+              "actions": [
+                "read",
+                "create",
+                "update",
+                "delete"
+              ]
             }
           ]
         },
@@ -63,6 +149,17 @@
               ],
               "actions": [
                 "read"
+              ]
+            },
+            {
+              "users": [
+                "retention"
+              ],
+              "actions": [
+                "read",
+                "create",
+                "update",
+                "delete"
               ]
             }
           ]

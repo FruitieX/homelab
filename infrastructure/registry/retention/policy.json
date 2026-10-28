@@ -1,0 +1,17 @@
+{
+  "registry": "https://nectarine.internal.fruitiex.org:5050",
+  "rollbackVersions": 3,
+  "mirrors": {
+    "docker.io": "dockerhub",
+    "ghcr.io": "ghcr",
+    "quay.io": "quay",
+    "registry.k8s.io": "k8s",
+    "factory.talos.dev": "factory"
+  },
+  "systemImages": [
+    "ghcr.io/siderolabs/kubelet:v1.36.3",
+    "registry.k8s.io/etcd:v3.6.12",
+    "registry.k8s.io/pause:3.10.1",
+    "ghcr.io/project-zot/zot-linux-amd64:v2.1.22@sha256:46f688dc26315a35a247e1784368829e66a67bf91de94c7d8d1645044fac1d5b"
+  ]
+}

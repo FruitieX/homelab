@@ -1,0 +1,67 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: zot-protection
+spec:
+  # Suspended until the NAS runs the retention config in nas/zot/config.json
+  # (scripts/deploy-zot.py); see nas/zot/README.md.
+  suspend: true
+  schedule: "17 4 * * *"
+  timeZone: Europe/Helsinki
+  concurrencyPolicy: Forbid
+  startingDeadlineSeconds: 3600
+  successfulJobsHistoryLimit: 2
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 2
+      activeDeadlineSeconds: 3600
+      template:
+        spec:
+          serviceAccountName: zot-protection
+          restartPolicy: Never
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000
+            runAsGroup: 1000
+            seccompProfile:
+              type: RuntimeDefault
+          containers:
+            - name: protect
+              image: docker.io/library/python:3.13.13-alpine3.23@sha256:420cd0bf0f3998275875e02ecd5808168cf0843cbb4d3c536432f729247b2acc
+              imagePullPolicy: IfNotPresent
+              command: [python3, -u, /config/protect.py]
+              securityContext:
+                allowPrivilegeEscalation: false
+                readOnlyRootFilesystem: true
+                capabilities:
+                  drop: [ALL]
+              resources:
+                requests:
+                  cpu: 25m
+                  memory: 64Mi
+                limits:
+                  memory: 192Mi
+              volumeMounts:
+                - name: config
+                  mountPath: /config
+                  readOnly: true
+                - name: registry-ca
+                  mountPath: /etc/zot
+                  readOnly: true
+                - name: credentials
+                  mountPath: /credentials
+                  readOnly: true
+          volumes:
+            - name: config
+              configMap:
+                name: zot-protection
+            - name: registry-ca
+              configMap:
+                name: zot-registry-ca
+                items:
+                  - key: ca.crt
+                    path: ca.crt
+            - name: credentials
+              secret:
+                secretName: zot-retention

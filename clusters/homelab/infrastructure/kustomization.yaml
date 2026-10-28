@@ -25,3 +25,4 @@ resources:
   - metrics-server.yaml
   - coredns.yaml
   - system-upgrade.yaml
+  - zot-retention.yaml

@@ -26,6 +26,7 @@ def main():
     nas = item("synology - nectarine - ai-agent")
     registry = item("homelab - zot registry")
     reader = item("homelab - zot node reader")
+    retention = item("homelab - zot retention")
     # Reuse the existing upstream read access. Keep private GHCR images behind
     # registry authentication, just like custom builds.
     secret = json.loads(subprocess.check_output([
@@ -44,7 +45,9 @@ def main():
         "ca.crt": (ROOT / "nas/zot/ca.crt").read_bytes(),
         "secrets/server.crt": (ROOT / "nas/zot/server.crt").read_bytes(),
         "secrets/server.key": registry["server-key"].encode(),
-        "secrets/htpasswd": (registry["htpasswd"] + reader["htpasswd"]).encode(),
+        "secrets/htpasswd": (
+            registry["htpasswd"] + reader["htpasswd"] + retention["htpasswd"]
+        ).encode(),
         "secrets/upstreams.json": json.dumps({
             "ghcr.io": {"username": username, "password": password}
         }).encode(),

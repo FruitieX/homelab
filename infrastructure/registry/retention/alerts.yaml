@@ -1,0 +1,33 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: zot-protection
+spec:
+  groups:
+    - name: homelab.registry
+      rules:
+        - alert: RegistryImageProtectionStale
+          # Not while the CronJob is suspended on purpose.
+          expr: |
+            (
+            (
+              (time() - kube_cronjob_status_last_successful_time{namespace="registry-maintenance",cronjob="zot-protection"} > 129600)
+              and on(namespace, cronjob)
+              (kube_cronjob_status_last_successful_time{namespace="registry-maintenance",cronjob="zot-protection"} > 0)
+            )
+            or
+            (
+              (time() - kube_cronjob_created{namespace="registry-maintenance",cronjob="zot-protection"} > 129600)
+              unless on(namespace, cronjob)
+              (kube_cronjob_status_last_successful_time{namespace="registry-maintenance",cronjob="zot-protection"} > 0)
+            )
+            )
+            unless on(namespace, cronjob)
+            (kube_cronjob_spec_suspend{namespace="registry-maintenance",cronjob="zot-protection"} == 1)
+          for: 30m
+          labels:
+            homelab: "true"
+            severity: warning
+          annotations:
+            summary: "Zot image protection has not succeeded in 36 hours"
+            description: "Existing protection tags remain, but newly deployed images may not be protected beyond retention. Check the zot-protection Jobs in registry-maintenance."
