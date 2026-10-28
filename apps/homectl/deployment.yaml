@@ -81,3 +81,14 @@ spec:
               "-c",
               "until nc -z mqtt 1883; do echo waiting for mqtt broker; sleep 1; done",
             ]
+        # Without its database homectl starts with an empty config and keeps
+        # it until restarted (no lights), e.g. when a node drain moves the
+        # Postgres primary at the same time. Wait for Postgres first.
+        - name: wait-for-postgres
+          image: busybox
+          command:
+            [
+              "sh",
+              "-c",
+              "until nc -z postgres 5432; do echo waiting for postgres; sleep 1; done",
+            ]
