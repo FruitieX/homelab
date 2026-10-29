@@ -155,7 +155,7 @@ At the user's subsequent request, the old storage was retired after confirming t
 
 ## LittleCupboard rebrand — 2026-10-02
 
-Canonical URL: https://littlecupboard.fruitiex.org. The former forkbasket.fruitiex.org hostname stays routed for existing devices to finish synchronizing. Sign in at the new origin using existing accounts and reinstall PWAs from there; site-local pending operations are not transferred across origins.
+Canonical URL: https://littlecupboard.fruitiex.org. The former forkbasket.fruitiex.org hostname was retired on 2026-10-29. Sign in at the new origin using existing accounts and reinstall PWAs from there; site-local pending operations are not transferred across origins.
 
 Deployment, Service, HTTPRoute and container are renamed to littlecupboard; images come from ghcr.io/fruitiex/littlecupboard and the GitHub repository is FruitieX/littlecupboard. Keep the Flux Kustomization name forkbasket so its managed inventory follows the move to apps/littlecupboard without competing reconcilers. The existing encrypted Secret forkbasket-server-env and NFS claim forkbasket-data-nfs stay intact, with data at /volume3/homelab/forkbasket-data-nfs and the same /data/forkbasket.sqlite3. New environment keys take precedence and the server accepts legacy FORKBASKET keys. Before switching the renamed Deployment onto the claim, stop the previous Deployment and wait for its pod to exit; SQLite must have only one server.
 

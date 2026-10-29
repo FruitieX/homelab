@@ -9,7 +9,6 @@ spec:
       sectionName: https
   hostnames:
     - littlecupboard.fruitiex.org
-    - forkbasket.fruitiex.org
   rules:
     - matches:
         - path:

@@ -38,8 +38,6 @@ spec:
           env:
             - name: LITTLECUPBOARD_ORIGIN
               value: https://littlecupboard.fruitiex.org
-            - name: LITTLECUPBOARD_LEGACY_ORIGINS
-              value: https://forkbasket.fruitiex.org
             - name: LITTLECUPBOARD_SQLITE_JOURNAL_MODE
               value: DELETE
             - name: LITTLECUPBOARD_OIDC_ISSUER
