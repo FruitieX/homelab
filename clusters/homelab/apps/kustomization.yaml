@@ -18,6 +18,7 @@ resources:
   - tuya-mqtt.yaml
   - twinkly-mqtt.yaml
   - nordpool-mqtt.yaml
+  - ntfy.yaml
   - verisure-bridge.yaml
   - fruitiex-org.yaml
   - influxdb.yaml

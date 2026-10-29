@@ -1,0 +1,23 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ntfy-config
+data:
+  server.yml: |
+    base-url: https://ntfy.fruitiex.org
+    listen-http: ":8080"
+    behind-proxy: true
+    # Users and tokens come from the ntfy-env Secret (NTFY_AUTH_USERS,
+    # NTFY_AUTH_TOKENS); credentials are in 1Password "homelab - ntfy".
+    # The databases are rebuilt from them on every start, so they live on
+    # an emptyDir and ntfy does not depend on the NAS.
+    auth-file: /var/lib/ntfy/user.db
+    auth-default-access: deny-all
+    auth-access:
+      - "rasse:home:ro"
+      - "grafana:home:wo"
+    enable-login: true
+    require-login: true
+    cache-file: /var/lib/ntfy/cache.db
+    cache-duration: 12h
+    attachment-cache-dir: ""
