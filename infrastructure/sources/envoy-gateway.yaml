@@ -6,8 +6,8 @@ spec:
   interval: 24h
   url: oci://docker.io/envoyproxy/gateway-helm
   ref:
-    tag: v1.9.0
-    digest: sha256:06e7c26e50d40f0b98d6d1243a3c8dd094464c6099df727216876c19401ffe5f
+    tag: 1.9.3
+    digest: sha256:da69a5e0e549fe272ce13f0eb7dd2b4a2143d0924d408e0f29b4506d6e46ddd6
   layerSelector:
     mediaType: application/vnd.cncf.helm.chart.content.v1.tar+gzip
     operation: copy
