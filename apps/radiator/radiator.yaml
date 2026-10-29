@@ -757,13 +757,19 @@ data:
         }
     }
 
-    # Portal sessions: random id (radiator_wifi_session cookie) -> user, groups.
+    # Portal sessions: random id (radiator_wifi_session cookie) -> user, groups,
+    # first name.
     caches {
         cache "WIFI_SESSION_USERS" {
             timeout 8h;
         }
 
         cache "WIFI_SESSION_GROUPS" {
+            timeout 8h;
+        }
+
+        # First name (given_name) for the suggested device name.
+        cache "WIFI_SESSION_NAMES" {
             timeout 8h;
         }
     }
@@ -1010,21 +1016,35 @@ data:
                 main{box-sizing:border-box;width:100%;max-width:400px;margin:16px;padding:32px 24px;background:var(--card);border-radius:22px;text-align:center}
                 h1{margin:0 0 8px;font-size:24px;line-height:1.2}
                 p{margin:8px 0 20px;color:var(--muted)}
-                .btn{display:block;box-sizing:border-box;width:100%;padding:16px;border:0;border-radius:14px;background:var(--accent);color:var(--accent-fg);font:600 17px/1.2 inherit;text-decoration:none;cursor:pointer}
-                .btn2{display:block;box-sizing:border-box;width:100%;margin-top:12px;padding:15px;border:1.5px solid var(--accent);border-radius:14px;background:transparent;color:var(--fg);font:600 17px/1.2 inherit;text-decoration:none;cursor:pointer}
+                .btn{display:block;box-sizing:border-box;width:100%;padding:16px;border:0;border-radius:14px;background:var(--accent);color:var(--accent-fg);font-family:inherit;font-size:17px;font-weight:600;line-height:1.2;text-decoration:none;cursor:pointer}
+                .btn2{display:block;box-sizing:border-box;width:100%;margin-top:12px;padding:15px;border:1.5px solid var(--accent);border-radius:14px;background:transparent;color:var(--fg);font-family:inherit;font-size:17px;font-weight:600;line-height:1.2;text-decoration:none;cursor:pointer}
                 .link{box-sizing:border-box;width:100%;margin:4px 0 12px;padding:12px;border:1px solid var(--muted);border-radius:10px;background:var(--bg);color:var(--fg);font:15px/1.3 ui-monospace,monospace;-webkit-user-select:all;user-select:all}
                 ol{margin:0 0 16px;padding-left:22px;text-align:left;color:var(--muted)}
-                .field{box-sizing:border-box;width:100%;margin:0 0 12px;padding:14px;border:1px solid var(--muted);border-radius:12px;background:var(--bg);color:var(--fg);font:17px/1.2 inherit}
+                .field{box-sizing:border-box;width:100%;margin:0 0 12px;padding:14px;border:1px solid var(--muted);border-radius:12px;background:var(--bg);color:var(--fg);font-family:inherit;font-size:17px;line-height:1.2}
                 h2{margin:28px 0 8px;font-size:18px;text-align:left}
                 .list{margin:0;padding:0;list-style:none;text-align:left}
                 .list li{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 0;border-top:1px solid var(--bg)}
                 .list small{color:var(--muted)}
-                .small{padding:8px 12px;border:1px solid var(--muted);border-radius:10px;background:transparent;color:var(--fg);font:15px inherit;cursor:pointer}
+                .small{padding:8px 12px;border:1px solid var(--muted);border-radius:10px;background:transparent;color:var(--fg);font-family:inherit;font-size:15px;cursor:pointer}
                 .note{padding:10px 12px;border-radius:10px;background:var(--bg);color:var(--fg)}
                 code{font:13px/1.4 ui-monospace,monospace;word-break:break-all}
                 .quiet{display:inline-block;margin-top:22px;color:var(--muted);font-size:15px}
                 .qr{display:block;width:100%;max-width:260px;margin:4px auto 12px;border-radius:12px}
                 .meta{font-size:14px;color:var(--muted);word-break:break-all}
+                .logo{display:flex;align-items:center;justify-content:center;width:64px;height:64px;margin:0 auto 16px;border-radius:20px;background:var(--accent);color:var(--accent-fg)}
+                .logo svg{width:36px;height:36px}
+                .lbl{display:block;margin:0 0 6px 4px;color:var(--muted);font-size:14px;text-align:left}
+                .hint{margin:10px 4px 0;color:var(--muted);font-size:14px;line-height:1.4}
+                .more{margin-top:20px;text-align:left}
+                .more summary{padding:6px 4px;color:var(--muted);font-size:15px;cursor:pointer;list-style:none;text-align:center}
+                .more summary::-webkit-details-marker{display:none}
+                .more summary::after{content:"›";display:inline-block;margin-left:6px;transition:transform .2s}
+                .more[open] summary::after{transform:rotate(90deg)}
+                .more .btn2{font-weight:500}
+                .done{display:none;margin:12px 0 0;padding:12px;border-radius:12px;background:var(--bg);color:var(--fg);font-size:15px}
+                .done.on{display:block}
+                .foot{margin-top:28px;padding-top:16px;border-top:1px solid var(--bg);color:var(--muted);font-size:14px}
+                .foot a{color:var(--muted)}
                 </style>
                 </head>
                 <body>
@@ -1042,6 +1062,7 @@ data:
             vars.session_id = http.cookie.radiator_wifi_session;
             vars.sso_user = cache.WIFI_SESSION_USERS[vars.session_id];
             vars.groups = cache.WIFI_SESSION_GROUPS[vars.session_id][*];
+            vars.given_name = cache.WIFI_SESSION_NAMES[vars.session_id] | default(vars.sso_user);
             vars.is_admin = "no";
             if all {
                 vars.groups == "admins";
@@ -1208,7 +1229,7 @@ data:
                             vars.list_revoked != true;
                         } then {
                             vars.rows += """
-                                <li><span>%{vars.list_device_name | xml_escape}<br><small>added %{vars.list_created | substring(0, 10)}</small></span>
+                                <li data-name="%{vars.list_device_name | xml_escape}"><span>%{vars.list_device_name | xml_escape}<br><small>added %{vars.list_created | substring(0, 10)}</small></span>
                                 <form method="post" action="/revoke"><input type="hidden" name="device" value="%{vars.list_username | xml_escape}"><button class="small" type="submit">Remove</button></form></li>
                                 """;
                         }
@@ -1314,6 +1335,11 @@ data:
                         key vars.session_id;
                         value oidc.claims.groups;
                     }
+                    cache {
+                        cache "WIFI_SESSION_NAMES";
+                        key vars.session_id;
+                        value oidc.claims.given_name | default(aaa.identity);
+                    }
 
                     # Replaces oidc_complete's removal of the login state cookie,
                     # which then expires by itself (10 min, single use anyway).
@@ -1391,20 +1417,79 @@ data:
                     http.json = false;
                     invoke "OWN_DEVICE_ROWS";
 
+                    # Platform from the User-Agent: one big button for this device,
+                    # everything else under "More options". The script below
+                    # refines iPads (they claim to be a Mac) and Android models.
+                    vars.btn_android = """<button class="btn2" formaction="/profile/android" type="submit">Android phone or tablet</button>""";
+                    vars.btn_ios = """<button class="btn2" formaction="/profile/apple" type="submit">iPhone or iPad</button>""";
+                    vars.btn_mac = """<button class="btn2" formaction="/profile/apple" type="submit">Mac</button>""";
+                    vars.btn_linux = """<button class="btn2" formaction="/profile/linux" type="submit">Linux (NetworkManager)</button>""";
+                    vars.hint_linux = """<p class="hint">Linux: then run<br><code>sudo install -m600 ~/Downloads/dragonfruit-radiator.nmconnection /etc/NetworkManager/system-connections/ &amp;&amp; sudo nmcli connection reload</code></p>""";
+                    vars.more_open = "";
+                    vars.more_label = "More options";
                     vars.ff_note = "";
+
                     if all {
-                        http.header.user-agent == /Android.*Firefox\//;
+                        http.header.user-agent == /Android/;
                     } then {
-                        # Firefox saves the file instead of handing it to the
-                        # Passpoint installer.
-                        vars.ff_note = """<p class="note">To install on Android, open this page in Chrome.</p>""";
+                        vars.platform = "android";
+                        vars.device = "Android phone";
+                        vars.primary = """<button class="btn" id="primary" formaction="/profile/android" type="submit">Add this Android phone</button>""";
+                        vars.hint = "Android then asks you to install the network. Confirm it, and you're done.";
+                        vars.more = "%{vars.btn_ios}%{vars.btn_mac}%{vars.btn_linux}%{vars.hint_linux}";
+                        if all {
+                            http.header.user-agent == /Firefox\//;
+                        } then {
+                            # Firefox saves the file instead of handing it to the
+                            # Passpoint installer.
+                            vars.ff_note = """<p class="note">Firefox can't install Wi-Fi networks. Open this page in Chrome.</p>""";
+                        }
+                    } else if all {
+                        http.header.user-agent == /iPhone|iPad|iPod/;
+                    } then {
+                        vars.platform = "ios";
+                        vars.device = "iPhone";
+                        if all {
+                            http.header.user-agent == /iPad/;
+                        } then {
+                            vars.device = "iPad";
+                        }
+                        vars.primary = """<button class="btn" id="primary" formaction="/profile/apple" type="submit">Add this %{vars.device}</button>""";
+                        vars.hint = "Then open Settings, tap Profile Downloaded and install it.";
+                        vars.more = "%{vars.btn_android}%{vars.btn_mac}%{vars.btn_linux}%{vars.hint_linux}";
+                    } else if all {
+                        http.header.user-agent == /Macintosh/;
+                    } then {
+                        vars.platform = "mac";
+                        vars.device = "Mac";
+                        vars.primary = """<button class="btn" id="primary" formaction="/profile/apple" type="submit">Add this Mac</button>""";
+                        vars.hint = "Then open System Settings, find the downloaded profile (Device Management or Profiles) and install it.";
+                        vars.more = "%{vars.btn_ios}%{vars.btn_android}%{vars.btn_linux}%{vars.hint_linux}";
+                    } else if all {
+                        http.header.user-agent == /Linux|X11/;
+                        http.header.user-agent != /CrOS/;
+                    } then {
+                        vars.platform = "linux";
+                        vars.device = "Linux computer";
+                        vars.primary = """<button class="btn" id="primary" formaction="/profile/linux" type="submit">Add this Linux computer</button>""";
+                        vars.hint = """Then run<br><code>sudo install -m600 ~/Downloads/dragonfruit-radiator.nmconnection /etc/NetworkManager/system-connections/ &amp;&amp; sudo nmcli connection reload</code>""";
+                        vars.more = "%{vars.btn_android}%{vars.btn_ios}%{vars.btn_mac}";
+                    } else {
+                        # Windows, ChromeOS and others: no profile for this device.
+                        vars.platform = "other";
+                        vars.device = "";
+                        vars.primary = """<p class="note">This device can't be added automatically yet. Pick the device you want to add:</p>""";
+                        vars.hint = "";
+                        vars.more_open = " open";
+                        vars.more_label = "Choose a device type";
+                        vars.more = "%{vars.btn_android}%{vars.btn_ios}%{vars.btn_mac}%{vars.btn_linux}%{vars.hint_linux}";
                     }
 
                     vars.admin_link = "";
                     if all {
                         vars.is_admin == "yes";
                     } then {
-                        vars.admin_link = """<a class="quiet" href="/admin">All devices and guests</a>""";
+                        vars.admin_link = """ · <a href="/admin">All devices and guests</a>""";
                     }
 
                     if none {
@@ -1418,29 +1503,83 @@ data:
                     http.status = http.OK;
                     http.response = """
                         %{vars.page_head}
+                        <div id="home" data-platform="%{vars.platform}" data-device="%{vars.device}" data-owner="%{vars.given_name | xml_escape}">
+                        <div class="logo" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 8.8a15 15 0 0 1 20 0"/><path d="M5 12.6a10 10 0 0 1 14 0"/><path d="M8.5 16.3a5 5 0 0 1 7 0"/><circle cx="12" cy="19.6" r="0.9" fill="currentColor"/></svg></div>
                         <h1>dragonfruit Wi-Fi</h1>
-                        <p>Add this phone or computer. It then joins the Wi-Fi by itself, at home only.</p>
+                        <p>Hi %{vars.given_name | xml_escape}! Add this device once and it joins the home Wi-Fi by itself.</p>
                         %{vars.ff_note}
                         <form method="post" id="add">
-                        <input class="field" name="device_name" required maxlength="40" placeholder="Device name, e.g. Pixel" aria-label="Device name">
-                        <button class="btn" formaction="/profile/android" type="submit">Add Android device</button>
-                        <button class="btn2" formaction="/profile/apple" type="submit">Add iPhone, iPad or Mac (Passpoint)</button>
-                        <button class="btn2" formaction="/profile/linux" type="submit">Add Linux computer (NetworkManager)</button>
+                        <label class="lbl" for="name">Device name</label>
+                        <input class="field" id="name" name="device_name" required maxlength="40" value="%{vars.device}" placeholder="e.g. Work laptop" autocomplete="off">
+                        %{vars.primary}
+                        <p class="hint" id="hint">%{vars.hint}</p>
+                        <p class="done" id="done" role="status">Profile sent to this device. %{vars.hint}</p>
+                        <details class="more"%{vars.more_open}>
+                        <summary>%{vars.more_label}</summary>
+                        %{vars.more}
+                        </details>
                         </form>
-                        <p class="meta">Linux: then run<br><code>sudo install -m600 ~/Downloads/dragonfruit-radiator.nmconnection /etc/NetworkManager/system-connections/ &amp;&amp; sudo nmcli connection reload</code></p>
                         <h2>Your devices</h2>
                         <ul class="list" id="devices">%{vars.rows | join("")}</ul>
+                        <div class="foot">Signed in as %{vars.sso_user | xml_escape}%{vars.admin_link}</div>
+                        </div>
                         <script>
-                        // The profile comes back as a download, so the page stays as it
-                        // was: block double taps for a few seconds and refresh the list.
-                        // The form POST itself stays a normal top-level navigation, which
-                        // is what hands application/x-wifi-config to Android's installer.
                         (function(){
+                          var home = document.getElementById("home"), name = document.getElementById("name");
+                          var owner = home.getAttribute("data-owner") || "", platform = home.getAttribute("data-platform");
+                          var edited = false;
+                          name.addEventListener("input", function(){ edited = true; });
+
+                          // "Rasmus' Google Pixel 10 Pro", numbered if you already have one.
+                          function taken(n){
+                            return Array.prototype.some.call(document.querySelectorAll("#devices li"), function(li){ return li.getAttribute("data-name") === n; });
+                          }
+                          var mine = owner ? owner + (/s$/i.test(owner) ? "'" : "'s") + " " : "";
+                          if (mine) name.placeholder = "e.g. " + mine + "laptop";
+                          function suggest(device){
+                            if (edited || !device) return;
+                            var base = mine + device;
+                            base = base.slice(0, 36);
+                            var n = base, i = 2;
+                            while (taken(n)) n = base + " " + i++;
+                            name.value = n;
+                          }
+
+                          var device = home.getAttribute("data-device");
+                          // iPadOS Safari reports a Mac; only iPads have a touch screen.
+                          if (platform === "mac" && navigator.maxTouchPoints > 0) {
+                            device = "iPad";
+                            document.getElementById("primary").textContent = "Add this iPad";
+                            var ios = "Then open Settings, tap Profile Downloaded and install it.";
+                            document.getElementById("hint").textContent = ios;
+                            document.getElementById("done").textContent = "Profile sent to this device. " + ios;
+                          }
+                          suggest(device);
+
+                          // Chrome on Android hides the model from the User-Agent but
+                          // gives it to the page on request.
+                          var uad = navigator.userAgentData;
+                          if (platform === "android" && uad && uad.getHighEntropyValues) {
+                            uad.getHighEntropyValues(["model"]).then(function(v){
+                              var m = (v.model || "").trim();
+                              if (!m || m === "K") return;
+                              if (/^Pixel/.test(m)) m = "Google " + m;
+                              else if (/^SM-/.test(m)) m = "Samsung Galaxy";
+                              suggest(m);
+                            }).catch(function(){});
+                          }
+
+                          // The profile comes back as a download, so the page stays as it
+                          // was: block double taps for a few seconds and refresh the list.
+                          // The form POST itself stays a normal top-level navigation, which
+                          // is what hands application/x-wifi-config to Android's installer.
                           var f = document.getElementById("add"), list = document.getElementById("devices");
                           f.addEventListener("submit", function(){
                             var bs = f.querySelectorAll("button"), n = 0;
                             setTimeout(function(){ bs.forEach(function(b){ b.disabled = true; }); }, 0);
                             setTimeout(function(){ bs.forEach(function(b){ b.disabled = false; }); }, 5000);
+                            document.getElementById("done").className = "done on";
+                            document.getElementById("hint").hidden = true;
                             (function refresh(){
                               fetch("/devices", {cache: "no-store"}).then(function(r){ return r.ok ? r.text() : null; }).then(function(t){
                                 if (t !== null) list.innerHTML = t;
@@ -1450,7 +1589,6 @@ data:
                           });
                         })();
                         </script>
-                        %{vars.admin_link}
                         %{vars.page_foot}
                         """;
                     accept;
@@ -2083,13 +2221,13 @@ spec:
             - -c
           args:
             - >-
-              if [ ! -f /var/lib/radiator/.bootstrap-complete-v15 ]; then
+              if [ ! -f /var/lib/radiator/.bootstrap-complete-v16 ]; then
                 rm -f /var/lib/radiator/*.radconf /var/lib/radiator/..data;
                 rm -rf /var/lib/radiator/..20*;
                 for config in /bootstrap/*.radconf; do
                   cp -L "$config" "/var/lib/radiator/$(basename "$config")";
                 done;
-                touch /var/lib/radiator/.bootstrap-complete-v15;
+                touch /var/lib/radiator/.bootstrap-complete-v16;
               fi;
               mkdir -p /var/lib/radiator/licenses /var/lib/radiator/tmp /var/lib/radiator/management/tls/certs /var/lib/radiator/management/tls/keys /var/log/radiator;
               chown -R 1000:1000 /var/lib/radiator /var/log/radiator;
