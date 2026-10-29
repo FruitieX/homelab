@@ -18,7 +18,6 @@ spec:
         - https://busmap.fruitiex.org
         - https://fruitiex.org
         - https://id.fruitiex.org
-        - https://littlecupboard.fruitiex.org
         - https://lovegren.fi
         - https://oriel.fruitiex.org/healthz
         - https://rsfinity.fruitiex.org
@@ -51,6 +50,7 @@ spec:
         - https://influxdb.fruitiex.org
         - https://jellyfin.fruitiex.org
         - https://kubedash.fruitiex.org
+        - https://littlecupboard.fruitiex.org
         - https://littlewardrobe.fruitiex.org
         - https://llm-wiki.fruitiex.org
         - https://nectarine.fruitiex.org

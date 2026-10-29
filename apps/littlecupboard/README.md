@@ -15,7 +15,7 @@ The image is an unattached private test artifact; shopping/recipes/meal plans
 were not changed. Use `systemctl --user status littlecupboard-companion` on Honeydew
 for current operations. Earlier Pear-specific records below are historical.
 
-Family shopping, recipes and lunch planning at **https://littlecupboard.fruitiex.org**. The HTTPS route attaches to both the public Envoy gateway (`192.168.11.1`, reached through the router's existing WAN port forwarding) and private gateway (`192.168.11.99`). Public DNS uses the existing `*.fruitiex.org` wildcard CNAME to `fruitiex.org`; the route is excluded from external-dns so it does not publish the gateways' LAN addresses. External-dns removes its previously managed private A record during reconciliation. Existing accounts are required for household data and images.
+Family shopping, recipes and lunch planning at **https://littlecupboard.fruitiex.org**. The HTTPS route attaches only to the private Envoy gateway (`192.168.11.99`); use it from the LAN or WireGuard. External-dns publishes its DNS record. Existing accounts are required for household data and images.
 
 The pod uses the existing `ghcr-credentials` pull secret, UID/GID 10001, a read-only root filesystem and one replica with Recreate. The image is pinned to a tested release digest in `deployment.yaml`.
 
