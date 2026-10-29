@@ -119,6 +119,20 @@ from that database.
   water mid-session doesn't re-notify. Backtested on October 2026 data, it fired once per session (5 of 5, at
   26.2–27.0 °C, 30–40 min before the room passes 30 °C), never on other days, and resolved 2.5–3 h later. Its own
   route sets `group_wait: 0s` for an immediate message (a zero `repeat_interval` is invalid and breaks the whole file).
+- More Home rules, with thresholds from July–October 2026 data:
+  - Humidity stays high: any indoor sensor above 70% for 2 h (bathrooms never stayed above 70% for more than 1 h after a
+    shower or sauna).
+  - It's getting cold indoors: any indoor sensor below 18 °C for an hour (lowest since July was 20.3 °C). Winter data
+    will show whether airing a room trips it.
+  - Alarm isn't armed: Verisure mode `disarmed` between 23:30 and 05:00 (measurement `verisure`, topic
+    `home/verisure/mode`). The household usually arms at 23:15–00:15, so 23:00 would nag nightly.
+  - Electricity prices tomorrow: from 14:00, once tomorrow's prices are in, only if some hours are at or above
+    30 c/kWh or at or below 0 c/kWh (VAT included); about 43 days a year in the past 12 months. The Flux query builds
+    the message itself and passes it in the `text` label.
+  The last two carry `notify=reminder` and go to the "Home reminders" contact point, which sends no resolved message.
+- Home, Sauna and Home reminders post to Discord `#home` and to ntfy (`apps/ntfy`, topic `home`, LAN/VPN only). The
+  `home.title`/`home.message` templates keep messages to the title and summary; a failed query says so instead of
+  reusing the rule's alarm text.
 
 ## Pitfalls
 
