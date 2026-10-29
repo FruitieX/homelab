@@ -8,7 +8,7 @@ There are a few different approaches to configuration in the k8s ecosystem. In t
 
 - ### Bare deployments
 
-  A `kind: Deployment` manifest instructs the cluster to deploy a container directly from e.g. Docker Hub or another container registry. For example, the [hue-mqtt](/apps/hue-mqtt/hue-mqtt.yaml) app.
+  A `kind: Deployment` manifest instructs the cluster to deploy a container directly from e.g. Docker Hub or another container registry. For example, the [mosquitto](/apps/mosquitto/mosquitto.yaml) app.
 
   - Advantages: Very simple to write yourself for quick deployments of container images.
 

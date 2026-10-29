@@ -36,4 +36,3 @@ resources:
   - pocket-id.yaml
   - oriel-hub.yaml
 # - adb-mqtt.yaml
-# - hue-mqtt.yaml
