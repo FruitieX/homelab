@@ -26,6 +26,8 @@ data:
 
             clients "MANAGEMENT_ACCESS_ALLOW_LIST";
             policy "MANAGEMENT";
+            # Envoy terminates HTTPS; mark session and OIDC login cookies Secure.
+            secure_session_cookie true;
 
             # "Sign in with Pocket ID" (client radiator-ui); management-auth.radconf
             # maps the groups claim. Password sign-in stays for break-glass.
@@ -700,7 +702,8 @@ data:
     # radiator-wifi, group family) for everything except /guest*. The callback
     # stores the user and groups in the WIFI_SESSION_* caches under a random
     # session id, sent back as the radiator_wifi_session cookie (8 h, HttpOnly,
-    # SameSite=Lax); a restart signs everyone out.
+    # SameSite=Lax). A restart signs everyone out of this web portal only;
+    # issued Wi-Fi credentials are in RadiatorDB and keep working.
     #
     # Radiator issues a random per-device EAP-TTLS/PAP credential
     # (argon2-hashed in RadiatorDB wifi_credentials, 365 days) and returns it as an
@@ -713,9 +716,10 @@ data:
     #   /admin                admins: every credential, revoke any
     #   /approve?t=           admins: approve a guest request (from its QR code)
     #   /oidc/callback        Pocket ID returns here after sign-in
-    #   /guest                public: guest request with a QR code; once an admin
-    #                         approves, the page offers the profile downloads
-    #   /guest/profile/android|apple?t=  issue a guest credential (VLAN 81), once
+    #   /guest                public: a button (POST) starts a guest request with
+    #                         a QR code; once an admin approves, the page offers
+    #                         the profile downloads (radiator_guest cookie)
+    #   /guest/profile/android|apple  issue a guest credential (VLAN 81), once
     #
     # Revocation takes effect at the next authentication; Session-Timeout (8 h,
     # radius-policy.radconf) bounds how long a revoked device stays connected.
@@ -771,6 +775,11 @@ data:
         # First name (given_name) for the suggested device name.
         cache "WIFI_SESSION_NAMES" {
             timeout 8h;
+        }
+
+        # Guest browser secret (radiator_guest cookie) -> guest request token.
+        cache "GUEST_BROWSERS" {
+            timeout 1h;
         }
     }
 
@@ -1079,7 +1088,9 @@ data:
             vars.device_name = http.request.device_name | default("Device") | split("+") | join(" ") | substring(0, 40);
             vars.username = "d%{util.rand.10}";
             vars.password = "%{util.rand.24}";
-            vars.password_hash = vars.password | password_hash("argon2");
+            # The password is 192 random bits, so a slow hash adds nothing; argon2
+            # took about 19 MiB per verification. Older credentials keep argon2.
+            vars.password_hash = vars.password | password_hash("pbkdf2_sha256", rounds=1000);
             vars.created = datetime.timestamp.utc | timestamp_format;
             vars.revoked = false;
             # Public: Base64 of the DER root CA (ConfigMap radiator-passpoint-ca).
@@ -1278,6 +1289,20 @@ data:
 
                 [ipv6]
                 method=auto
+                """;
+        }
+
+        # Guest landing page: POST /guest starts a request (GUEST_CREATE).
+        @pipeline "GUEST_START_PAGE" {
+            http.status = http.OK;
+            http.response = """
+                %{vars.page_head}
+                <h1>Guest Wi-Fi</h1>
+                <p>Ask your host for internet access. You get a code on this screen for them to scan.</p>
+                <form method="post" action="/guest">
+                <button class="btn" type="submit">Request Wi-Fi access</button>
+                </form>
+                %{vars.page_foot}
                 """;
         }
 
@@ -1860,8 +1885,131 @@ data:
                 }
             }
 
-            # Public (no sign-in): guest request with a QR code for an admin.
+            # Public (no sign-in) guest flow. GET /guest only offers a button;
+            # POST /guest creates the request (so link previews and prefetchers
+            # create nothing) and sets the radiator_guest cookie: a random
+            # browser secret that GUEST_BROWSERS maps to the request token. The
+            # token is in the QR code an admin scans; the profile download also
+            # needs the secret, so a photo of the QR code isn't enough.
+            handler "GUEST_CREATE" {
+                conditions all {
+                    http.method == "POST";
+                    http.path == "/guest";
+                }
+
+                @execute {
+                    http.json = false;
+                    vars.token = "%{util.rand.16}";
+                    vars.browser = "%{util.rand.16}";
+                    vars.request_status = "pending";
+                    vars.approved_by = "";
+                    vars.requested = datetime.timestamp.utc | timestamp_format;
+                    backend {
+                        name "radiatordb";
+                        query "SAVE_GUEST_REQUEST";
+                    }
+                    cache {
+                        cache "GUEST_BROWSERS";
+                        key vars.browser;
+                        value vars.token;
+                    }
+
+                    http.response_header.Set-Cookie = "radiator_guest=%{vars.browser}; Path=/guest; Max-Age=3600; HttpOnly; Secure; SameSite=Lax";
+                    http.status = http.SEE_OTHER;
+                    http.response_header.Location = "/guest";
+                    http.response = none;
+                    accept;
+                }
+            }
+
+            # This browser's request: its QR code while pending, the profile
+            # downloads once approved.
             handler "GUEST" {
+                conditions all {
+                    http.method == "GET";
+                    http.path == "/guest";
+                    cache.GUEST_BROWSERS[http.cookie.radiator_guest] == any;
+                }
+
+                @execute {
+                    invoke "PAGE";
+                    http.json = false;
+                    vars.token = cache.GUEST_BROWSERS[http.cookie.radiator_guest];
+                    vars.request_status = "expired";
+
+                    until end {
+                        backend {
+                            name "radiatordb";
+                            query "FIND_GUEST_REQUEST";
+                        }
+                    } when reject {
+                        accept;
+                        vars.request_status = "expired";
+                    }
+
+                    if all {
+                        vars.request_status != "pending";
+                        vars.request_status != "approved";
+                    } then {
+                        invoke "GUEST_START_PAGE";
+                        accept;
+                    } else {
+                        vars.qr_text = "https://wifi.fruitiex.org/approve?t=%{vars.token}";
+                        script "QR_SVG";
+                        vars.waiting = "";
+                        vars.ready = " hidden";
+                        if all {
+                            vars.request_status == "approved";
+                        } then {
+                            vars.waiting = " hidden";
+                            vars.ready = "";
+                        }
+
+                        http.status = http.OK;
+                        http.response = """
+                            %{vars.page_head}
+                            <h1>Guest Wi-Fi</h1>
+                            <div id="q"%{vars.waiting}>
+                            <p>Show this code to your host. They scan it with their phone to let you in.</p>
+                            %{vars.qr_svg}
+                            <p class="meta">Code %{vars.token | substring(0, 4)}</p>
+                            </div>
+                            <div id="ok"%{vars.ready}>
+                            <p>Approved. Add the Wi-Fi to this device; it then joins by itself.</p>
+                            <form method="post">
+                            <input class="field" name="device_name" maxlength="40" placeholder="Device name (optional)" aria-label="Device name">
+                            <button class="btn" formaction="/guest/profile/android" type="submit">Add Android device</button>
+                            <button class="btn2" formaction="/guest/profile/apple" type="submit">Add iPhone, iPad or Mac (Passpoint)</button>
+                            </form>
+                            </div>
+                            <script>
+                            (function(){
+                              var t = "%{vars.token}";
+                              function poll(){
+                                if (!document.getElementById("ok").hidden) return;
+                                fetch("/guest/status?t=" + t, {cache: "no-store"}).then(function(r){ return r.json(); }).then(function(j){
+                                  if (j.status === "approved") {
+                                    document.getElementById("q").hidden = true;
+                                    document.getElementById("ok").hidden = false;
+                                  } else if (j.status === "expired") {
+                                    location.reload();
+                                  } else if (j.status === "pending") {
+                                    setTimeout(poll, 3000);
+                                  }
+                                }).catch(function(){ setTimeout(poll, 3000); });
+                              }
+                              setTimeout(poll, 3000);
+                            })();
+                            </script>
+                            %{vars.page_foot}
+                            """;
+                        accept;
+                    }
+                }
+            }
+
+            # No request yet (or it expired or was used): offer to start one.
+            handler "GUEST_START" {
                 conditions all {
                     http.method == "GET";
                     http.path == "/guest";
@@ -1870,56 +2018,7 @@ data:
                 @execute {
                     invoke "PAGE";
                     http.json = false;
-
-                    # The random 64-bit context id names the request.
-                    vars.token = "%{context.id}";
-                    vars.request_status = "pending";
-                    vars.approved_by = "";
-                    vars.requested = datetime.timestamp.utc | timestamp_format;
-                    backend {
-                        name "radiatordb";
-                        query "SAVE_GUEST_REQUEST";
-                    }
-                    vars.qr_text = "https://wifi.fruitiex.org/approve?t=%{vars.token}";
-                    script "QR_SVG";
-
-                    http.status = http.OK;
-                    http.response = """
-                        %{vars.page_head}
-                        <h1>Guest Wi-Fi</h1>
-                        <div id="q">
-                        <p>Show this code to your host. They scan it with their phone to let you in.</p>
-                        %{vars.qr_svg}
-                        <p class="meta">Code %{vars.token | substring(0, 4)}</p>
-                        </div>
-                        <div id="ok" hidden>
-                        <p>Approved. Add the Wi-Fi to this device; it then joins by itself.</p>
-                        <form method="post">
-                        <input class="field" name="device_name" maxlength="40" placeholder="Device name (optional)" aria-label="Device name">
-                        <button class="btn" formaction="/guest/profile/android?t=%{vars.token}" type="submit">Add Android device</button>
-                        <button class="btn2" formaction="/guest/profile/apple?t=%{vars.token}" type="submit">Add iPhone, iPad or Mac (Passpoint)</button>
-                        </form>
-                        </div>
-                        <script>
-                        (function(){
-                          var t = "%{vars.token}";
-                          function poll(){
-                            fetch("/guest/status?t=" + t, {cache: "no-store"}).then(function(r){ return r.json(); }).then(function(j){
-                              if (j.status === "approved") {
-                                document.getElementById("q").hidden = true;
-                                document.getElementById("ok").hidden = false;
-                              } else if (j.status === "expired") {
-                                location.reload();
-                              } else if (j.status === "pending") {
-                                setTimeout(poll, 3000);
-                              }
-                            }).catch(function(){ setTimeout(poll, 3000); });
-                          }
-                          setTimeout(poll, 3000);
-                        })();
-                        </script>
-                        %{vars.page_foot}
-                        """;
+                    invoke "GUEST_START_PAGE";
                     accept;
                 }
             }
@@ -1950,28 +2049,33 @@ data:
                 }
             }
 
-            # Public: issues the guest credential once the request is approved.
-            # Single use: the request is then marked "issued".
+            # Issues the guest credential once the request is approved, only to
+            # the browser that created it. Single use: the request is then
+            # marked "issued".
             handler "GUEST_PROFILE" {
                 conditions all {
                     http.method == "POST";
                     http.path == /^\/guest\/profile\/(android|apple)$/;
-                    http.query.t == any;
                 }
 
                 @execute {
                     invoke "PAGE";
                     http.json = false;
-                    vars.token = http.query.t;
+                    vars.token = cache.GUEST_BROWSERS[http.cookie.radiator_guest] | default("");
+                    vars.request_status = "expired";
 
-                    until end {
-                        backend {
-                            name "radiatordb";
-                            query "FIND_GUEST_REQUEST";
+                    if all {
+                        vars.token != "";
+                    } then {
+                        until end {
+                            backend {
+                                name "radiatordb";
+                                query "FIND_GUEST_REQUEST";
+                            }
+                        } when reject {
+                            accept;
+                            vars.request_status = "expired";
                         }
-                    } when reject {
-                        accept;
-                        vars.request_status = "expired";
                     }
 
                     if all {
@@ -1981,7 +2085,7 @@ data:
                         http.response = """
                             %{vars.page_head}
                             <h1>Not available</h1>
-                            <p>This code isn't approved, has expired or was already used. Open the guest page again for a new code.</p>
+                            <p>This request isn't approved, has expired or was already used, or it was made on another device. <a href="/guest">Start again</a> on the device you want to add.</p>
                             %{vars.page_foot}
                             """;
                         reject;
@@ -2230,13 +2334,13 @@ spec:
             - -c
           args:
             - >-
-              if [ ! -f /var/lib/radiator/.bootstrap-complete-v17 ]; then
+              if [ ! -f /var/lib/radiator/.bootstrap-complete-v18 ]; then
                 rm -f /var/lib/radiator/*.radconf /var/lib/radiator/..data;
                 rm -rf /var/lib/radiator/..20*;
                 for config in /bootstrap/*.radconf; do
                   cp -L "$config" "/var/lib/radiator/$(basename "$config")";
                 done;
-                touch /var/lib/radiator/.bootstrap-complete-v17;
+                touch /var/lib/radiator/.bootstrap-complete-v18;
               fi;
               mkdir -p /var/lib/radiator/licenses /var/lib/radiator/tmp /var/lib/radiator/management/tls/certs /var/lib/radiator/management/tls/keys /var/log/radiator;
               chown -R 1000:1000 /var/lib/radiator /var/log/radiator;
@@ -2396,10 +2500,12 @@ spec:
             timeoutSeconds: 5
           resources:
             requests:
-              memory: 100Mi
+              memory: 128Mi
             limits:
               cpu: 1000m
-              memory: 100Mi
+              # Headroom for concurrent argon2 verifications (about 19 MiB
+              # each) of credentials issued before the switch to PBKDF2.
+              memory: 256Mi
       volumes:
         - name: bootstrap-config
           configMap:
