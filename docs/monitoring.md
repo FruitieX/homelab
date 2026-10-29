@@ -136,6 +136,10 @@ from that database.
 
 ## Pitfalls
 
+- **Memory-mapped files must not live on NFS.** Loki (bbolt and TSDB index) died with SIGBUS reading an index
+  file through mmap on its NFS volume, which broke every log panel until it restarted. Its index caches, active TSDB
+  index and compactor directory are on a node-local emptyDir (`/var/loki-local`); chunks and the WAL stay on NFS.
+  The same applies to any other app that mmaps a database file (bbolt, LMDB, SQLite in WAL mode).
 - **Provisioned MIP `matchers` are not a free map.** In `grafana-alerting.sops.yaml` a route's `matchers` must be an
   array of `label=value` strings or `object_matchers`; a plain object fails the reload (`cannot unmarshal object
   into Go struct field Route.matchers of type []string`) and the whole `home-alerts.json` then fails to provision,
