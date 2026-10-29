@@ -130,6 +130,18 @@ from that database.
     30 c/kWh or at or below 0 c/kWh (VAT included); about 43 days a year in the past 12 months. The Flux query builds
     the message itself and passes it in the `text` label.
   The last two carry `notify=reminder` and go to the "Home reminders" contact point, which sends no resolved message.
+- Device health and upkeep (thresholds from the same data):
+  - A device stopped reporting: a BLE sensor silent for 1 h (normal gaps stayed under 20 min) or the fridge/freezer
+    plug for 15 min (they report every ~16 s). The car sensor is skipped because it leaves with the car, and the rule
+    stays quiet while every source is silent, which "No home sensor data" already covers.
+  - Battery low: BLE sensors below 20% (24 h mean, smoothing cold dips) and Zigbee devices below 15%.
+  - Filament storage is getting damp (12 h mean): dryboxes above 30% (they sat at 20–23%), AMS units above 38%
+    (29–33%), and the filament dryer box above 45% (35–47%, open to room air). Its advice text travels in a label.
+  - Fridge or freezer plug is off: Telegraf stores each Tuya plug's on/off state as field `on`, because the generic
+    JSON consumer drops booleans and the freezer draws 0 W whenever its compressor rests.
+  - Frost tonight (`notify=reminder`): only the first frost after a frost-free week, from `fmi_forecast` and FMI's
+    observed `t2m`, checked 17:00–23:00.
+  Battery and filament alerts carry `notify=maintenance`, which repeats every 72 h instead of 12 h.
 - Home, Sauna and Home reminders post to Discord `#home` and to ntfy (`apps/ntfy`, topic `home`, LAN/VPN only). The
   `home.title`/`home.message` templates keep messages to the title and summary; a failed query says so instead of
   reusing the rule's alarm text.
