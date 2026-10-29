@@ -34,6 +34,18 @@ spec:
         enabled: true
         size: 50Gi
         storageClass: nfs-csi
+      # Index files Loki memory-maps (bbolt, TSDB) must not live on NFS: a
+      # read through the mapping died with SIGBUS on 2026-10-29. Keep them
+      # on node-local disk; chunks, the ingester WAL and shipped index stay
+      # on the NFS volume, so only up to ~15 min of not-yet-shipped index
+      # is lost if the pod moves to another node.
+      extraVolumes:
+        - name: local-index
+          emptyDir:
+            sizeLimit: 5Gi
+      extraVolumeMounts:
+        - name: local-index
+          mountPath: /var/loki-local
 
     # Zero out replica counts of other deployment modes
     backend:
@@ -73,9 +85,13 @@ spec:
           ruler: loki-ruler
           admin: loki-admin
       storage_config:
+        # Pre-TSDB period only: no new writes after the switch below.
         boltdb_shipper:
           active_index_directory: /var/loki/index
-          cache_location: /var/loki/cache
+          cache_location: /var/loki-local/boltdb-cache
+        tsdb_shipper:
+          active_index_directory: /var/loki-local/tsdb-index
+          cache_location: /var/loki-local/tsdb-cache
         filesystem:
           directory: /var/loki/chunks
       pattern_ingester:
@@ -89,6 +105,14 @@ spec:
             index:
               prefix: loki_index_
               period: 24h
+          # boltdb-shipper is deprecated; new data uses TSDB.
+          - from: "2026-10-31"
+            store: tsdb
+            object_store: filesystem
+            schema: v13
+            index:
+              prefix: loki_tsdb_index_
+              period: 24h
       rulerConfig:
         wal:
           dir: /var/loki/ruler-wal
@@ -101,11 +125,13 @@ spec:
         enable_api: true
       compactor:
         retention_enabled: true
+        working_directory: /var/loki-local/compactor
         # Required when retention is enabled; use filesystem since object_store is filesystem
         delete_request_store: filesystem
       limits_config:
         retention_period: 90d
-        # Structured metadata requires TSDB index; disable for boltdb-shipper schema
+        # Structured metadata needs the TSDB index; enable it once the
+        # 2026-10-31 TSDB period is active.
         allow_structured_metadata: false
     monitoring:
       dashboards:
