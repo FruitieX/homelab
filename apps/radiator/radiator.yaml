@@ -493,6 +493,7 @@ data:
                     vars.request_status = doc | jsonpath("$.status");
                     vars.approved_by = doc | jsonpath("$.approved_by");
                     vars.requested = doc | jsonpath("$.requested");
+                    vars.guest_name = doc | jsonpath("$.guest_name");
                 }
             }
 
@@ -505,6 +506,7 @@ data:
                     status = vars.request_status;
                     approved_by = vars.approved_by;
                     requested = vars.requested;
+                    guest_name = vars.guest_name;
                 }
             }
 
@@ -623,6 +625,12 @@ data:
 
                 field "requested" {
                     name "Requested";
+                    type text;
+                }
+
+                # Set by the approving admin; the guest's device names start with it.
+                field "guest_name" {
+                    name "Guest name";
                     type text;
                 }
             }
@@ -1086,6 +1094,11 @@ data:
         @pipeline "ISSUE_WIFI_CREDENTIAL" {
             # Form bodies don't decode "+" to a space.
             vars.device_name = http.request.device_name | default("Device") | split("+") | join(" ") | substring(0, 40);
+            if all {
+                vars.forced_device_name == any;
+            } then {
+                vars.device_name = vars.forced_device_name | substring(0, 40);
+            }
             vars.username = "d%{util.rand.10}";
             vars.password = "%{util.rand.24}";
             # The password is 192 random bits, so a slow hash adds nothing; argon2
@@ -1847,13 +1860,26 @@ data:
                         http.response = """
                             %{vars.page_head}
                             <h1>Already approved</h1>
-                            <p>Approved by %{vars.approved_by | default("") | xml_escape}.</p>
+                            <p>%{vars.guest_name | default("The guest") | xml_escape} was approved by %{vars.approved_by | default("") | xml_escape}.</p>
                             %{vars.page_foot}
                             """;
                         accept;
                     } else if all {
                         http.method == "POST";
                     } then {
+                        vars.guest_name = http.request.guest_name | default("") | split("+") | join(" ") | substring(0, 24);
+                        if none {
+                            vars.guest_name == /\S/;
+                        } then {
+                            http.status = http.BAD_REQUEST;
+                            http.response = """
+                                %{vars.page_head}
+                                <h1>Name needed</h1>
+                                <p>Enter the guest's name. <a href="/approve?t=%{vars.token | url_escape}">Back</a></p>
+                                %{vars.page_foot}
+                                """;
+                            reject;
+                        }
                         vars.request_status = "approved";
                         vars.approved_by = vars.sso_user;
                         backend {
@@ -1863,7 +1889,7 @@ data:
                         http.status = http.OK;
                         http.response = """
                             %{vars.page_head}
-                            <h1>Guest approved</h1>
+                            <h1>%{vars.guest_name | xml_escape} approved</h1>
                             <p>Their phone now offers the Wi-Fi profile download. It works for a year; revoke it any time under <a href="/admin">All devices</a>.</p>
                             %{vars.page_foot}
                             """;
@@ -1876,6 +1902,8 @@ data:
                             <p>They get internet access on the guest network for a year.</p>
                             <p class="meta">Code %{vars.token | substring(0, 4)}, requested %{vars.requested | substring(11, 16)} UTC</p>
                             <form method="post" action="/approve?t=%{vars.token | url_escape}">
+                            <label class="lbl" for="guest_name">Guest's name</label>
+                            <input class="field" id="guest_name" name="guest_name" required maxlength="24" placeholder="e.g. Anna" autocomplete="off">
                             <button class="btn" type="submit">Approve guest</button>
                             </form>
                             %{vars.page_foot}
@@ -1975,9 +2003,10 @@ data:
                             <p class="meta">Code %{vars.token | substring(0, 4)}</p>
                             </div>
                             <div id="ok"%{vars.ready}>
-                            <p>Approved. Add the Wi-Fi to this device; it then joins by itself.</p>
+                            <p>Approved for %{vars.guest_name | default("you") | xml_escape}. Add the Wi-Fi to this device; it then joins by itself.</p>
                             <form method="post">
-                            <input class="field" name="device_name" maxlength="40" placeholder="Device name (optional)" aria-label="Device name">
+                            <label class="lbl" for="device">Device (optional)</label>
+                            <input class="field" id="device" name="device_name" maxlength="20" placeholder="e.g. iPhone" autocomplete="off">
                             <button class="btn" formaction="/guest/profile/android" type="submit">Add Android device</button>
                             <button class="btn2" formaction="/guest/profile/apple" type="submit">Add iPhone, iPad or Mac (Passpoint)</button>
                             </form>
@@ -1994,11 +2023,23 @@ data:
                                   } else if (j.status === "expired") {
                                     location.reload();
                                   } else if (j.status === "pending") {
-                                    setTimeout(poll, 3000);
+                                    next(1000);
                                   }
-                                }).catch(function(){ setTimeout(poll, 3000); });
+                                }).catch(function(){ next(3000); });
                               }
-                              setTimeout(poll, 3000);
+                              // Every second while the page is visible (rate limit:
+                              // HTTPRoute radiator-wifi rule guest-status).
+                              function next(ms){
+                                setTimeout(function(){
+                                  if (!document.hidden) return poll();
+                                  document.addEventListener("visibilitychange", function wake(){
+                                    if (document.hidden) return;
+                                    document.removeEventListener("visibilitychange", wake);
+                                    poll();
+                                  });
+                                }, ms);
+                              }
+                              next(1000);
                             })();
                             </script>
                             %{vars.page_foot}
@@ -2096,6 +2137,24 @@ data:
                     backend {
                         name "radiatordb";
                         query "SAVE_GUEST_REQUEST";
+                    }
+
+                    if all {
+                        vars.guest_name == any;
+                        vars.guest_name != "";
+                    } then {
+                        vars.guest_device = http.request.device_name | default("") | split("+") | join(" ") | substring(0, 20);
+                        vars.forced_device_name = vars.guest_name;
+                        if all {
+                            vars.guest_device == /\S/;
+                        } then {
+                            vars.forced_device_name = "%{vars.guest_name}'s %{vars.guest_device}";
+                            if all {
+                                vars.guest_name == /[sS]$/;
+                            } then {
+                                vars.forced_device_name = "%{vars.guest_name}' %{vars.guest_device}";
+                            }
+                        }
                     }
 
                     vars.owner = "guest";
@@ -2334,13 +2393,13 @@ spec:
             - -c
           args:
             - >-
-              if [ ! -f /var/lib/radiator/.bootstrap-complete-v18 ]; then
+              if [ ! -f /var/lib/radiator/.bootstrap-complete-v19 ]; then
                 rm -f /var/lib/radiator/*.radconf /var/lib/radiator/..data;
                 rm -rf /var/lib/radiator/..20*;
                 for config in /bootstrap/*.radconf; do
                   cp -L "$config" "/var/lib/radiator/$(basename "$config")";
                 done;
-                touch /var/lib/radiator/.bootstrap-complete-v18;
+                touch /var/lib/radiator/.bootstrap-complete-v19;
               fi;
               mkdir -p /var/lib/radiator/licenses /var/lib/radiator/tmp /var/lib/radiator/management/tls/certs /var/lib/radiator/management/tls/keys /var/log/radiator;
               chown -R 1000:1000 /var/lib/radiator /var/log/radiator;
@@ -2598,6 +2657,14 @@ spec:
       backendRefs:
         - name: radiator-portal
           port: 8088
+    - name: guest-status
+      matches:
+        - path:
+            type: Exact
+            value: /guest/status
+      backendRefs:
+        - name: radiator-portal
+          port: 8088
     - name: guest-profile
       matches:
         - path:
@@ -2678,6 +2745,31 @@ spec:
         - limit:
             requests: 300
             unit: Hour
+---
+# A waiting guest's page polls this every second; several guests can share
+# an address (a carrier's NAT), so it gets more than the 120/min above.
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: BackendTrafficPolicy
+metadata:
+  name: radiator-wifi-guest-status
+  namespace: default
+spec:
+  targetRefs:
+    - group: gateway.networking.k8s.io
+      kind: HTTPRoute
+      name: radiator-wifi
+      sectionName: guest-status
+  rateLimit:
+    type: Local
+    local:
+      rules:
+        - clientSelectors:
+            - sourceCIDR:
+                type: Distinct
+                value: 0.0.0.0/0
+          limit:
+            requests: 600
+            unit: Minute
 ---
 # Guest credential downloads (single use per approved request).
 apiVersion: gateway.envoyproxy.io/v1alpha1
