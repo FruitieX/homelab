@@ -1043,6 +1043,7 @@ data:
                 .more .btn2{font-weight:500}
                 .done{display:none;margin:12px 0 0;padding:12px;border-radius:12px;background:var(--bg);color:var(--fg);font-size:15px}
                 .done.on{display:block}
+                .done code{display:block;margin-top:8px;padding:10px 12px;border-radius:8px;background:var(--card);text-align:left;word-break:normal;overflow-wrap:anywhere;-webkit-user-select:all;user-select:all}
                 .foot{margin-top:28px;padding-top:16px;border-top:1px solid var(--bg);color:var(--muted);font-size:14px}
                 .foot a{color:var(--muted)}
                 </style>
@@ -1424,7 +1425,8 @@ data:
                     vars.btn_ios = """<button class="btn2" formaction="/profile/apple" type="submit">iPhone or iPad</button>""";
                     vars.btn_mac = """<button class="btn2" formaction="/profile/apple" type="submit">Mac</button>""";
                     vars.btn_linux = """<button class="btn2" formaction="/profile/linux" type="submit">Linux (NetworkManager)</button>""";
-                    vars.hint_linux = """<p class="hint">Linux: then run<br><code>sudo install -m600 ~/Downloads/dragonfruit-radiator.nmconnection /etc/NetworkManager/system-connections/ &amp;&amp; sudo nmcli connection reload</code></p>""";
+                    # Shown once a profile is downloaded, for the button that was used.
+                    vars.apple_done = "Now open Settings, tap Profile Downloaded and install it.";
                     vars.more_open = "";
                     vars.more_label = "More options";
                     vars.ff_note = "";
@@ -1436,7 +1438,7 @@ data:
                         vars.device = "Android phone";
                         vars.primary = """<button class="btn" id="primary" formaction="/profile/android" type="submit">Add this Android phone</button>""";
                         vars.hint = "Android then asks you to install the network. Confirm it, and you're done.";
-                        vars.more = "%{vars.btn_ios}%{vars.btn_mac}%{vars.btn_linux}%{vars.hint_linux}";
+                        vars.more = "%{vars.btn_ios}%{vars.btn_mac}%{vars.btn_linux}";
                         if all {
                             http.header.user-agent == /Firefox\//;
                         } then {
@@ -1456,7 +1458,7 @@ data:
                         }
                         vars.primary = """<button class="btn" id="primary" formaction="/profile/apple" type="submit">Add this %{vars.device}</button>""";
                         vars.hint = "Then open Settings, tap Profile Downloaded and install it.";
-                        vars.more = "%{vars.btn_android}%{vars.btn_mac}%{vars.btn_linux}%{vars.hint_linux}";
+                        vars.more = "%{vars.btn_android}%{vars.btn_mac}%{vars.btn_linux}";
                     } else if all {
                         http.header.user-agent == /Macintosh/;
                     } then {
@@ -1464,7 +1466,8 @@ data:
                         vars.device = "Mac";
                         vars.primary = """<button class="btn" id="primary" formaction="/profile/apple" type="submit">Add this Mac</button>""";
                         vars.hint = "Then open System Settings, find the downloaded profile (Device Management or Profiles) and install it.";
-                        vars.more = "%{vars.btn_ios}%{vars.btn_android}%{vars.btn_linux}%{vars.hint_linux}";
+                        vars.apple_done = "Now open System Settings, find the downloaded profile (Device Management or Profiles) and install it.";
+                        vars.more = "%{vars.btn_ios}%{vars.btn_android}%{vars.btn_linux}";
                     } else if all {
                         http.header.user-agent == /Linux|X11/;
                         http.header.user-agent != /CrOS/;
@@ -1472,7 +1475,7 @@ data:
                         vars.platform = "linux";
                         vars.device = "Linux computer";
                         vars.primary = """<button class="btn" id="primary" formaction="/profile/linux" type="submit">Add this Linux computer</button>""";
-                        vars.hint = """Then run<br><code>sudo install -m600 ~/Downloads/dragonfruit-radiator.nmconnection /etc/NetworkManager/system-connections/ &amp;&amp; sudo nmcli connection reload</code>""";
+                        vars.hint = "";
                         vars.more = "%{vars.btn_android}%{vars.btn_ios}%{vars.btn_mac}";
                     } else {
                         # Windows, ChromeOS and others: no profile for this device.
@@ -1482,7 +1485,7 @@ data:
                         vars.hint = "";
                         vars.more_open = " open";
                         vars.more_label = "Choose a device type";
-                        vars.more = "%{vars.btn_android}%{vars.btn_ios}%{vars.btn_mac}%{vars.btn_linux}%{vars.hint_linux}";
+                        vars.more = "%{vars.btn_android}%{vars.btn_ios}%{vars.btn_mac}%{vars.btn_linux}";
                     }
 
                     vars.admin_link = "";
@@ -1513,7 +1516,9 @@ data:
                         <input class="field" id="name" name="device_name" required maxlength="40" value="%{vars.device}" placeholder="e.g. Work laptop" autocomplete="off">
                         %{vars.primary}
                         <p class="hint" id="hint">%{vars.hint}</p>
-                        <p class="done" id="done" role="status">Profile sent to this device. %{vars.hint}</p>
+                        <p class="done" id="done-android" role="status">Android asks you to install the network. Confirm it, and you're done.</p>
+                        <p class="done" id="done-apple" role="status">%{vars.apple_done}</p>
+                        <p class="done" id="done-linux" role="status">Downloaded. To install it, run<br><code>sudo install -m600 ~/Downloads/dragonfruit-radiator.nmconnection /etc/NetworkManager/system-connections/ &amp;&amp; sudo nmcli connection reload</code></p>
                         <details class="more"%{vars.more_open}>
                         <summary>%{vars.more_label}</summary>
                         %{vars.more}
@@ -1552,7 +1557,7 @@ data:
                             document.getElementById("primary").textContent = "Add this iPad";
                             var ios = "Then open Settings, tap Profile Downloaded and install it.";
                             document.getElementById("hint").textContent = ios;
-                            document.getElementById("done").textContent = "Profile sent to this device. " + ios;
+                            document.getElementById("done-apple").textContent = "Now open Settings, tap Profile Downloaded and install it.";
                           }
                           suggest(device);
 
@@ -1574,11 +1579,15 @@ data:
                           // The form POST itself stays a normal top-level navigation, which
                           // is what hands application/x-wifi-config to Android's installer.
                           var f = document.getElementById("add"), list = document.getElementById("devices");
-                          f.addEventListener("submit", function(){
+                          f.addEventListener("submit", function(e){
                             var bs = f.querySelectorAll("button"), n = 0;
                             setTimeout(function(){ bs.forEach(function(b){ b.disabled = true; }); }, 0);
                             setTimeout(function(){ bs.forEach(function(b){ b.disabled = false; }); }, 5000);
-                            document.getElementById("done").className = "done on";
+                            var action = e.submitter && e.submitter.getAttribute("formaction");
+                            var kind = action ? action.split("/").pop() : (platform === "linux" ? "linux" : platform === "android" ? "android" : "apple");
+                            ["android", "apple", "linux"].forEach(function(k){
+                              document.getElementById("done-" + k).className = k === kind ? "done on" : "done";
+                            });
                             document.getElementById("hint").hidden = true;
                             (function refresh(){
                               fetch("/devices", {cache: "no-store"}).then(function(r){ return r.ok ? r.text() : null; }).then(function(t){
@@ -2221,13 +2230,13 @@ spec:
             - -c
           args:
             - >-
-              if [ ! -f /var/lib/radiator/.bootstrap-complete-v16 ]; then
+              if [ ! -f /var/lib/radiator/.bootstrap-complete-v17 ]; then
                 rm -f /var/lib/radiator/*.radconf /var/lib/radiator/..data;
                 rm -rf /var/lib/radiator/..20*;
                 for config in /bootstrap/*.radconf; do
                   cp -L "$config" "/var/lib/radiator/$(basename "$config")";
                 done;
-                touch /var/lib/radiator/.bootstrap-complete-v16;
+                touch /var/lib/radiator/.bootstrap-complete-v17;
               fi;
               mkdir -p /var/lib/radiator/licenses /var/lib/radiator/tmp /var/lib/radiator/management/tls/certs /var/lib/radiator/management/tls/keys /var/log/radiator;
               chown -R 1000:1000 /var/lib/radiator /var/log/radiator;
