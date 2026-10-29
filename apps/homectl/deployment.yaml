@@ -20,7 +20,7 @@ spec:
       priorityClassName: homelab-home
       containers:
         - name: homectl
-          image: ghcr.io/fruitiex/homectl:main@sha256:3d74fc7f5fe14b09638edc347996608998078010c6bdea7c1f56b39273b761ac
+          image: ghcr.io/fruitiex/homectl:main@sha256:cbdedabac975ae5f5b499213ff2a38475fdabdeb1bdde11a9cee6ce9fef01ffa
           envFrom:
             - secretRef:
                 name: homectl-server-env
