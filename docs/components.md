@@ -93,8 +93,9 @@ I make use of the following pieces of software and infrastructure:
   in the cluster, a LoadBalancer with an external-dns hostname on the LAN). Retained messages persist on `nfs-csi`
 - Clients authenticate with a username and password. Each client has its own user, and the ACL limits each user
   to the topics it needs (bridges to their own topic tree, Telegraf to reading, homectl to everything).
-  Devices outside the cluster that can't be given credentials without reflashing still connect anonymously; the
-  anonymous ACL lets them read everything and publish only their state, never commands
+  zigbee2mqtt, which runs outside the cluster, has its own user too. Devices outside the cluster that can't be given
+  credentials without reflashing still connect anonymously; the anonymous ACL lets them read everything and publish
+  only their state, never commands, and nothing under `zigbee2mqtt/`
 - The hashed password file (`passwd`, made with `mosquitto_passwd`) and the ACL (`acl`; lines before the first
   `user` apply to anonymous clients) are the SOPS Secret
   [apps/mosquitto/auth.sops.yaml](/apps/mosquitto/auth.sops.yaml). The plain passwords are in 1Password, one Login
@@ -109,7 +110,9 @@ I make use of the following pieces of software and infrastructure:
      and append the line to `passwd` with `sops apps/mosquitto/auth.sops.yaml`
   3. Add a `user <user>` block with its `topic read|write|readwrite <pattern>` lines to `acl`
   4. Give the client its credentials (the bridges take `username`/`password` in the `[mqtt]` section of their
-     Settings.toml; homectl and Bambuddy keep them in their own settings)
+     Settings.toml; homectl and Bambuddy keep them in their own settings; zigbee2mqtt takes `mqtt.user`/`mqtt.password`
+     through a `zigbee2mqtt/bridge/request/options` message published as `admin`, then
+     `zigbee2mqtt/bridge/request/restart`)
 - The Secret and the Deployment have Flux variable substitution disabled, because password hashes and the sidecar
   script contain `$`. Mosquitto 2.0 warns that the mounted files are not owned by the mosquitto user; later versions
   refuse to load them, so an upgrade needs the files copied and chowned first (e.g. by an init container)
