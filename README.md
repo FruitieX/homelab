@@ -42,7 +42,7 @@ To follow this guide, you need the following:
 - Spin up any number of VM:s and [install Talos Linux](https://www.talos.dev/latest/talos-guides/install/virtualized-platforms/proxmox/) on each of them. My cluster runs on three Proxmox hosts:
 
   - One control plane node per host, so etcd survives losing a host (6 GB RAM on
-    mango and mandarin; 4 GB on mulberry, which has no RAM to spare). The
+    mango and mandarin; 5 GB on mulberry, which has little RAM to spare). The
     control plane holding the API virtual IP serves most API traffic and needs
     the most memory
   - Two worker nodes each on the two larger hosts (about 10 GB RAM each)
