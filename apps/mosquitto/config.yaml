@@ -6,7 +6,15 @@ metadata:
 data:
   mosquitto.conf: |
     listener 1883
+
+    # Clients with a username authenticate against the password file and get
+    # the rights of their `user` block in the ACL; anonymous clients get the
+    # ACL lines before the first `user` (devices that can't be given
+    # credentials without reflashing). Both files come from the
+    # mosquitto-auth Secret (auth.sops.yaml) and reload without a restart.
     allow_anonymous true
+    password_file /mosquitto/auth/passwd
+    acl_file /mosquitto/auth/acl
 
     # Keep retained messages across restarts (see pvc-nfs.yaml). Saved every
     # minute and on shutdown.

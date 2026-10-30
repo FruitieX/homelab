@@ -24,6 +24,9 @@ kind: Deployment
 metadata:
   name: mosquitto
   namespace: default
+  annotations:
+    # The reload sidecar's shell script uses `$`.
+    kustomize.toolkit.fluxcd.io/substitute: disabled
 spec:
   selector:
     matchLabels:
@@ -37,6 +40,8 @@ spec:
         app: mosquitto
     spec:
       priorityClassName: homelab-critical
+      # Lets the reload sidecar signal mosquitto.
+      shareProcessNamespace: true
       securityContext:
         runAsUser: 1883
         runAsGroup: 1883
@@ -63,6 +68,9 @@ spec:
             - name: config
               mountPath: /mosquitto/config
               readOnly: true
+            - name: auth
+              mountPath: /mosquitto/auth
+              readOnly: true
             - name: data
               mountPath: /mosquitto/data
           resources:
@@ -71,10 +79,51 @@ spec:
             limits:
               cpu: 100m
               memory: 512Mi
+        # Mosquitto rereads mosquitto.conf, the password file and the ACL on
+        # SIGHUP without dropping clients. The kubelet updates mounted
+        # ConfigMap/Secret files a minute or two after Flux applies a change;
+        # this sends SIGHUP when they change, so auth changes need no restart.
+        - name: reload-on-change
+          image: busybox:1.37
+          command:
+            - sh
+            - -c
+            - |
+              state() { cat /mosquitto/config/* /mosquitto/auth/* | md5sum; }
+              last=$(state)
+              while sleep 20; do
+                now=$(state)
+                if [ "$now" != "$last" ]; then
+                  pkill -HUP -x mosquitto && echo "config changed, sent SIGHUP to mosquitto"
+                  last=$now
+                fi
+              done
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: [ALL]
+          volumeMounts:
+            - name: config
+              mountPath: /mosquitto/config
+              readOnly: true
+            - name: auth
+              mountPath: /mosquitto/auth
+              readOnly: true
+          resources:
+            requests:
+              cpu: 1m
+              memory: 4Mi
+            limits:
+              cpu: 20m
+              memory: 16Mi
       volumes:
         - name: config
           configMap:
             name: mosquitto-config
+        - name: auth
+          secret:
+            secretName: mosquitto-auth
+            defaultMode: 0440
         - name: data
           persistentVolumeClaim:
             claimName: mosquitto-data-nfs
