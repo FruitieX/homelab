@@ -26,7 +26,6 @@ resources:
   - immich.yaml
   - photoframe-rs.yaml
   - ferrotune.yaml
-  # - llama-cpp.yaml
   - bambuddy.yaml
   - spliit.yaml
   - radiator.yaml
