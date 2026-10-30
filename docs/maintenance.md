@@ -83,6 +83,10 @@ There is deliberately no descheduler: almost every app runs a single replica,
 so each eviction it made would be a short outage, traded for balance that
 only matters until the next maintenance.
 
+## Cluster credentials
+
+`secrets.yaml` (the Talos cluster PKI, from which `regen-configs.sh` regenerates every machine config), `_out/talosconfig` and `kubeconfig` are gitignored and exist only in the working copy. Copies are kept in the owner's 1Password; when the talosconfig or kubeconfig certificates are renewed, update those copies too.
+
 ## Unattended Talos and Kubernetes upgrades (tuppr)
 
 [tuppr](https://tuppr.home-operations.com/) (`infrastructure/system-upgrade`)
