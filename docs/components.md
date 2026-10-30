@@ -78,9 +78,12 @@ I make use of the following pieces of software and infrastructure:
   - Status and switchover: `kubectl cnpg status postgres-ha`, `kubectl cnpg promote postgres-ha <instance>`
   - Role memberships and per-role settings (`ALTER ROLE ... SET`) are not carried over by a CNPG import;
     `grafana_ro`'s `pg_monitor` membership is declared in the Cluster, its settings were set by hand
-- Rollback to the old PostgreSQL 16 Deployment (scaled to 0, PVC `postgres-data` kept, data as of the 2026-10-26
-  cutover): stop the apps, dump the newer data from `postgres-ha` if it should be kept, set the `postgres`
-  Service selector back to `app: postgres` and the Deployment to `replicas: 1`
+- Outside the cluster, the `postgres` LoadBalancer Service (pinned MetalLB address, external-dns hostname) accepts
+  connections only from the sources in `loadBalancerSourceRanges`: the pod network and a few admin workstations.
+  The addresses are variables from the SOPS-encrypted `cluster-secrets` (Flux postBuild substitution); add a
+  client there. Node ports are disabled because source ranges don't apply to them
+- Immich has its own PostgreSQL (`immich-postgres`, [apps/immich/immich-postgres.yaml](/apps/immich/immich-postgres.yaml)),
+  with the vector extensions Immich needs; it is reachable only inside the cluster (`immich-postgres.default.svc`)
 
 ### kube-prometheus-stack
 

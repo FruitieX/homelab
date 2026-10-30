@@ -89,9 +89,11 @@ spec:
     - name: homelab.hardware
       rules:
         - alert: NasVolumeFillingUp
+          # Every PVC on the NAS homelab share reports the whole volume;
+          # postgres-ha's are always mounted, so their stats always exist.
           expr: |
-            predict_linear(max(kubelet_volume_stats_available_bytes{persistentvolumeclaim="postgres-data"})[7d:1h], 30 * 86400) < 0
-            and max(kubelet_volume_stats_available_bytes{persistentvolumeclaim="postgres-data"}) / max(kubelet_volume_stats_capacity_bytes{persistentvolumeclaim="postgres-data"}) < 0.2
+            predict_linear(max(kubelet_volume_stats_available_bytes{persistentvolumeclaim=~"postgres-ha-[0-9]+"})[7d:1h], 30 * 86400) < 0
+            and max(kubelet_volume_stats_available_bytes{persistentvolumeclaim=~"postgres-ha-[0-9]+"}) / max(kubelet_volume_stats_capacity_bytes{persistentvolumeclaim=~"postgres-ha-[0-9]+"}) < 0.2
           for: 6h
           labels:
             homelab: "true"
