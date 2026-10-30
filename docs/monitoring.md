@@ -161,7 +161,9 @@ from that database.
   Battery and filament alerts carry `notify=maintenance`, which repeats every 72 h instead of 12 h.
 - Home, Sauna and Home reminders post to Discord `#home` and to ntfy (`apps/ntfy`, topic `home`, LAN/VPN only). The
   `home.title`/`home.message` templates keep messages to the title and summary; a failed query says so instead of
-  reusing the rule's alarm text.
+  reusing the rule's alarm text. A resolved alert shows the rule's `resolved` annotation ("Freezer plug is reporting
+  again."), falling back to the rule name and `place`. Use only labels in it: annotations are frozen at the last
+  firing evaluation, so a value there would be the alarming one.
 
 ## Pitfalls
 
