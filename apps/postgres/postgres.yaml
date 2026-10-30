@@ -19,8 +19,21 @@ metadata:
   namespace: default
   annotations:
     external-dns.alpha.kubernetes.io/hostname: postgres.fruitiex.org
+    # Pinned so the address (and the DNS record) can't move.
+    metallb.io/loadBalancerIPs: ${POSTGRES_LB_IP}
 spec:
   type: LoadBalancer
+  # Only pods and the owner's own machines may connect through the
+  # LoadBalancer address; kube-proxy drops everything else. The addresses
+  # are in the SOPS-encrypted cluster-secrets (Flux postBuild substitution).
+  loadBalancerSourceRanges:
+    - ${CLUSTER_POD_CIDR}
+    - ${POSTGRES_CLIENT_HONEYDEW}
+    - ${POSTGRES_CLIENT_WATERMELON}
+    - ${POSTGRES_CLIENT_WATERMELON_WIFI}
+  # loadBalancerSourceRanges does not cover node ports, so allocate none:
+  # MetalLB doesn't need them.
+  allocateLoadBalancerNodePorts: false
   # The current primary of the CloudNativePG cluster (postgres-ha.yaml).
   # Apps and LAN clients keep using this name and address. Rollback to the
   # PostgreSQL 16 Deployment below: selector `app: postgres` and replicas: 1.
