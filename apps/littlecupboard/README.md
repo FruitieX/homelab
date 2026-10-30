@@ -1,172 +1,38 @@
 # LittleCupboard
 
-## Hermes host migration — 2026-10-02
+Family shopping lists, recipes and lunch planning ([FruitieX/littlecupboard](https://github.com/FruitieX/littlecupboard)). The HTTPS route attaches only to the private Envoy gateway, so the app is reachable from the LAN or the VPN. Accounts are required for all household data and images.
 
-The paired personal `forkbasket` Hermes profile and its OAuth/pairing credentials
-now run on **Honeydew** (`192.168.1.158`). Pear's worker is stopped and disabled,
-and its profile is archived outside the live profiles directory. Honeydew's
-declarative `littlecupboard-companion.service` retains the existing sandbox.
-The worker polls this app's existing HTTPS URL; no application deployment,
-pairing-token rotation, or inbound worker port was needed.
+## Deployment
 
-Production `forkbasket-api --check-companion --image` passed model discovery,
-`gpt-6-luna` / `xhigh` chat, and native image generation through the actual queue.
-The image is an unattached private test artifact; shopping/recipes/meal plans
-were not changed. Use `systemctl --user status littlecupboard-companion` on Honeydew
-for current operations. Earlier Pear-specific records below are historical.
+- One replica with the `Recreate` strategy: the SQLite database must only ever have one server. The pod runs as UID/GID 10001 with a read-only root filesystem.
+- The image is pinned by digest in `deployment.yaml`. Every validated `main` build of the app repository deploys automatically through this repository's `image-update` workflow (see [docs/configuration.md](/docs/configuration.md)); the app repository needs the `HOMELAB_DISPATCH_TOKEN` Actions secret.
+- Flux Kustomization `littlecupboard` (`clusters/homelab/apps/littlecupboard.yaml`).
 
-Family shopping, recipes and lunch planning at **https://littlecupboard.fruitiex.org**. The HTTPS route attaches only to the private Envoy gateway (`192.168.11.99`); use it from the LAN or WireGuard. External-dns publishes its DNS record. Existing accounts are required for household data and images.
+## Storage
 
-The pod uses the existing `ghcr-credentials` pull secret, UID/GID 10001, a read-only root filesystem and one replica with Recreate. The image is pinned to a tested release digest in `deployment.yaml`.
+- PVC `littlecupboard-data-nfs` (5 GiB) mounted at `/data`, bound to a static PV of the same name. It points at the NAS directory `forkbasket-data-nfs`, which keeps the app's old name so the data never had to move. Retain reclaim policy.
+- The database is `/data/forkbasket.sqlite3`: accounts, shopping and meal state, recipes, images and encrypted AI provider credentials.
+- `LITTLECUPBOARD_SQLITE_JOURNAL_MODE=DELETE`: rollback journaling instead of WAL, which is unsafe on NFS.
 
-Active storage is the 5 GiB `littlecupboard-data-nfs` claim, mounted at `/data`. It binds a static PV of the same name that points at the NAS directory **`/volume3/homelab/forkbasket-data-nfs`**, which keeps its old name so the data never moved. The app database is `forkbasket.sqlite3`; accounts, shopping/meal state, recipes, images and encrypted AI credentials are inside it. NFSv4.1 uses hard mounts with locking enabled. `LITTLECUPBOARD_SQLITE_JOURNAL_MODE=DELETE` selects rollback journaling and synchronous EXTRA; WAL is unsuitable for NFS. The NAS must honor file locks and durable sync operations.
+## Secrets and sign-in
 
-The previous `forkbasket-data` iSCSI claim and its Synology LUN were removed at the user's request after the migration was verified. Only the active NFS claim remains, with Flux pruning disabled and a Retain reclaim policy. A private pre-migration database backup remains on NFS. Keep regular backups of the active NFS database and its matching SOPS secret.
-
-Server setup and provider-encryption secrets are SOPS-encrypted in `secret.sops.yaml`. Pocket ID passkey sign-in (client `littlecupboard`, group `family`) uses the non-secret `LITTLECUPBOARD_OIDC_*` variables in `deployment.yaml`; the client secret and the account map `LITTLECUPBOARD_OIDC_USER_MAP` (it contains email addresses) are in the SOPS secret. Email/password sign-in remains available. Preserve the matching encryption key with database backups. Runtime accounts, recipes, images and provider configuration are stored in SQLite on the PVC.
-
-## First login
-
-Open the HTTPS site and sign in with your existing account. LAN/VPN access is no longer required. Initial setup is already complete; a new installation requires creating the owner account with the setup token, saving the recovery code, and inviting other family accounts from Settings. No accounts are created automatically.
-
-To read only the setup token in a private local terminal:
-
-```sh
-cd ~/projects/homelab
-nix-shell
-sops --decrypt --extract '["stringData"]["LITTLECUPBOARD_SETUP_TOKEN"]' apps/littlecupboard/secret.sops.yaml
-```
-
-Configure favorite stores/aisle order and add family recipes in the app. The AI assistant stays hidden until an OpenAI-compatible endpoint/model is enabled in Settings; provider configuration is deliberately left to the owner.
-
-The shopping list defaults to one tile grid in store aisle order. Settings → Shopping list → Group by category enables headings and separate grids; this account/device preference does not change another family member’s view.
+`secret.sops.yaml` (`littlecupboard-server-env`) holds the setup token, the key that encrypts provider credentials in the database, the Pocket ID client secret and the OIDC account map. The non-secret `LITTLECUPBOARD_OIDC_*` settings are in `deployment.yaml` (client `littlecupboard`, group `family`). Email/password sign-in also works. Back up the encryption key together with any database backup: provider credentials can't be decrypted without it.
 
 ## Operations
-
-LittleCupboard's application CI is configured to deploy every successfully validated and published main build through this repository's `image-update` dispatch workflow, following add-bot's existing pattern. The payload includes the immutable registry digest and tested source SHA. The receiver updates only the image in `deployment.yaml`, commits it, and Flux deploys it; historical migration records below remain unchanged. Image-update jobs are serialized to avoid competing Git pushes. PRs and release tags do not deploy, and the sender skips older main revisions.
-
-The application repository must have a `HOMELAB_DISPATCH_TOKEN` Actions secret containing a fine-grained PAT restricted to this homelab repository with Contents read/write. The receiver needs no additional secret: it commits with its built-in `GITHUB_TOKEN`. Until the sender secret is configured, LittleCupboard CI warns and skips deployment while still publishing the image. Token activation and direct transfer from 1Password are documented in [the application deployment guide](https://github.com/FruitieX/littlecupboard/blob/main/docs/DEPLOYMENT.md). Confirm the application CI deployment job, this repository's image-update run, and Flux Ready before considering automatic deployment active.
-
-Automatic deployment is active and was verified on 2026-10-01. The dispatch secret was installed directly from the user's scoped 1Password service account. ForkBasket's deployment job for tested main release `cfba1c4` dispatched successfully, receiver run `36860915497` committed its source tag and digest in `dcfe140`, and Flux automatically reached Ready/Healthy at that commit. The running pod used digest `sha256:b524336ceca98ad39d9b37413187c3cecef0ec4f90f508d80ac8941a7120cf74`, with one ready replica and the existing NFS claim. This release includes the desktop settings layout fix. Future successful main builds follow the same path.
 
 ```sh
 export KUBECONFIG="$PWD/kubeconfig"
 flux reconcile kustomization littlecupboard
-kubectl get kustomization littlecupboard -n flux-system
 kubectl get pods -n default -l app=littlecupboard
-kubectl get pvc littlecupboard-data-nfs -n default
 curl --fail https://littlecupboard.fruitiex.org/api/ready
 ```
 
-Take a consistent full database backup using `kubectl exec -n default deploy/littlecupboard -- littlecupboard-api --backup /data/backup-2026-10-01.sqlite3`, choosing a unique filename each time, then copy it off the PVC with `kubectl cp`. The command refuses to overwrite an existing destination. Household-only backups/restoration are also available in Settings. Full recovery and upgrades are documented in [the application deployment guide](https://github.com/FruitieX/littlecupboard/blob/main/docs/DEPLOYMENT.md).
+Take a consistent backup with a new filename each time (the command refuses to overwrite), then copy it off the volume:
 
-Initial verification passed: Flux Ready, healthy pod, bound PVC, accepted private HTTPRoute, trusted HTTPS, DNS pointing to the private gateway, mobile first-owner setup without browser errors, and HTTP 404 through the public gateway.
+```sh
+kubectl exec -n default deploy/littlecupboard -- littlecupboard-api --backup /data/backup-$(date +%F).sqlite3
+```
 
-## Public ingress — 2026-10-01
+Settings in the app also offers household-only backup and restore. Restores, schema upgrades and rollbacks are covered in the app repository's [deployment guide](https://github.com/FruitieX/littlecupboard/blob/main/docs/DEPLOYMENT.md); before rolling back to an older release, restore the backup taken before its schema upgrade.
 
-At the user's request, revision `856cd81` attached the existing HTTPS route to both gateways and excluded it from external-dns. Flux reached Ready/Healthy at that revision at 19:35:05 UTC; both route parents are Accepted with ResolvedRefs. External-dns deleted the previously managed private A record and its ownership TXT record at 19:36:17 UTC. Public DNS now follows the existing wildcard to the WAN address; recursive resolvers can retain the previous private record for its remaining 300-second TTL. Router port forwarding and certificates already existed and needed no change.
-
-Requests through the public gateway, private gateway and public WAN address all passed trusted TLS and returned 200 for the frontend and readiness. Anonymous account/state/SSE/AI configuration/icon-job/image/backup requests returned 401; cross-origin writes returned 403. Initial setup remains complete. WAN HTTP redirects to HTTPS with 301. The existing application image, NFS data, origin, accounts, sessions and personal companion pairing were unchanged; the companion service remains active without restarts. The application repository's deployment template and current documentation now match this route.
-
-A fresh mobile Chromium profile forced through the WAN address loaded the sign-in screen without JavaScript errors, confirmed a secure context and standalone PWA manifest, and received 401 for anonymous household state. This was a WAN/hairpin check from Pear, not a physical phone test on cellular.
-
-## Personal Hermes companion — 2026-10-01
-
-The application now supports a personal companion on Pear that polls its existing private HTTPS origin. No additional ingress, inbound agent port or OAuth secret was added to Kubernetes. The scoped worker token is stored only as a hash in SQLite and as a mode-0600 pairing file in the dedicated personal Hermes profile. The household uses `gpt-6-luna` with `xhigh` reasoning and `gpt-image-2-medium` for native images. ChatGPT credentials remain on Pear.
-
-Source `bfafba0` passed full CI/container checks and automatically deployed digest `sha256:2b5017604a326d627385b4f48ec761653d91f401b7770533065e284304c80cc9` in revision `a74b8ce`. Flux reported Ready/Healthy with one ready replica. The real HTTPS queue check confirmed native model discovery, chat and a private generated image; unauthenticated image access is denied. A consistent pre-upgrade database backup is `/data/before-hermes-companion-20261001.sqlite3`. This release migrates the database to schema version 2; restore that backup before reverting to a version that only understands schema 1.
-
-The user service is defined in the private NixOS repository and activated via Home Manager. Switching Pear's NixOS generation makes the new unit part of system boot activation. See the private application's [companion guide](https://github.com/FruitieX/littlecupboard/blob/main/docs/HERMES-COMPANION.md) for pairing, revocation, worker operation and the native-auth support boundary. AI suggestions retain the app's existing review step; these connection checks did not alter shopping items, recipes or meal plans.
-
-## Media/settings and connection recovery — 2026-10-01
-
-Media/settings source `cc4ba39` passed complete CI and automatically deployed image digest `sha256:3e6ead33156563ad2c68eed7f5d6d2093981f6fe748be04164f2fd619713de03` through homelab revision `bb166ec`. The private app has one ready replica on NFS. This release adds recipe transcription from upload/camera/clipboard, safe Markdown descriptions, reference-guided transparent item icons stored at 256 px, optional generated recipe-draft photos, shop/family/group editing, less UI clutter, and collapsed owner-only AI setup and advanced prompts. The personal worker was restarted with native image transparency and vision support. Its consistent pre-schema-3 backup is `/data/before-media-settings-20261001.sqlite3`.
-
-At the user's request, accidental AI configuration deletion was repaired by administratively pairing the existing personal Hermes profile again with `gpt-6-luna` / `xhigh` and `gpt-image-2-medium`. The scoped worker token was transferred in memory into the profile's private pairing file; ChatGPT credentials, company CLI auth, household content and the default Hermes account were unchanged. The actual private HTTPS queue passed model discovery and chat afterward. Backup `/data/before-ai-repair-20261001.sqlite3` preserves the state before repair, and `/data/before-settings-management-20261001.sqlite3` is a full consistent backup after reconnection and before the next schema upgrade.
-
-Settings/pantry source `2651e3c` passed application CI `36899757079` and receiver `36901998867`, deploying digest `sha256:66617271a3f08cfcaea0b4bc502dcbe250a1845378c5010bbf5289eae3e73902` through homelab revision `13dd8e6`. Flux reached Ready/Healthy with one ready replica. It adds confirmed AI disconnection/revocation/token replacement inside collapsed setup, searchable item/recipe management, reversible catalog archives and household product overrides, and confirmed shop/group/recipe removal. Custom products may be permanently deleted after recipe references are removed; built-in products retain stable identities and are archived/restored instead. The pantry conflict fix compares equivalent JSON numbers (`2` / `2.0`) without weakening real concurrent-edit checks. Schema 4 guards catalog customization/archive JSON; restore the pre-upgrade database backup before rolling back to a schema-3 binary.
-
-Follow-up source `d317ad3` clears the restored item's entire pantry entry when moving it out of Recently checked, including surplus released by a changed meal plan, and reverses that purchase's meal credits. Shopping quantity/notes, unrelated pantry entries and prior purchase history are preserved. Server and immediate offline client behavior agree. Failed outbox entries now have their own Try syncing action, retaining the original concurrent-edit guards; pantry changes show a descriptive label instead of `patch`. Existing unwanted pantry records can be removed with X after updating the app; this release does not purge household records automatically. Local verification passed 46 Rust tests, 25 frontend tests, TypeScript, formatting, Clippy, production two-device/offline browser regressions (including one injected failed pantry removal followed by retry), and reproducible container restart/backup/restore checks. A real mobile retry-dialog screenshot was reviewed. The follow-up keeps schema 4.
-
-The follow-up passed complete application CI/deployment run `36902783617` and homelab receiver `36905089102`. Revision `da1109f` pins `d317ad38a99322a5783562ec35745be0d0bfebc8@sha256:6dc36b5a5a4ead1a3386e993e21896e928fe968c071c9776c7ed0fbe5650ed7a`. Flux reached Ready/Healthy at that revision at 18:14:20 UTC, with one ready replica. Private HTTPS readiness returns 200, account setup remains complete, anonymous state access returns 401, and the served versioned frontend contains the retry and protected Settings flows. The post-rollout private companion check passed model discovery and chat with `gpt-6-luna` / `xhigh`; its user service remains active. No shopping, recipe or meal-plan data was changed by deployment checks. Refresh/reopen all app tabs to pick up the new service-worker version before retrying old queued pantry changes.
-
-Production PWA verification confirms a standalone manifest, 192/512 PNG icons, accessible precached assets, an activated service worker and no Chromium installability errors with a disposable persistent profile. Android users can install through Chrome → Add to home screen → Install. With the public ingress, synchronization also works outside the LAN/VPN; a physical Android installation was not tested.
-
-## Automatic and bulk item icons — 2026-10-01
-
-Source `dca6092` adds owner-only automatic item icons (default off) and a counted, confirmed **Generate missing icons** batch under Settings → AI assistant → Configure AI assistant → Compatibility & image generation. Generic cart/empty placeholders with no attached image are eligible, including catalog entries; distinctive emoji artwork, existing uploads/generated images and archived items are preserved. Enabling automatic generation applies to newly saved shopping products, recipe ingredients and accepted assistant proposal products. Existing items use the explicit bulk action.
-
-The server processes one icon at a time through the saved API provider or existing personal companion, using the current flat item prompt/reference style, transparent backgrounds and 256 px storage. Persistent jobs deduplicate household/product requests, survive closed browsers and restart, expose progress/stop/retry controls, and retain a rolling allowance of 20 background attempts per household per hour. Remaining jobs wait for the next allowance; failures need explicit retry. Results recheck concurrent artwork, name/group edits, archival/deletion and cancellation before an atomic upload/state/history commit and family SSE update. A stopped in-flight provider request may still consume quota, and a request interrupted by a server crash may repeat. Manual batches adopt queued automatic jobs and survive switching automatic generation off.
-
-Schema 5 adds the persistent queue/attempt tables and protects the new strict provider setting. A consistent pre-upgrade schema-4 backup is `/data/before-item-icons-20261001.sqlite3`; restore it with its matching encryption key before reverting to a schema-4 binary. OAuth/pairing, NFS and private ingress are unchanged. Local verification passed 50 Rust tests, 25 frontend tests, TypeScript, formatting, Clippy, complete mobile/tablet/desktop production browser regressions, real screenshot review, reproducible Nix packaging and non-root/read-only container persistence/restart/private-backup/restore checks. The preference is left off and no production bulk batch has been requested.
-
-Complete application CI/deployment run `36911868943` succeeded. The receiver committed image `dca60922c541972be16b8d968dbf052502b55013@sha256:d5477ca67135216b3f1675a96c6e0aed9e1b6b71bc64162cbf036699fe72c43a` in homelab revision `f7016f8`. Flux reached Ready/Healthy at that revision at 19:25:46 UTC, with one ready replica. Private readiness returned 200, setup remained complete, anonymous state and icon-job access returned 401, and the versioned frontend serves the automatic/bulk/progress/stop/retry controls. The post-rollout personal companion model discovery/chat check passed with `gpt-6-luna` / `xhigh`; no worker update or credential rotation was needed. Finish syncing, then refresh/reopen all app tabs to pick up the updated service worker. Deployment checks did not change shopping, recipes, meal plans or request production icons.
-
-## Consumption rates, pantry editing and settings pages — 2026-10-01
-
-Source `f3f5005` adds dedicated Settings pages for Stores (including aisle order), Item groups, Items and Recipes. Settings → Items → Edit now supports household consumption rates, such as 4 L every 7 days. Saved rates guide compatible-unit restock timing and enter the assistant's context. Unconfigured items learn a labeled estimate from at least three shopping days with compatible quantities; **Use estimated rate** adopts it explicitly. Same-day purchases are merged, known units are converted, median daily quantities limit outliers, and unsupported package conversions are omitted. Restored/undone purchases correct the learning history. Estimates do not decrement confirmed pantry stock.
-
-Pantry pencils edit total quantities, including meal reservations, in multiple units, with notes and expiry. Saving reserves existing meal ingredients first and recalculates shortages. Guarded edits compare the actual entry values rather than local/server observation timestamps, allowing consecutive offline edits to sync while retaining real concurrent-change protection. Local verification passed 55 Rust tests, 28 frontend tests, TypeScript, formatting, Clippy, the full mobile/tablet/desktop two-account and offline browser suite, and reproducible non-root/read-only container restart/private-backup/restore checks. Missing salt/croissant artwork is also bundled under the existing Twemoji license.
-
-Schema 6 protects the consumption fields in strict household JSON. A consistent pre-upgrade schema-5 backup is `/data/before-consumption-settings-20261001.sqlite3`; restore it with its matching encryption key before reverting to a schema-5 binary. Accounts, personal companion credentials, NFS storage and the public/private HTTPS route need no configuration change. The app's name remains ForkBasket while the user considers alternatives.
-
-Application CI/deployment run `36921470991` and receiver `36923070398` passed. Homelab revision `5b9f055` pins `f3f500551b8f19e220000370c4f55763b2d9f5d9@sha256:ddff0efa9fca027c4f983e8d5508bedd37cb7e29a69024c521c8d23e23a85bbd`. Flux reached Ready/Healthy at that revision at 20:39:32 UTC with one ready replica. Both public/private route parents remain Accepted with ResolvedRefs, and the NFS claim is Bound. Trusted HTTPS readiness passed through normal DNS and the WAN address; setup remains complete, anonymous private APIs return 401 and cross-origin writes return 403. All four settings routes and the new bundled SVGs return 200; the served versioned editor contains the consumption controls and explicit estimate adoption. The personal companion remains active without restarts or credential changes. Verification made no household-content changes or production AI requests. Finish syncing, then refresh/reopen app tabs to load the new service-worker version.
-
-## Recipe sources, assistant saves and tags — 2026-10-02
-
-Source `83f02cb` keeps supplied images and filenames with new AI recipe imports, independently of generated dish photos. The collapsed **Source images** gallery links to private full-resolution sources, and the recipe editor can remove links. Sources preserve original oriented resolution with metadata stripped: lossless WebP for screenshots and high-quality JPEG for photos. Vision requests use separate resized previews. Source ownership, active proposal/saved recipe cleanup protection and URL remapping in household backup restoration are covered by regressions. Earlier imports without retained source associations are not backfilled.
-
-The assistant closes only after the server confirms saving selected suggestions; offline or failed saves keep their review controls. Recipe filters now include every household tag, including secondary tags and custom recipes. The editor autocompletes existing tags and creates new ones, with keyboard/touch selection and removable chip previews. Tags sync across family accounts. Local and CI validation passed 57 Rust tests, 30 frontend tests, TypeScript, formatting, Clippy, complete production browser checks and reproducible non-root/read-only container persistence/restart/backup/restore checks. Source galleries were checked at 320/390/1440 px.
-
-Schema 7 adds the source marker for resolution-preserving upload restoration and protects extended recipe JSON. The consistent pre-schema-7 backup is `/data/before-recipe-sources-20261002.sqlite3` (mode 0600); restore it with its matching encryption key before reverting to a schema-6 binary. NFS storage, accounts, personal companion credentials and ingress need no configuration changes.
-
-Application CI/deployment run `36970774505` and receiver `36972246118` succeeded. Homelab revision `4a41739` pins `83f02cb98232382514e13cc7f6ad698a7df24840@sha256:7cabf2f8cbc7d7a8a3b187dc47142d401673e5551600e17aa5209847e9568e2c`. Flux reached Ready/Healthy at 06:10:54 UTC with one ready replica and the NFS claim Bound. Both HTTPS route parents remain Accepted with ResolvedRefs; trusted normal/WAN readiness passed and account setup remains complete. Anonymous account/state/SSE/AI/image/backup access returns 401 and cross-origin writes return 403. The served versioned frontend contains the source gallery, tag combobox/filtering and acknowledged-save controls. The personal companion remains active with zero restarts; verification made no household-content changes or production AI requests. Finish syncing, then refresh/reopen app tabs to load the updated service worker.
-
-## Default prompts and settings load recovery — 2026-10-02
-
-The user reported empty prompt fields and photographic item generations. A consistent private database audit found all three stored prompts present, nonblank and identical to the backend defaults, so no failed migration or credential repair was needed. The previous form initialized with empty strings and kept them after a failed/offline configuration load. Source `393fd49` replaces that blank fallback with explicit loading/error/Retry states; reconnect retries a failed load. Configuration controls appear after the effective saved prompts load, and stale responses cannot overwrite a later account's form.
-
-Backend prompt deserialization now fills defaults for missing objects, nulls, partial overrides and blank individual fields while preserving nonblank custom text exactly. Foreground generation and durable icon jobs use these same effective prompts without requiring a provider resave. Surrounding whitespace on the default item prompt no longer disables the companion's bundled style reference. Defaults continue to request illustrated Twemoji-style transparent item/shop icons; recipe-photo instructions remain separate. The schema stays at version 7.
-
-Local checks passed 59 Rust tests, 30 frontend tests, TypeScript, formatting, required Clippy, the complete production browser suite and reproducible container restart/persistence/private-backup/restore checks. Regressions cover custom/default preservation and unchanged encrypted credentials/pairing, failed settings loads without a blank editable form, Retry/reconnect, populated prompt fields, and a companion claim carrying the icon instructions, transparency and style reference. A bounded real personal-only test using the exact default item request generated an illustrated pear with true alpha (0–255), visually inspected. Native dimensions were 1254 × 1254 despite an 816 × 816 request. This test did not attach or replace production images, recipes or shopping entries.
-
-The consistent pre-change backup is `/data/before-prompt-repair-20261002.sqlite3`; the temporary private audit copy was removed after inspection. Accounts, custom instructions, companion pairing, NFS and ingress remain unchanged. Application CI run `36975853479` was canceled when newer main source `a58c579` superseded it. The replacement run `36977288660` includes the prompt fix and a separate companion credential-refresh fix.
-
-The replacement CI/deployment run and homelab receiver `36978887890` succeeded. Homelab revision `dd9343c` pins `a58c5798e3087214dfa11c2bf64db7a92a2f7720@sha256:9f458ea5d5c27d13c510d67b841e64675feeb35062595bc3d98e804f501ae0bf`. Flux reached Ready/Healthy at 07:31:46 UTC with one ready replica; the NFS claim remains Bound and both HTTPS route parents Accepted with ResolvedRefs. Trusted normal/WAN readiness passed, setup remains complete, anonymous private APIs return 401 and cross-origin writes return 403. Served settings chunk `Settings-BhitJBvB.js` contains the new loading/Retry/default-basis controls. The personal companion is active with zero restart failures. Finish syncing, then refresh/reopen app tabs to load the updated service worker. Rollout checks did not change household content or credentials, and no production images were replaced.
-
-## NFS migration — 2026-10-01
-
-The old claim could not have its storage class changed in place, so migration used a new claim. The one-time helper files are available in Git history at `3ba43a7` and were retired when the old storage was removed. The script copied a stopped source volume into temporary local storage, recovered any remaining WAL records there, made a SQLite online backup to the empty NFS destination, enabled DELETE journaling, and compared schema/content hashes and row counts for every table. It also copied ancillary application files; ext4 `lost+found` and obsolete WAL/SHM files were excluded. Both source and destination passed full integrity checks. Destination files are owned by UID/GID 10001, and the database is mode 0600. The source mounted read-only and was never altered by the copier.
-
-Historical procedure for a fresh migration, with an empty destination claim and the helper files from `3ba43a7`:
-
-1. Take a consistent backup, suspend the `forkbasket` Flux Kustomization, and scale the Deployment to zero. Wait until every app pod is deleted before copying; do not force-delete an app pod that may still be writing.
-2. Create the helper ConfigMap: `kubectl create configmap forkbasket-nfs-migration-script -n default --from-file=migrate-to-nfs.py=apps/forkbasket/migrate-to-nfs.py --dry-run=client -o yaml | kubectl apply -f -`.
-3. Apply `migration-job.yaml.example` and wait for successful completion. Prefer scheduling it on the previous app node to reuse the iSCSI attachment. Inspect `kubectl logs -n default job/forkbasket-nfs-migration`; it must report `status: verified`, identical full content hashes and `ok` integrity checks.
-4. Switch the Deployment to the NFS claim, DELETE journaling and a tested image, and restore one replica through Git. Remove the maintenance Job/ConfigMap before starting the app, resume Flux, and reconcile the pushed revision. Verify readiness, the NFS claim/mount, private ingress and a full database backup.
-
-The script refuses to overwrite a nonempty destination, including a previous migration. Never rerun it against the active NFS database. The old claim has since been deleted. For recovery, stop the app and restore a consistent database backup with its matching SOPS encryption key.
-
-The cutover copier verified identical content hash `babef21cd8e3a29fbb6671aa5f6c7492a855cdc253e0f8cb89dcecf9f58a577e`: one household, two accounts, two sessions, 14 events and 14 idempotent operations. Both full integrity checks passed. A separate private `pre-nfs-2026-10-01.sqlite3` backup was copied too. The cutover release was `296304a7cd3d177531cbe6d661b98d10ff5646e2`, digest `sha256:62bd4dee085a306ad7a847106143ead873a4f6cdc8f86bd6449b954411716f5b`; its complete CI validation and registry publication passed before cutover. See `deployment.yaml` for the current release.
-
-Post-cutover verification passed: Flux resumed and Ready on `3ba43a7`, one healthy pod using the exact image digest, a bound NFS CSI volume, private HTTPS readiness, preserved account setup and a mobile browser without runtime errors. A consistent backup from the running app passed integrity checks, confirmed DELETE journaling, and still matched the complete cutover hash above. `/data` contains the private database and pre-migration backup, with no WAL/SHM files. The public gateway continues to have no ForkBasket route.
-
-At the user's subsequent request, the old storage was retired after confirming the deployment uses NFS and no pod/VolumeAttachment references the old volume. Only PV `pvc-7f4a4516-00ac-4e89-b937-a2783dd4f885` was changed from Retain to Delete; the NFS PV and cluster storage classes were unchanged. Deleting the old claim caused Synology CSI to delete LUN `6d7aceac-164e-4e4c-a00a-bb0718c22eb8`, with the provisioner recording `volume deleted` and `persistentvolume deleted succeeded` at 2026-10-01 10:40:08 UTC. Both old Kubernetes resources are absent; the NFS claim is Bound, the app is ready over HTTPS, and Flux is Ready on retirement revision `e6a6c89`.
-
-## LittleCupboard rebrand — 2026-10-02
-
-Canonical URL: https://littlecupboard.fruitiex.org. The former forkbasket.fruitiex.org hostname was retired on 2026-10-29. Sign in at the new origin using existing accounts and reinstall PWAs from there; site-local pending operations are not transferred across origins.
-
-Deployment, Service, HTTPRoute and container are renamed to littlecupboard; images come from ghcr.io/fruitiex/littlecupboard and the GitHub repository is FruitieX/littlecupboard. The Flux Kustomization, Secret and claim kept their forkbasket names until 2026-10-30, when they became `littlecupboard`, `littlecupboard-server-env` and `littlecupboard-data-nfs` (the old Kustomization had pruning turned off first, so deleting it orphaned the app instead of removing it). The data stays at /volume3/homelab/forkbasket-data-nfs in the same /data/forkbasket.sqlite3. New environment keys take precedence and the server accepts legacy FORKBASKET keys. Before switching the renamed Deployment onto the claim, stop the previous Deployment and wait for its pod to exit; SQLite must have only one server.
-
-Application CI/deployment `37018857616` and receiver `37020915843` succeeded. Source `a13e7930f4adfdd995695d4e6f6164577e20ac29` is pinned to digest `sha256:6341bbb53be22cbf255f808b38a52266047940b848454edd522a6e7b6d948226`. Revision `40c4f24` completed the single-server transition: suspend the existing child Kustomization, stop the old pod, apply the new path through Flux, resume. Flux reached Ready/Healthy at 14:38:16 UTC; littlecupboard has one healthy replica and the old Deployment is absent. The claim still has UID `dc510c60-0082-45d9-8ff1-fabcb978996a` and the same PV. A consistent backup is `/data/before-littlecupboard-20261002.sqlite3`.
-
-Normal and explicit public/private gateway HTTPS readiness passed, both route parents are Accepted with ResolvedRefs, and account setup remains complete. Anonymous private state/SSE/AI/backup APIs return 401 and cross-origin writes return 403. Clean mobile and desktop browser checks passed the new title, standalone manifest, icons and layout with no JavaScript errors. Honeydew's renamed companion is active with zero restarts; only its saved app URL changed, preserving the personal OAuth and pairing credentials. Production discovery and `gpt-6-luna` / `xhigh` chat passed through the new ingress. No household content or production images were changed by these checks.
-
-## Pantry catalog editing and browser updates — 2026-10-02
-
-Source `7cdbe7a` adds **Edit item details** inside the pantry entry editor. It opens the shared catalog editor and preserves unsaved pantry amounts, notes and expiry when returning. Deployed updates now have a **New version available → Reload app** notice, checking on open/foreground/reconnection and every five minutes while visible and online. Activation reloads only the requesting tab; other tabs keep drafts and receive their own notice. Shopping outboxes survive reloads; changed form fields require confirmation.
-
-Fixed Nix mtimes previously let static HTML appear unchanged across releases. HTML/manifest/unversioned artwork now use `no-cache` and ignore modification-date validators, the worker uses `no-store`, and successful versioned assets use immutable caching. The service worker bypasses HTTP cache for update checks, retains the preceding release's lazy assets and excludes all private APIs/photos. Existing clients need one ordinary refresh to acquire the new update UI.
-
-Complete CI/deployment `37034690257` and receiver `37036717092` succeeded, pinning digest `sha256:3a29317d0d0b97df278db0d3d53f9e45182bd85e3903d5c71bd3b37e64624572` in revision `98489da`. A transient gateway dependency wait cleared during normal reconciliation. Flux reached Ready/Healthy at 16:53:41 UTC with one healthy replica and the original Bound NFS claim. The real production browser stayed open across rollout, loaded the new release with an ordinary refresh without clearing caches, and passed waiting-update activation/reload with no JavaScript errors. Both hostnames return fresh HTML for fixed-mtime validators, setup remains complete, and anonymous private APIs return 401/no-store. Schema 7, household content and personal companion credentials are preserved; no worker restart was needed.
+The optional AI assistant can use an OpenAI-compatible endpoint configured in Settings, or a personal companion worker running outside the cluster that polls the app over HTTPS (no inbound port). See the app repository's companion guide.
