@@ -14,7 +14,7 @@ INDOOR = {
 }
 OUTDOOR = {
     "D83534387029": "Front yard", "D9353438450D": "Backyard", "D4343037362D": "Patio",
-    "C76A03460A73": "Storage", "C76A0246647E": "Car",
+    "C76A03460A73": "Storage", "C76A0246647E": "Car", "A4C138FD13EF": "Patio display",
 }
 COLD = {"C76A0306280B": "Fridge", "D43535302778": "Freezer"}
 PRINTING = {

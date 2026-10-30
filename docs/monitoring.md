@@ -64,6 +64,13 @@ filtering on one.
 `container`, `app`, `job`, `instance`, `component`, `node_name`, `stream`, `filename`). The Loki security rules and
 the log dashboards select on these, so keep them unchanged. Read offsets are kept in `/var/lib/alloy` on each node.
 
+Telegraf `telegraf-home` (config in `apps/influxdb/config.yaml`) stores MQTT data in bucket `home`, measurement
+`mqtt_consumer`, tagged `kind`/`integration_id`/`device_id` from the topic. It keeps only our own BLE sensors (a
+`tagpass` list of device ids; the gateways also hear neighbours' devices), so add a new sensor there as well as in
+the dashboards. It drops repeated zigbee2mqtt device metadata and settings. ESPHome light state lands next to the
+old Tuya bulb history (`kind=lights`, `integration_id=esphome`); ESPHome chip temperature, Wi-Fi signal and thermal
+lockout go to measurement `esphome`.
+
 `apps/influxdb/telegraf-cloud.yaml` fetches cloud data into InfluxDB (bucket `home`, field `value`). Its
 credentials, the NIBE device id, the FMI station and the home coordinates are in `telegraf-cloud.sops.yaml`,
 and its InfluxDB token ("homelab InfluxDB telegraf-nibe token" in 1Password) can only write to `home`.
