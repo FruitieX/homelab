@@ -118,6 +118,43 @@ To roll back, drop `DATABASE_URL` from the deployment and restore that file as `
 the migration would then be missing. The 3D printing dashboard reads the print archive, maintenance and spools
 from that database.
 
+## InfluxDB compaction
+
+The `home` bucket keeps full resolution for 90 days. After that, the monthly CronJob `influxdb-compaction`
+(`infrastructure/monitoring/influxdb/compaction.yaml`, 03:17 UTC on the 3rd) rewrites the high-frequency MQTT
+data to one value per minute. Nothing is dropped outright: history is compacted, not deleted.
+
+- **Rewritten** (measurement `mqtt_consumer`): Tuya plugs, Tuya/LIFX/Hue/ESPHome bulbs, Zigbee, and our own BLE
+  sensors.
+  Numeric measurements (power, current, voltage, brightness, temperature, humidity, battery, RSSI, link quality, …)
+  become the 1-minute mean; states, colours, counters (Tuya `raw_17` energy), versions and strings keep the last
+  value of the minute. Every series keeps all its tags, so dashboards, alerts and homectl queries are unchanged.
+- **Dropped** while rewriting: BLE `tempf`, redundant Zigbee fields (`device_*`, `update_*`, presence-sensor settings,
+  `color_h`/`color_s`, which duplicate `color_hue`/`color_saturation`) and BLE devices that are not ours (the list
+  is `OWNER_BLE` in `compaction/compact.sh`; add new sensors there and in `home.py`). Telegraf drops the same at ingest.
+- **Never touched:** water meter, NIBE, FMI, prices, Datahub electricity, Fingrid, Verisure.
+
+`compaction/compact.sh` works one shard group (Monday to Monday) at a time: it aggregates the week into bucket
+`home_staging`, checks per series and field that the staged points equal the non-empty raw minutes and that last
+values and plug energy match, deletes the raw week, copies the staged week back, checks again and writes a
+`compaction_done` marker into `home_staging`. Marked weeks are skipped, so a run can be repeated safely; each run
+handles at most 26 weeks. Any failed check stops the job (`CronJobLastRunFailed` fires).
+
+- **Run now:** `kubectl -n influxdb create job --from=cronjob/influxdb-compaction compaction-manual`.
+- **Resume after a failure:** the log names the week. If the job stopped after the delete, that week only exists in
+  `home_staging`; run `sh /scripts/compact.sh --resume-copyback <week-start>` in a pod built like the CronJob's.
+  Otherwise just run the job again.
+- **Restore:** take an `influx backup` before large changes (it needs the operator token, "admin's Token"). To undo a
+  week, restore its shard from the backup into a scratch bucket (`influx restore --bucket home --new-bucket ...`)
+  and copy the week back with Flux `to()`.
+- `home_staging` must keep infinite retention: writes older than a bucket's retention are silently dropped.
+- Data that is on disk but invisible to queries (a field returns nothing for a week although its TSM files hold it)
+  means a damaged per-shard field index, `data/<bucket-id>/autogen/<shard>/fields.idx`; compare its size with
+  neighbouring shards. Fix: stop InfluxDB (suspend the HelmRelease, scale the StatefulSet to 0), move that
+  `fields.idx` out of the shard from a pod mounting the PVC, and start it again: InfluxDB rebuilds the file from the TSM
+  files on startup. Until then list the week in `SKIP_WEEKS` in the script, or the compaction would leave the hidden
+  raw data behind.
+
 ## Alerts
 
 - Discord channels: `#flux-notifications` gets only Flux's own notifications (its notification provider);

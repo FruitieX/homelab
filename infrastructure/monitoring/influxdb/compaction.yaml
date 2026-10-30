@@ -1,0 +1,42 @@
+# Monthly 1-minute compaction of InfluxDB `home` data older than 90 days.
+# The scripts are in compaction/ (ConfigMap influxdb-compaction-scripts); see
+# docs/monitoring.md for what is compacted and how to resume or restore.
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: influxdb-compaction
+  namespace: influxdb
+spec:
+  schedule: "17 3 3 * *"          # 03:17 UTC on the 3rd of each month
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 2
+  failedJobsHistoryLimit: 2       # CronJobLastRunFailed alerts on a failed run
+  jobTemplate:
+    spec:
+      backoffLimit: 0             # never retry blindly: a run may stop between delete and copy-back
+      activeDeadlineSeconds: 43200
+      template:
+        spec:
+          restartPolicy: Never
+          containers:
+            - name: compact
+              image: influxdb:2.7.4-alpine   # same image as the server, for the influx CLI
+              command: ["sh", "/scripts/compact.sh", "auto", "26"]
+              env:
+                - name: INFLUX_HOST
+                  value: http://influxdb-influxdb2.influxdb.svc
+                - name: INFLUX_ORG
+                  value: influxdata
+                - name: INFLUX_TOKEN
+                  valueFrom:
+                    secretKeyRef: {name: influxdb-auth, key: admin-token}
+                - name: TEMPLATE
+                  value: /scripts/compact-window.flux
+              resources:
+                requests: {cpu: 10m, memory: 32Mi}
+                limits: {memory: 256Mi}
+              volumeMounts:
+                - {name: scripts, mountPath: /scripts}
+          volumes:
+            - name: scripts
+              configMap: {name: influxdb-compaction-scripts}

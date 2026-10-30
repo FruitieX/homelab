@@ -7,3 +7,13 @@ resources:
   - release.yaml
   - httproute.yaml
   - pocket-id-auth.yaml
+  - compaction.yaml
+configMapGenerator:
+  - name: influxdb-compaction-scripts
+    files:
+      - compaction/compact.sh
+      - compaction/compact-window.flux
+    options:
+      annotations:
+        # The scripts use ${...} shell variables of their own.
+        kustomize.toolkit.fluxcd.io/substitute: disabled
