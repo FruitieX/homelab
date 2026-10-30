@@ -18,6 +18,8 @@ spec:
     - ${POSTGRES_CLIENT_HONEYDEW}
     - ${POSTGRES_CLIENT_WATERMELON}
     - ${POSTGRES_CLIENT_WATERMELON_WIFI}
+    - ${POSTGRES_CLIENT_TANGELO_VPN}
+    - ${POSTGRES_CLIENT_TANGELO_VPN_LINUX}
   # loadBalancerSourceRanges does not cover node ports, so allocate none:
   # MetalLB doesn't need them.
   allocateLoadBalancerNodePorts: false
