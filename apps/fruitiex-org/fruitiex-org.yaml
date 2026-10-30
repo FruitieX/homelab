@@ -84,7 +84,7 @@ spec:
             value: "0"
       containers:
         - name: fruitiex-org
-          image: ghcr.io/fruitiex/fruitiex.org:main@sha256:1f9e435de5f70d1a29e74475b18bacdeb8dcad7915f7014a82df255d7d161f9e
+          image: ghcr.io/fruitiex/fruitiex.org:main@sha256:ac4b9a6ad4347f6fedfd32ed5d2e18b66bbe6543226d9534a8e17e29144a9a74
           imagePullPolicy: IfNotPresent
           securityContext:
             allowPrivilegeEscalation: false
