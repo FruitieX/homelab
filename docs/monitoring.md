@@ -111,6 +111,9 @@ from that database.
   (`alertmanager-discord.sops.yaml`), as do Grafana rules outside the Home folder. Home-folder rules go to `#home`.
   The Flux webhook stays in `notification-provider/discord-webhook-url.yaml`; the other two are "Discord webhook
   home" and "Discord webhook homelab" in the Agents vault.
+- Backups (`homelab.backups` in `targets/rules.yaml`): `PostgresDumpStale` fires when `postgres-dump` has not
+  succeeded for 36 h, `CronJobLastRunFailed` when any CronJob's latest run failed. The stock `KubeJobFailed` is a
+  plain warning and never reaches Discord. Immich's own database backups are not monitored.
 - Grafana-managed rules for the InfluxDB data are in `grafana/grafana-alerting.sops.yaml`. They cover the freezer, the fridge, water flowing non-stop for 3 hours (normal use always pauses within
   about 2 hours), home sensors going silent, and the sauna being ready, from the upstairs bathroom BLE sensor (device `D83431306571`). It fires when, over the
   last 20 minutes, the temperature has risen at least 2 °C, humidity at most 5 points, and it is now at least 26 °C:
