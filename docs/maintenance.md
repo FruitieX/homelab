@@ -40,6 +40,8 @@ What it does:
    `--drain-only` stops here; finish later with `--uncordon-only`.
 5. Waits for every node to be Ready and uncordons it.
 
+Waiting for a node to come back also checks that its boot ID changed, because a node that was just shut down still shows Ready until its status goes stale. `--drain-only` saves the boot IDs for a later `--uncordon-only`; pass `--no-reboot` when the node was drained but not restarted.
+
 When a host includes a control plane, the API virtual IP moves to another
 control plane by itself and kubectl may pause for a few seconds. etcd keeps
 quorum with two of three members, so only one control plane may be down at a

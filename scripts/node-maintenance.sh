@@ -21,7 +21,8 @@ Actions (default --wait):
                       image pinned in regen-configs.sh)
   --drain-only        cordon and drain, then stop (uncordon later with
                       --uncordon-only)
-  --uncordon-only     wait for the nodes to be Ready and uncordon them
+  --uncordon-only     wait for the nodes to be Ready and uncordon them; after
+                      --drain-only it also waits for a new boot (see below)
 
 Options:
   -n, --dry-run       show what would happen; changes nothing
@@ -30,6 +31,8 @@ Options:
                       (needed for single-replica workloads whose PDB
                       allows no disruptions, e.g. influxdb)
   --force             continue although other nodes are not Ready
+  --no-reboot         with --wait/--uncordon-only: the nodes were not
+                      restarted, so don't wait for a new boot ID
   -y, --yes           don't ask for confirmation
   -h, --help          show this help
 
@@ -39,6 +42,7 @@ EOF
 }
 
 ACTION="wait"
+NO_REBOOT=0
 IMAGE=""
 DRY_RUN=0
 TIMEOUT=10m
@@ -61,6 +65,7 @@ while [ $# -gt 0 ]; do
     --timeout) TIMEOUT="$2"; shift ;;
     --disable-eviction) DISABLE_EVICTION=1 ;;
     --force) FORCE=1 ;;
+    --no-reboot) NO_REBOOT=1 ;;
     -y | --yes) YES=1 ;;
     -h | --help) usage; exit 0 ;;
     -*) echo "unknown option: $1" >&2; usage >&2; exit 2 ;;
@@ -160,6 +165,27 @@ fi
 DRAIN_ARGS=(--ignore-daemonsets --delete-emptydir-data --timeout="$TIMEOUT" --grace-period=-1)
 [ "$DISABLE_EVICTION" = 1 ] && DRAIN_ARGS+=(--disable-eviction)
 
+# Boot IDs from before the maintenance. A node that was shut down keeps
+# showing Ready until its status goes stale, so "Ready" alone can pass before
+# the node has even gone down; a changed boot ID proves it really restarted.
+# --drain-only saves them so a later --uncordon-only can check too.
+STATE_DIR="${XDG_RUNTIME_DIR:-/tmp}/node-maintenance"
+declare -A BOOT_ID=()
+boot_id() { kubectl get node "$1" -o jsonpath='{.status.nodeInfo.bootID}' 2>/dev/null || true; }
+save_boot_ids() {
+  mkdir -p "$STATE_DIR"
+  for n in "${NODES[@]}"; do
+    BOOT_ID[$n]="$(boot_id "$n")"
+    printf '%s\n' "${BOOT_ID[$n]}" >"$STATE_DIR/$n.bootid"
+  done
+}
+load_boot_ids() {
+  for n in "${NODES[@]}"; do
+    [ -f "$STATE_DIR/$n.bootid" ] && BOOT_ID[$n]="$(cat "$STATE_DIR/$n.bootid")"
+  done
+  return 0
+}
+
 wait_ready() {
   local n="$1"
   if [ "$DRY_RUN" = 1 ]; then
@@ -168,11 +194,20 @@ wait_ready() {
   fi
   # Poll instead of `kubectl wait`: the API VIP may move while a control
   # plane reboots, and a failed request must not abort the script.
-  local deadline=$((SECONDS + 1200)) status
-  echo "Waiting for $n to be Ready..."
+  local deadline=$((SECONDS + 1200)) status before="${BOOT_ID[$n]:-}"
+  [ "$NO_REBOOT" = 1 ] && before=""
+  if [ -n "$before" ]; then
+    echo "Waiting for $n to come back (new boot) and be Ready..."
+  else
+    echo "Waiting for $n to be Ready..."
+  fi
   while [ "$SECONDS" -lt "$deadline" ]; do
     status="$(kubectl get node "$n" -o jsonpath='{.status.conditions[?(@.type=="Ready")].status}' 2>/dev/null || true)"
-    [ "$status" = True ] && { echo "$n is Ready"; return; }
+    if [ "$status" = True ] && { [ -z "$before" ] || [ "$(boot_id "$n")" != "$before" ]; }; then
+      echo "$n is Ready"
+      rm -f "$STATE_DIR/$n.bootid"
+      return
+    fi
     sleep 5
   done
   echo "$n not Ready after 20 minutes; it stays cordoned. Rerun with --uncordon-only once it is." >&2
@@ -185,9 +220,12 @@ uncordon_all() {
 }
 
 if [ "$ACTION" = uncordon-only ]; then
+  load_boot_ids
   uncordon_all
   exit 0
 fi
+
+[ "$DRY_RUN" = 1 ] || save_boot_ids
 
 # --- cordon all first, so pods don't hop between the target's nodes ----------
 log "Cordoning"
