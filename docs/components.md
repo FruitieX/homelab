@@ -100,8 +100,12 @@ I make use of the following pieces of software and infrastructure:
   `user` apply to anonymous clients) are the SOPS Secret
   [apps/mosquitto/auth.sops.yaml](/apps/mosquitto/auth.sops.yaml). The plain passwords are in 1Password, one Login
   item per user named `MQTT broker: <user>`
-- A sidecar sends mosquitto a SIGHUP when the mounted config or Secret changes, so password and ACL changes apply
-  a minute or two after Flux applies them, without a restart. A denied publish is logged only at `log_type debug`
+- Mosquitto 2.0 warns about auth files not owned by its own user (later versions refuse them), and Secret volume
+  files are owned by root. An init container copies `passwd` and `acl` from the Secret into an in-memory emptyDir as
+  uid 1883 (mosquitto) with mode 0600, and mosquitto reads them from there (`/mosquitto/auth`)
+- A sidecar re-copies the auth files and sends mosquitto a SIGHUP when the mounted config or Secret changes, so
+  password and ACL changes apply a minute or two after Flux applies them, without a restart. A denied publish is
+  logged only at `log_type debug`
 - Adding a client:
   1. Create the 1Password item (`op item create --category=login --title='MQTT broker: <user>'
      --generate-password=32,letters,digits username=<user>`)
@@ -114,8 +118,7 @@ I make use of the following pieces of software and infrastructure:
      through a `zigbee2mqtt/bridge/request/options` message published as `admin`, then
      `zigbee2mqtt/bridge/request/restart`)
 - The Secret and the Deployment have Flux variable substitution disabled, because password hashes and the sidecar
-  script contain `$`. Mosquitto 2.0 warns that the mounted files are not owned by the mosquitto user; later versions
-  refuse to load them, so an upgrade needs the files copied and chowned first (e.g. by an init container)
+  script contain `$`
 
 ### kube-prometheus-stack
 

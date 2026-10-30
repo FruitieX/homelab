@@ -50,6 +50,40 @@ spec:
         runAsNonRoot: true
         seccompProfile:
           type: RuntimeDefault
+      # Mosquitto wants the password file and ACL owned by its own user (2.0
+      # warns, later versions refuse to load them), but Secret volume files are
+      # always owned by root. This copies them into an in-memory emptyDir as the
+      # pod user (1883, mosquitto) with mode 0600; the reload sidecar re-copies
+      # them before signalling mosquitto.
+      initContainers:
+        - name: copy-auth
+          image: busybox:1.37
+          command:
+            - sh
+            - -c
+            - |
+              for f in passwd acl; do
+                cp /mosquitto/auth-secret/$f /mosquitto/auth/.$f.tmp &&
+                  chmod 0600 /mosquitto/auth/.$f.tmp &&
+                  mv -f /mosquitto/auth/.$f.tmp /mosquitto/auth/$f || exit 1
+              done
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: [ALL]
+          volumeMounts:
+            - name: auth-secret
+              mountPath: /mosquitto/auth-secret
+              readOnly: true
+            - name: auth
+              mountPath: /mosquitto/auth
+          resources:
+            requests:
+              cpu: 1m
+              memory: 4Mi
+            limits:
+              cpu: 20m
+              memory: 16Mi
       containers:
         - name: mosquitto
           image: eclipse-mosquitto:2.0@sha256:09b62ff32c2e7b64d4b431b9a89236073289b68db273de2b089edeb9b0d92b5c
@@ -82,20 +116,32 @@ spec:
         # Mosquitto rereads mosquitto.conf, the password file and the ACL on
         # SIGHUP without dropping clients. The kubelet updates mounted
         # ConfigMap/Secret files a minute or two after Flux applies a change;
-        # this sends SIGHUP when they change, so auth changes need no restart.
+        # this re-copies the auth files (see copy-auth) and sends SIGHUP when
+        # they change, so auth changes need no restart.
         - name: reload-on-change
           image: busybox:1.37
           command:
             - sh
             - -c
             - |
-              state() { cat /mosquitto/config/* /mosquitto/auth/* | md5sum; }
+              copy() {
+                for f in passwd acl; do
+                  cp /mosquitto/auth-secret/$f /mosquitto/auth/.$f.tmp &&
+                    chmod 0600 /mosquitto/auth/.$f.tmp &&
+                    mv -f /mosquitto/auth/.$f.tmp /mosquitto/auth/$f || return 1
+                done
+              }
+              state() { cat /mosquitto/config/* /mosquitto/auth-secret/* | md5sum; }
               last=$(state)
               while sleep 20; do
                 now=$(state)
                 if [ "$now" != "$last" ]; then
-                  pkill -HUP -x mosquitto && echo "config changed, sent SIGHUP to mosquitto"
-                  last=$now
+                  if copy; then
+                    pkill -HUP -x mosquitto && echo "config changed, sent SIGHUP to mosquitto"
+                    last=$now
+                  else
+                    echo "copying auth files failed, retrying"
+                  fi
                 fi
               done
           securityContext:
@@ -106,9 +152,11 @@ spec:
             - name: config
               mountPath: /mosquitto/config
               readOnly: true
+            - name: auth-secret
+              mountPath: /mosquitto/auth-secret
+              readOnly: true
             - name: auth
               mountPath: /mosquitto/auth
-              readOnly: true
           resources:
             requests:
               cpu: 1m
@@ -120,10 +168,15 @@ spec:
         - name: config
           configMap:
             name: mosquitto-config
-        - name: auth
+        - name: auth-secret
           secret:
             secretName: mosquitto-auth
             defaultMode: 0440
+        # Copies of the auth files owned by mosquitto (see copy-auth).
+        - name: auth
+          emptyDir:
+            medium: Memory
+            sizeLimit: 1Mi
         - name: data
           persistentVolumeClaim:
             claimName: mosquitto-data-nfs
