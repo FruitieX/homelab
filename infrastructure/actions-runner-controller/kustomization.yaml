@@ -6,4 +6,3 @@ resources:
   - controller-release.yaml
   - flux-reconcile-rbac.yaml
   - runner-release.yaml
-  - add-bot-rs-runner-release.yaml
