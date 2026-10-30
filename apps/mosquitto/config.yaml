@@ -16,10 +16,6 @@ data:
     password_file /mosquitto/auth/passwd
     acl_file /mosquitto/auth/acl
 
-    # TEMPORARY: debug logging (every publish and denial) while the ACL is
-    # rolled out.
-    log_type all
-
     # Keep retained messages across restarts (see pvc-nfs.yaml). Saved every
     # minute and on shutdown.
     persistence true
