@@ -19,7 +19,7 @@ Family shopping, recipes and lunch planning at **https://littlecupboard.fruitiex
 
 The pod uses the existing `ghcr-credentials` pull secret, UID/GID 10001, a read-only root filesystem and one replica with Recreate. The image is pinned to a tested release digest in `deployment.yaml`.
 
-Active storage is the 5 GiB `forkbasket-data-nfs` claim using `nfs-csi`, mounted at `/data`. On **nectarine.internal.fruitiex.org**, the directory is **`/volume3/homelab/forkbasket-data-nfs`**. The app database is `forkbasket.sqlite3`; accounts, shopping/meal state, recipes, images and encrypted AI credentials are inside it. NFSv4.1 uses hard mounts with locking enabled. `LITTLECUPBOARD_SQLITE_JOURNAL_MODE=DELETE` selects rollback journaling and synchronous EXTRA; WAL is unsuitable for NFS. The NAS must honor file locks and durable sync operations.
+Active storage is the 5 GiB `littlecupboard-data-nfs` claim, mounted at `/data`. It binds a static PV of the same name that points at the NAS directory **`/volume3/homelab/forkbasket-data-nfs`**, which keeps its old name so the data never moved. The app database is `forkbasket.sqlite3`; accounts, shopping/meal state, recipes, images and encrypted AI credentials are inside it. NFSv4.1 uses hard mounts with locking enabled. `LITTLECUPBOARD_SQLITE_JOURNAL_MODE=DELETE` selects rollback journaling and synchronous EXTRA; WAL is unsuitable for NFS. The NAS must honor file locks and durable sync operations.
 
 The previous `forkbasket-data` iSCSI claim and its Synology LUN were removed at the user's request after the migration was verified. Only the active NFS claim remains, with Flux pruning disabled and a Retain reclaim policy. A private pre-migration database backup remains on NFS. Keep regular backups of the active NFS database and its matching SOPS secret.
 
@@ -34,7 +34,7 @@ To read only the setup token in a private local terminal:
 ```sh
 cd ~/projects/homelab
 nix-shell
-sops --decrypt --extract '["stringData"]["FORKBASKET_SETUP_TOKEN"]' apps/littlecupboard/secret.sops.yaml
+sops --decrypt --extract '["stringData"]["LITTLECUPBOARD_SETUP_TOKEN"]' apps/littlecupboard/secret.sops.yaml
 ```
 
 Configure favorite stores/aisle order and add family recipes in the app. The AI assistant stays hidden until an OpenAI-compatible endpoint/model is enabled in Settings; provider configuration is deliberately left to the owner.
@@ -51,10 +51,10 @@ Automatic deployment is active and was verified on 2026-10-01. The dispatch secr
 
 ```sh
 export KUBECONFIG="$PWD/kubeconfig"
-flux reconcile kustomization forkbasket
-kubectl get kustomization forkbasket -n flux-system
+flux reconcile kustomization littlecupboard
+kubectl get kustomization littlecupboard -n flux-system
 kubectl get pods -n default -l app=littlecupboard
-kubectl get pvc forkbasket-data-nfs -n default
+kubectl get pvc littlecupboard-data-nfs -n default
 curl --fail https://littlecupboard.fruitiex.org/api/ready
 ```
 
@@ -157,7 +157,7 @@ At the user's subsequent request, the old storage was retired after confirming t
 
 Canonical URL: https://littlecupboard.fruitiex.org. The former forkbasket.fruitiex.org hostname was retired on 2026-10-29. Sign in at the new origin using existing accounts and reinstall PWAs from there; site-local pending operations are not transferred across origins.
 
-Deployment, Service, HTTPRoute and container are renamed to littlecupboard; images come from ghcr.io/fruitiex/littlecupboard and the GitHub repository is FruitieX/littlecupboard. Keep the Flux Kustomization name forkbasket so its managed inventory follows the move to apps/littlecupboard without competing reconcilers. The existing encrypted Secret forkbasket-server-env and NFS claim forkbasket-data-nfs stay intact, with data at /volume3/homelab/forkbasket-data-nfs and the same /data/forkbasket.sqlite3. New environment keys take precedence and the server accepts legacy FORKBASKET keys. Before switching the renamed Deployment onto the claim, stop the previous Deployment and wait for its pod to exit; SQLite must have only one server.
+Deployment, Service, HTTPRoute and container are renamed to littlecupboard; images come from ghcr.io/fruitiex/littlecupboard and the GitHub repository is FruitieX/littlecupboard. The Flux Kustomization, Secret and claim kept their forkbasket names until 2026-10-30, when they became `littlecupboard`, `littlecupboard-server-env` and `littlecupboard-data-nfs` (the old Kustomization had pruning turned off first, so deleting it orphaned the app instead of removing it). The data stays at /volume3/homelab/forkbasket-data-nfs in the same /data/forkbasket.sqlite3. New environment keys take precedence and the server accepts legacy FORKBASKET keys. Before switching the renamed Deployment onto the claim, stop the previous Deployment and wait for its pod to exit; SQLite must have only one server.
 
 Application CI/deployment `37018857616` and receiver `37020915843` succeeded. Source `a13e7930f4adfdd995695d4e6f6164577e20ac29` is pinned to digest `sha256:6341bbb53be22cbf255f808b38a52266047940b848454edd522a6e7b6d948226`. Revision `40c4f24` completed the single-server transition: suspend the existing child Kustomization, stop the old pod, apply the new path through Flux, resume. Flux reached Ready/Healthy at 14:38:16 UTC; littlecupboard has one healthy replica and the old Deployment is absent. The claim still has UID `dc510c60-0082-45d9-8ff1-fabcb978996a` and the same PV. A consistent backup is `/data/before-littlecupboard-20261002.sqlite3`.
 

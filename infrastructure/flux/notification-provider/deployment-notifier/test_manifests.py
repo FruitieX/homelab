@@ -37,7 +37,6 @@ class ManifestTests(unittest.TestCase):
                 self.assertEqual(rule["verbs"], ["get"])
                 for kind in rule["resources"]:
                     permissions[(role["metadata"]["namespace"], kind)] = set(rule["resourceNames"])
-        # File names may differ from Kustomization names (littlecupboard.yaml holds "forkbasket").
         flux_kustomizations = {}
         for path in (ROOT / "clusters/homelab/apps").glob("*.yaml"):
             for document in yaml.safe_load_all(path.read_text()):

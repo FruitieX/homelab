@@ -1,12 +1,46 @@
+# Static volume on the NAS directory forkbasket-data-nfs, which the app has
+# used since 2026-10-01 under its old name; the data stays where it is.
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: littlecupboard-data-nfs
+  annotations:
+    kustomize.toolkit.fluxcd.io/prune: disabled
+spec:
+  capacity:
+    storage: 5Gi
+  accessModes: [ReadWriteOnce]
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: nfs-csi
+  mountOptions:
+    - hard
+    - nfsvers=4.1
+    - noatime
+    - rsize=1048576
+    - wsize=1048576
+    - timeo=600
+    - retrans=2
+  claimRef:
+    namespace: default
+    name: littlecupboard-data-nfs
+  csi:
+    driver: nfs.csi.k8s.io
+    volumeHandle: nectarine.internal.fruitiex.org#volume3/homelab#forkbasket-data-nfs#littlecupboard-data-nfs#
+    volumeAttributes:
+      server: nectarine.internal.fruitiex.org
+      share: /volume3/homelab
+      subDir: forkbasket-data-nfs
+---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: forkbasket-data-nfs
+  name: littlecupboard-data-nfs
   annotations:
     kustomize.toolkit.fluxcd.io/prune: disabled
 spec:
   accessModes: [ReadWriteOnce]
   storageClassName: nfs-csi
+  volumeName: littlecupboard-data-nfs
   resources:
     requests:
       storage: 5Gi

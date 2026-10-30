@@ -42,17 +42,13 @@ jobs:
           fi
 
           # Find files containing this image reference
-          if [[ "$IMAGE" == ghcr.io/fruitiex/forkbasket || "$IMAGE" == ghcr.io/fruitiex/littlecupboard ]]; then
+          if [[ "$IMAGE" == ghcr.io/fruitiex/littlecupboard ]]; then
             if [[ ! "$REVISION" =~ ^[a-f0-9]{40}$ ]]; then
               echo '::error::LittleCupboard requires the tested source revision.'
               exit 1
             fi
             # Update only the live image, preserving historical README digests.
-            if [[ -f apps/littlecupboard/deployment.yaml ]]; then
-              FILES=apps/littlecupboard/deployment.yaml
-            else
-              FILES=apps/forkbasket/deployment.yaml
-            fi
+            FILES=apps/littlecupboard/deployment.yaml
           else
             FILES=$(grep -rl "$IMAGE" apps/ || true)
           fi
@@ -62,20 +58,38 @@ jobs:
             exit 1
           fi
 
+          # Skip apps that clusters/homelab/apps does not deploy (commented out
+          # or unlisted), so their manifests don't churn.
+          DEPLOYED=$(sed -n 's|^  - \(.*\.yaml\)$|clusters/homelab/apps/\1|p' clusters/homelab/apps/kustomization.yaml \
+            | xargs grep -h '^  path: ./apps/' | sed 's|^  path: ./||')
+          KEEP=""
+          for file in $FILES; do
+            if grep -qx "$(cut -d/ -f1-2 <<<"$file")" <<<"$DEPLOYED"; then
+              KEEP="$KEEP $file"
+            else
+              echo "Skipping $file: its app is not deployed"
+            fi
+          done
+          FILES="${KEEP# }"
+          if [[ -z "$FILES" ]]; then
+            echo "::notice::$IMAGE is only used by apps that are not deployed"
+            exit 0
+          fi
+
           echo "Updating $IMAGE to $DIGEST in:"
           echo "$FILES"
 
           # Replace the digest (or add one if missing) for this image
           # Handles both "image:tag@sha256:..." and "image:tag" (no digest) formats
           for file in $FILES; do
-            if [[ "$IMAGE" == ghcr.io/fruitiex/forkbasket || "$IMAGE" == ghcr.io/fruitiex/littlecupboard ]]; then
+            if [[ "$IMAGE" == ghcr.io/fruitiex/littlecupboard ]]; then
               python3 - "$file" "$IMAGE" "$REVISION" "$DIGEST" <<PY_IMAGE
           import re, sys
           from pathlib import Path
           path = Path(sys.argv[1])
           image, revision, digest = sys.argv[2:]
           text, count = re.subn(
-              r"^([ \t]*image:[ \t]*)ghcr[.]io/fruitiex/(?:forkbasket|littlecupboard):[a-zA-Z0-9._-]+(?:@sha256:[a-f0-9]+)?[ \t]*$",
+              r"^([ \t]*image:[ \t]*)ghcr[.]io/fruitiex/littlecupboard:[a-zA-Z0-9._-]+(?:@sha256:[a-f0-9]+)?[ \t]*$",
               lambda match: f"{match[1]}{image}:{revision}@{digest}",
               path.read_text(), flags=re.MULTILINE,
           )

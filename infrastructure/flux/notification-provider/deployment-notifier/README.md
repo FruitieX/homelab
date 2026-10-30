@@ -30,7 +30,7 @@ Homectl's readiness probe uses `/health/ready`, which waits for startup warmup.
 Add-bot currently has no application readiness endpoint: its success means the
 new container is running and Kubernetes considers it ready, rather than a
 Telegram API connectivity check.
-Forkbasket's readiness probe uses `/api/ready`.
+LittleCupboard's readiness probe uses `/api/ready`.
 
 The first ready image for each service is recorded **silently as a baseline**.
 Subsequent digest changes produce notifications; config-only changes and repeated
@@ -54,7 +54,7 @@ indexes. `org.opencontainers.image.revision` identifies the app commit, while
 Moving tags such as `main` are replaced by the short commit. Other registries
 and images without labels still get digest-based messages. If the revision label
 is absent, a full 40-character commit SHA in the digest-pinned image tag supplies
-the source revision instead; Forkbasket currently uses this fallback.
+the source revision instead; LittleCupboard currently uses this fallback.
 
 GitHub comparisons use the previous and current app commits, not the homelab
 manifest commit. Messages contain up to five actual commit subject lines and a
@@ -68,10 +68,10 @@ to raise its API limit (mount it from a Secret; never put tokens in configuratio
 Private GHCR images can use `registry_secret` to name an existing
 `kubernetes.io/dockerconfigjson` pull secret in the workload's namespace. The
 notifier reads its `ghcr.io` credentials for the registry token exchange, rereading
-the Secret on each metadata lookup to support rotation. Forkbasket uses the
+the Secret on each metadata lookup to support rotation. LittleCupboard uses the
 existing `default/ghcr-credentials` Secret. These registry credentials are not
 sent to the GitHub API; private repository change summaries require a separately
-configured `GITHUB_TOKEN` with repository read access. Without it, Forkbasket
+configured `GITHUB_TOKEN` with repository read access. Without it, LittleCupboard
 notifications still include the image's version/commit and a commit or compare link.
 
 ## Adding a service
@@ -93,7 +93,7 @@ notifications still include the image's version/commit and a commit or compare l
 The notifier is included in the existing `notification-provider` Flux
 Kustomization, so the usual homelab GitOps push deploys it. Generated ConfigMap
 hashes trigger a restart when code or configuration changes. It checks add-bot,
-homectl, and forkbasket by default. Telegram is not configured in this implementation.
+homectl, and littlecupboard by default. Telegram is not configured in this implementation.
 
 ## Local checks
 

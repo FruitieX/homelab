@@ -41,7 +41,7 @@ metadata:
 rules:
   - apiGroups: [kustomize.toolkit.fluxcd.io]
     resources: [kustomizations]
-    resourceNames: [add-bot, homectl, forkbasket]
+    resourceNames: [add-bot, homectl, littlecupboard]
     verbs: [get]
 ---
 apiVersion: rbac.authorization.k8s.io/v1

@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: littlecupboard
   annotations:
-    secret.reloader.stakater.com/reload: forkbasket-server-env
+    secret.reloader.stakater.com/reload: littlecupboard-server-env
 spec:
   replicas: 1
   strategy:
@@ -34,7 +34,7 @@ spec:
           imagePullPolicy: Always
           envFrom:
             - secretRef:
-                name: forkbasket-server-env
+                name: littlecupboard-server-env
           env:
             - name: LITTLECUPBOARD_ORIGIN
               value: https://littlecupboard.fruitiex.org
@@ -87,7 +87,7 @@ spec:
       volumes:
         - name: data
           persistentVolumeClaim:
-            claimName: forkbasket-data-nfs
+            claimName: littlecupboard-data-nfs
         - name: tmp
           emptyDir:
             sizeLimit: 128Mi
