@@ -1,23 +1,5 @@
 ---
-# PostgreSQL 14 data directory, no longer mounted since the upgrade to 18
-# (2026-10-28). Kept for rollback: revert the upgrade commit and Immich runs on
-# PostgreSQL 14 again with the data as of the upgrade. Delete this PVC (and its
-# PV, reclaim policy Retain) together with immich-postgres-upgrade-dump once
-# PostgreSQL 18 has run without problems for a few weeks.
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: immich-postgres-data
-  namespace: default
-spec:
-  storageClassName: nfs-csi
-  accessModes:
-    - ReadWriteOnce
-  resources:
-    requests:
-      storage: 10Gi
----
-# Data directory for the PostgreSQL 18 cluster (see the Deployment below).
+# Data directory of Immich's PostgreSQL 18 (see the Deployment below).
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
@@ -27,22 +9,6 @@ spec:
   storageClassName: nfs-csi
   accessModes:
     - ReadWriteOnce
-  resources:
-    requests:
-      storage: 10Gi
----
-# pg_dumpall of the PostgreSQL 14 cluster taken right before the 14 -> 18
-# upgrade (2026-10-28). Kept apart from /data/backups so Immich's backup
-# rotation never deletes it.
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: immich-postgres-upgrade-dump
-  namespace: default
-spec:
-  storageClassName: nfs-csi
-  accessModes:
-    - ReadWriteMany
   resources:
     requests:
       storage: 10Gi
