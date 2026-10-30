@@ -6,6 +6,8 @@ metadata:
   annotations:
     secret.reloader.stakater.com/reload: "twinkly-mqtt-config"
 spec:
+  # Not in use: scaled to 0 by hand since 2025-11; set 1 to bring the bridge back.
+  replicas: 0
   selector:
     matchLabels:
       app: twinkly-mqtt

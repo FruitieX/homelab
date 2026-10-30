@@ -59,12 +59,13 @@ jobs:
           fi
 
           # Skip apps that clusters/homelab/apps does not deploy (commented out
-          # or unlisted), so their manifests don't churn.
+          # or unlisted) or that are scaled to zero, so their manifests don't churn.
           DEPLOYED=$(sed -n 's|^  - \(.*\.yaml\)$|clusters/homelab/apps/\1|p' clusters/homelab/apps/kustomization.yaml \
             | xargs grep -h '^  path: ./apps/' | sed 's|^  path: ./||')
           KEEP=""
           for file in $FILES; do
-            if grep -qx "$(cut -d/ -f1-2 <<<"$file")" <<<"$DEPLOYED"; then
+            if grep -qx "$(cut -d/ -f1-2 <<<"$file")" <<<"$DEPLOYED" \
+              && ! grep -qE '^  replicas: 0([^0-9]|$)' "$file"; then
               KEEP="$KEEP $file"
             else
               echo "Skipping $file: its app is not deployed"
