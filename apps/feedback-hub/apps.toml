@@ -90,3 +90,9 @@ id = "feedback-hub"
 repo = "git@github.com:FruitieX/feedback-hub.git"
 checkout = "~/projects/feedback-hub"
 hosts = ["feedback.fruitiex.org"]
+
+[[apps]]
+id = "twinkly"
+repo = "git@github.com:FruitieX/twinkly.git"
+checkout = "~/projects/twinkly"
+hosts = ["twinkly.fruitiex.org"]

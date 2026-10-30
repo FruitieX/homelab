@@ -1,0 +1,101 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    secret.reloader.stakater.com/reload: twinkly-env
+  name: twinkly
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: twinkly
+  template:
+    metadata:
+      labels:
+        app: twinkly
+    spec:
+      priorityClassName: homelab-home
+      imagePullSecrets:
+        - name: ghcr-credentials
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        fsGroup: 10001
+        fsGroupChangePolicy: OnRootMismatch
+      terminationGracePeriodSeconds: 30
+      containers:
+        - name: twinkly
+          image: ghcr.io/fruitiex/twinkly:0c44c8259c0fd951363f008bee2588f22bc08e43@sha256:c6c563586be2a967c1bed1c52cefe497bdea5bc44172b36a57172b358637c855
+          imagePullPolicy: Always
+          env:
+            - name: TWINKLY_ORIGIN
+              value: https://twinkly.fruitiex.org
+            - name: TWINKLY_FEEDBACK_HUB
+              value: https://feedback.fruitiex.org
+            - name: TWINKLY_SQLITE_JOURNAL_MODE
+              value: DELETE
+            - name: RUST_LOG
+              value: twinkly=info
+            # Passkey sign-in through Pocket ID; the client secret is in twinkly-env.
+            - name: TWINKLY_OIDC_ISSUER
+              value: https://id.fruitiex.org
+            - name: TWINKLY_OIDC_CLIENT_ID
+              value: twinkly
+            - name: TWINKLY_OIDC_ALLOWED_GROUPS
+              value: family
+            # Same topics and broker user as the old twinkly-mqtt bridge; credentials are in twinkly-env.
+            - name: TWINKLY_MQTT_HOST
+              value: mqtt
+            - name: TWINKLY_MQTT_PORT
+              value: "1883"
+          envFrom:
+            - secretRef:
+                name: twinkly-env
+          ports:
+            - name: http
+              containerPort: 8080
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: [ALL]
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: '1'
+              memory: 512Mi
+          volumeMounts:
+            - name: data
+              mountPath: /data
+            - name: tmp
+              mountPath: /tmp
+          startupProbe:
+            httpGet:
+              path: /api/ready
+              port: http
+            periodSeconds: 2
+            failureThreshold: 60
+          readinessProbe:
+            httpGet:
+              path: /api/ready
+              port: http
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /api/health
+              port: http
+            periodSeconds: 10
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: twinkly-data-nfs
+        - name: tmp
+          emptyDir:
+            sizeLimit: 128Mi
