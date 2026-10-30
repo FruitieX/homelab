@@ -30,7 +30,7 @@ spec:
       terminationGracePeriodSeconds: 30
       containers:
         - name: twinkly
-          image: ghcr.io/fruitiex/twinkly:0c44c8259c0fd951363f008bee2588f22bc08e43@sha256:c6c563586be2a967c1bed1c52cefe497bdea5bc44172b36a57172b358637c855
+          image: ghcr.io/fruitiex/twinkly:9bd39be60ff76956ccf777b4105033873118a3e7@sha256:8f3fda9d7b14b6a98077d53777554d6d6e64eaebf117d21b8c190a0218eb87ee
           imagePullPolicy: Always
           env:
             - name: TWINKLY_ORIGIN
