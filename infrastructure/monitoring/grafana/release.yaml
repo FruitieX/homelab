@@ -75,7 +75,7 @@ spec:
         enabled: true
         searchNamespace: ALL
         # Dashboards land in the folder named by their grafana_folder
-        # annotation (Home, Homelab, Kubernetes, Loki); the overview has none
+        # annotation (Home, Homelab, Kubernetes, Loki, Legacy); the overview has none
         # and sits at the top level as the home dashboard.
         folderAnnotation: grafana_folder
         provider:

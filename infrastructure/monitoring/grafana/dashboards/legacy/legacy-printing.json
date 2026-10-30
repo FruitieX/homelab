@@ -1,0 +1,2415 @@
+{
+ "annotations": {
+  "list": [
+   {
+    "builtIn": 1,
+    "datasource": {
+     "type": "grafana",
+     "uid": "-- Grafana --"
+    },
+    "enable": true,
+    "hide": true,
+    "iconColor": "rgba(0, 211, 255, 1)",
+    "name": "Annotations & Alerts",
+    "type": "dashboard"
+   }
+  ]
+ },
+ "editable": true,
+ "fiscalYearStartMonth": 0,
+ "graphTooltip": 1,
+ "links": [],
+ "panels": [
+  {
+   "datasource": {
+    "type": "influxdb",
+    "uid": "influxdb-home"
+   },
+   "fieldConfig": {
+    "defaults": {
+     "color": {
+      "mode": "palette-classic"
+     },
+     "custom": {
+      "axisBorderShow": false,
+      "axisCenteredZero": false,
+      "axisColorMode": "text",
+      "axisLabel": "",
+      "axisPlacement": "auto",
+      "barAlignment": 0,
+      "barWidthFactor": 0.6,
+      "drawStyle": "line",
+      "fillOpacity": 0,
+      "gradientMode": "none",
+      "hideFrom": {
+       "legend": false,
+       "tooltip": false,
+       "viz": false
+      },
+      "insertNulls": false,
+      "lineInterpolation": "linear",
+      "lineWidth": 1,
+      "pointSize": 5,
+      "scaleDistribution": {
+       "type": "linear"
+      },
+      "showPoints": "auto",
+      "showValues": false,
+      "spanNulls": false,
+      "stacking": {
+       "group": "A",
+       "mode": "none"
+      },
+      "thresholdsStyle": {
+       "mode": "off"
+      }
+     },
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "green",
+        "value": 0
+       },
+       {
+        "color": "red",
+        "value": 80
+       }
+      ]
+     }
+    },
+    "overrides": [
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "energy_kWh_per_hour"
+      },
+      "properties": [
+       {
+        "id": "custom.drawStyle",
+        "value": "bars"
+       },
+       {
+        "id": "custom.fillOpacity",
+        "value": 84
+       },
+       {
+        "id": "displayName",
+        "value": "Consumption (kWh)"
+       },
+       {
+        "id": "unit",
+        "value": "kWh"
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byRegexp",
+       "options": "/(cost_per_10s|energy_kWh_per_10s)/"
+      },
+      "properties": [
+       {
+        "id": "custom.hideFrom",
+        "value": {
+         "legend": true,
+         "tooltip": true,
+         "viz": true
+        }
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "cents_per_kwh_resampled_10s {integration_id=\"nordpool\", kind=\"sensors\", name=\"price\"}"
+      },
+      "properties": [
+       {
+        "id": "displayName",
+        "value": "Hourly electricity price (c/kWh)"
+       },
+       {
+        "id": "custom.hideFrom",
+        "value": {
+         "legend": true,
+         "tooltip": true,
+         "viz": true
+        }
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "Total cost today (cents)"
+      },
+      "properties": [
+       {
+        "id": "custom.axisPlacement",
+        "value": "left"
+       },
+       {
+        "id": "unit",
+        "value": "cents"
+       }
+      ]
+     }
+    ]
+   },
+   "gridPos": {
+    "h": 11,
+    "w": 15,
+    "x": 0,
+    "y": 0
+   },
+   "id": 18,
+   "options": {
+    "legend": {
+     "calcs": [],
+     "displayMode": "list",
+     "placement": "bottom",
+     "showLegend": true,
+     "sortBy": "Total",
+     "sortDesc": false
+    },
+    "tooltip": {
+     "hideZeros": false,
+     "mode": "single",
+     "sort": "none"
+    }
+   },
+   "targets": [
+    {
+     "datasource": {
+      "type": "influxdb",
+      "uid": "influxdb-home"
+     },
+     "hide": true,
+     "query": "import \"date\"\nimport \"timezone\"\n\noption location = timezone.location(name: \"Europe/Helsinki\")\n\nfrom(bucket: \"home\")\n  |> range(start: date.sub(from: today(), d: 1d), stop: date.add(to: today(), d: 1d))\n  |> filter(fn: (r) => r[\"_measurement\"] == \"mqtt_consumer\")\n  |> filter(fn: (r) => r[\"_field\"] == \"raw_19\") \n  |> filter(fn: (r) => r[\"integration_id\"] == \"tuya\")\n  |> filter(fn: (r) => r[\"kind\"] == \"devices\")\n  |> filter(fn: (r) => r[\"name\"] == \"3D printer\")\n  |> aggregateWindow(every: 1m, fn: mean, createEmpty: false)\n  |> map(fn: (r) => ({ r with _value: r._value * 0.1 }))\n  |> drop(columns: [\"device_id\", \"topic\"])\n  |> yield(name: \"mean\")",
+     "refId": "power"
+    },
+    {
+     "datasource": {
+      "type": "influxdb",
+      "uid": "influxdb-home"
+     },
+     "hide": true,
+     "query": "import \"date\"\nimport \"timezone\"\n\noption location = timezone.location(name: \"Europe/Helsinki\")\n\nfrom(bucket: \"home\")\n  |> range(start: date.sub(from: today(), d: 1d), stop: date.add(to: today(), d: 1d))\n  |> filter(fn: (r) => r[\"_measurement\"] == \"mqtt_consumer\")\n  |> filter(fn: (r) => r[\"_field\"] == \"price\")\n  |> filter(fn: (r) => r[\"integration_id\"] == \"nordpool\")\n  |> drop(columns: [\"device_id\", \"topic\"])\n  |> yield(name: \"mean\")",
+     "refId": "cents_per_kwh"
+    },
+    {
+     "datasource": {
+      "type": "__expr__",
+      "uid": "__expr__",
+      "name": "Expression"
+     },
+     "downsampler": "last",
+     "expression": "power",
+     "hide": true,
+     "refId": "power_resampled_10s",
+     "type": "resample",
+     "upsampler": "backfilling",
+     "window": "10s"
+    },
+    {
+     "datasource": {
+      "type": "__expr__",
+      "uid": "__expr__",
+      "name": "Expression"
+     },
+     "expression": "$power_resampled_10s  * 10.0/ 1000.0 / 60.0 / 60.0",
+     "hide": false,
+     "refId": "energy_kWh_per_10s",
+     "type": "math"
+    },
+    {
+     "datasource": {
+      "type": "__expr__",
+      "uid": "__expr__",
+      "name": "Expression"
+     },
+     "downsampler": "last",
+     "expression": "cents_per_kwh",
+     "hide": false,
+     "refId": "cents_per_kwh_resampled_10s",
+     "type": "resample",
+     "upsampler": "pad",
+     "window": "10s"
+    },
+    {
+     "datasource": {
+      "type": "__expr__",
+      "uid": "__expr__",
+      "name": "Expression"
+     },
+     "downsampler": "sum",
+     "expression": "energy_kWh_per_10s",
+     "hide": false,
+     "refId": "energy_kWh_per_hour",
+     "type": "resample",
+     "upsampler": "fillna",
+     "window": "15m"
+    }
+   ],
+   "title": "3D printer consumption",
+   "transformations": [
+    {
+     "id": "calculateField",
+     "options": {
+      "alias": "cost_per_10s",
+      "binary": {
+       "left": {
+        "matcher": {
+         "id": "byName",
+         "options": "energy_kWh_per_10s {integration_id=\"tuya\", kind=\"devices\", name=\"3D printer\"}"
+        }
+       },
+       "operator": "*",
+       "right": {
+        "matcher": {
+         "id": "byName",
+         "options": "cents_per_kwh_resampled_10s {integration_id=\"nordpool\", kind=\"sensors\", name=\"price\"}"
+        }
+       }
+      },
+      "mode": "binary",
+      "reduce": {
+       "reducer": "sum"
+      },
+      "replaceFields": false
+     }
+    },
+    {
+     "id": "calculateField",
+     "options": {
+      "alias": "Total cost today (cents)",
+      "binary": {
+       "left": {
+        "fixed": ""
+       },
+       "right": {
+        "fixed": ""
+       }
+      },
+      "cumulative": {
+       "field": "cost_per_10s",
+       "reducer": "sum"
+      },
+      "mode": "cumulativeFunctions",
+      "reduce": {
+       "reducer": "sum"
+      },
+      "replaceFields": false
+     }
+    }
+   ],
+   "type": "timeseries"
+  },
+  {
+   "datasource": {
+    "type": "influxdb",
+    "uid": "influxdb-home"
+   },
+   "fieldConfig": {
+    "defaults": {
+     "color": {
+      "mode": "thresholds"
+     },
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "green",
+        "value": 0
+       }
+      ]
+     },
+     "unit": "watt"
+    },
+    "overrides": []
+   },
+   "gridPos": {
+    "h": 11,
+    "w": 9,
+    "x": 15,
+    "y": 0
+   },
+   "id": 19,
+   "options": {
+    "colorMode": "value",
+    "graphMode": "area",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "percentChangeColorMode": "standard",
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    },
+    "showPercentChange": false,
+    "textMode": "auto",
+    "wideLayout": true
+   },
+   "targets": [
+    {
+     "datasource": {
+      "type": "influxdb",
+      "uid": "influxdb-home"
+     },
+     "hide": false,
+     "query": "import \"date\"\nimport \"timezone\"\n\noption location = timezone.location(name: \"Europe/Helsinki\")\n\nfrom(bucket: \"home\")\n  |> range(start: date.sub(from: today(), d: 1d), stop: date.add(to: today(), d: 1d))\n  |> filter(fn: (r) => r[\"_measurement\"] == \"mqtt_consumer\")\n  |> filter(fn: (r) => r[\"_field\"] == \"raw_19\") \n  |> filter(fn: (r) => r[\"integration_id\"] == \"tuya\")\n  |> filter(fn: (r) => r[\"kind\"] == \"devices\")\n  |> filter(fn: (r) => r[\"name\"] == \"3D printer\")\n  |> aggregateWindow(every: 1m, fn: mean, createEmpty: false)\n  |> map(fn: (r) => ({ r with _value: r._value * 0.1 }))\n  |> yield(name: \"mean\")",
+     "refId": "power"
+    }
+   ],
+   "title": "3D printer consumption",
+   "type": "stat"
+  },
+  {
+   "datasource": {
+    "type": "influxdb",
+    "uid": "influxdb-home"
+   },
+   "description": "",
+   "fieldConfig": {
+    "defaults": {
+     "color": {
+      "mode": "continuous-GrYlRd",
+      "seriesBy": "last"
+     },
+     "custom": {
+      "axisBorderShow": false,
+      "axisCenteredZero": false,
+      "axisColorMode": "text",
+      "axisLabel": "",
+      "axisPlacement": "auto",
+      "barAlignment": 0,
+      "barWidthFactor": 0.6,
+      "drawStyle": "line",
+      "fillOpacity": 0,
+      "gradientMode": "scheme",
+      "hideFrom": {
+       "legend": false,
+       "tooltip": false,
+       "viz": false
+      },
+      "insertNulls": false,
+      "lineInterpolation": "linear",
+      "lineStyle": {
+       "fill": "solid"
+      },
+      "lineWidth": 2,
+      "pointSize": 5,
+      "scaleDistribution": {
+       "type": "linear"
+      },
+      "showPoints": "auto",
+      "showValues": false,
+      "spanNulls": false,
+      "stacking": {
+       "group": "A",
+       "mode": "none"
+      },
+      "thresholdsStyle": {
+       "mode": "off"
+      }
+     },
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "dark-blue",
+        "value": 0
+       },
+       {
+        "color": "semi-dark-blue",
+        "value": 20
+       },
+       {
+        "color": "#8AB8FF",
+        "value": 21
+       },
+       {
+        "color": "#54bb88",
+        "value": 22
+       },
+       {
+        "color": "#78cd4e",
+        "value": 23
+       },
+       {
+        "color": "#b0d540",
+        "value": 24
+       },
+       {
+        "color": "semi-dark-yellow",
+        "value": 25
+       },
+       {
+        "color": "orange",
+        "value": 26
+       },
+       {
+        "color": "dark-orange",
+        "value": 27
+       },
+       {
+        "color": "red",
+        "value": 28
+       },
+       {
+        "color": "semi-dark-red",
+        "value": 29
+       },
+       {
+        "color": "dark-red",
+        "value": 30
+       }
+      ]
+     },
+     "unit": "celsius"
+    },
+    "overrides": []
+   },
+   "gridPos": {
+    "h": 8,
+    "w": 6,
+    "x": 0,
+    "y": 11
+   },
+   "id": 2,
+   "options": {
+    "legend": {
+     "calcs": [],
+     "displayMode": "list",
+     "placement": "bottom",
+     "showLegend": false
+    },
+    "tooltip": {
+     "hideZeros": false,
+     "mode": "single",
+     "sort": "none"
+    }
+   },
+   "targets": [
+    {
+     "datasource": {
+      "type": "influxdb",
+      "uid": "influxdb-home"
+     },
+     "query": "from(bucket: \"home\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"mqtt_consumer\")\n  |> filter(fn: (r) => r[\"_field\"] == \"tempc\")\n  |> filter(fn: (r) => r[\"brand\"] == \"SwitchBot\")\n  |> filter(fn: (r) => r[\"device_id\"] == \"C76A03460A73\")\n  |> group(columns: [\"_field\"])\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\n  |> yield(name: \"mean\")",
+     "refId": "A"
+    }
+   ],
+   "title": "Storage temperature",
+   "type": "timeseries"
+  },
+  {
+   "datasource": {
+    "type": "influxdb",
+    "uid": "influxdb-home"
+   },
+   "description": "",
+   "fieldConfig": {
+    "defaults": {
+     "color": {
+      "fixedColor": "dark-blue",
+      "mode": "fixed",
+      "seriesBy": "last"
+     },
+     "custom": {
+      "axisBorderShow": false,
+      "axisCenteredZero": false,
+      "axisColorMode": "text",
+      "axisLabel": "",
+      "axisPlacement": "auto",
+      "barAlignment": 0,
+      "barWidthFactor": 0.6,
+      "drawStyle": "line",
+      "fillOpacity": 50,
+      "gradientMode": "scheme",
+      "hideFrom": {
+       "legend": false,
+       "tooltip": false,
+       "viz": false
+      },
+      "insertNulls": false,
+      "lineInterpolation": "linear",
+      "lineStyle": {
+       "dash": [
+        10,
+        10
+       ],
+       "fill": "dash"
+      },
+      "lineWidth": 5,
+      "pointSize": 5,
+      "scaleDistribution": {
+       "type": "linear"
+      },
+      "showPoints": "auto",
+      "showValues": false,
+      "spanNulls": false,
+      "stacking": {
+       "group": "A",
+       "mode": "none"
+      },
+      "thresholdsStyle": {
+       "mode": "off"
+      }
+     },
+     "mappings": [],
+     "max": 100,
+     "min": 0,
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "dark-blue",
+        "value": 0
+       },
+       {
+        "color": "semi-dark-blue",
+        "value": 20
+       },
+       {
+        "color": "#8AB8FF",
+        "value": 21
+       },
+       {
+        "color": "#54bb88",
+        "value": 22
+       },
+       {
+        "color": "#78cd4e",
+        "value": 23
+       },
+       {
+        "color": "#b0d540",
+        "value": 24
+       },
+       {
+        "color": "semi-dark-yellow",
+        "value": 25
+       },
+       {
+        "color": "orange",
+        "value": 26
+       },
+       {
+        "color": "dark-orange",
+        "value": 27
+       },
+       {
+        "color": "red",
+        "value": 28
+       },
+       {
+        "color": "semi-dark-red",
+        "value": 29
+       },
+       {
+        "color": "dark-red",
+        "value": 30
+       }
+      ]
+     },
+     "unit": "percent"
+    },
+    "overrides": []
+   },
+   "gridPos": {
+    "h": 8,
+    "w": 6,
+    "x": 6,
+    "y": 11
+   },
+   "id": 5,
+   "options": {
+    "legend": {
+     "calcs": [],
+     "displayMode": "list",
+     "placement": "bottom",
+     "showLegend": false
+    },
+    "tooltip": {
+     "hideZeros": false,
+     "mode": "single",
+     "sort": "none"
+    }
+   },
+   "targets": [
+    {
+     "datasource": {
+      "type": "influxdb",
+      "uid": "influxdb-home"
+     },
+     "query": "from(bucket: \"home\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"mqtt_consumer\")\n  |> filter(fn: (r) => r[\"_field\"] == \"hum\")\n  |> filter(fn: (r) => r[\"brand\"] == \"SwitchBot\")\n  |> filter(fn: (r) => r[\"device_id\"] == \"C76A03460A73\")\n  |> group(columns: [\"_field\"])\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\n  |> yield(name: \"mean\")",
+     "refId": "A"
+    }
+   ],
+   "title": "Storage humidity",
+   "type": "timeseries"
+  },
+  {
+   "datasource": {
+    "type": "influxdb",
+    "uid": "influxdb-home"
+   },
+   "description": "",
+   "fieldConfig": {
+    "defaults": {
+     "color": {
+      "mode": "thresholds",
+      "seriesBy": "last"
+     },
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "dark-green",
+        "value": 0
+       },
+       {
+        "color": "#78cd4e",
+        "value": 30
+       },
+       {
+        "color": "#b0d540",
+        "value": 35
+       },
+       {
+        "color": "semi-dark-yellow",
+        "value": 40
+       },
+       {
+        "color": "orange",
+        "value": 45
+       },
+       {
+        "color": "dark-orange",
+        "value": 50
+       },
+       {
+        "color": "red",
+        "value": 53
+       },
+       {
+        "color": "semi-dark-red",
+        "value": 56
+       },
+       {
+        "color": "dark-red",
+        "value": 60
+       }
+      ]
+     },
+     "unit": "celsius"
+    },
+    "overrides": []
+   },
+   "gridPos": {
+    "h": 8,
+    "w": 6,
+    "x": 12,
+    "y": 11
+   },
+   "id": 16,
+   "options": {
+    "minVizHeight": 75,
+    "minVizWidth": 75,
+    "orientation": "auto",
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    },
+    "showThresholdLabels": false,
+    "showThresholdMarkers": true,
+    "sizing": "auto"
+   },
+   "targets": [
+    {
+     "datasource": {
+      "type": "influxdb",
+      "uid": "influxdb-home"
+     },
+     "query": "from(bucket: \"home\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"mqtt_consumer\")\n  |> filter(fn: (r) => r[\"_field\"] == \"tempc\")\n  |> filter(fn: (r) => r[\"brand\"] == \"SwitchBot\")\n  |> filter(fn: (r) => r[\"device_id\"] == \"CE2A83062A34\")\n  |> group(columns: [\"_field\"])\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\n  |> yield(name: \"mean\")",
+     "refId": "A"
+    }
+   ],
+   "title": "Filament dryer temperature",
+   "type": "gauge"
+  },
+  {
+   "datasource": {
+    "type": "influxdb",
+    "uid": "influxdb-home"
+   },
+   "description": "",
+   "fieldConfig": {
+    "defaults": {
+     "color": {
+      "mode": "thresholds",
+      "seriesBy": "last"
+     },
+     "mappings": [],
+     "max": 100,
+     "min": 0,
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "semi-dark-green",
+        "value": 0
+       },
+       {
+        "color": "#b0d540",
+        "value": 11
+       },
+       {
+        "color": "semi-dark-yellow",
+        "value": 12
+       },
+       {
+        "color": "orange",
+        "value": 13
+       },
+       {
+        "color": "dark-orange",
+        "value": 14
+       },
+       {
+        "color": "red",
+        "value": 15
+       },
+       {
+        "color": "semi-dark-red",
+        "value": 16
+       },
+       {
+        "color": "dark-red",
+        "value": 17
+       }
+      ]
+     },
+     "unit": "percent"
+    },
+    "overrides": []
+   },
+   "gridPos": {
+    "h": 8,
+    "w": 6,
+    "x": 18,
+    "y": 11
+   },
+   "id": 15,
+   "options": {
+    "minVizHeight": 75,
+    "minVizWidth": 75,
+    "orientation": "auto",
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    },
+    "showThresholdLabels": false,
+    "showThresholdMarkers": true,
+    "sizing": "auto"
+   },
+   "targets": [
+    {
+     "datasource": {
+      "type": "influxdb",
+      "uid": "influxdb-home"
+     },
+     "query": "from(bucket: \"home\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"mqtt_consumer\")\n  |> filter(fn: (r) => r[\"_field\"] == \"hum\")\n  |> filter(fn: (r) => r[\"brand\"] == \"SwitchBot\")\n  |> filter(fn: (r) => r[\"device_id\"] == \"CE2A83062A34\")\n  |> group(columns: [\"_field\"])\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\n  |> yield(name: \"mean\")",
+     "refId": "A"
+    }
+   ],
+   "title": "Filament dryer humidity",
+   "type": "gauge"
+  },
+  {
+   "datasource": {
+    "type": "influxdb",
+    "uid": "influxdb-home"
+   },
+   "description": "",
+   "fieldConfig": {
+    "defaults": {
+     "color": {
+      "mode": "continuous-GrYlRd",
+      "seriesBy": "last"
+     },
+     "custom": {
+      "axisBorderShow": false,
+      "axisCenteredZero": false,
+      "axisColorMode": "text",
+      "axisLabel": "",
+      "axisPlacement": "auto",
+      "barAlignment": 0,
+      "barWidthFactor": 0.6,
+      "drawStyle": "line",
+      "fillOpacity": 0,
+      "gradientMode": "scheme",
+      "hideFrom": {
+       "legend": false,
+       "tooltip": false,
+       "viz": false
+      },
+      "insertNulls": false,
+      "lineInterpolation": "linear",
+      "lineWidth": 2,
+      "pointSize": 5,
+      "scaleDistribution": {
+       "type": "linear"
+      },
+      "showPoints": "auto",
+      "showValues": false,
+      "spanNulls": false,
+      "stacking": {
+       "group": "A",
+       "mode": "none"
+      },
+      "thresholdsStyle": {
+       "mode": "off"
+      }
+     },
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "dark-blue",
+        "value": 0
+       },
+       {
+        "color": "semi-dark-blue",
+        "value": 20
+       },
+       {
+        "color": "#8AB8FF",
+        "value": 21
+       },
+       {
+        "color": "#54bb88",
+        "value": 22
+       },
+       {
+        "color": "#78cd4e",
+        "value": 23
+       },
+       {
+        "color": "#b0d540",
+        "value": 24
+       },
+       {
+        "color": "semi-dark-yellow",
+        "value": 25
+       },
+       {
+        "color": "orange",
+        "value": 26
+       },
+       {
+        "color": "dark-orange",
+        "value": 27
+       },
+       {
+        "color": "red",
+        "value": 28
+       },
+       {
+        "color": "semi-dark-red",
+        "value": 29
+       },
+       {
+        "color": "dark-red",
+        "value": 30
+       }
+      ]
+     },
+     "unit": "celsius"
+    },
+    "overrides": []
+   },
+   "gridPos": {
+    "h": 8,
+    "w": 12,
+    "x": 0,
+    "y": 19
+   },
+   "id": 14,
+   "options": {
+    "legend": {
+     "calcs": [],
+     "displayMode": "list",
+     "placement": "bottom",
+     "showLegend": false
+    },
+    "tooltip": {
+     "hideZeros": false,
+     "mode": "single",
+     "sort": "none"
+    }
+   },
+   "targets": [
+    {
+     "datasource": {
+      "type": "influxdb",
+      "uid": "influxdb-home"
+     },
+     "query": "from(bucket: \"home\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"mqtt_consumer\")\n  |> filter(fn: (r) => r[\"_field\"] == \"tempc\")\n  |> filter(fn: (r) => r[\"brand\"] == \"SwitchBot\")\n  |> filter(fn: (r) => r[\"device_id\"] == \"CE2A83062A34\")\n  |> group(columns: [\"_field\"])\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\n  |> yield(name: \"mean\")",
+     "refId": "A"
+    }
+   ],
+   "title": "Filament dryer temperature",
+   "type": "timeseries"
+  },
+  {
+   "datasource": {
+    "type": "influxdb",
+    "uid": "influxdb-home"
+   },
+   "description": "",
+   "fieldConfig": {
+    "defaults": {
+     "color": {
+      "mode": "thresholds",
+      "seriesBy": "last"
+     },
+     "custom": {
+      "axisBorderShow": false,
+      "axisCenteredZero": false,
+      "axisColorMode": "text",
+      "axisLabel": "",
+      "axisPlacement": "auto",
+      "barAlignment": 0,
+      "barWidthFactor": 0.6,
+      "drawStyle": "line",
+      "fillOpacity": 0,
+      "gradientMode": "scheme",
+      "hideFrom": {
+       "legend": false,
+       "tooltip": false,
+       "viz": false
+      },
+      "insertNulls": false,
+      "lineInterpolation": "linear",
+      "lineWidth": 5,
+      "pointSize": 5,
+      "scaleDistribution": {
+       "type": "linear"
+      },
+      "showPoints": "auto",
+      "showValues": false,
+      "spanNulls": false,
+      "stacking": {
+       "group": "A",
+       "mode": "none"
+      },
+      "thresholdsStyle": {
+       "mode": "off"
+      }
+     },
+     "mappings": [],
+     "min": 0,
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "semi-dark-green",
+        "value": 0
+       },
+       {
+        "color": "#b0d540",
+        "value": 11
+       },
+       {
+        "color": "semi-dark-yellow",
+        "value": 12
+       },
+       {
+        "color": "orange",
+        "value": 13
+       },
+       {
+        "color": "dark-orange",
+        "value": 14
+       },
+       {
+        "color": "red",
+        "value": 15
+       },
+       {
+        "color": "semi-dark-red",
+        "value": 16
+       },
+       {
+        "color": "dark-red",
+        "value": 17
+       }
+      ]
+     },
+     "unit": "percent"
+    },
+    "overrides": []
+   },
+   "gridPos": {
+    "h": 8,
+    "w": 12,
+    "x": 12,
+    "y": 19
+   },
+   "id": 17,
+   "options": {
+    "legend": {
+     "calcs": [],
+     "displayMode": "list",
+     "placement": "bottom",
+     "showLegend": false
+    },
+    "tooltip": {
+     "hideZeros": false,
+     "mode": "single",
+     "sort": "none"
+    }
+   },
+   "targets": [
+    {
+     "datasource": {
+      "type": "influxdb",
+      "uid": "influxdb-home"
+     },
+     "query": "from(bucket: \"home\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"mqtt_consumer\")\n  |> filter(fn: (r) => r[\"_field\"] == \"hum\")\n  |> filter(fn: (r) => r[\"brand\"] == \"SwitchBot\")\n  |> filter(fn: (r) => r[\"device_id\"] == \"CE2A83062A34\")\n  |> group(columns: [\"_field\"])\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\n  |> yield(name: \"mean\")",
+     "refId": "A"
+    }
+   ],
+   "title": "Filament dryer humidity",
+   "type": "timeseries"
+  },
+  {
+   "datasource": {
+    "type": "influxdb",
+    "uid": "influxdb-home"
+   },
+   "description": "",
+   "fieldConfig": {
+    "defaults": {
+     "color": {
+      "mode": "continuous-GrYlRd",
+      "seriesBy": "last"
+     },
+     "custom": {
+      "axisBorderShow": false,
+      "axisCenteredZero": false,
+      "axisColorMode": "text",
+      "axisLabel": "",
+      "axisPlacement": "auto",
+      "barAlignment": 0,
+      "barWidthFactor": 0.6,
+      "drawStyle": "line",
+      "fillOpacity": 0,
+      "gradientMode": "scheme",
+      "hideFrom": {
+       "legend": false,
+       "tooltip": false,
+       "viz": false
+      },
+      "insertNulls": false,
+      "lineInterpolation": "linear",
+      "lineWidth": 2,
+      "pointSize": 5,
+      "scaleDistribution": {
+       "type": "linear"
+      },
+      "showPoints": "auto",
+      "showValues": false,
+      "spanNulls": false,
+      "stacking": {
+       "group": "A",
+       "mode": "none"
+      },
+      "thresholdsStyle": {
+       "mode": "off"
+      }
+     },
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "dark-blue",
+        "value": 0
+       },
+       {
+        "color": "semi-dark-blue",
+        "value": 20
+       },
+       {
+        "color": "#8AB8FF",
+        "value": 21
+       },
+       {
+        "color": "#54bb88",
+        "value": 22
+       },
+       {
+        "color": "#78cd4e",
+        "value": 23
+       },
+       {
+        "color": "#b0d540",
+        "value": 24
+       },
+       {
+        "color": "semi-dark-yellow",
+        "value": 25
+       },
+       {
+        "color": "orange",
+        "value": 26
+       },
+       {
+        "color": "dark-orange",
+        "value": 27
+       },
+       {
+        "color": "red",
+        "value": 28
+       },
+       {
+        "color": "semi-dark-red",
+        "value": 29
+       },
+       {
+        "color": "dark-red",
+        "value": 30
+       }
+      ]
+     },
+     "unit": "celsius"
+    },
+    "overrides": []
+   },
+   "gridPos": {
+    "h": 8,
+    "w": 12,
+    "x": 0,
+    "y": 27
+   },
+   "id": 3,
+   "options": {
+    "legend": {
+     "calcs": [],
+     "displayMode": "list",
+     "placement": "bottom",
+     "showLegend": false
+    },
+    "tooltip": {
+     "hideZeros": false,
+     "mode": "single",
+     "sort": "none"
+    }
+   },
+   "targets": [
+    {
+     "datasource": {
+      "type": "influxdb",
+      "uid": "influxdb-home"
+     },
+     "query": "from(bucket: \"home\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"mqtt_consumer\")\n  |> filter(fn: (r) => r[\"_field\"] == \"tempc\")\n  |> filter(fn: (r) => r[\"brand\"] == \"SwitchBot\")\n  |> filter(fn: (r) => r[\"device_id\"] == \"C76A00462055\")\n  |> group(columns: [\"_field\"])\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\n  |> yield(name: \"mean\")",
+     "refId": "A"
+    }
+   ],
+   "title": "AMS1 temperature",
+   "type": "timeseries"
+  },
+  {
+   "datasource": {
+    "type": "influxdb",
+    "uid": "influxdb-home"
+   },
+   "description": "",
+   "fieldConfig": {
+    "defaults": {
+     "color": {
+      "mode": "thresholds",
+      "seriesBy": "last"
+     },
+     "custom": {
+      "axisBorderShow": false,
+      "axisCenteredZero": false,
+      "axisColorMode": "text",
+      "axisLabel": "",
+      "axisPlacement": "auto",
+      "barAlignment": 0,
+      "barWidthFactor": 0.6,
+      "drawStyle": "line",
+      "fillOpacity": 0,
+      "gradientMode": "scheme",
+      "hideFrom": {
+       "legend": false,
+       "tooltip": false,
+       "viz": false
+      },
+      "insertNulls": false,
+      "lineInterpolation": "linear",
+      "lineWidth": 5,
+      "pointSize": 5,
+      "scaleDistribution": {
+       "type": "linear"
+      },
+      "showPoints": "auto",
+      "showValues": false,
+      "spanNulls": false,
+      "stacking": {
+       "group": "A",
+       "mode": "none"
+      },
+      "thresholdsStyle": {
+       "mode": "off"
+      }
+     },
+     "mappings": [],
+     "min": 0,
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "semi-dark-green",
+        "value": 0
+       },
+       {
+        "color": "#b0d540",
+        "value": 21
+       },
+       {
+        "color": "semi-dark-yellow",
+        "value": 22
+       },
+       {
+        "color": "orange",
+        "value": 23
+       },
+       {
+        "color": "dark-orange",
+        "value": 24
+       },
+       {
+        "color": "red",
+        "value": 25
+       },
+       {
+        "color": "semi-dark-red",
+        "value": 26
+       },
+       {
+        "color": "dark-red",
+        "value": 27
+       }
+      ]
+     },
+     "unit": "percent"
+    },
+    "overrides": []
+   },
+   "gridPos": {
+    "h": 8,
+    "w": 12,
+    "x": 12,
+    "y": 27
+   },
+   "id": 6,
+   "options": {
+    "legend": {
+     "calcs": [],
+     "displayMode": "list",
+     "placement": "bottom",
+     "showLegend": false
+    },
+    "tooltip": {
+     "hideZeros": false,
+     "mode": "single",
+     "sort": "none"
+    }
+   },
+   "targets": [
+    {
+     "datasource": {
+      "type": "influxdb",
+      "uid": "influxdb-home"
+     },
+     "query": "from(bucket: \"home\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"mqtt_consumer\")\n  |> filter(fn: (r) => r[\"_field\"] == \"hum\")\n  |> filter(fn: (r) => r[\"brand\"] == \"SwitchBot\")\n  |> filter(fn: (r) => r[\"device_id\"] == \"C76A00462055\")\n  |> group(columns: [\"_field\"])\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\n  |> yield(name: \"mean\")",
+     "refId": "A"
+    }
+   ],
+   "title": "AMS1 humidity",
+   "type": "timeseries"
+  },
+  {
+   "datasource": {
+    "type": "influxdb",
+    "uid": "influxdb-home"
+   },
+   "description": "",
+   "fieldConfig": {
+    "defaults": {
+     "color": {
+      "mode": "continuous-GrYlRd",
+      "seriesBy": "last"
+     },
+     "custom": {
+      "axisBorderShow": false,
+      "axisCenteredZero": false,
+      "axisColorMode": "text",
+      "axisLabel": "",
+      "axisPlacement": "auto",
+      "barAlignment": 0,
+      "barWidthFactor": 0.6,
+      "drawStyle": "line",
+      "fillOpacity": 0,
+      "gradientMode": "scheme",
+      "hideFrom": {
+       "legend": false,
+       "tooltip": false,
+       "viz": false
+      },
+      "insertNulls": false,
+      "lineInterpolation": "linear",
+      "lineWidth": 2,
+      "pointSize": 5,
+      "scaleDistribution": {
+       "type": "linear"
+      },
+      "showPoints": "auto",
+      "showValues": false,
+      "spanNulls": false,
+      "stacking": {
+       "group": "A",
+       "mode": "none"
+      },
+      "thresholdsStyle": {
+       "mode": "off"
+      }
+     },
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "dark-blue",
+        "value": 0
+       },
+       {
+        "color": "semi-dark-blue",
+        "value": 20
+       },
+       {
+        "color": "#8AB8FF",
+        "value": 21
+       },
+       {
+        "color": "#54bb88",
+        "value": 22
+       },
+       {
+        "color": "#78cd4e",
+        "value": 23
+       },
+       {
+        "color": "#b0d540",
+        "value": 24
+       },
+       {
+        "color": "semi-dark-yellow",
+        "value": 25
+       },
+       {
+        "color": "orange",
+        "value": 26
+       },
+       {
+        "color": "dark-orange",
+        "value": 27
+       },
+       {
+        "color": "red",
+        "value": 28
+       },
+       {
+        "color": "semi-dark-red",
+        "value": 29
+       },
+       {
+        "color": "dark-red",
+        "value": 30
+       }
+      ]
+     },
+     "unit": "celsius"
+    },
+    "overrides": []
+   },
+   "gridPos": {
+    "h": 8,
+    "w": 12,
+    "x": 0,
+    "y": 35
+   },
+   "id": 4,
+   "options": {
+    "legend": {
+     "calcs": [],
+     "displayMode": "list",
+     "placement": "bottom",
+     "showLegend": false
+    },
+    "tooltip": {
+     "hideZeros": false,
+     "mode": "single",
+     "sort": "none"
+    }
+   },
+   "targets": [
+    {
+     "datasource": {
+      "type": "influxdb",
+      "uid": "influxdb-home"
+     },
+     "query": "from(bucket: \"home\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"mqtt_consumer\")\n  |> filter(fn: (r) => r[\"_field\"] == \"tempc\")\n  |> filter(fn: (r) => r[\"brand\"] == \"SwitchBot\")\n  |> filter(fn: (r) => r[\"device_id\"] == \"C76A05065C4E\")\n  |> group(columns: [\"_field\"])\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\n  |> yield(name: \"mean\")",
+     "refId": "A"
+    }
+   ],
+   "title": "AMS2 temperature",
+   "type": "timeseries"
+  },
+  {
+   "datasource": {
+    "type": "influxdb",
+    "uid": "influxdb-home"
+   },
+   "description": "",
+   "fieldConfig": {
+    "defaults": {
+     "color": {
+      "mode": "thresholds",
+      "seriesBy": "last"
+     },
+     "custom": {
+      "axisBorderShow": false,
+      "axisCenteredZero": false,
+      "axisColorMode": "text",
+      "axisLabel": "",
+      "axisPlacement": "auto",
+      "barAlignment": 0,
+      "barWidthFactor": 0.6,
+      "drawStyle": "line",
+      "fillOpacity": 0,
+      "gradientMode": "scheme",
+      "hideFrom": {
+       "legend": false,
+       "tooltip": false,
+       "viz": false
+      },
+      "insertNulls": false,
+      "lineInterpolation": "linear",
+      "lineWidth": 5,
+      "pointSize": 5,
+      "scaleDistribution": {
+       "type": "linear"
+      },
+      "showPoints": "auto",
+      "showValues": false,
+      "spanNulls": false,
+      "stacking": {
+       "group": "A",
+       "mode": "none"
+      },
+      "thresholdsStyle": {
+       "mode": "off"
+      }
+     },
+     "mappings": [],
+     "min": 0,
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "semi-dark-green",
+        "value": 0
+       },
+       {
+        "color": "#b0d540",
+        "value": 21
+       },
+       {
+        "color": "semi-dark-yellow",
+        "value": 22
+       },
+       {
+        "color": "orange",
+        "value": 23
+       },
+       {
+        "color": "dark-orange",
+        "value": 24
+       },
+       {
+        "color": "red",
+        "value": 25
+       },
+       {
+        "color": "semi-dark-red",
+        "value": 26
+       },
+       {
+        "color": "dark-red",
+        "value": 27
+       }
+      ]
+     },
+     "unit": "percent"
+    },
+    "overrides": []
+   },
+   "gridPos": {
+    "h": 8,
+    "w": 12,
+    "x": 12,
+    "y": 35
+   },
+   "id": 7,
+   "options": {
+    "legend": {
+     "calcs": [],
+     "displayMode": "list",
+     "placement": "bottom",
+     "showLegend": false
+    },
+    "tooltip": {
+     "hideZeros": false,
+     "mode": "single",
+     "sort": "none"
+    }
+   },
+   "targets": [
+    {
+     "datasource": {
+      "type": "influxdb",
+      "uid": "influxdb-home"
+     },
+     "query": "from(bucket: \"home\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"mqtt_consumer\")\n  |> filter(fn: (r) => r[\"_field\"] == \"hum\")\n  |> filter(fn: (r) => r[\"brand\"] == \"SwitchBot\")\n  |> filter(fn: (r) => r[\"device_id\"] == \"C76A05065C4E\")\n  |> group(columns: [\"_field\"])\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\n  |> yield(name: \"mean\")",
+     "refId": "A"
+    }
+   ],
+   "title": "AMS2 humidity",
+   "type": "timeseries"
+  },
+  {
+   "datasource": {
+    "type": "influxdb",
+    "uid": "influxdb-home"
+   },
+   "description": "",
+   "fieldConfig": {
+    "defaults": {
+     "color": {
+      "mode": "continuous-GrYlRd",
+      "seriesBy": "last"
+     },
+     "custom": {
+      "axisBorderShow": false,
+      "axisCenteredZero": false,
+      "axisColorMode": "text",
+      "axisLabel": "",
+      "axisPlacement": "auto",
+      "barAlignment": 0,
+      "barWidthFactor": 0.6,
+      "drawStyle": "line",
+      "fillOpacity": 0,
+      "gradientMode": "scheme",
+      "hideFrom": {
+       "legend": false,
+       "tooltip": false,
+       "viz": false
+      },
+      "insertNulls": false,
+      "lineInterpolation": "linear",
+      "lineWidth": 2,
+      "pointSize": 5,
+      "scaleDistribution": {
+       "type": "linear"
+      },
+      "showPoints": "auto",
+      "showValues": false,
+      "spanNulls": false,
+      "stacking": {
+       "group": "A",
+       "mode": "none"
+      },
+      "thresholdsStyle": {
+       "mode": "off"
+      }
+     },
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "dark-blue",
+        "value": 0
+       },
+       {
+        "color": "semi-dark-blue",
+        "value": 20
+       },
+       {
+        "color": "#8AB8FF",
+        "value": 21
+       },
+       {
+        "color": "#54bb88",
+        "value": 22
+       },
+       {
+        "color": "#78cd4e",
+        "value": 23
+       },
+       {
+        "color": "#b0d540",
+        "value": 24
+       },
+       {
+        "color": "semi-dark-yellow",
+        "value": 25
+       },
+       {
+        "color": "orange",
+        "value": 26
+       },
+       {
+        "color": "dark-orange",
+        "value": 27
+       },
+       {
+        "color": "red",
+        "value": 28
+       },
+       {
+        "color": "semi-dark-red",
+        "value": 29
+       },
+       {
+        "color": "dark-red",
+        "value": 30
+       }
+      ]
+     },
+     "unit": "celsius"
+    },
+    "overrides": []
+   },
+   "gridPos": {
+    "h": 8,
+    "w": 12,
+    "x": 0,
+    "y": 43
+   },
+   "id": 9,
+   "options": {
+    "legend": {
+     "calcs": [],
+     "displayMode": "list",
+     "placement": "bottom",
+     "showLegend": false
+    },
+    "tooltip": {
+     "hideZeros": false,
+     "mode": "single",
+     "sort": "none"
+    }
+   },
+   "targets": [
+    {
+     "datasource": {
+      "type": "influxdb",
+      "uid": "influxdb-home"
+     },
+     "query": "from(bucket: \"home\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"mqtt_consumer\")\n  |> filter(fn: (r) => r[\"_field\"] == \"tempc\")\n  |> filter(fn: (r) => r[\"brand\"] == \"SwitchBot\")\n  |> filter(fn: (r) => r[\"device_id\"] == \"CE2A82463295\")\n  |> group(columns: [\"_field\"])\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\n  |> yield(name: \"mean\")",
+     "refId": "A"
+    }
+   ],
+   "title": "Drybox 1 temperature",
+   "type": "timeseries"
+  },
+  {
+   "datasource": {
+    "type": "influxdb",
+    "uid": "influxdb-home"
+   },
+   "description": "",
+   "fieldConfig": {
+    "defaults": {
+     "color": {
+      "mode": "thresholds",
+      "seriesBy": "last"
+     },
+     "custom": {
+      "axisBorderShow": false,
+      "axisCenteredZero": false,
+      "axisColorMode": "text",
+      "axisLabel": "",
+      "axisPlacement": "auto",
+      "barAlignment": 0,
+      "barWidthFactor": 0.6,
+      "drawStyle": "line",
+      "fillOpacity": 0,
+      "gradientMode": "scheme",
+      "hideFrom": {
+       "legend": false,
+       "tooltip": false,
+       "viz": false
+      },
+      "insertNulls": false,
+      "lineInterpolation": "linear",
+      "lineWidth": 5,
+      "pointSize": 5,
+      "scaleDistribution": {
+       "type": "linear"
+      },
+      "showPoints": "auto",
+      "showValues": false,
+      "spanNulls": false,
+      "stacking": {
+       "group": "A",
+       "mode": "none"
+      },
+      "thresholdsStyle": {
+       "mode": "off"
+      }
+     },
+     "mappings": [],
+     "min": 0,
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "semi-dark-green",
+        "value": 0
+       },
+       {
+        "color": "#b0d540",
+        "value": 21
+       },
+       {
+        "color": "semi-dark-yellow",
+        "value": 22
+       },
+       {
+        "color": "orange",
+        "value": 23
+       },
+       {
+        "color": "dark-orange",
+        "value": 24
+       },
+       {
+        "color": "red",
+        "value": 25
+       },
+       {
+        "color": "semi-dark-red",
+        "value": 26
+       },
+       {
+        "color": "dark-red",
+        "value": 27
+       }
+      ]
+     },
+     "unit": "percent"
+    },
+    "overrides": []
+   },
+   "gridPos": {
+    "h": 8,
+    "w": 12,
+    "x": 12,
+    "y": 43
+   },
+   "id": 8,
+   "options": {
+    "legend": {
+     "calcs": [],
+     "displayMode": "list",
+     "placement": "bottom",
+     "showLegend": false
+    },
+    "tooltip": {
+     "hideZeros": false,
+     "mode": "single",
+     "sort": "none"
+    }
+   },
+   "targets": [
+    {
+     "datasource": {
+      "type": "influxdb",
+      "uid": "influxdb-home"
+     },
+     "query": "from(bucket: \"home\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"mqtt_consumer\")\n  |> filter(fn: (r) => r[\"_field\"] == \"hum\")\n  |> filter(fn: (r) => r[\"brand\"] == \"SwitchBot\")\n  |> filter(fn: (r) => r[\"device_id\"] == \"CE2A82463295\")\n  |> group(columns: [\"_field\"])\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\n  |> yield(name: \"mean\")",
+     "refId": "A"
+    }
+   ],
+   "title": "Drybox 1 humidity",
+   "type": "timeseries"
+  },
+  {
+   "datasource": {
+    "type": "influxdb",
+    "uid": "influxdb-home"
+   },
+   "description": "",
+   "fieldConfig": {
+    "defaults": {
+     "color": {
+      "mode": "continuous-GrYlRd",
+      "seriesBy": "last"
+     },
+     "custom": {
+      "axisBorderShow": false,
+      "axisCenteredZero": false,
+      "axisColorMode": "text",
+      "axisLabel": "",
+      "axisPlacement": "auto",
+      "barAlignment": 0,
+      "barWidthFactor": 0.6,
+      "drawStyle": "line",
+      "fillOpacity": 0,
+      "gradientMode": "scheme",
+      "hideFrom": {
+       "legend": false,
+       "tooltip": false,
+       "viz": false
+      },
+      "insertNulls": false,
+      "lineInterpolation": "linear",
+      "lineWidth": 2,
+      "pointSize": 5,
+      "scaleDistribution": {
+       "type": "linear"
+      },
+      "showPoints": "auto",
+      "showValues": false,
+      "spanNulls": false,
+      "stacking": {
+       "group": "A",
+       "mode": "none"
+      },
+      "thresholdsStyle": {
+       "mode": "off"
+      }
+     },
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "dark-blue",
+        "value": 0
+       },
+       {
+        "color": "semi-dark-blue",
+        "value": 20
+       },
+       {
+        "color": "#8AB8FF",
+        "value": 21
+       },
+       {
+        "color": "#54bb88",
+        "value": 22
+       },
+       {
+        "color": "#78cd4e",
+        "value": 23
+       },
+       {
+        "color": "#b0d540",
+        "value": 24
+       },
+       {
+        "color": "semi-dark-yellow",
+        "value": 25
+       },
+       {
+        "color": "orange",
+        "value": 26
+       },
+       {
+        "color": "dark-orange",
+        "value": 27
+       },
+       {
+        "color": "red",
+        "value": 28
+       },
+       {
+        "color": "semi-dark-red",
+        "value": 29
+       },
+       {
+        "color": "dark-red",
+        "value": 30
+       }
+      ]
+     },
+     "unit": "celsius"
+    },
+    "overrides": []
+   },
+   "gridPos": {
+    "h": 8,
+    "w": 12,
+    "x": 0,
+    "y": 51
+   },
+   "id": 10,
+   "options": {
+    "legend": {
+     "calcs": [],
+     "displayMode": "list",
+     "placement": "bottom",
+     "showLegend": false
+    },
+    "tooltip": {
+     "hideZeros": false,
+     "mode": "single",
+     "sort": "none"
+    }
+   },
+   "targets": [
+    {
+     "datasource": {
+      "type": "influxdb",
+      "uid": "influxdb-home"
+     },
+     "query": "from(bucket: \"home\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"mqtt_consumer\")\n  |> filter(fn: (r) => r[\"_field\"] == \"tempc\")\n  |> filter(fn: (r) => r[\"brand\"] == \"SwitchBot\")\n  |> filter(fn: (r) => r[\"device_id\"] == \"D9343130222A\")\n  |> group(columns: [\"_field\"])\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\n  |> yield(name: \"mean\")",
+     "refId": "A"
+    }
+   ],
+   "title": "Drybox 2 temperature",
+   "type": "timeseries"
+  },
+  {
+   "datasource": {
+    "type": "influxdb",
+    "uid": "influxdb-home"
+   },
+   "description": "",
+   "fieldConfig": {
+    "defaults": {
+     "color": {
+      "mode": "thresholds",
+      "seriesBy": "last"
+     },
+     "custom": {
+      "axisBorderShow": false,
+      "axisCenteredZero": false,
+      "axisColorMode": "text",
+      "axisLabel": "",
+      "axisPlacement": "auto",
+      "barAlignment": 0,
+      "barWidthFactor": 0.6,
+      "drawStyle": "line",
+      "fillOpacity": 0,
+      "gradientMode": "scheme",
+      "hideFrom": {
+       "legend": false,
+       "tooltip": false,
+       "viz": false
+      },
+      "insertNulls": false,
+      "lineInterpolation": "linear",
+      "lineWidth": 5,
+      "pointSize": 5,
+      "scaleDistribution": {
+       "type": "linear"
+      },
+      "showPoints": "auto",
+      "showValues": false,
+      "spanNulls": false,
+      "stacking": {
+       "group": "A",
+       "mode": "none"
+      },
+      "thresholdsStyle": {
+       "mode": "off"
+      }
+     },
+     "mappings": [],
+     "min": 0,
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "semi-dark-green",
+        "value": 0
+       },
+       {
+        "color": "#b0d540",
+        "value": 21
+       },
+       {
+        "color": "semi-dark-yellow",
+        "value": 22
+       },
+       {
+        "color": "orange",
+        "value": 23
+       },
+       {
+        "color": "dark-orange",
+        "value": 24
+       },
+       {
+        "color": "red",
+        "value": 25
+       },
+       {
+        "color": "semi-dark-red",
+        "value": 26
+       },
+       {
+        "color": "dark-red",
+        "value": 27
+       }
+      ]
+     },
+     "unit": "percent"
+    },
+    "overrides": []
+   },
+   "gridPos": {
+    "h": 8,
+    "w": 12,
+    "x": 12,
+    "y": 51
+   },
+   "id": 11,
+   "options": {
+    "legend": {
+     "calcs": [],
+     "displayMode": "list",
+     "placement": "bottom",
+     "showLegend": false
+    },
+    "tooltip": {
+     "hideZeros": false,
+     "mode": "single",
+     "sort": "none"
+    }
+   },
+   "targets": [
+    {
+     "datasource": {
+      "type": "influxdb",
+      "uid": "influxdb-home"
+     },
+     "query": "from(bucket: \"home\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"mqtt_consumer\")\n  |> filter(fn: (r) => r[\"_field\"] == \"hum\")\n  |> filter(fn: (r) => r[\"brand\"] == \"SwitchBot\")\n  |> filter(fn: (r) => r[\"device_id\"] == \"D9343130222A\")\n  |> group(columns: [\"_field\"])\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\n  |> yield(name: \"mean\")",
+     "refId": "A"
+    }
+   ],
+   "title": "Drybox 2 humidity",
+   "type": "timeseries"
+  },
+  {
+   "datasource": {
+    "type": "influxdb",
+    "uid": "influxdb-home"
+   },
+   "description": "",
+   "fieldConfig": {
+    "defaults": {
+     "color": {
+      "mode": "continuous-GrYlRd",
+      "seriesBy": "last"
+     },
+     "custom": {
+      "axisBorderShow": false,
+      "axisCenteredZero": false,
+      "axisColorMode": "text",
+      "axisLabel": "",
+      "axisPlacement": "auto",
+      "barAlignment": 0,
+      "barWidthFactor": 0.6,
+      "drawStyle": "line",
+      "fillOpacity": 0,
+      "gradientMode": "scheme",
+      "hideFrom": {
+       "legend": false,
+       "tooltip": false,
+       "viz": false
+      },
+      "insertNulls": false,
+      "lineInterpolation": "linear",
+      "lineWidth": 2,
+      "pointSize": 5,
+      "scaleDistribution": {
+       "type": "linear"
+      },
+      "showPoints": "auto",
+      "showValues": false,
+      "spanNulls": false,
+      "stacking": {
+       "group": "A",
+       "mode": "none"
+      },
+      "thresholdsStyle": {
+       "mode": "off"
+      }
+     },
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "dark-blue",
+        "value": 0
+       },
+       {
+        "color": "semi-dark-blue",
+        "value": 20
+       },
+       {
+        "color": "#8AB8FF",
+        "value": 21
+       },
+       {
+        "color": "#54bb88",
+        "value": 22
+       },
+       {
+        "color": "#78cd4e",
+        "value": 23
+       },
+       {
+        "color": "#b0d540",
+        "value": 24
+       },
+       {
+        "color": "semi-dark-yellow",
+        "value": 25
+       },
+       {
+        "color": "orange",
+        "value": 26
+       },
+       {
+        "color": "dark-orange",
+        "value": 27
+       },
+       {
+        "color": "red",
+        "value": 28
+       },
+       {
+        "color": "semi-dark-red",
+        "value": 29
+       },
+       {
+        "color": "dark-red",
+        "value": 30
+       }
+      ]
+     },
+     "unit": "celsius"
+    },
+    "overrides": []
+   },
+   "gridPos": {
+    "h": 8,
+    "w": 12,
+    "x": 0,
+    "y": 59
+   },
+   "id": 12,
+   "options": {
+    "legend": {
+     "calcs": [],
+     "displayMode": "list",
+     "placement": "bottom",
+     "showLegend": false
+    },
+    "tooltip": {
+     "hideZeros": false,
+     "mode": "single",
+     "sort": "none"
+    }
+   },
+   "targets": [
+    {
+     "datasource": {
+      "type": "influxdb",
+      "uid": "influxdb-home"
+     },
+     "query": "from(bucket: \"home\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"mqtt_consumer\")\n  |> filter(fn: (r) => r[\"_field\"] == \"tempc\")\n  |> filter(fn: (r) => r[\"brand\"] == \"SwitchBot\")\n  |> filter(fn: (r) => r[\"device_id\"] == \"CE2A8486490B\")\n  |> group(columns: [\"_field\"])\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\n  |> yield(name: \"mean\")",
+     "refId": "A"
+    }
+   ],
+   "title": "Drybox 3 temperature",
+   "type": "timeseries"
+  },
+  {
+   "datasource": {
+    "type": "influxdb",
+    "uid": "influxdb-home"
+   },
+   "description": "",
+   "fieldConfig": {
+    "defaults": {
+     "color": {
+      "mode": "thresholds",
+      "seriesBy": "last"
+     },
+     "custom": {
+      "axisBorderShow": false,
+      "axisCenteredZero": false,
+      "axisColorMode": "text",
+      "axisLabel": "",
+      "axisPlacement": "auto",
+      "barAlignment": 0,
+      "barWidthFactor": 0.6,
+      "drawStyle": "line",
+      "fillOpacity": 0,
+      "gradientMode": "scheme",
+      "hideFrom": {
+       "legend": false,
+       "tooltip": false,
+       "viz": false
+      },
+      "insertNulls": false,
+      "lineInterpolation": "linear",
+      "lineWidth": 5,
+      "pointSize": 5,
+      "scaleDistribution": {
+       "type": "linear"
+      },
+      "showPoints": "auto",
+      "showValues": false,
+      "spanNulls": false,
+      "stacking": {
+       "group": "A",
+       "mode": "none"
+      },
+      "thresholdsStyle": {
+       "mode": "off"
+      }
+     },
+     "mappings": [],
+     "min": 0,
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "semi-dark-green",
+        "value": 0
+       },
+       {
+        "color": "#b0d540",
+        "value": 21
+       },
+       {
+        "color": "semi-dark-yellow",
+        "value": 22
+       },
+       {
+        "color": "orange",
+        "value": 23
+       },
+       {
+        "color": "dark-orange",
+        "value": 24
+       },
+       {
+        "color": "red",
+        "value": 25
+       },
+       {
+        "color": "semi-dark-red",
+        "value": 26
+       },
+       {
+        "color": "dark-red",
+        "value": 27
+       }
+      ]
+     },
+     "unit": "percent"
+    },
+    "overrides": []
+   },
+   "gridPos": {
+    "h": 8,
+    "w": 12,
+    "x": 12,
+    "y": 59
+   },
+   "id": 13,
+   "options": {
+    "legend": {
+     "calcs": [],
+     "displayMode": "list",
+     "placement": "bottom",
+     "showLegend": false
+    },
+    "tooltip": {
+     "hideZeros": false,
+     "mode": "single",
+     "sort": "none"
+    }
+   },
+   "targets": [
+    {
+     "datasource": {
+      "type": "influxdb",
+      "uid": "influxdb-home"
+     },
+     "query": "from(bucket: \"home\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"mqtt_consumer\")\n  |> filter(fn: (r) => r[\"_field\"] == \"hum\")\n  |> filter(fn: (r) => r[\"brand\"] == \"SwitchBot\")\n  |> filter(fn: (r) => r[\"device_id\"] == \"CE2A8486490B\")\n  |> group(columns: [\"_field\"])\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\n  |> yield(name: \"mean\")",
+     "refId": "A"
+    }
+   ],
+   "title": "Drybox 3 humidity",
+   "type": "timeseries"
+  }
+ ],
+ "preload": false,
+ "schemaVersion": 42,
+ "tags": [
+  "legacy"
+ ],
+ "templating": {
+  "list": []
+ },
+ "time": {
+  "from": "now-6h",
+  "to": "now"
+ },
+ "timepicker": {},
+ "timezone": "browser",
+ "title": "Legacy · 3D printing",
+ "uid": "legacy-printing",
+ "weekStart": ""
+}

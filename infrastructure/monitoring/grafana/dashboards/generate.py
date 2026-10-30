@@ -64,6 +64,11 @@ def main():
         if d.folder:
             entry += f"    options:\n      annotations:\n        grafana_folder: {d.folder}\n"
         entries.append(entry)
+    # Legacy dashboards are plain JSON exported from the old UI-made dashboards; they are not generated.
+    for name in sorted(os.listdir(os.path.join(HERE, "legacy"))):
+        if name.endswith(".json"):
+            entries.append(f"  - name: grafana-dashboard-{name[:-5]}\n    files:\n      - {name}=legacy/{name}\n"
+                           "    options:\n      annotations:\n        grafana_folder: Legacy\n")
     # The overview is the home dashboard (grafana.ini default_home_dashboard_path).
     with open(os.path.join(HERE, "kustomization.yaml"), "w") as f:
         f.write(HEADER + "".join(entries))

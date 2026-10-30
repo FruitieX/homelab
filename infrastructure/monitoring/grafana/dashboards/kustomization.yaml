@@ -78,3 +78,39 @@ configMapGenerator:
     options:
       annotations:
         grafana_folder: Homelab
+  - name: grafana-dashboard-legacy-appliances
+    files:
+      - legacy-appliances.json=legacy/legacy-appliances.json
+    options:
+      annotations:
+        grafana_folder: Legacy
+  - name: grafana-dashboard-legacy-home
+    files:
+      - legacy-home.json=legacy/legacy-home.json
+    options:
+      annotations:
+        grafana_folder: Legacy
+  - name: grafana-dashboard-legacy-indoor
+    files:
+      - legacy-indoor.json=legacy/legacy-indoor.json
+    options:
+      annotations:
+        grafana_folder: Legacy
+  - name: grafana-dashboard-legacy-loki-logs
+    files:
+      - legacy-loki-logs.json=legacy/legacy-loki-logs.json
+    options:
+      annotations:
+        grafana_folder: Legacy
+  - name: grafana-dashboard-legacy-outdoor
+    files:
+      - legacy-outdoor.json=legacy/legacy-outdoor.json
+    options:
+      annotations:
+        grafana_folder: Legacy
+  - name: grafana-dashboard-legacy-printing
+    files:
+      - legacy-printing.json=legacy/legacy-printing.json
+    options:
+      annotations:
+        grafana_folder: Legacy

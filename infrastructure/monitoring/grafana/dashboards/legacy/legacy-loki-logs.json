@@ -1,0 +1,256 @@
+{
+ "annotations": {
+  "list": [
+   {
+    "builtIn": 1,
+    "datasource": {
+     "type": "datasource",
+     "uid": "grafana"
+    },
+    "enable": true,
+    "hide": true,
+    "iconColor": "rgba(0, 211, 255, 1)",
+    "name": "Annotations & Alerts",
+    "target": {
+     "limit": 100,
+     "matchAny": false,
+     "tags": [],
+     "type": "dashboard"
+    },
+    "type": "dashboard"
+   }
+  ]
+ },
+ "description": "Logs collected from Kubernetes, stored in Loki",
+ "editable": true,
+ "fiscalYearStartMonth": 0,
+ "graphTooltip": 0,
+ "links": [],
+ "panels": [
+  {
+   "datasource": {
+    "type": "loki",
+    "uid": "loki"
+   },
+   "description": "",
+   "fieldConfig": {
+    "defaults": {
+     "color": {
+      "mode": "palette-classic"
+     },
+     "custom": {
+      "axisBorderShow": false,
+      "axisCenteredZero": false,
+      "axisColorMode": "text",
+      "axisLabel": "",
+      "axisPlacement": "auto",
+      "barAlignment": 0,
+      "barWidthFactor": 0.6,
+      "drawStyle": "bars",
+      "fillOpacity": 0,
+      "gradientMode": "none",
+      "hideFrom": {
+       "legend": false,
+       "tooltip": false,
+       "viz": false
+      },
+      "insertNulls": false,
+      "lineInterpolation": "linear",
+      "lineWidth": 1,
+      "pointSize": 5,
+      "scaleDistribution": {
+       "type": "linear"
+      },
+      "showPoints": "auto",
+      "spanNulls": false,
+      "stacking": {
+       "group": "A",
+       "mode": "none"
+      },
+      "thresholdsStyle": {
+       "mode": "off"
+      }
+     },
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "green",
+        "value": 0
+       },
+       {
+        "color": "red",
+        "value": 80
+       }
+      ]
+     }
+    },
+    "overrides": []
+   },
+   "gridPos": {
+    "h": 4,
+    "w": 24,
+    "x": 0,
+    "y": 0
+   },
+   "id": 4,
+   "options": {
+    "legend": {
+     "calcs": [],
+     "displayMode": "list",
+     "placement": "bottom",
+     "showLegend": false
+    },
+    "tooltip": {
+     "hideZeros": false,
+     "mode": "single",
+     "sort": "none"
+    }
+   },
+   "targets": [
+    {
+     "datasource": {
+      "type": "loki",
+      "uid": "loki"
+     },
+     "expr": "sum(count_over_time({namespace=~\"$namespace\", stream=~\"$stream\", container =~\"$container\"} |= \"$query\" [$__interval]))",
+     "instant": false,
+     "legendFormat": "Log count",
+     "range": true,
+     "refId": "A"
+    }
+   ],
+   "title": "",
+   "type": "timeseries"
+  },
+  {
+   "datasource": {
+    "type": "loki",
+    "uid": "loki"
+   },
+   "description": "Logs from services running in Kubernetes",
+   "fieldConfig": {
+    "defaults": {},
+    "overrides": []
+   },
+   "gridPos": {
+    "h": 25,
+    "w": 24,
+    "x": 0,
+    "y": 4
+   },
+   "id": 2,
+   "options": {
+    "dedupStrategy": "none",
+    "enableInfiniteScrolling": true,
+    "enableLogDetails": true,
+    "prettifyLogMessage": false,
+    "showCommonLabels": false,
+    "showLabels": false,
+    "showTime": true,
+    "sortOrder": "Descending",
+    "wrapLogMessage": false
+   },
+   "targets": [
+    {
+     "datasource": {
+      "type": "loki",
+      "uid": "loki"
+     },
+     "direction": "backward",
+     "editorMode": "code",
+     "expr": "{namespace=~\"$namespace\", stream=~\"$stream\", container =~\"$container\"} |= \"$query\"",
+     "queryType": "range",
+     "refId": "A"
+    }
+   ],
+   "title": "",
+   "type": "logs"
+  }
+ ],
+ "preload": false,
+ "refresh": false,
+ "schemaVersion": 41,
+ "tags": [
+  "legacy"
+ ],
+ "templating": {
+  "list": [
+   {
+    "current": {
+     "text": "",
+     "value": ""
+    },
+    "description": "String to search for",
+    "label": "Search Query",
+    "name": "query",
+    "options": [
+     {
+      "selected": true,
+      "text": "",
+      "value": ""
+     }
+    ],
+    "query": "",
+    "type": "textbox"
+   },
+   {
+    "allValue": ".+",
+    "datasource": {
+     "type": "loki",
+     "uid": "loki"
+    },
+    "definition": "label_values(namespace)",
+    "includeAll": true,
+    "multi": true,
+    "name": "namespace",
+    "options": [],
+    "query": "label_values(namespace)",
+    "refresh": 1,
+    "regex": "",
+    "type": "query"
+   },
+   {
+    "allValue": ".+",
+    "datasource": {
+     "type": "loki",
+     "uid": "loki"
+    },
+    "definition": "label_values(stream)",
+    "includeAll": true,
+    "multi": true,
+    "name": "stream",
+    "options": [],
+    "query": "label_values(stream)",
+    "refresh": 1,
+    "regex": "",
+    "type": "query"
+   },
+   {
+    "allValue": ".+",
+    "datasource": {
+     "type": "loki",
+     "uid": "loki"
+    },
+    "definition": "label_values(container)",
+    "includeAll": true,
+    "multi": true,
+    "name": "container",
+    "options": [],
+    "query": "label_values(container)",
+    "refresh": 1,
+    "regex": "",
+    "type": "query"
+   }
+  ]
+ },
+ "time": {
+  "from": "now-6h",
+  "to": "now"
+ },
+ "timepicker": {},
+ "timezone": "",
+ "title": "Legacy · Loki Kubernetes logs",
+ "uid": "legacy-loki-logs"
+}

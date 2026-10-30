@@ -1,0 +1,789 @@
+{
+ "annotations": {
+  "list": [
+   {
+    "builtIn": 1,
+    "datasource": {
+     "type": "grafana",
+     "uid": "-- Grafana --"
+    },
+    "enable": true,
+    "hide": true,
+    "iconColor": "rgba(0, 211, 255, 1)",
+    "name": "Annotations & Alerts",
+    "type": "dashboard"
+   }
+  ]
+ },
+ "editable": true,
+ "fiscalYearStartMonth": 0,
+ "graphTooltip": 0,
+ "links": [],
+ "panels": [
+  {
+   "gridPos": {
+    "h": 10,
+    "w": 12,
+    "x": 0,
+    "y": 0
+   },
+   "id": 8,
+   "options": {
+    "includeVars": false,
+    "keepTime": false,
+    "maxItems": 10,
+    "query": "Home ·",
+    "showFolderNames": false,
+    "showHeadings": false,
+    "showRecentlyViewed": false,
+    "showSearch": true,
+    "showStarred": false,
+    "tags": []
+   },
+   "title": "Home dashboards",
+   "type": "dashlist"
+  },
+  {
+   "datasource": {
+    "type": "influxdb",
+    "uid": "influxdb-home"
+   },
+   "fieldConfig": {
+    "defaults": {
+     "color": {
+      "mode": "thresholds"
+     },
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "green",
+        "value": null
+       },
+       {
+        "color": "#EAB839",
+        "value": 10
+       },
+       {
+        "color": "red",
+        "value": 20
+       }
+      ]
+     },
+     "unit": "c/kWh"
+    },
+    "overrides": []
+   },
+   "gridPos": {
+    "h": 10,
+    "w": 5,
+    "x": 12,
+    "y": 0
+   },
+   "id": 6,
+   "options": {
+    "colorMode": "value",
+    "graphMode": "none",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "percentChangeColorMode": "standard",
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    },
+    "showPercentChange": false,
+    "textMode": "auto",
+    "wideLayout": true
+   },
+   "targets": [
+    {
+     "datasource": {
+      "type": "influxdb",
+      "uid": "influxdb-home"
+     },
+     "query": "from(bucket: \"home\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"mqtt_consumer\")\n  |> filter(fn: (r) => r[\"integration_id\"] == \"nordpool\")\n  |> filter(fn: (r) => r[\"_field\"] == \"price\")\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\n  |> yield(name: \"mean\")",
+     "refId": "A"
+    }
+   ],
+   "title": "Electricity price",
+   "type": "stat"
+  },
+  {
+   "datasource": {
+    "type": "influxdb",
+    "uid": "influxdb-home"
+   },
+   "fieldConfig": {
+    "defaults": {
+     "color": {
+      "fixedColor": "semi-dark-red",
+      "mode": "continuous-BlPu"
+     },
+     "custom": {
+      "axisBorderShow": false,
+      "axisCenteredZero": false,
+      "axisColorMode": "text",
+      "axisLabel": "",
+      "axisPlacement": "auto",
+      "barAlignment": 0,
+      "barWidthFactor": 0.5,
+      "drawStyle": "line",
+      "fillOpacity": 55,
+      "gradientMode": "scheme",
+      "hideFrom": {
+       "legend": false,
+       "tooltip": false,
+       "viz": false
+      },
+      "insertNulls": false,
+      "lineInterpolation": "linear",
+      "lineStyle": {
+       "fill": "solid"
+      },
+      "lineWidth": 6,
+      "pointSize": 5,
+      "scaleDistribution": {
+       "type": "linear"
+      },
+      "showPoints": "auto",
+      "spanNulls": 3600000,
+      "stacking": {
+       "group": "A",
+       "mode": "none"
+      },
+      "thresholdsStyle": {
+       "mode": "off"
+      }
+     },
+     "fieldMinMax": false,
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "super-light-blue",
+        "value": null
+       },
+       {
+        "color": "blue",
+        "value": -10
+       },
+       {
+        "color": "dark-blue",
+        "value": 0
+       },
+       {
+        "color": "#FFF899",
+        "value": 5
+       },
+       {
+        "color": "#EAB839",
+        "value": 10
+       },
+       {
+        "color": "orange",
+        "value": 15
+       },
+       {
+        "color": "green",
+        "value": 20
+       },
+       {
+        "color": "dark-red",
+        "value": 25
+       }
+      ]
+     },
+     "unit": "celsius"
+    },
+    "overrides": []
+   },
+   "gridPos": {
+    "h": 10,
+    "w": 12,
+    "x": 0,
+    "y": 10
+   },
+   "id": 3,
+   "options": {
+    "legend": {
+     "calcs": [],
+     "displayMode": "list",
+     "placement": "bottom",
+     "showLegend": false
+    },
+    "tooltip": {
+     "mode": "single",
+     "sort": "none"
+    }
+   },
+   "targets": [
+    {
+     "datasource": {
+      "type": "influxdb",
+      "uid": "influxdb-home"
+     },
+     "hide": false,
+     "query": "from(bucket: \"home\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"mqtt_consumer\")\n  |> filter(fn: (r) => r[\"_field\"] == \"tempc\")\n  |> filter(fn: (r) => r[\"brand\"] == \"SwitchBot\")\n  |> filter(fn: (r) => r[\"device_id\"] == \"D83534387029\")\n  |> group(columns: [\"_field\"])\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\n  |> yield(name: \"mean\")",
+     "refId": "A"
+    }
+   ],
+   "title": "Outdoor temperature",
+   "transformations": [
+    {
+     "id": "calculateField",
+     "options": {
+      "mode": "windowFunctions",
+      "reduce": {
+       "reducer": "sum"
+      },
+      "replaceFields": true,
+      "window": {
+       "field": "tempc {brand=\"SwitchBot\", integration_id=\"ble2\", kind=\"sensors\", mac=\"D8:35:34:38:70:29\", model=\"Outdoor Meter\", model_id=\"W340001X\", type=\"THB\"}",
+       "reducer": "mean",
+       "windowAlignment": "centered",
+       "windowSize": 0.03,
+       "windowSizeMode": "percentage"
+      }
+     }
+    }
+   ],
+   "type": "timeseries"
+  },
+  {
+   "datasource": {
+    "type": "influxdb",
+    "uid": "influxdb-home"
+   },
+   "fieldConfig": {
+    "defaults": {
+     "color": {
+      "mode": "thresholds"
+     },
+     "fieldMinMax": false,
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "super-light-blue",
+        "value": null
+       },
+       {
+        "color": "blue",
+        "value": -10
+       },
+       {
+        "color": "dark-blue",
+        "value": 0
+       },
+       {
+        "color": "#FFF899",
+        "value": 5
+       },
+       {
+        "color": "#EAB839",
+        "value": 10
+       },
+       {
+        "color": "orange",
+        "value": 15
+       },
+       {
+        "color": "green",
+        "value": 20
+       },
+       {
+        "color": "dark-red",
+        "value": 25
+       }
+      ]
+     },
+     "unit": "celsius"
+    },
+    "overrides": []
+   },
+   "gridPos": {
+    "h": 10,
+    "w": 5,
+    "x": 12,
+    "y": 10
+   },
+   "id": 1,
+   "options": {
+    "colorMode": "value",
+    "graphMode": "none",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "percentChangeColorMode": "standard",
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    },
+    "showPercentChange": false,
+    "textMode": "value",
+    "wideLayout": true
+   },
+   "targets": [
+    {
+     "datasource": {
+      "type": "influxdb",
+      "uid": "influxdb-home"
+     },
+     "hide": false,
+     "query": "from(bucket: \"home\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"mqtt_consumer\")\n  |> filter(fn: (r) => r[\"_field\"] == \"tempc\")\n  |> filter(fn: (r) => r[\"brand\"] == \"SwitchBot\")\n  |> filter(fn: (r) => r[\"device_id\"] == \"D83534387029\")\n  |> group(columns: [\"_field\"])\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\n  |> yield(name: \"mean\")",
+     "refId": "A"
+    }
+   ],
+   "title": "Outdoor temperature now",
+   "type": "stat"
+  },
+  {
+   "datasource": {
+    "type": "influxdb",
+    "uid": "influxdb-home"
+   },
+   "fieldConfig": {
+    "defaults": {
+     "color": {
+      "fixedColor": "blue",
+      "mode": "continuous-blues"
+     },
+     "custom": {
+      "axisBorderShow": false,
+      "axisCenteredZero": false,
+      "axisColorMode": "text",
+      "axisLabel": "",
+      "axisPlacement": "auto",
+      "barAlignment": 0,
+      "barWidthFactor": 0.6,
+      "drawStyle": "line",
+      "fillOpacity": 50,
+      "gradientMode": "scheme",
+      "hideFrom": {
+       "legend": false,
+       "tooltip": false,
+       "viz": false
+      },
+      "insertNulls": false,
+      "lineInterpolation": "linear",
+      "lineStyle": {
+       "fill": "solid"
+      },
+      "lineWidth": 5,
+      "pointSize": 5,
+      "scaleDistribution": {
+       "type": "linear"
+      },
+      "showPoints": "auto",
+      "spanNulls": false,
+      "stacking": {
+       "group": "A",
+       "mode": "none"
+      },
+      "thresholdsStyle": {
+       "mode": "off"
+      }
+     },
+     "fieldMinMax": false,
+     "mappings": [],
+     "max": 100,
+     "min": 0,
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "super-light-blue",
+        "value": null
+       },
+       {
+        "color": "blue",
+        "value": -10
+       },
+       {
+        "color": "dark-blue",
+        "value": 0
+       },
+       {
+        "color": "#FFF899",
+        "value": 5
+       },
+       {
+        "color": "#EAB839",
+        "value": 10
+       },
+       {
+        "color": "orange",
+        "value": 15
+       },
+       {
+        "color": "green",
+        "value": 20
+       },
+       {
+        "color": "dark-red",
+        "value": 25
+       }
+      ]
+     },
+     "unit": "percent"
+    },
+    "overrides": []
+   },
+   "gridPos": {
+    "h": 10,
+    "w": 12,
+    "x": 0,
+    "y": 20
+   },
+   "id": 4,
+   "options": {
+    "legend": {
+     "calcs": [],
+     "displayMode": "list",
+     "placement": "bottom",
+     "showLegend": false
+    },
+    "tooltip": {
+     "mode": "single",
+     "sort": "none"
+    }
+   },
+   "targets": [
+    {
+     "datasource": {
+      "type": "influxdb",
+      "uid": "influxdb-home"
+     },
+     "hide": false,
+     "query": "from(bucket: \"home\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"mqtt_consumer\")\n  |> filter(fn: (r) => r[\"_field\"] == \"hum\")\n  |> filter(fn: (r) => r[\"brand\"] == \"SwitchBot\")\n  |> filter(fn: (r) => r[\"device_id\"] == \"D83534387029\")\n  |> group(columns: [\"_field\"])\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\n  |> yield(name: \"mean\")",
+     "refId": "A"
+    }
+   ],
+   "title": "Outdoor relative humidity",
+   "transformations": [
+    {
+     "id": "calculateField",
+     "options": {
+      "mode": "windowFunctions",
+      "reduce": {
+       "reducer": "sum"
+      },
+      "replaceFields": true,
+      "window": {
+       "field": "hum {brand=\"SwitchBot\", integration_id=\"ble2\", kind=\"sensors\", mac=\"D8:35:34:38:70:29\", model=\"Outdoor Meter\", model_id=\"W340001X\", type=\"THB\"}",
+       "reducer": "mean",
+       "windowAlignment": "centered",
+       "windowSize": 0.03,
+       "windowSizeMode": "percentage"
+      }
+     }
+    }
+   ],
+   "type": "timeseries"
+  },
+  {
+   "datasource": {
+    "type": "influxdb",
+    "uid": "influxdb-home"
+   },
+   "fieldConfig": {
+    "defaults": {
+     "color": {
+      "fixedColor": "blue",
+      "mode": "fixed"
+     },
+     "fieldMinMax": false,
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "super-light-blue",
+        "value": null
+       },
+       {
+        "color": "blue",
+        "value": -10
+       },
+       {
+        "color": "dark-blue",
+        "value": 0
+       },
+       {
+        "color": "#FFF899",
+        "value": 5
+       },
+       {
+        "color": "#EAB839",
+        "value": 10
+       },
+       {
+        "color": "orange",
+        "value": 15
+       },
+       {
+        "color": "green",
+        "value": 20
+       },
+       {
+        "color": "dark-red",
+        "value": 25
+       }
+      ]
+     },
+     "unit": "percent"
+    },
+    "overrides": []
+   },
+   "gridPos": {
+    "h": 10,
+    "w": 5,
+    "x": 12,
+    "y": 20
+   },
+   "id": 5,
+   "options": {
+    "colorMode": "value",
+    "graphMode": "none",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "percentChangeColorMode": "standard",
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    },
+    "showPercentChange": false,
+    "textMode": "value",
+    "wideLayout": true
+   },
+   "targets": [
+    {
+     "datasource": {
+      "type": "influxdb",
+      "uid": "influxdb-home"
+     },
+     "hide": false,
+     "query": "from(bucket: \"home\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"mqtt_consumer\")\n  |> filter(fn: (r) => r[\"_field\"] == \"hum\")\n  |> filter(fn: (r) => r[\"brand\"] == \"SwitchBot\")\n  |> filter(fn: (r) => r[\"device_id\"] == \"D83534387029\")\n  |> group(columns: [\"_field\"])\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\n  |> yield(name: \"mean\")",
+     "refId": "A"
+    }
+   ],
+   "title": "Outdoor relative humidity now",
+   "type": "stat"
+  },
+  {
+   "datasource": {
+    "type": "influxdb",
+    "uid": "influxdb-home"
+   },
+   "fieldConfig": {
+    "defaults": {
+     "color": {
+      "fixedColor": "semi-dark-blue",
+      "mode": "fixed"
+     },
+     "custom": {
+      "axisBorderShow": false,
+      "axisCenteredZero": false,
+      "axisColorMode": "text",
+      "axisLabel": "",
+      "axisPlacement": "auto",
+      "barAlignment": 0,
+      "barWidthFactor": 0.6,
+      "drawStyle": "line",
+      "fillOpacity": 50,
+      "gradientMode": "none",
+      "hideFrom": {
+       "legend": false,
+       "tooltip": false,
+       "viz": false
+      },
+      "insertNulls": false,
+      "lineInterpolation": "linear",
+      "lineWidth": 4,
+      "pointSize": 5,
+      "scaleDistribution": {
+       "linearThreshold": 1,
+       "log": 2,
+       "type": "symlog"
+      },
+      "showPoints": "auto",
+      "spanNulls": false,
+      "stacking": {
+       "group": "A",
+       "mode": "none"
+      },
+      "thresholdsStyle": {
+       "mode": "off"
+      }
+     },
+     "mappings": [],
+     "max": 16,
+     "min": 0,
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "green",
+        "value": null
+       },
+       {
+        "color": "red",
+        "value": 80
+       }
+      ]
+     },
+     "unit": "flowlpm"
+    },
+    "overrides": []
+   },
+   "gridPos": {
+    "h": 10,
+    "w": 12,
+    "x": 0,
+    "y": 30
+   },
+   "id": 2,
+   "options": {
+    "legend": {
+     "calcs": [],
+     "displayMode": "list",
+     "placement": "bottom",
+     "showLegend": false
+    },
+    "tooltip": {
+     "mode": "single",
+     "sort": "none"
+    }
+   },
+   "targets": [
+    {
+     "datasource": {
+      "type": "influxdb",
+      "uid": "influxdb-home"
+     },
+     "query": "from(bucket: \"home\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"mqtt_consumer\")\n  |> filter(fn: (r) => r[\"_field\"] == \"rate\")\n  |> filter(fn: (r) => r[\"name\"] == \"watermeter\")\n  |> filter(fn: (r) => r[\"_value\"] < 20 and r[\"_value\"] > -20)\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\n  |> yield(name: \"mean\")",
+     "refId": "A"
+    }
+   ],
+   "timeFrom": "now-12h",
+   "title": "Water consumption",
+   "transformations": [
+    {
+     "id": "calculateField",
+     "options": {
+      "alias": "Water consumption",
+      "mode": "windowFunctions",
+      "reduce": {
+       "reducer": "sum"
+      },
+      "replaceFields": true,
+      "window": {
+       "reducer": "mean",
+       "windowAlignment": "centered",
+       "windowSize": 0.01,
+       "windowSizeMode": "percentage"
+      }
+     }
+    }
+   ],
+   "type": "timeseries"
+  },
+  {
+   "datasource": {
+    "type": "influxdb",
+    "uid": "influxdb-home"
+   },
+   "description": "",
+   "fieldConfig": {
+    "defaults": {
+     "color": {
+      "fixedColor": "semi-dark-blue",
+      "mode": "fixed"
+     },
+     "mappings": [],
+     "max": 16,
+     "min": 0,
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "green",
+        "value": null
+       },
+       {
+        "color": "red",
+        "value": 80
+       }
+      ]
+     },
+     "unit": "litre"
+    },
+    "overrides": []
+   },
+   "gridPos": {
+    "h": 10,
+    "w": 5,
+    "x": 12,
+    "y": 30
+   },
+   "id": 7,
+   "options": {
+    "colorMode": "value",
+    "graphMode": "none",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "percentChangeColorMode": "inverted",
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    },
+    "showPercentChange": true,
+    "textMode": "auto",
+    "wideLayout": true
+   },
+   "targets": [
+    {
+     "datasource": {
+      "type": "influxdb",
+      "uid": "influxdb-home"
+     },
+     "query": "import \"date\"\nimport \"timezone\"\n\noption location = timezone.location(name: \"Europe/Helsinki\")\n\nfrom(bucket: \"home\")\n  |> range(start: date.sub(from: today(), d: 1d), stop: date.add(to: today(), d: 1d))\n  |> filter(fn: (r) => r[\"_measurement\"] == \"mqtt_consumer\")\n  |> filter(fn: (r) => r[\"_field\"] == \"rate\")\n  |> filter(fn: (r) => r[\"name\"] == \"watermeter\")\n  |> filter(fn: (r) => r[\"_value\"] < 20 and r[\"_value\"] > -20)\n  |> filter(fn: (r) => date.hour(t: r[\"_time\"]) * 60 + date.minute(t: r[\"_time\"]) <= date.hour(t: now()) * 60 + date.minute(t: now()))\n  |> aggregateWindow(every: 1d, fn: sum, createEmpty: false)\n  |> yield(name: \"sum\")\n",
+     "refId": "A"
+    }
+   ],
+   "title": "Total water consumption today vs. yesterday",
+   "type": "stat"
+  }
+ ],
+ "refresh": "1m",
+ "schemaVersion": 39,
+ "tags": [
+  "legacy"
+ ],
+ "templating": {
+  "list": []
+ },
+ "time": {
+  "from": "now-24h",
+  "to": "now"
+ },
+ "timepicker": {},
+ "timezone": "browser",
+ "title": "Legacy · Home",
+ "uid": "legacy-home",
+ "weekStart": ""
+}

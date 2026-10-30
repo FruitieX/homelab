@@ -8,7 +8,9 @@ side by side. Every other dashboard is one click away in the link bar.
 | Home | Energy & water, Climate, Devices, Heat pump, 3D printing | InfluxDB `home` (MQTT via Telegraf, myUplink) and `nordpool` |
 | Homelab | Services, Workloads, Hardware, Network, Logs & security, Apps | Prometheus, Loki, app PostgreSQL databases |
 | Kubernetes, Loki | Stock kube-prometheus-stack and Loki mixin dashboards | Prometheus |
-| Legacy (hand-made) | The old UI-made dashboards, kept for reference | InfluxDB |
+| Legacy | The old hand-made dashboards (Home, Indoor, Outdoor, Appliances, 3D printing, Loki logs), kept for reference | InfluxDB `home`, Loki |
+
+Every dashboard and datasource is provisioned from this repository; nothing lives only in Grafana's database.
 
 ## Dashboards are code
 
@@ -28,6 +30,11 @@ variable substitution because dashboards use `${...}` themselves. Saving in the 
 
 A new BLE sensor appears on the dashboards only after you add its `device_id` to the maps in `home.py`. Unlisted
 ids are ignored on purpose, because neighbours' sensors show up too.
+
+`legacy/` holds the old dashboards that were made in the UI, exported once as plain JSON (not generated). They
+are frozen: fix them by editing the JSON, or port a panel to the generator. BLE sensors are heard by more than
+one gateway (`integration_id` `ble3`, `ble4`, …), so their queries merge gateways with `group()` instead of
+filtering on one.
 
 ## Collectors
 
@@ -164,8 +171,8 @@ from that database.
   so data was silently lost. In-cluster clients use `http://influxdb-influxdb2.influxdb.svc`. homectl's InfluxDB
   URL is a setting in its database (`widget_settings`, key `influxdb`).
 - **Datasource UIDs must not equal another datasource's name.** Grafana resolves a reference by name as well,
-  so the uid `influxdb` resolved to the old UI datasource *named* `influxdb`. That is why the provisioned one is
-  `influxdb-home`.
+  so the uid `influxdb` resolved to the old UI datasource *named* `influxdb` (since deleted). That is why the
+  provisioned one is `influxdb-home`.
 - **Each datasource ConfigMap needs a unique key.** The sidecar writes every key into one directory, so two
   `datasource.yaml` keys overwrite each other.
 - **kube-prometheus-stack CRDs:** Flux skips CRDs on upgrade by default, which left them at their 2023
