@@ -52,10 +52,9 @@ kind: Service
 metadata:
   name: immich-postgres
   namespace: default
-  annotations:
-    external-dns.alpha.kubernetes.io/hostname: immich-postgres.fruitiex.org
 spec:
-  type: LoadBalancer
+  # Cluster-internal only: Immich is the only client.
+  type: ClusterIP
   selector:
     app: immich-postgres
   ports:

@@ -37,7 +37,7 @@ spec:
                   memory: 1280Mi
               env:
                 DB_DATABASE_NAME: immich
-                DB_HOSTNAME: immich-postgres.fruitiex.org
+                DB_HOSTNAME: immich-postgres.default.svc
                 DB_PORT: "5432"
                 DB_USERNAME:
                   valueFrom:
