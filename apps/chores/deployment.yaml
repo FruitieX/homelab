@@ -48,8 +48,6 @@ spec:
               value: chores
             - name: CHORES_OIDC_ALLOWED_GROUPS
               value: family
-            - name: CHORES_OIDC_USER_MAP
-              value: rasse:a,julle:b
           envFrom:
             - secretRef:
                 name: chores-env

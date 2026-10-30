@@ -9,7 +9,7 @@ TZ = 'import "timezone"\noption location = timezone.location(name: "Europe/Helsi
 # SwitchBot BLE sensors (device_id -> place). Unlisted ids are neighbours'.
 INDOOR = {
     "D7353530665A": "Living room", "D63534385106": "Office", "D83535301C43": "Upstairs office",
-    "C76A05062842": "Bedroom", "D7353530520F": "Ada's room", "D83431306571": "Upstairs bathroom",
+    "C76A05062842": "Bedroom", "D7353530520F": "Second bedroom", "D83431306571": "Upstairs bathroom",
     "CE2A82463674": "Downstairs bathroom",
 }
 OUTDOOR = {
