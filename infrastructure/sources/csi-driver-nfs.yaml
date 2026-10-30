@@ -4,4 +4,4 @@ metadata:
   name: csi-driver-nfs
 spec:
   interval: 24h
-  url: https://raw.githubusercontent.com/kubernetes-csi/csi-driver-nfs/master/charts
+  url: https://kubernetes-csi.github.io/csi-driver-nfs

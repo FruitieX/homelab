@@ -22,7 +22,7 @@ spec:
 
       containers:
         - name: telegraf
-          image: telegraf
+          image: telegraf:1.40.2@sha256:3992a56245a9477dfad5b98d9354d3ea7c1bced0aab6630ba49f23ac9a4d269e
           resources:
             requests:
               memory: 48Mi

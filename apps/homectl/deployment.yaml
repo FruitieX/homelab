@@ -74,7 +74,7 @@ spec:
 
       initContainers:
         - name: wait-for-mqtt-broker
-          image: busybox
+          image: busybox:1.38.0@sha256:a46257e06c82ad85242d0d38077d0a52d9896389ca60a1a59d3463db586e5fa4
           command:
             [
               "sh",
@@ -85,7 +85,7 @@ spec:
         # it until restarted (no lights), e.g. when a node drain moves the
         # Postgres primary at the same time. Wait for Postgres first.
         - name: wait-for-postgres
-          image: busybox
+          image: busybox:1.38.0@sha256:a46257e06c82ad85242d0d38077d0a52d9896389ca60a1a59d3463db586e5fa4
           command:
             [
               "sh",
