@@ -48,7 +48,7 @@ I make use of the following pieces of software and infrastructure:
 - Services get their own IP addresses allocated in my home network under a separate subnet
   - Every container can use whatever TCP/UDP ports it wants, there are no collisions
   - It's possible to run multiple duplicate services on their default ports
-- Every service gets their IP address added to Cloudfront DNS records
+- external-dns publishes annotated services' addresses as Cloudflare DNS records
   - For example, the `podinfo` hostname resolves the podinfo service, reachable both inside the cluster and from my home network
 
 ### Envoy Gateway & cert-manager

@@ -8,7 +8,7 @@ This repo contains a declarative, GitOps definition of my homelab.
 
 In summary, the homelab is built up using:
 
-- [A mini PC](https://store.minisforum.de/collections/alle-produkte-1/products/minisforum-venus-series-um560?variant=41392983572663), [NAS](https://www.synology.com/en-us/products/DS923+) and some [UniFi](https://eu.store.ui.com/products/unifi-dream-machine) network infrastructure
+- Three mini PCs running [Proxmox VE](https://www.proxmox.com/en/proxmox-ve), a [Synology DS923+ NAS](https://www.synology.com/en-us/products/DS923+) and [UniFi](https://ui.com/) network infrastructure ([hardware](/docs/components.md#hardware))
 - [Kubernetes](https://kubernetes.io/), running on virtual [Talos Linux](https://www.talos.dev/) nodes in [Proxmox VE](https://www.proxmox.com/en/proxmox-ve)
 - [Flux CD](https://fluxcd.io/) reconciling cluster configuration from this git repo
 - [MetalLB](https://metallb.universe.tf/) & [external-dns](https://github.com/kubernetes-sigs/external-dns) expose apps on separate IP addresses with associated DNS records
@@ -39,10 +39,10 @@ To follow this guide, you need the following:
 
 - Install [Proxmox VE](https://www.proxmox.com/en/downloads/category/iso-images-pve) on your host(s). Optional but recommended: [set up `pve-no-subscription` updates repo](https://www.virtualizationhowto.com/2022/08/proxmox-update-no-subscription-repository-configuration/)
 
-- Spin up any number of VM:s and [install Talos Linux](https://www.talos.dev/v1.3/talos-guides/install/virtualized-platforms/proxmox/) on each of them. My toy cluster (running on one physical machine only mind you) runs:
+- Spin up any number of VM:s and [install Talos Linux](https://www.talos.dev/latest/talos-guides/install/virtualized-platforms/proxmox/) on each of them. My cluster runs on three Proxmox hosts:
 
-  - One control plane node with 4 GB RAM
-  - Two worker nodes with 8 GB RAM each
+  - One control plane node per host (4 GB RAM each), so etcd survives losing a host
+  - Two worker nodes each on the two larger hosts (about 10 GB RAM each)
 
   The repository pins a custom Talos Image Factory installer containing the iSCSI
   extension. Generate the machine configurations using the repository script:

@@ -5,8 +5,9 @@ Mobile-first dashboard for this cluster's workloads at
 and can rollout-restart workloads or delete pods. Source:
 [FruitieX/kubedash](https://github.com/FruitieX/kubedash).
 
-kubedash has no login of its own, so its HTTPRoute attaches only to the
-**private** Envoy gateway (LAN/VPN). Never add a public route. The `kubedash`
+kubedash has no login of its own: its HTTPRoute attaches only to the
+**private** Envoy gateway (LAN/VPN), and the gateway requires a Pocket ID
+sign-in (`pocket-id-auth.yaml`). Never add a public route. The `kubedash`
 ClusterRole is read-only except for `patch` on Deployments, StatefulSets and
 DaemonSets (restart), `delete` on pods, and `patch` on Flux Kustomizations,
 HelmReleases and sources (reconcile requests). Current CPU/memory comes from

@@ -52,11 +52,11 @@ MetalLB allows k8s services to appear under their own unique IP address in your 
 
 ## external-dns
 
-[external-dns](https://github.com/kubernetes-sigs/external-dns) keeps the DNS records of supported DNS servers in sync with IP addresses of your services. This repo is configured uses Cloudfront DNS, refer to the [external-dns documentation](https://kubernetes-sigs.github.io/external-dns) on what other providers are supported and how to configure them.
+[external-dns](https://github.com/kubernetes-sigs/external-dns) keeps the DNS records of supported DNS servers in sync with IP addresses of your services. This repo uses Cloudflare DNS; refer to the [external-dns documentation](https://kubernetes-sigs.github.io/external-dns) on what other providers are supported and how to configure them.
 
 - Search for `external-dns.alpha.kubernetes.io/hostname` annotations in the repo.
 
-  This annotation sets the hostname/domain name that external dns will publish to Cloudfront.
+  This annotation sets the hostname/domain name that external dns will publish to Cloudflare.
   Can be set to multiple values by comma separating them.
 
 - Set `CLOUDFLARE_EMAIL` and `EXTERNAL_DNS_CLOUDFLARE_API_TOKEN` in your [/clusters/homelab/cluster-secrets.yaml](/clusters/homelab/cluster-secrets.yaml) file.
@@ -67,7 +67,7 @@ MetalLB allows k8s services to appear under their own unique IP address in your 
 
 - Add `external-dns.yaml` back in [/clusters/homelab/infrastructure/kustomization.yaml](/clusters/homelab/infrastructure/kustomization.yaml). Commit and push.
 
-- You should now start seeing DNS records appear in Pi-hole's admin web interface under Local DNS -> DNS Records.
+- You should now start seeing the DNS records appear in the Cloudflare dashboard.
 
 ## Flux reconcile on push
 

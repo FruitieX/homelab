@@ -6,8 +6,8 @@ metadata:
     # Use the existing public wildcard DNS instead of publishing gateway LAN IPs.
     external-dns.alpha.kubernetes.io/exclude: "true"
 spec:
-  # Public so apps on the public gateway (LittleCupboard, Immich, ...) can sign
-  # in from outside the LAN; Pocket ID only accepts passkeys.
+  # Public so apps on the public gateway (Oriel Hub, ...) can sign in from
+  # outside the LAN; Pocket ID only accepts passkeys.
   parentRefs:
     - name: public
       namespace: envoy-gateway-system

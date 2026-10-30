@@ -1,7 +1,7 @@
 # Nightly logical backup of the shared PostgreSQL to an NFS volume, which the
 # NAS's Hyper Backup then copies off. Unlike a file copy of a live data
 # directory, these dumps are consistent and restorable:
-#   psql -f globals.sql postgres            # roles
+#   psql -f roles-with-passwords.sql postgres   # roles (globals.sql has no passwords)
 #   pg_restore --create -d postgres <db>.dump
 apiVersion: v1
 kind: PersistentVolumeClaim
