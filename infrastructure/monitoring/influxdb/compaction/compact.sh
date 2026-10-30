@@ -214,12 +214,14 @@ verify_counts() { # bucketA modeA bucketB modeB ws we   (day by day)
 }
 
 verify_energy() { # ws we: integral of plug power, raw vs staged, per plug, < 1 %
+  # Integrate each series on its own (integral needs sorted times; a plug can have
+  # several series, e.g. after a rename), then add them up per plug.
   for b in "$SRC" "$STAGE"; do
     cat > "$WORK/e.flux" <<EOF
 from(bucket: "$b") |> range(start: $1, stop: $2)
   |> filter(fn: (r) => r._measurement == "mqtt_consumer" and r.integration_id == "tuya" and r.kind == "devices" and r._field == "raw_19")
-  |> group(columns: ["device_id"])
   |> aggregateWindow(every: 1d, fn: (tables=<-, column) => tables |> integral(unit: 1h), createEmpty: false)
+  |> group(columns: ["device_id"])
   |> sum() |> group() |> keep(columns: ["device_id", "_value"])
 EOF
     q "$WORK/e.flux" | data_rows | awk -F, '{print $(NF-1) "," $NF}' > "$WORK/e_$b.csv"
