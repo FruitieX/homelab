@@ -64,6 +64,9 @@ spec:
               value: /home/bridge
             - name: MQTT_HOST
               value: mqtt
+            # MQTT_PASSWORD is in the verisure-bridge Secret.
+            - name: MQTT_USERNAME
+              value: verisure-bridge
           envFrom:
             - secretRef:
                 name: verisure-bridge

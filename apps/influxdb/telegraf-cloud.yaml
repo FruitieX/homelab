@@ -306,6 +306,8 @@ data:
       servers = ["tcp://mqtt:1883"]
       topics = ["home/verisure/state", "home/verisure/mode"]
       client_id = "telegraf-cloud-verisure"
+      username = "telegraf"
+      password = "${MQTT_PASSWORD}"
       qos = 1
       data_format = "value"
       data_type = "string"
