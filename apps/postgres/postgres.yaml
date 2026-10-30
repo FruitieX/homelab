@@ -1,18 +1,5 @@
 ---
 apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: postgres-data
-  namespace: default
-spec:
-  storageClassName: nfs-csi
-  accessModes:
-    - ReadWriteOnce
-  resources:
-    requests:
-      storage: 10Gi
----
-apiVersion: v1
 kind: Service
 metadata:
   name: postgres
@@ -35,93 +22,10 @@ spec:
   # MetalLB doesn't need them.
   allocateLoadBalancerNodePorts: false
   # The current primary of the CloudNativePG cluster (postgres-ha.yaml).
-  # Apps and LAN clients keep using this name and address. Rollback to the
-  # PostgreSQL 16 Deployment below: selector `app: postgres` and replicas: 1.
+  # Apps and LAN clients keep using this name and address.
   selector:
     cnpg.io/cluster: postgres-ha
     cnpg.io/instanceRole: primary
-  ports:
-    - name: psql
-      protocol: TCP
-      port: 5432
-      targetPort: 5432
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: postgres
-  namespace: default
-spec:
-  # Retired 2026-10-26 after the move to CloudNativePG (postgres-ha.yaml);
-  # kept with its postgres-data PVC as the rollback path. Delete both once
-  # postgres-ha has run without trouble for a few weeks and a postgres-dump
-  # backup has been restored somewhere as a test.
-  replicas: 0
-  strategy:
-    type: Recreate
-  selector:
-    matchLabels:
-      app: postgres
-  template:
-    metadata:
-      labels:
-        app: postgres
-    spec:
-      priorityClassName: homelab-critical
-      containers:
-        - name: postgres
-          image: postgres:16@sha256:1beaa3084eee2676f20a9cd9928f0bf2c5bf674f8e49f81017912183d377c61c
-          imagePullPolicy: "IfNotPresent"
-          ports:
-            - containerPort: 5432
-          env:
-            - name: PGDATA
-              value: /var/lib/postgresql/data/pgdata
-          envFrom:
-            - secretRef:
-                name: postgres-config
-          volumeMounts:
-            - mountPath: /var/lib/postgresql/data
-              name: postgres-data
-          resources:
-            requests:
-              memory: 192Mi
-            limits:
-              cpu: 1000m
-              memory: 512Mi
-        # - name: postgres-debug
-        #   image: postgres:16@sha256:1e90f8560705b0daccbd8eb25573627c8452fc9282496433aab1259ae4c85824
-        #   imagePullPolicy: "IfNotPresent"
-        #   env:
-        #     - name: PGDATA
-        #       value: /var/lib/postgresql/data/pgdata
-        #   envFrom:
-        #     - secretRef:
-        #         name: postgres-config
-        #   volumeMounts:
-        #     - mountPath: /var/lib/postgresql/data
-        #       name: postgres-data
-        #   resources:
-        #     limits:
-        #       cpu: 1000m
-        #       memory: 512Mi
-        #   command: ["sh", "-c"]
-        #   args: ["while true; do echo 'debug pod running' && sleep 5; done;"]
-      volumes:
-        - name: postgres-data
-          persistentVolumeClaim:
-            claimName: postgres-data
----
-# Cluster-internal name for the PostgreSQL 16 Deployment, kept for the CNPG
-# import source and as the rollback path.
-apiVersion: v1
-kind: Service
-metadata:
-  name: postgres-legacy
-  namespace: default
-spec:
-  selector:
-    app: postgres
   ports:
     - name: psql
       protocol: TCP

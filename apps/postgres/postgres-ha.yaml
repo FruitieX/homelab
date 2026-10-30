@@ -108,8 +108,12 @@ spec:
     storageClass: nfs-csi
     size: 10Gi
 
-  # Only used when the cluster is first created: imported every database and
-  # role from the PostgreSQL 16 Deployment (2026-10-26). Ignored afterwards.
+  # Only used when the cluster was first created: imported every database
+  # and role from the PostgreSQL 16 Deployment (2026-10-26), since removed.
+  # Ignored afterwards, but kept: without `import` the webhook defaults the
+  # initdb application database to `app`, and the operator would then
+  # create a postgres-ha-app secret and try to set a password for the
+  # nonexistent role `app` on every reconcile.
   bootstrap:
     initdb:
       encoding: UTF8
@@ -131,6 +135,3 @@ spec:
         user: postgres
         dbname: postgres
         sslmode: disable
-      password:
-        name: postgres-config
-        key: POSTGRES_PASSWORD
