@@ -148,3 +148,53 @@ spec:
             severity: warning
           annotations:
             summary: "{{ $labels.host }}:{{ $labels.mountpoint }} has under 10% free"
+    - name: homelab.backups
+      rules:
+        # The stock KubeJobFailed is a plain warning, which the Alertmanager
+        # route drops, so failed backups need homelab="true" rules here.
+        - alert: PostgresDumpStale
+          # Also fires if the CronJob has never succeeded since it was created.
+          expr: |
+            (
+            (
+              (time() - kube_cronjob_status_last_successful_time{namespace="default",cronjob="postgres-dump"} > 129600)
+              and on(namespace, cronjob)
+              (kube_cronjob_status_last_successful_time{namespace="default",cronjob="postgres-dump"} > 0)
+            )
+            or
+            (
+              (time() - kube_cronjob_created{namespace="default",cronjob="postgres-dump"} > 129600)
+              unless on(namespace, cronjob)
+              (kube_cronjob_status_last_successful_time{namespace="default",cronjob="postgres-dump"} > 0)
+            )
+            or
+            absent(kube_cronjob_created{namespace="default",cronjob="postgres-dump"})
+            )
+          for: 30m
+          labels:
+            homelab: "true"
+            severity: warning
+          annotations:
+            summary: "The nightly PostgreSQL dump has not succeeded in 36 hours"
+            description: "kubectl -n default get cronjob postgres-dump; check its failed Jobs and their logs. The shared PostgreSQL has no other off-cluster copy."
+        - alert: CronJobLastRunFailed
+          # Scheduled after the last success (or never succeeded) and nothing
+          # is running any more: the latest run failed. Suspended CronJobs are
+          # skipped; add noisy ones to the cronjob!~ selector.
+          expr: |
+            (
+              kube_cronjob_status_last_schedule_time{cronjob!~""}
+                > on(namespace, cronjob)
+              kube_cronjob_status_last_successful_time
+              or
+              (kube_cronjob_status_last_schedule_time{cronjob!~""} unless on(namespace, cronjob) kube_cronjob_status_last_successful_time)
+            )
+            and on(namespace, cronjob) (kube_cronjob_status_active == 0)
+            unless on(namespace, cronjob) (kube_cronjob_spec_suspend == 1)
+          for: 15m
+          labels:
+            homelab: "true"
+            severity: warning
+          annotations:
+            summary: "The last run of CronJob {{ $labels.namespace }}/{{ $labels.cronjob }} failed"
+            description: "kubectl -n {{ $labels.namespace }} get jobs; kubectl -n {{ $labels.namespace }} logs job/<latest>. Resolves after the next successful run."
