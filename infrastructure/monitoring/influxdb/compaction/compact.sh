@@ -18,7 +18,7 @@
 #   2. stage     aggregate the week into bucket home_staging, 6 h per query
 #   3. verify    per series+field and day: staged points == non-empty raw
 #                minutes, staged last value == raw last value (last fields);
-#                plug energy (integral of raw_19) within 1 %
+#                plug power/current/voltage: staged == raw 1-minute means
 #   4. delete    the week's raw points of every rewritten series (incl. the
 #                dropped fields and foreign BLE devices)
 #   5. copy back home_staging -> home, 6 h per query
@@ -213,24 +213,32 @@ verify_counts() { # bucketA modeA bucketB modeB ws we   (day by day)
   done
 }
 
-verify_energy() { # ws we: integral of plug power, raw vs staged, per plug, < 1 %
-  # Integrate each series on its own (integral needs sorted times; a plug can have
-  # several series, e.g. after a rename), then add them up per plug.
+verify_means() { # ws we: per plug, field and day, the staged 1-minute means must
+  # equal the 1-minute means of the raw data (sums compared, float rounding only).
+  # An energy integral is no check here: across a gap in the raw data it draws a
+  # line between the readings either side, and moving them to the minute start
+  # changes that line, so a gap under load shows up as a few percent.
   for b in "$SRC" "$STAGE"; do
+    if [ "$b" = "$SRC" ]; then agg='|> aggregateWindow(every: 1m, fn: mean, timeSrc: "_start", createEmpty: false)'; else agg=''; fi
     cat > "$WORK/e.flux" <<EOF
 from(bucket: "$b") |> range(start: $1, stop: $2)
-  |> filter(fn: (r) => r._measurement == "mqtt_consumer" and r.integration_id == "tuya" and r.kind == "devices" and r._field == "raw_19")
-  |> aggregateWindow(every: 1d, fn: (tables=<-, column) => tables |> integral(unit: 1h), createEmpty: false)
-  |> group(columns: ["device_id"])
-  |> sum() |> group() |> keep(columns: ["device_id", "_value"])
+  |> filter(fn: (r) => r._measurement == "mqtt_consumer" and r.integration_id == "tuya" and r.kind == "devices")
+  |> filter(fn: (r) => r._field == "raw_18" or r._field == "raw_19" or r._field == "raw_20")
+  $agg
+  |> aggregateWindow(every: 1d, fn: sum, createEmpty: false)
+  |> group(columns: ["device_id", "_field", "_time"]) |> sum()
+  |> group() |> map(fn: (r) => ({k: r.device_id + "|" + r._field + "|" + string(v: r._time), v: r._value}))
+  |> keep(columns: ["k", "v"])
 EOF
-    q "$WORK/e.flux" | data_rows | awk -F, '{print $(NF-1) "," $NF}' > "$WORK/e_$b.csv"
+    q "$WORK/e.flux" | data_rows | awk -F, '{print $(NF-1) "," $NF}' | sort > "$WORK/e_$b.csv"
   done
   # busybox has no join(1)
-  awk -F, 'NR == FNR { s[$1] = $2; next } { r = s[$1] + 0; d = r - $2; if (d < 0) d = -d
-      printf "  energy %s raw %.0f Wh staged %.0f Wh\n", $1, r / 10, $2 / 10
-      if (r > 1000 && d / r > 0.01) bad = 1 } END { exit bad }' \
-    "$WORK/e_$SRC.csv" "$WORK/e_$STAGE.csv" || die "plug energy differs by more than 1 %"
+  awk -F, 'NR == FNR { s[$1] = $2; next } { seen[$1] = 1; r = s[$1] + 0; d = r - $2; if (d < 0) d = -d
+      m = (r < 0 ? -r : r); if (d > 1e-6 * m + 1e-6) { print "  mean mismatch " $1 ": raw " r " staged " $2; bad = 1 }
+      if ($1 ~ /\|raw_19\|/) wh[substr($1, 1, index($1, "|") - 1)] += $2 / 10 / 60 }
+    END { for (k in s) if (!(k in seen)) { print "  missing in staging: " k; bad = 1 }
+      for (p in wh) printf "  energy %s %.0f Wh\n", p, wh[p]; exit bad }' \
+    "$WORK/e_$SRC.csv" "$WORK/e_$STAGE.csv" || die "plug 1-minute means differ between raw and staged"
 }
 
 delete_raw() { # ws we
@@ -273,7 +281,7 @@ do_week() { # mode ws we
   if marked "$2"; then log "week $2 already compacted, skipping"; return 0; fi
   log "week $2: guard"; guard_types "$2" "$3"
   log "week $2: stage"; stage_week "$2" "$3"
-  log "week $2: verify"; verify_counts "$SRC" raw "$STAGE" plain "$2" "$3"; verify_energy "$2" "$3"
+  log "week $2: verify"; verify_counts "$SRC" raw "$STAGE" plain "$2" "$3"; verify_means "$2" "$3"
   if [ "$1" = stage ]; then log "week $2 staged and verified (dry run)"; return 0; fi
   log "week $2: delete"; delete_raw "$2" "$3"
   log "week $2: copy back"; copy_back "$2" "$3"

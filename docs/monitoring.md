@@ -136,7 +136,7 @@ data to one value per minute. Nothing is dropped outright: history is compacted,
 
 `compaction/compact.sh` works one shard group (Monday to Monday) at a time: it aggregates the week into bucket
 `home_staging`, checks per series and field that the staged points equal the non-empty raw minutes and that last
-values and plug energy match, deletes the raw week, copies the staged week back, checks again and writes a
+values and plug power, current and voltage 1-minute means match, deletes the raw week, copies the staged week back, checks again and writes a
 `compaction_done` marker into `home_staging`. Marked weeks are skipped, so a run can be repeated safely; each run
 handles at most 26 weeks. Any failed check stops the job (`CronJobLastRunFailed` fires).
 
