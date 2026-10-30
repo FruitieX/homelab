@@ -128,18 +128,32 @@ spec:
           # On AMD hosts the chip label is a PCI path; match the CPU sensor by
           # node_hwmon_chip_names instead. mango sat at 88°C while 90% idle
           # (2026-10-25) because its thermal paste had dried out.
+          # Hysteresis: fires above 85°C, resolves only below 80°C, so a host
+          # hovering around 85°C stays one alert instead of flapping.
           expr: |
-            max by (host) (
-              node_hwmon_temp_celsius{job="proxmox-node"}
-                * on (host, chip) group_left (chip_name)
-              node_hwmon_chip_names{job="proxmox-node", chip_name=~"k10temp|coretemp"}
-            ) > 85
+            (
+              max by (host) (
+                node_hwmon_temp_celsius{job="proxmox-node"}
+                  * on (host, chip) group_left (chip_name)
+                node_hwmon_chip_names{job="proxmox-node", chip_name=~"k10temp|coretemp"}
+              ) > 85
+            )
+            or
+            (
+              max by (host) (
+                node_hwmon_temp_celsius{job="proxmox-node"}
+                  * on (host, chip) group_left (chip_name)
+                node_hwmon_chip_names{job="proxmox-node", chip_name=~"k10temp|coretemp"}
+              ) > 80
+              and on (host) ALERTS{alertname="ProxmoxHostHot", alertstate="firing"}
+            )
           for: 30m
+          keep_firing_for: 10m
           labels:
             homelab: "true"
             severity: warning
           annotations:
-            summary: "Proxmox host {{ $labels.host }} CPU is at {{ $value }}°C"
+            summary: "Proxmox host {{ $labels.host }} CPU is at {{ $value | printf \"%.0f\" }}°C"
         - alert: ProxmoxHostDiskFillingUp
           expr: |
             node_filesystem_avail_bytes{job="proxmox-node", fstype!~"tmpfs|ramfs|fuse.*"}

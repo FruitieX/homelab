@@ -220,6 +220,15 @@ spec:
             discord_configs:
               - webhook_url_file: /etc/alertmanager/secrets/alertmanager-discord/webhook-url
                 send_resolved: true
+                # Annotations are frozen at the last firing evaluation, so a
+                # resolved alert's summary still shows the bad value. Resolved
+                # alerts are listed by name and labels only.
+                title: >-
+                  {{ if .Alerts.Firing }}🔥 {{ .CommonLabels.alertname }}{{ if gt (len .Alerts.Firing) 1 }} ({{ len .Alerts.Firing }}){{ end }}{{ else }}✅ Resolved: {{ .CommonLabels.alertname }}{{ end }}
+                message: >-
+                  {{ range .Alerts.Firing }}• {{ or .Annotations.summary .Annotations.description .Labels.alertname }}
+                  {{ end }}{{ range .Alerts.Resolved }}• ✅ {{ .Labels.alertname }}{{ with .Labels.host }} on {{ . }}{{ end }}{{ with .Labels.instance }} ({{ . }}){{ end }} is back to normal
+                  {{ end }}
       alertmanagerSpec:
         priorityClassName: homelab-home
         secrets:
