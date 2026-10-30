@@ -78,6 +78,8 @@ I make use of the following pieces of software and infrastructure:
   - Status and switchover: `kubectl cnpg status postgres-ha`, `kubectl cnpg promote postgres-ha <instance>`
   - Role memberships and per-role settings (`ALTER ROLE ... SET`) are not carried over by a CNPG import;
     `grafana_ro`'s `pg_monitor` membership is declared in the Cluster, its settings were set by hand
+  - Secrets the operator reads (superuser, managed role passwords) must carry the label `cnpg.io/reload: "true"`;
+    without it CNPG doesn't notice a changed password and the database keeps the old one
 - Outside the cluster, the `postgres` LoadBalancer Service (pinned MetalLB address, external-dns hostname) accepts
   connections only from the sources in `loadBalancerSourceRanges`: the pod network and a few admin workstations.
   The addresses are variables from the SOPS-encrypted `cluster-secrets` (Flux postBuild substitution); add a
