@@ -23,7 +23,7 @@ spec:
         runAsGroup: 10001
       containers:
         - name: kubedash
-          image: ghcr.io/fruitiex/kubedash:main@sha256:3987a527ab7007e517f003abadf788a9a87b1b6be2c00dfbc98a74ced361f816
+          image: ghcr.io/fruitiex/kubedash:main@sha256:7590ef384254e29caf04ddc8524ee2c9814cedae4658962f3b5ca4c0eda9e0c5
           env:
             - name: TZ
               value: Europe/Helsinki
