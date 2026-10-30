@@ -92,7 +92,7 @@ checkout = "~/projects/feedback-hub"
 hosts = ["feedback.fruitiex.org"]
 
 [[apps]]
-id = "twinkly"
-repo = "git@github.com:FruitieX/twinkly.git"
-checkout = "~/projects/twinkly"
-hosts = ["twinkly.fruitiex.org"]
+id = "glimmer"
+repo = "git@github.com:FruitieX/glimmer.git"
+checkout = "~/projects/glimmer"
+hosts = ["glimmer.fruitiex.org"]

@@ -17,7 +17,7 @@ resources:
   - lifx-mqtt.yaml
   - tuya-mqtt.yaml
   - twinkly-mqtt.yaml
-  - twinkly.yaml
+  - glimmer.yaml
   - nordpool-mqtt.yaml
   - ntfy.yaml
   - verisure-bridge.yaml

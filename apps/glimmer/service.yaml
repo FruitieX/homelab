@@ -1,10 +1,10 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: twinkly
+  name: glimmer
 spec:
   selector:
-    app: twinkly
+    app: glimmer
   ports:
     - name: http
       port: 8080

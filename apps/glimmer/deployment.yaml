@@ -2,19 +2,19 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   annotations:
-    secret.reloader.stakater.com/reload: twinkly-env
-  name: twinkly
+    secret.reloader.stakater.com/reload: glimmer-env
+  name: glimmer
 spec:
   replicas: 1
   strategy:
     type: Recreate
   selector:
     matchLabels:
-      app: twinkly
+      app: glimmer
   template:
     metadata:
       labels:
-        app: twinkly
+        app: glimmer
     spec:
       priorityClassName: homelab-home
       imagePullSecrets:
@@ -29,33 +29,33 @@ spec:
         fsGroupChangePolicy: OnRootMismatch
       terminationGracePeriodSeconds: 30
       containers:
-        - name: twinkly
-          image: ghcr.io/fruitiex/twinkly:09e23032530d217a2e6f20875ce1e86f13839618@sha256:f067d9a29b93ecd2a63193a229de35cb63a7e9eb3b403edf7897d21c1bf78164
+        - name: glimmer
+          image: ghcr.io/fruitiex/glimmer:93adf9a4de166495a9289431a136fcb96ede29d6@sha256:7381a0787fa9d7b824ad109c70803c740b289612a5d61c7416374de916ffb5eb
           imagePullPolicy: Always
           env:
-            - name: TWINKLY_ORIGIN
-              value: https://twinkly.fruitiex.org
-            - name: TWINKLY_FEEDBACK_HUB
+            - name: GLIMMER_ORIGIN
+              value: https://glimmer.fruitiex.org
+            - name: GLIMMER_FEEDBACK_HUB
               value: https://feedback.fruitiex.org
-            - name: TWINKLY_SQLITE_JOURNAL_MODE
+            - name: GLIMMER_SQLITE_JOURNAL_MODE
               value: DELETE
             - name: RUST_LOG
-              value: twinkly=info
-            # Passkey sign-in through Pocket ID; the client secret is in twinkly-env.
-            - name: TWINKLY_OIDC_ISSUER
+              value: glimmer=info
+            # Passkey sign-in through Pocket ID; the client secret is in glimmer-env.
+            - name: GLIMMER_OIDC_ISSUER
               value: https://id.fruitiex.org
-            - name: TWINKLY_OIDC_CLIENT_ID
-              value: twinkly
-            - name: TWINKLY_OIDC_ALLOWED_GROUPS
+            - name: GLIMMER_OIDC_CLIENT_ID
+              value: glimmer
+            - name: GLIMMER_OIDC_ALLOWED_GROUPS
               value: family
-            # Same topics and broker user as the old twinkly-mqtt bridge; credentials are in twinkly-env.
-            - name: TWINKLY_MQTT_HOST
+            # Same topics and broker user as the old twinkly-mqtt bridge; credentials are in glimmer-env.
+            - name: GLIMMER_MQTT_HOST
               value: mqtt
-            - name: TWINKLY_MQTT_PORT
+            - name: GLIMMER_MQTT_PORT
               value: "1883"
           envFrom:
             - secretRef:
-                name: twinkly-env
+                name: glimmer-env
           ports:
             - name: http
               containerPort: 8080
@@ -95,7 +95,7 @@ spec:
       volumes:
         - name: data
           persistentVolumeClaim:
-            claimName: twinkly-data-nfs
+            claimName: glimmer-data-nfs
         - name: tmp
           emptyDir:
             sizeLimit: 128Mi

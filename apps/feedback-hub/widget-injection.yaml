@@ -233,12 +233,12 @@ spec:
 apiVersion: gateway.envoyproxy.io/v1alpha1
 kind: EnvoyExtensionPolicy
 metadata:
-  name: feedback-widget-twinkly
+  name: feedback-widget-glimmer
 spec:
   targetRefs:
     - group: gateway.networking.k8s.io
       kind: HTTPRoute
-      name: twinkly
+      name: glimmer
   lua:
     - type: ValueRef
       valueRef:
@@ -246,5 +246,5 @@ spec:
         kind: ConfigMap
         name: feedback-widget-lua
       filterContext:
-        app: twinkly
+        app: glimmer
         hub: https://feedback.fruitiex.org
