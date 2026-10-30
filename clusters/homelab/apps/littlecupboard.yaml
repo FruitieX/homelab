@@ -11,7 +11,7 @@ spec:
     kind: GitRepository
     name: flux-system
   path: ./apps/littlecupboard
-  prune: true
+  prune: false  # temporary: lets the rename to "littlecupboard" orphan instead of delete
   wait: true
   dependsOn:
     - name: envoy-gateway-config
