@@ -5,6 +5,7 @@ resources:
   - mosquitto.yaml
   - postgres.yaml
   - tsdb.yaml
+  - telegraf.yaml
   - add-bot.yaml
   - redoor.yaml
   - homectl.yaml
@@ -23,7 +24,6 @@ resources:
   - ntfy.yaml
   - verisure-bridge.yaml
   - fruitiex-org.yaml
-  - influxdb.yaml
   - jellyfin.yaml
   - immich.yaml
   - photoframe-rs.yaml

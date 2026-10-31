@@ -83,14 +83,14 @@ server-side expressions match on. BLE sensors are heard by more than one gateway
 `container`, `app`, `job`, `instance`, `component`, `node_name`, `stream`, `filename`). The Loki security rules and
 the log dashboards select on these, so keep them unchanged. Read offsets are kept in `/var/lib/alloy` on each node.
 
-Telegraf `telegraf-home` (config in `apps/influxdb/config.yaml`) stores MQTT data in bucket `home`, measurement
+Telegraf `telegraf-home` (config in `apps/telegraf/config.yaml`) stores MQTT data in bucket `home`, measurement
 `mqtt_consumer`, tagged `kind`/`integration_id`/`device_id` from the topic. It keeps only our own BLE sensors (a
 `tagpass` list of device ids; the gateways also hear neighbours' devices), so add a new sensor there as well as in
 the dashboards. It drops repeated zigbee2mqtt device metadata and settings. ESPHome light state lands next to the
 old Tuya bulb history (`kind=lights`, `integration_id=esphome`); ESPHome chip temperature and Wi-Fi signal go to
 measurement `esphome`, thermal lockout (`ON`/`OFF`) to `esphome_binary`.
 
-`apps/influxdb/telegraf-cloud.yaml` fetches cloud data into InfluxDB (bucket `home`, field `value`). Its
+`apps/telegraf/telegraf-cloud.yaml` fetches cloud data into InfluxDB (bucket `home`, field `value`). Its
 credentials, the NIBE device id, the FMI station and the home coordinates are in `telegraf-cloud.sops.yaml`,
 and its InfluxDB token ("homelab InfluxDB telegraf-nibe token" in 1Password) can only write to `home`.
 
@@ -330,9 +330,9 @@ Remove these before decommissioning InfluxDB (`clusters/homelab/{apps,infrastruc
 `/metrics` (`http_api_requests_total` by `path` and `user_agent`) shows who still queries or writes.
 
 - **Writers** (dual-writing; drop the InfluxDB side): the `influxdb_v2` outputs of telegraf-home
-  (`apps/influxdb/config.yaml`) and telegraf-cloud (`apps/influxdb/telegraf-cloud.yaml`); the first `[[influxdb2]]`
+  (`apps/telegraf/config.yaml`) and telegraf-cloud (`apps/telegraf/telegraf-cloud.yaml`); the first `[[influxdb2]]`
   target of nordpool-mqtt (`apps/nordpool-mqtt/config.yaml`).
-  Telegraf itself stays: move the two Deployments and their config out of `apps/influxdb/` with it.
+  Telegraf itself stays: move the two Deployments and their config out of `apps/telegraf/` with it.
 - **Readers:** the `influxdb-home` datasource; homectl's InfluxDB fallback (its `influxdb` widget source and the InfluxDB
   branches in `server/src/api/widgets/`, unused while `TSDB_URL` is set); `scripts/influx-to-tsdb.py` and its Job.
 - **Around it:** the `influxdb-compaction` CronJob and its scripts, its HTTPRoute (`infrastructure/monitoring/influxdb/`) and

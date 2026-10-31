@@ -6,7 +6,7 @@
 #   kubectl apply -f scripts/influx-to-tsdb-job.yaml   # edit args: backfill | verify | live 6
 #   kubectl -n default delete job,configmap,secret influx-to-tsdb   # afterwards
 # CUTOFF is the dual-write start (docs/monitoring.md); OWN_BLE is the
-# tagpass list of telegraf-home (apps/influxdb/config.yaml).
+# tagpass list of telegraf-home (apps/telegraf/config.yaml).
 apiVersion: batch/v1
 kind: Job
 metadata:
