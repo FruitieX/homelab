@@ -156,6 +156,13 @@
       ],
       "groupName": "influxdb",
       "automerge": false
+    },
+    {
+      "description": "TimescaleDB and the tsdb image's PostgreSQL base hold the house history: review before rollout",
+      "matchFileNames": [
+        "images/postgresql-timescaledb/**"
+      ],
+      "automerge": false
     }
   ],
   "customManagers": [
@@ -203,6 +210,16 @@
       "datasourceTemplate": "docker",
       "depNameTemplate": "ghcr.io/siderolabs/kubelet",
       "extractVersionTemplate": "^v(?<version>.+)$"
+    },
+    {
+      "description": "TimescaleDB version built into the tsdb image (\"# renovate:\" comment above an ARG line)",
+      "customType": "regex",
+      "managerFilePatterns": [
+        "/^images/.+/Dockerfile$/"
+      ],
+      "matchStrings": [
+        "#\\s*renovate:\\s*datasource=(?<datasource>\\S+)\\s+depName=(?<depName>\\S+)\\s*\\nARG [A-Z_]+=(?<currentValue>\\S+)"
+      ]
     }
   ],
   "flux": {

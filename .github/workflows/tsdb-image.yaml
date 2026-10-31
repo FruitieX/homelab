@@ -1,0 +1,114 @@
+name: TimescaleDB image
+
+# Builds ghcr.io/fruitiex/postgresql-timescaledb (images/postgresql-timescaledb)
+# for the tsdb CloudNativePG cluster. Renovate bumps the base image digest and
+# the TimescaleDB version in the Dockerfile; a push to main rebuilds, and the
+# image-update dispatch then pins the new digest in apps/tsdb.
+on:
+  push:
+    branches: [main]
+    paths:
+      - images/postgresql-timescaledb/**
+      - .github/workflows/tsdb-image.yaml
+  pull_request:
+    paths:
+      - images/postgresql-timescaledb/**
+      - .github/workflows/tsdb-image.yaml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  IMAGE: ghcr.io/fruitiex/postgresql-timescaledb
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    outputs:
+      digest: ${{ steps.build.outputs.digest }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Versions
+        id: versions
+        run: |
+          dockerfile=images/postgresql-timescaledb/Dockerfile
+          pg=$(sed -n 's|^ARG BASE=.*/postgresql:\([0-9]*\.[0-9]*\)-.*|\1|p' "$dockerfile")
+          ts=$(sed -n 's|^ARG TIMESCALEDB_VERSION=||p' "$dockerfile" | head -1)
+          test -n "$pg" && test -n "$ts"
+          {
+            echo "pg_major=${pg%%.*}"
+            echo "pg=$pg"
+            echo "ts=$ts"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Login to GitHub Container Registry
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@81c6f93d4bc991e510b342a00b419b3bb4efc5c6 # v4.7.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+
+      # Build and test locally first; push only an image that passed.
+      - name: Build
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
+        with:
+          context: images/postgresql-timescaledb
+          platforms: linux/amd64
+          load: true
+          tags: tsdb-test
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Smoke test (TSL compression)
+        run: |
+          docker run --rm --entrypoint bash tsdb-test -ceu '
+            export PGDATA=/tmp/pg
+            initdb -U postgres >/dev/null
+            pg_ctl -w -o "-c shared_preload_libraries=timescaledb -c listen_addresses=" start >/dev/null
+            psql -U postgres -v ON_ERROR_STOP=1 -At -c "create extension timescaledb" \
+              -c "create table t(time timestamptz not null, v float8) with (tsdb.hypertable)" \
+              -c "insert into t values (now(), 1)" \
+              -c "select count(compress_chunk(c)) from show_chunks(\$\$t\$\$) c" \
+              -c "show timescaledb.license" | tee /dev/stderr | grep -qx timescale'
+
+      # CloudNativePG reads the PostgreSQL major version from the tag, so the
+      # cluster references the major tag (plus digest).
+      - name: Push
+        id: build
+        if: github.event_name != 'pull_request'
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
+        with:
+          context: images/postgresql-timescaledb
+          platforms: linux/amd64
+          push: true
+          provenance: mode=max
+          sbom: true
+          cache-from: type=gha
+          tags: |
+            ${{ env.IMAGE }}:${{ steps.versions.outputs.pg_major }}
+            ${{ env.IMAGE }}:${{ steps.versions.outputs.pg }}-ts${{ steps.versions.outputs.ts }}
+            ${{ env.IMAGE }}:${{ steps.versions.outputs.pg }}-ts${{ steps.versions.outputs.ts }}-${{ github.sha }}
+
+  deploy:
+    needs: build
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Pin the new digest in apps/
+        env:
+          GH_TOKEN: ${{ github.token }}
+          DIGEST: ${{ needs.build.outputs.digest }}
+        run: |
+          gh api "repos/$GITHUB_REPOSITORY/dispatches" -f event_type=image-update \
+            -F "client_payload[image]=$IMAGE" -F "client_payload[digest]=$DIGEST" \
+            -F "client_payload[revision]=$GITHUB_SHA"
