@@ -6,6 +6,8 @@ resources:
   - ./tsdb-grafana-ro.sops.yaml
   - ./tsdb.yaml
   - ./tsdb-dump.yaml
+  - ./tsdb-relay.sops.yaml
+  - ./relay.yaml
 # The Cluster refers to this ConfigMap by name, so no hash suffix.
 configMapGenerator:
   - name: tsdb-schema

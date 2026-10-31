@@ -23,11 +23,21 @@ spec:
       containers:
         - name: telegraf
           image: telegraf:1.40.2@sha256:3992a56245a9477dfad5b98d9354d3ea7c1bced0aab6630ba49f23ac9a4d269e
+          env:
+            # For the tsdb (TimescaleDB) output, see config.yaml.
+            - name: PGPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: tsdb-app
+                  key: password
+                  # Telegraf must start (and write to InfluxDB) regardless.
+                  optional: true
           resources:
             requests:
               memory: 48Mi
             limits:
-              memory: 300Mi
+              # Includes the tsdb output's buffer (50 000 metrics).
+              memory: 400Mi
               cpu: 100m
           workingDir: /etc/telegraf
           volumeMounts:

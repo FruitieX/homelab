@@ -1,0 +1,122 @@
+# tsdb-relay: an InfluxDB v2 write API in front of tsdb, for clients that
+# speak line protocol (nordpool-mqtt, scripts/datahub-import.py,
+# spot-price-backfill.py, fmi-backfill.py). Point them at
+# http://tsdb-relay.default.svc:8086 with the token from the tsdb-relay
+# secret; the bucket becomes a tag, and InfluxDB's nordpool bucket
+# (measurement price) lands in table nordpool_price. Nothing writes here
+# yet: those clients still write to InfluxDB (docs/monitoring.md).
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: tsdb-relay-config
+  namespace: default
+  annotations:
+    # Telegraf expands the ${...} variables itself.
+    kustomize.toolkit.fluxcd.io/substitute: disabled
+data:
+  telegraf.conf: |
+    [agent]
+      omit_hostname = true
+      flush_interval = "5s"
+      metric_batch_size = 5000
+      # A backfill script can send a few years of hourly data at once.
+      metric_buffer_limit = 200000
+
+    [[inputs.influxdb_v2_listener]]
+      service_address = ":8086"
+      token = "${RELAY_TOKEN}"
+      bucket_tag = "bucket"
+      max_body_size = "64MiB"
+
+    [[processors.rename]]
+      [processors.rename.tagpass]
+        bucket = ["nordpool"]
+      [[processors.rename.replace]]
+        measurement = "price"
+        dest = "nordpool_price"
+
+    [[outputs.postgresql]]
+      connection = "host=tsdb-rw.default.svc user=tsdb dbname=tsdb sslmode=require"
+      timestamp_column_type = "timestamp with time zone"
+      tagexclude = ["bucket"]
+      create_templates = [
+        '''CREATE TABLE {{ .table }} ({{ .columns }})''',
+        '''SELECT create_hypertable({{ .table|quoteLiteral }}, by_range('time', INTERVAL '7 days'))''',
+      ]
+      startup_error_behavior = "retry"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tsdb-relay
+  namespace: default
+  annotations:
+    configmap.reloader.stakater.com/reload: "tsdb-relay-config"
+    secret.reloader.stakater.com/reload: "tsdb-relay,tsdb-app"
+spec:
+  selector:
+    matchLabels:
+      app: tsdb-relay
+  template:
+    metadata:
+      labels:
+        app: tsdb-relay
+    spec:
+      priorityClassName: homelab-home
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 999
+        seccompProfile:
+          type: RuntimeDefault
+      volumes:
+        - name: config
+          configMap:
+            name: tsdb-relay-config
+      containers:
+        - name: telegraf
+          image: telegraf:1.40.2-alpine@sha256:4a62bd294bf2f4c1e3781194fe7b625b7e527244eeb31afd5758227914a16229
+          args: ["--config", "/etc/telegraf/telegraf.conf"]
+          env:
+            - name: RELAY_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: tsdb-relay
+                  key: RELAY_TOKEN
+            - name: PGPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: tsdb-app
+                  key: password
+          ports:
+            - name: http
+              containerPort: 8086
+          readinessProbe:
+            tcpSocket:
+              port: http
+          resources:
+            requests:
+              memory: 32Mi
+              cpu: 5m
+            limits:
+              memory: 256Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+          volumeMounts:
+            - mountPath: /etc/telegraf
+              name: config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: tsdb-relay
+  namespace: default
+spec:
+  selector:
+    app: tsdb-relay
+  ports:
+    - name: http
+      port: 8086
+      targetPort: http

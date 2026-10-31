@@ -6,6 +6,7 @@
 # - Fingrid open data every 3 min: CO2 intensity, national production and
 #   consumption, grid frequency and system state (fingrid).
 # - The Verisure alarm state from verisure-bridge over MQTT (verisure).
+# Everything also goes to TimescaleDB (tsdb) while it replaces InfluxDB.
 # API keys, NIBE device id, station and home coordinates are in
 # telegraf-cloud.sops.yaml.
 apiVersion: v1
@@ -338,6 +339,21 @@ data:
       token = "${INFLUX_TOKEN}"
       organization = "influxdata"
       bucket = "home"
+
+    # Second copy to TimescaleDB (tsdb, docs/monitoring.md) during the move
+    # off InfluxDB. Its own buffer: a tsdb outage never holds up InfluxDB.
+    # Re-sent points (FMI, Fingrid) replace older ones through the tables'
+    # replace_point trigger. The password is PGPASSWORD (tsdb-app).
+    [[outputs.postgresql]]
+      connection = "host=tsdb-rw.default.svc user=tsdb dbname=tsdb sslmode=require"
+      timestamp_column_type = "timestamp with time zone"
+      create_templates = [
+        '''CREATE TABLE {{ .table }} ({{ .columns }})''',
+        '''SELECT create_hypertable({{ .table|quoteLiteral }}, by_range('time', INTERVAL '7 days'))''',
+      ]
+      metric_buffer_limit = 50000
+      # Start (and keep writing to InfluxDB) even if tsdb is down.
+      startup_error_behavior = "retry"
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -372,12 +388,20 @@ spec:
           envFrom:
             - secretRef:
                 name: telegraf-cloud
+          env:
+            - name: PGPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: tsdb-app
+                  key: password
+                  # Telegraf must start (and write to InfluxDB) regardless.
+                  optional: true
           resources:
             requests:
               memory: 40Mi
               cpu: 5m
             limits:
-              memory: 150Mi
+              memory: 200Mi
           securityContext:
             allowPrivilegeEscalation: false
             readOnlyRootFilesystem: true
