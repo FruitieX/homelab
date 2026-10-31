@@ -92,6 +92,14 @@
       "automerge": false
     },
     {
+      "description": "Envoy proxy images are tagged distroless-vX.Y.Z, which docker versioning can't compare, so they were never updated. Stay on the Envoy minor that the running Envoy Gateway release ships (1.39 for Gateway 1.9); raise it together with the Gateway minor",
+      "matchPackageNames": [
+        "docker.io/envoyproxy/envoy"
+      ],
+      "versioning": "regex:^distroless-v(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)$",
+      "allowedVersions": "/^distroless-v1\\.39\\./"
+    },
+    {
       "description": "Talos: one PR per patch and per minor step (minors must go one at a time), covering the tuppr plan and regen-configs.sh. Patches automerge and tuppr rolls them out at night; minors wait for review",
       "matchPackageNames": [
         "ghcr.io/siderolabs/installer"

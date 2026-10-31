@@ -10,7 +10,7 @@ spec:
       envoyDeployment:
         replicas: 2
         container:
-          image: docker.io/envoyproxy/envoy:distroless-v1.39.0@sha256:7877ad87afd7459e1bd2a077ff601fec7c93aeecd62e71664560d96328c62cf4
+          image: docker.io/envoyproxy/envoy:distroless-v1.39.6@sha256:1cac8b3a2f72d5a0918f54d7b49e68aae0b0ba325c2d50c8a9a3fff7a4d1f994
           resources:
             requests:
               cpu: 100m
@@ -71,7 +71,7 @@ spec:
       envoyDeployment:
         replicas: 2
         container:
-          image: docker.io/envoyproxy/envoy:distroless-v1.39.0@sha256:7877ad87afd7459e1bd2a077ff601fec7c93aeecd62e71664560d96328c62cf4
+          image: docker.io/envoyproxy/envoy:distroless-v1.39.6@sha256:1cac8b3a2f72d5a0918f54d7b49e68aae0b0ba325c2d50c8a9a3fff7a4d1f994
           resources:
             requests:
               cpu: 100m
