@@ -15,6 +15,13 @@ spec:
         name: influxdata
         namespace: flux-system
   values:
+    # Set here rather than left to the chart default so that Renovate sees it
+    # and moves it together with the compaction job's CLI image (group
+    # "influxdb" in renovate.json).
+    image:
+      repository: influxdb
+      # renovate: datasource=docker depName=influxdb
+      tag: 2.7.4-alpine
     # A minAvailable 1 budget on a single replica blocks every node drain,
     # including tuppr's unattended upgrades; accept the restart instead.
     pdb:
