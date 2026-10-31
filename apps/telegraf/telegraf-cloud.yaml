@@ -1,4 +1,4 @@
-# Cloud data sources written to InfluxDB (bucket home), see docs/monitoring.md:
+# Cloud data sources written to TimescaleDB (tsdb), see docs/monitoring.md:
 # - NIBE F750 heat pump via the myUplink API, once a minute (measurement nibe).
 # - FMI open data: weather observations from the nearest station every 10 min
 #   (fmi_observation), daily mean temperatures (fmi_daily) and the forecast
@@ -6,7 +6,6 @@
 # - Fingrid open data every 3 min: CO2 intensity, national production and
 #   consumption, grid frequency and system state (fingrid).
 # - The Verisure alarm state from verisure-bridge over MQTT (verisure).
-# Everything also goes to TimescaleDB (tsdb) while it replaces InfluxDB.
 # API keys, NIBE device id, station and home coordinates are in
 # telegraf-cloud.sops.yaml.
 apiVersion: v1
@@ -334,16 +333,9 @@ data:
         old = "­"
         new = ""
 
-    [[outputs.influxdb_v2]]
-      urls = ["http://influxdb-influxdb2.influxdb.svc"]
-      token = "${INFLUX_TOKEN}"
-      organization = "influxdata"
-      bucket = "home"
-
-    # Second copy to TimescaleDB (tsdb, docs/monitoring.md) during the move
-    # off InfluxDB. Its own buffer: a tsdb outage never holds up InfluxDB.
-    # Re-sent points (FMI, Fingrid) replace older ones through the tables'
-    # replace_point trigger. The password is PGPASSWORD (tsdb-app).
+    # TimescaleDB (tsdb, docs/monitoring.md). Re-sent points (FMI, Fingrid)
+    # replace older ones through the tables' replace_point trigger. The
+    # password is PGPASSWORD (tsdb-app).
     [[outputs.postgresql]]
       connection = "host=tsdb-rw.default.svc user=tsdb dbname=tsdb sslmode=require"
       timestamp_column_type = "timestamp with time zone"
@@ -352,7 +344,7 @@ data:
         '''SELECT create_hypertable({{ .table|quoteLiteral }}, by_range('time', INTERVAL '7 days'))''',
       ]
       metric_buffer_limit = 50000
-      # Start (and keep writing to InfluxDB) even if tsdb is down.
+      # Start even if tsdb is down, and buffer until it is back.
       startup_error_behavior = "retry"
 ---
 apiVersion: apps/v1
@@ -394,8 +386,6 @@ spec:
                 secretKeyRef:
                   name: tsdb-app
                   key: password
-                  # Telegraf must start (and write to InfluxDB) regardless.
-                  optional: true
           resources:
             requests:
               memory: 40Mi

@@ -258,17 +258,16 @@ share a row. It runs once at bootstrap and can be re-run.
 
 ### Writers
 
-- telegraf-home and telegraf-cloud have a `postgresql` output next to the unchanged `influxdb_v2` output. Each
-  output has its own buffer (50 000 metrics, about two hours of MQTT data), and `startup_error_behavior = "retry"`
-  plus an optional `PGPASSWORD` secret let Telegraf start while `tsdb` is down, so a `tsdb` outage never stops
-  InfluxDB writes.
+- telegraf-home and telegraf-cloud write with Telegraf's `postgresql` output. Its buffer holds 50 000 metrics
+  (about two hours of MQTT data), and `startup_error_behavior = "retry"` lets Telegraf start and buffer while
+  `tsdb` is down.
 - **tsdb-relay** ([apps/tsdb/relay.yaml](/apps/tsdb/relay.yaml)) is a Telegraf that accepts the InfluxDB v2 write
   API on `http://tsdb-relay.default.svc:8086` (token: secret `tsdb-relay`, Agents vault "homelab TimescaleDB relay
   write token") and writes to `tsdb`. The bucket becomes a tag, and bucket `nordpool`'s measurement `price` becomes
   table `nordpool_price`. It answers once the points are buffered, so a point it can't store (a type that doesn't
   match the column) only shows up in `kubectl logs deploy/tsdb-relay`.
-  - nordpool-mqtt has two `[[influxdb2]]` targets in its `Settings.toml` (`apps/nordpool-mqtt/config.yaml`):
-    InfluxDB and the relay, written independently. It writes a day's prices when they are fetched (at start-up and
+  - nordpool-mqtt's `[[influxdb2]]` target in its `Settings.toml` (`apps/nordpool-mqtt/config.yaml`) is the
+    relay. It writes a day's prices when they are fetched (at start-up and
     when the next day's are published), so a missed write is repaired by restarting it.
   - `datahub-import.py`, `spot-price-backfill.py` and `fmi-backfill.py` post line protocol to the relay from
     inside its pod (busybox `wget` with the pod's own `RELAY_TOKEN`).
@@ -329,10 +328,6 @@ ORDER BY device_id, time DESC;
 Remove these before decommissioning InfluxDB (`clusters/homelab/{apps,infrastructure}/influxdb.yaml`). Its
 `/metrics` (`http_api_requests_total` by `path` and `user_agent`) shows who still queries or writes.
 
-- **Writers** (dual-writing; drop the InfluxDB side): the `influxdb_v2` outputs of telegraf-home
-  (`apps/telegraf/config.yaml`) and telegraf-cloud (`apps/telegraf/telegraf-cloud.yaml`); the first `[[influxdb2]]`
-  target of nordpool-mqtt (`apps/nordpool-mqtt/config.yaml`).
-  Telegraf itself stays: move the two Deployments and their config out of `apps/telegraf/` with it.
 - **Readers:** the `influxdb-home` datasource; homectl's InfluxDB fallback (its `influxdb` widget source and the InfluxDB
   branches in `server/src/api/widgets/`, unused while `TSDB_URL` is set); `scripts/influx-to-tsdb.py` and its Job.
 - **Around it:** the `influxdb-compaction` CronJob and its scripts, its HTTPRoute (`infrastructure/monitoring/influxdb/`) and

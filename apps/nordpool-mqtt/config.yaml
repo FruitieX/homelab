@@ -5,11 +5,11 @@ metadata:
     name: nordpool-mqtt-config
 type: Opaque
 stringData:
-    Settings.toml: ENC[AES256_GCM,data:1G9xtKZ3YKCOwqSvZ65ntdzrtaWNcI0BG6DpA7KucxlzvEGBppA7oPaiTlp8aTSlhHPmDRjPjXNZMDz2nrdJzqKHxq+xhCajPenVUcy1FZjL1ta5qAzQTKsSSFDIQ55kfqEIw7q+LTMH7Qz9xF2FC+gqS490B8GbX76SCGXgJ9WsFCNsjC31DE20ukw33wCvfwXAaEqONW1gQVRhfSPYC2Z4IzEqn4y+Zqba2bKOwocrdMngZb7BD1v0Jfh2RRU8BSZxaKesU47ZRyZymGXBytFHB61XBUSaKWNU2xx/fOcPCJBF1nliFftH53noYqdKWf9sVorfp5mQXeJOLqb0ObTSlYjqci2QnB+xo9Owc1CgB/1WS7mz7Nahj6uMm22HDGCPNk4GjzGd1FcfiSszicdmI7eq8Pvuyc8E3bUlO6zmV1blVi7/D4MXqzhvA063cRBthgVUZ8/oxZNaL3F3IIYdJqY3rr1KJQx7h73Uf15u7emmRZqZMxfwCImK+HhMpSbvRxnUXksn97oA/cjKLuw75lFdz4i5dAbEbd4zuYSWuYDp50ay2+jGo5Ut2GjfxajjpfnPSTNwLuBM4HFuRe/6EDNWeJCxzOkzNS0RiP3T+9LwUHvXkJ4PkpmXzqN/wSbOBJ8dDkkcSZPjaykGggHUWlkt0Kw2cpHrmexVgnvGoHiVJ95yt2IBXK/O253yWXyYD8Xpa+XHQ3dF9XEfl+or36A7l2RJYjiQDwC8EtHlkdQfl/Exav2DoE2TKddX3/u96apk8g==,iv:Wfl2o9b9t6vVFA8ypnKLPCtQmibqN6OjWp3arTumneA=,tag:BWlcgB0dGws4xP1lLUShgw==,type:str]
+    Settings.toml: ENC[AES256_GCM,data:KERp3xlX3nOUhZ4ZOzqnDJrMO5EmDoPY6tivsDlbcNXvzENJXaRZcOHtqIKb7StDHswVsOm92P3WevAUus56oCZ1NEH0raUfDq7SxchkwrOqt+PGiFZqOYzgbndVisY8MaTKE0AGr0Ls3JUZJLCVbwItr/dDU8PNH6w5g+OQ7OWgs8M3d9zGDGDI6/3SIeQiBauJbgi2dDxe5NVYyiJtzjxeNdys+d5Ixyp8bNsfuQ7+lSeinK9uTSOdLeLqxLlMv9kst4eufK386A16Hvk8duHtWEbuOzwELPsUgbC7B60Zw7u3D0oRaVcHnmv7LTnK249pMkdG6gF7ssTGLB5lGLTf5IQPJAw1RkI075k7iDseO/SFtFOxwaOkXARnqObqTIPPeySjmLc9S7/cCnSzy1v5kIEZvW9OnNguQTFx7t1qWsdtzCvgr+GRYj9o2VEln+CrzsV/RzZAg1iNkaFLiDU0ZnQxs2TJNeuEfe2xDdA=,iv:e2OpRV4mNdjY82l/SLfTenbHKdvVuu+3f1zlkamiKes=,tag:pxEN8i4NzCvgTZ722ENogA==,type:str]
 sops:
     encrypted_regex: ^(data|stringData)$
-    lastmodified: "2026-10-31T15:34:14Z"
-    mac: ENC[AES256_GCM,data:HRV1Hzu/qW9oyvBhqT9Itf7Vd40uldoilSZFsIvfzerAAtSyiEZa/k29Yn4cJMvomBdWZ/rWewQXkCWCoC3IhS6O42j1EscyLjG9aONbx3ExN8L1YgFI4Bd2jspTq9NnYWzqYYfRsNT3ioceB/Rh8IU5EJ0LmdHt1mPG+BeXAqQ=,iv:HAJdPOel5ZHyUBy6blMY8I46WMNDblo3QUiLPtdPzhw=,tag:LT0mVEmqqrXANfpQTwDnJQ==,type:str]
+    lastmodified: "2026-10-31T16:23:29Z"
+    mac: ENC[AES256_GCM,data:2t8hDWcbRKH7zj9wGGco9QmnxOJtXuLZJoWT+sSEvt8/Vuk5/INLTj+XPze+5Hx05Z3U+TS3k9JU8MKgXGvdOWDfLEMqcZUEy0rUuJEAvz4WtPRbsAltnUxk81XIp+WewmnZCmkh8JYg3EF0k6jJ6LrPHWo9qExyEeucdAfsyGk=,iv:ZHn4MlnmPPeUuIJjuKnMIsl81YJUZE6Tqq5yMsJRy8k=,tag:1OD3uh28QJ6ml/9+OCrdnw==,type:str]
     pgp:
         - created_at: "2026-10-31T15:34:14Z"
           enc: |-

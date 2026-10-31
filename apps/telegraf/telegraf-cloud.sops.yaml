@@ -9,14 +9,13 @@ stringData:
     NIBE_CLIENT_ID: ENC[AES256_GCM,data:bgOZ5U7Rrzrtduz3BkCkouvrrdyA5l+Tem4AvQs9L2N7MdGh,iv:OgM9pH+PG0InI7Sn7Wg+QyBpx1+J1kJ7Ki2nHnVgfbo=,tag:45TP0mXHaeM/qepruUEBrA==,type:str]
     NIBE_CLIENT_SECRET: ENC[AES256_GCM,data:ZEasDXWd/VBovknqOreZClLIUXSHfSB4F0bDt1voi2M=,iv:SR3Q8qGSUs6EqkEp0dtxRr/JDTHYUToqNrOEarWzgtQ=,tag:26O8TLpW0UZPICoTFn66aA==,type:str]
     NIBE_DEVICE_ID: ENC[AES256_GCM,data:RQd9Idk+Fom5bW3Y8uDmzBWn75XqZh4zd7nWMEwi0DmjJUOXnVmL/79RmSkUvA5rOBKH81P0,iv:rgIK8W1J3jo7DitpvRM4JJpGN3tdkh6TzmXsPTM80RE=,tag:EkirGIAnA7gPIk0Q/pvdqA==,type:str]
-    INFLUX_TOKEN: ENC[AES256_GCM,data:umy01UMyZ8qrzopfoZQqHmEuIrnvu/MTNvRA5HoixcEbyy4HNeWNfnAUkpKLru+uS2sXX2WaXPLiG0CJbmQR6akvaU7+t2IwHgDbRcnycR3tC9smUhef6A==,iv:/iLpaSVLki7HloulxR5NL7atnvrRf4xKLEPWlPhGX1M=,tag:oI4tICpyxstE98Ngka1aKg==,type:str]
     FMI_STATION: ENC[AES256_GCM,data:AeMkeJN6,iv:tokxNCNbcf9xEqZL2HZhhiXYk0kPXvZmhFj7TUz+jEg=,tag:JRvX0RIIh4v+PcBs+h/r/w==,type:str]
     HOME_LATLON: ENC[AES256_GCM,data:OHZhRfngu8ghqlo0SA==,iv:ucKXxsZL+7JhvlO9hCgj5Zt4m7wxEy29w1VCKfodP2Y=,tag:QbFulD6ilFqXF3jgRXPKmA==,type:str]
     FINGRID_API_KEY: ENC[AES256_GCM,data:0wB4rUgKaFEw17ZFqu653AZ19eJTHbhPSHC+yj4AkvM=,iv:a7KsMHlQsbTU5v4iHZyLhpdCWPifEvo27xH/f6eB/Dc=,tag:CQQqCx1YSYoc9ehH82LLSA==,type:str]
 sops:
     encrypted_regex: ^(data|stringData)$
-    lastmodified: "2026-10-30T10:20:16Z"
-    mac: ENC[AES256_GCM,data:ttpdZJdZtbtWn2m50HSTLi0esWJ94JSdoIfSO99fcPiBcDVcj60O7rZg4lmlnBC3uir1FLSaTl3GVpZQqyFLHv4+7ShXp2sd9LOvNtsKB1V/G9HI6ZBzlqtOtN8aIIqBtsVXV//3QakS9uQTrfxEVzpxDevcNt1NCMpaeacGWLc=,iv:9dlYkv5tKRLGfHEIK64Y15CjPPz9jKAaGi0olnl0xdQ=,tag:Yd6eRI5FqubdiZoWVq7zKQ==,type:str]
+    lastmodified: "2026-10-31T16:22:35Z"
+    mac: ENC[AES256_GCM,data:THs2mVbgPWvh20QBmmDvba7vk7JmmujftcK/BaEBMXaMJu8Ezlq+ThMY3vpsifA65b0scSxJs0W0iT1+PMZiFjQFpVpeCbUmjhe7uZj0kDyAOCaEdC1PLU/3aNP7Zt2XjPKk5WO7aZSWBDyc87QFUBLE9kOuZLXzYRXLKzRVsgY=,iv:YbO+dpqE0VtKmA8FSjz5OOnojEdI0C65XaC0mzDojQM=,tag:WK5AducaT0cX41/aWN2ePw==,type:str]
     pgp:
         - created_at: "2026-10-30T10:20:16Z"
           enc: |-

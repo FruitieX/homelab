@@ -30,8 +30,6 @@ spec:
                 secretKeyRef:
                   name: tsdb-app
                   key: password
-                  # Telegraf must start (and write to InfluxDB) regardless.
-                  optional: true
           resources:
             requests:
               memory: 48Mi

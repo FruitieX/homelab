@@ -3,8 +3,7 @@
 # spot-price-backfill.py, fmi-backfill.py). Point them at
 # http://tsdb-relay.default.svc:8086 with the token from the tsdb-relay
 # secret; the bucket becomes a tag, and InfluxDB's nordpool bucket
-# (measurement price) lands in table nordpool_price. Nothing writes here
-# yet: those clients still write to InfluxDB (docs/monitoring.md).
+# (measurement price) lands in table nordpool_price (docs/monitoring.md).
 apiVersion: v1
 kind: ConfigMap
 metadata:
