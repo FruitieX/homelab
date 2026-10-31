@@ -17,7 +17,6 @@ resources:
   - metallb.yaml
   - reloader.yaml
   - reflector.yaml
-  - influxdb.yaml
   - grafana.yaml
   - monitoring-loki.yaml
   - metrics-server.yaml

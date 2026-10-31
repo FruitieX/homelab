@@ -37,7 +37,7 @@ def services_dashboard():
                desc="TCP checks of the NAS, Proxmox hosts, gateway, honeydew and Zigbee2MQTT."), 4, 4)
     d.add(stat("Core services down", [prom('count(probe_success{job="probe/kube-prometheus-stack/cluster-services"} == 0) or vector(0)',
                                            instant=True)], graph=False, thr=thresholds(GOOD, (1, BAD)),
-               color_mode="background", desc="MQTT, both PostgreSQL instances, InfluxDB and Loki (TCP)."), 4, 4)
+               color_mode="background", desc="MQTT, the PostgreSQL instances (shared, Immich, TimescaleDB) and Loki (TCP)."), 4, 4)
     d.add(status_history("App status", [prom(f'max by (app) ({APPS.format(metric="probe_success")})', legend="{{app}}",
                                              interval="5m")],
                          mappings=UP_DOWN, color={"mode": "thresholds"}, thr=thresholds(BAD, (1, GOOD)),

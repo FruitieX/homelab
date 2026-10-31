@@ -13,7 +13,6 @@ resources:
   - metrics-server.yaml
   - prometheus-community.yaml
   - reloader.yaml
-  - influxdata.yaml
   - jellyfin.yaml
   - immich.yaml
   - tuppr.yaml

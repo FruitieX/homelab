@@ -477,7 +477,7 @@
     "type": "prometheus",
     "uid": "prometheus"
    },
-   "description": "MQTT, both PostgreSQL instances, InfluxDB and Loki (TCP).",
+   "description": "MQTT, the PostgreSQL instances (shared, Immich, TimescaleDB) and Loki (TCP).",
    "id": 7,
    "gridPos": {
     "h": 4,

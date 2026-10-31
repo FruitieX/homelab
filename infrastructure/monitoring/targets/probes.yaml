@@ -47,7 +47,6 @@ spec:
         - https://grafana.fruitiex.org
         - https://homectl.fruitiex.org
         - https://immich.fruitiex.org
-        - https://influxdb.fruitiex.org
         - https://jellyfin.fruitiex.org
         - https://kubedash.fruitiex.org
         - https://littlecupboard.fruitiex.org
@@ -81,7 +80,7 @@ spec:
         - mqtt.default.svc:1883
         - postgres.default.svc:5432
         - immich-postgres.default.svc:5432
-        - influxdb-influxdb2.influxdb.svc:80
+        - tsdb-rw.default.svc:5432
         - loki.loki.svc:3100
 ---
 # The internet as the cluster sees it: latency to public resolvers and

@@ -2,7 +2,7 @@
 # (see alertmanager.config in ../kube-prometheus-stack/release.yaml); the
 # stock kube-prometheus rules only reach Discord when critical.
 # Home sensor alerts (freezer, water leak) live in Grafana alerting because
-# that data is in InfluxDB (../grafana/alerting.sops.yaml).
+# that data is in TimescaleDB (../grafana/grafana-alerting.sops.yaml).
 apiVersion: monitoring.coreos.com/v1
 kind: PrometheusRule
 metadata:

@@ -1,7 +1,7 @@
-# TimescaleDB for the house's time series (docs/monitoring.md), replacing
-# InfluxDB in stages. It is a separate CloudNativePG cluster from the shared
-# postgres-ha: different extension, much larger volume, and its own
-# resources, so a heavy query or backfill here can't starve the apps.
+# TimescaleDB for the house's time series (docs/monitoring.md). It is a
+# separate CloudNativePG cluster from the shared postgres-ha: different
+# extension, much larger volume, and its own resources, so a heavy query or
+# backfill here can't starve the apps.
 #
 # One instance: the volume lives on the NAS like postgres-ha's, so a replica
 # would protect against losing a node but not the NAS, at the cost of

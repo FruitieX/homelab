@@ -29,7 +29,7 @@ Options:
   --timeout DURATION  drain timeout per node (default 10m)
   --disable-eviction  delete pods even if a PodDisruptionBudget forbids it
                       (needed for single-replica workloads whose PDB
-                      allows no disruptions, e.g. influxdb)
+                      allows no disruptions)
   --force             continue although other nodes are not Ready
   --no-reboot         with --wait/--uncordon-only: the nodes were not
                       restarted, so don't wait for a new boot ID

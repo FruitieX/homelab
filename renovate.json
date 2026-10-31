@@ -147,17 +147,6 @@
       "automerge": false
     },
     {
-      "description": "InfluxDB holds the house history: the server (HelmRelease values) and the compaction job's influx CLI move together, reviewed",
-      "matchDatasources": [
-        "docker"
-      ],
-      "matchPackageNames": [
-        "influxdb"
-      ],
-      "groupName": "influxdb",
-      "automerge": false
-    },
-    {
       "description": "TimescaleDB and the tsdb image's PostgreSQL base hold the house history: review before rollout",
       "matchFileNames": [
         "images/postgresql-timescaledb/**"
@@ -174,16 +163,6 @@
       ],
       "matchStrings": [
         "#\\s*renovate:\\s*datasource=(?<datasource>\\S+)\\s+depName=(?<depName>\\S+)\\s*\\n\\s*version:\\s*(?<currentValue>\\S+)"
-      ]
-    },
-    {
-      "description": "Image tags in HelmRelease values (\"# renovate:\" comment above a tag: line)",
-      "customType": "regex",
-      "managerFilePatterns": [
-        "/^infrastructure/monitoring/influxdb/release\\.yaml$/"
-      ],
-      "matchStrings": [
-        "#\\s*renovate:\\s*datasource=(?<datasource>\\S+)\\s+depName=(?<depName>\\S+)\\s*\\n\\s*tag:\\s*(?<currentValue>\\S+)"
       ]
     },
     {

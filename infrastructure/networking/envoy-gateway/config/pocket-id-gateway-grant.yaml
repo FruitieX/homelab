@@ -12,9 +12,6 @@ spec:
     - group: gateway.envoyproxy.io
       kind: SecurityPolicy
       namespace: kube-prometheus-stack
-    - group: gateway.envoyproxy.io
-      kind: SecurityPolicy
-      namespace: influxdb
   to:
     - group: ""
       kind: Secret
