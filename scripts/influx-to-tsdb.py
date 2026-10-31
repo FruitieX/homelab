@@ -367,7 +367,9 @@ def compress_before(pg, tbl, before):
 def backfill(pg, cutoff):
     setup(pg)
     with pg.cursor() as cur:
-        cur.execute("SELECT tbl, start, stop FROM tsdb_migration.chunks")
+        # A chunk that reached past the time it was copied (the current week
+        # of a table that isn't dual-written yet) is copied again.
+        cur.execute("SELECT tbl, start, stop FROM tsdb_migration.chunks WHERE stop <= done_at")
         done = {(t, s, e) for t, s, e in cur.fetchall()}
     pg.commit()
     set_policies(pg, False)

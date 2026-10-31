@@ -243,8 +243,9 @@ share a row. It runs once at bootstrap and can be re-run.
 
 - `backfill` goes week by week from 2019-12, a day at a time for raw MQTT data and never more than a week per
   request, and waits while InfluxDB or a node is short of memory (Prometheus). For each chunk it deletes the range
-  and inserts it again in one transaction, so it can be re-run; done chunks are listed in `tsdb_migration.chunks`.
-  Live tables stop at `CUTOFF` (the dual-write start); the others are copied up to now.
+  and inserts it again in one transaction, so it can be re-run; done chunks are listed in `tsdb_migration.chunks`
+  and skipped. Live tables stop at `CUTOFF` (the dual-write start); the others are copied up to now, and a re-run
+  copies their current week again.
 - `verify` compares, per table, week and field, InfluxDB's point count and sum with the table's, plus a few random
   values (`tsdb_migration.verify`); `live 6` does the same per hour for the last hours of dual writing.
 - InfluxDB's compacted history (1-minute means older than 90 days) was copied as it is.
