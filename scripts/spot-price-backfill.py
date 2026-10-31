@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
-"""Backfill Finnish day-ahead spot prices into InfluxDB (bucket nordpool) in nordpool-mqtt's format.
+"""Backfill Finnish day-ahead spot prices into InfluxDB (bucket nordpool) and TimescaleDB (table nordpool_price)
+in nordpool-mqtt's format.
 
     python3 scripts/spot-price-backfill.py 2020-01-01 2025-04-05T22:00:00Z
 
 Prices come from Elering's public Nord Pool price API (area fi, EUR/MWh) and are stored like nordpool-mqtt
 stores them: measurement `price`, tag `id=price`, field `price` in c/kWh including the VAT in force on that
-day, timestamped at the start of each period.
+day, timestamped at the start of each period. WRITE_TO and DRY_RUN work as in datahub-import.py.
 """
 import datetime as dt, importlib.util, json, os, sys, time, urllib.request
 

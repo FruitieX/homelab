@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
-"""Backfill hourly FMI weather observations into InfluxDB (bucket home, measurement fmi_observation).
+"""Backfill hourly FMI weather observations into InfluxDB (bucket home) and TimescaleDB (measurement and table
+fmi_observation).
 
     python3 scripts/fmi-backfill.py <fmisid> 2020-01-01 2026-10-25
 
 Uses the same layout as telegraf-cloud (tag `param`, field `value`) at hourly resolution; live data is 10-minute.
-FMI's open data allows a week of observations per request, so this walks the range week by week.
+FMI's open data allows a week of observations per request, so this walks the range week by week. WRITE_TO and
+DRY_RUN work as in datahub-import.py.
 """
 import datetime as dt, importlib.util, os, re, sys, time, urllib.request
 

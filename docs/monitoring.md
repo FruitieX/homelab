@@ -48,9 +48,9 @@ House panels are SQL against TimescaleDB (datasource `tsdb`, see [Querying](#que
   row per series; `agg(fn, col)` maps `mean`, `last`, `spread`, … to SQL.
 - `home.ble()`, `power()`, `cost()`, `water()`, `electricity()`, `fingrid()` and `heatpump.nibe()` cover most panels.
 
-Panels that need today's Nord Pool prices still run Flux: `nordpool_price` in `tsdb` only gets new prices from
-backfill runs until nordpool-mqtt writes there (see [Writers](#writers)). Their SQL is ready; set
-`PRICES_IN_TSDB = True` in `home.py` and delete the Flux helpers once it does.
+Panels that need today's Nord Pool prices still run Flux. Since 2026-10-31 15:35 UTC nordpool-mqtt also writes
+`nordpool_price` in `tsdb` (see [Writers](#writers)), so their SQL can be switched on: set `PRICES_IN_TSDB = True`
+in `home.py` and delete the Flux helpers.
 
 `legacy/` holds the old dashboards that were made in the UI, exported once as plain JSON (not generated). They
 are frozen: fix them by editing the JSON, or port a panel to the generator. They were not ported to SQL: they keep
@@ -117,14 +117,16 @@ and its InfluxDB token ("homelab InfluxDB telegraf-nibe token" in 1Password) can
 **Whole-house electricity** comes from Fingrid Datahub, which has no consumer API. Export the consumption CSV from
 oma.datahub.fi and run `KUBECONFIG=kubeconfig python3 scripts/datahub-import.py consumption.csv` (measurement
 `electricity`, field `kwh`, hourly until the meter is replaced). Exports can overlap. The script writes to InfluxDB
-only, and the dashboards read `tsdb`, so copy the import over afterwards with the backfill job
-(`ONLY_TABLES=electricity`, see [Backfill and verification](#backfill-and-verification)). The energy dashboard's
+and, through [tsdb-relay](#writers), to `tsdb`; `WRITE_TO=tsdb` writes only to `tsdb` and `DRY_RUN=1` only prints
+what it would write (both work for the backfill scripts below too). The energy dashboard's
 "expected from weather" line is a model fitted on 2021–2024 (`ELEC_*` in `home.py`).
 
 History before the live collectors started was backfilled from 2020 with scripts that can be re-run:
 `scripts/spot-price-backfill.py` (Nord Pool FI prices from Elering's public API, written in nordpool-mqtt's
 format with the VAT of each day) and `scripts/fmi-backfill.py` (hourly FMI observations; live data is
-10-minute). The FMI daily means and Fingrid's hourly CO₂ intensity were loaded the same way.
+10-minute). The FMI daily means and Fingrid's hourly CO₂ intensity were loaded the same way. Like
+`datahub-import.py` they write to both stores. Elering has 15-minute prices since October 2025, while
+nordpool-mqtt stores hourly averages, so don't re-run the spot price backfill over recent days.
 
 The heat pump dashboard's shower estimate uses constants in `heatpump.py`. They come from the water meter
 history: evening showers run about 4.8 L/min for 13–15 minutes. Re-measure them if the shower head changes.
@@ -144,6 +146,10 @@ the migration would then be missing. The 3D printing dashboard reads the print a
 from that database.
 
 ## InfluxDB compaction
+
+InfluxDB is kept as the fallback while the time series move to [TimescaleDB](#timescaledb-tsdb), so its compaction
+keeps running; the CronJob and `home_staging` go away with InfluxDB (`tsdb` compresses chunks instead and keeps
+full resolution).
 
 The `home` bucket keeps full resolution for 90 days. After that, the monthly CronJob `influxdb-compaction`
 (`infrastructure/monitoring/influxdb/compaction.yaml`, 03:17 UTC on the 3rd) rewrites the high-frequency MQTT
@@ -185,8 +191,9 @@ handles at most 26 weeks. Any failed check stops the job (`CronJobLastRunFailed`
 The house's time series are moving from InfluxDB to TimescaleDB. Since **2026-10-31 13:00 UTC** (the dual-write
 start) both stores receive the same live data, and everything before it was copied from InfluxDB. The generated
 Grafana dashboards and the Grafana alert rules read `tsdb`, except the spot-price panels and the price alert (see
-[Dashboards are code](#dashboards-are-code)). homectl and the legacy dashboards still read InfluxDB, which stays
-the source of truth until the remaining writers move.
+[Dashboards are code](#dashboards-are-code)). homectl's sensor and spot price widgets read `tsdb` too. Every
+writer writes to both stores, and InfluxDB stays as the fallback until it is decommissioned (see
+[What still uses InfluxDB](#what-still-uses-influxdb)).
 
 - **Cluster:** CloudNativePG `tsdb` ([apps/tsdb/tsdb.yaml](/apps/tsdb/tsdb.yaml)), separate from `postgres-ha`, one
   instance on `nfs-csi` (60 Gi; the class can't grow a volume). A replica would share the NAS with the primary, so
@@ -205,6 +212,10 @@ the source of truth until the remaining writers move.
   - `grafana_ro`: SELECT on all tables (including future ones, through default privileges), `pg_monitor`,
     read-only by default with a 30 s statement timeout (set in [bootstrap.sql](/apps/tsdb/bootstrap.sql)). Its
     password differs from the one on `postgres-ha`.
+  - `homectl_ro`: SELECT on `mqtt_consumer` and `nordpool_price` only, otherwise like `grafana_ro`. homectl gets it
+    as `TSDB_URL` in `homectl-server-env` and then reads its sensor history and spot price widgets from `tsdb`
+    instead of its InfluxDB widget source; removing `TSDB_URL` switches back. CloudNativePG creates a managed role
+    but not its settings or grants: for a new read-only role run its lines from bootstrap.sql and schema.sql by hand.
   - `postgres`, the superuser, is used only by `tsdb-dump` and for maintenance.
 - **Grafana** queries it as `grafana_ro` through the provisioned datasource `tsdb` ("TimescaleDB tsdb", key
   `tsdb-datasource.yaml` in `grafana/grafana-datasources.sops.yaml`). The database's `Europe/Helsinki` timezone
@@ -230,8 +241,8 @@ share a row. It runs once at bootstrap and can be re-run.
 | `fmi_observation`, `fmi_forecast`, `fmi_daily` | `param` | `value` | telegraf-cloud |
 | `fingrid`, `fingrid_hourly` | `series` | `value` | telegraf-cloud (`fingrid_hourly`: backfill only) |
 | `verisure` | `topic` | `value` (text) | telegraf-cloud |
-| `electricity` | `source`, `resolution` | `kwh` | `datahub-import.py` (through InfluxDB for now) |
-| `nordpool_price` | `id` | `price` (c/kWh incl. VAT) | nordpool-mqtt (through InfluxDB for now) |
+| `electricity` | `source`, `resolution` | `kwh` | `datahub-import.py` (through tsdb-relay) |
+| `nordpool_price` | `id` | `price` (c/kWh incl. VAT) | nordpool-mqtt, `spot-price-backfill.py` (through tsdb-relay) |
 
 - Telegraf adds a column when a device reports a new field, typed by its first value. If a later value has another
   type, Telegraf drops that batch for this table (InfluxDB still gets it), so convert such a field before it reaches
@@ -260,11 +271,13 @@ share a row. It runs once at bootstrap and can be re-run.
 - **tsdb-relay** ([apps/tsdb/relay.yaml](/apps/tsdb/relay.yaml)) is a Telegraf that accepts the InfluxDB v2 write
   API on `http://tsdb-relay.default.svc:8086` (token: secret `tsdb-relay`, Agents vault "homelab TimescaleDB relay
   write token") and writes to `tsdb`. The bucket becomes a tag, and bucket `nordpool`'s measurement `price` becomes
-  table `nordpool_price`. Nothing uses it yet. nordpool-mqtt and the import scripts still write only to InfluxDB, so
-  `nordpool_price` and `electricity` are as current as the last backfill run; re-run it for those tables
-  (`ONLY_TABLES=nordpool_price,electricity`) until they move. To move one: point it at the relay (nordpool-mqtt:
-  its InfluxDB URL and token settings; the scripts: `influx write --host http://tsdb-relay.default.svc:8086`), or
-  add an `influxdb_v2` output to the relay so one write reaches both stores.
+  table `nordpool_price`. It answers once the points are buffered, so a point it can't store (a type that doesn't
+  match the column) only shows up in `kubectl logs deploy/tsdb-relay`.
+  - nordpool-mqtt has two `[[influxdb2]]` targets in its `Settings.toml` (`apps/nordpool-mqtt/config.yaml`):
+    InfluxDB and the relay, written independently. It writes a day's prices when they are fetched (at start-up and
+    when the next day's are published), so a missed write is repaired by restarting it.
+  - `datahub-import.py`, `spot-price-backfill.py` and `fmi-backfill.py` run `influx write` in the InfluxDB pod,
+    once against InfluxDB and once with `--host` set to the relay (`WRITE_TO` picks the targets).
 
 ### Backfill and verification
 
@@ -316,6 +329,22 @@ FROM mqtt_consumer
 WHERE batt IS NOT NULL AND integration_id IN ('ble3', 'ble4') AND time > now() - interval '1 day'
 ORDER BY device_id, time DESC;
 ~~~
+
+### What still uses InfluxDB
+
+Remove these before decommissioning InfluxDB (`clusters/homelab/{apps,infrastructure}/influxdb.yaml`). Its
+`/metrics` (`http_api_requests_total` by `path` and `user_agent`) shows who still queries or writes.
+
+- **Writers** (dual-writing; drop the InfluxDB side): the `influxdb_v2` outputs of telegraf-home
+  (`apps/influxdb/config.yaml`) and telegraf-cloud (`apps/influxdb/telegraf-cloud.yaml`); the first `[[influxdb2]]`
+  target of nordpool-mqtt (`apps/nordpool-mqtt/config.yaml`); the `influxdb` target in `scripts/datahub-import.py`.
+  Telegraf itself stays: move the two Deployments and their config out of `apps/influxdb/` with it.
+- **Readers:** the Grafana spot-price panels and price alert (Flux until `PRICES_IN_TSDB`), the `legacy/` dashboards
+  and the `influxdb-home` datasource; homectl's InfluxDB fallback (its `influxdb` widget source and the InfluxDB
+  branches in `server/src/api/widgets/`, unused while `TSDB_URL` is set); `scripts/influx-to-tsdb.py` and its Job.
+- **Around it:** the `influxdb-compaction` CronJob and its scripts, its HTTPRoute (`infrastructure/monitoring/influxdb/`) and
+  Pocket ID policy, the Blackbox probes of both InfluxDB addresses, the `influxdata` Helm source, the
+  `influxdb-auth` secret and the InfluxDB tokens in 1Password. Keep a final `influx backup` on the NAS.
 
 ## Alerts
 
@@ -379,7 +408,7 @@ ORDER BY device_id, time DESC;
 - **In-cluster clients must not use the public InfluxDB URL.** The `influxdb.fruitiex.org` route requires
   Pocket ID sign-in. A machine client writing to it gets the login page, and Telegraf treated that as success,
   so data was silently lost. In-cluster clients use `http://influxdb-influxdb2.influxdb.svc`. homectl's InfluxDB
-  URL is a setting in its database (`widget_settings`, key `influxdb`).
+  URL is a setting in its database (`widget_settings`, key `influxdb`), used only when `TSDB_URL` is unset.
 - **Datasource UIDs must not equal another datasource's name.** Grafana resolves a reference by name as well,
   so the uid `influxdb` resolved to the old UI datasource *named* `influxdb` (since deleted). That is why the
   provisioned one is `influxdb-home`.
