@@ -68,9 +68,14 @@ spec:
       resources:
         requests:
           memory: 64Mi
+      # The sidecars share the pod network and each starts a health server
+      # (default port 8080), but the chart only sets HEALTH_PORT for init
+      # sidecars; give the watchers distinct ports so they don't collide.
       alerts:
         enabled: true
         searchNamespace: ALL
+        env:
+          HEALTH_PORT: "8081"
       dashboards:
         enabled: true
         searchNamespace: ALL
@@ -83,6 +88,10 @@ spec:
       datasources:
         enabled: true
         searchNamespace: ALL
+        env:
+          HEALTH_PORT: "8082"
       notifiers:
         enabled: true
         searchNamespace: ALL
+        env:
+          HEALTH_PORT: "8083"
