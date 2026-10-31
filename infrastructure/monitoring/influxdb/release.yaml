@@ -32,6 +32,12 @@ spec:
         # set reaches several GiB only through reclaimable file cache of the
         # TSM files. The write cache is capped at 1 GiB by default.
         memory: 1536Mi
+      limits:
+        # Without a limit one unbounded query (a SELECT over all history,
+        # 2026-10-31) took the whole node down; now only InfluxDB restarts.
+        # TSM files are memory-mapped, so the page cache counts here too and
+        # is reclaimed under the limit.
+        memory: 4Gi
     # The chart's 1 s probe timeout restarted InfluxDB during one heavy Flux
     # query (2026-10-29); then the restarts themselves kept it unavailable.
     livenessProbe:
