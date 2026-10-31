@@ -1,0 +1,56 @@
+# Retention for the boltdb-shipper period; see boltdb-sweep.py. Delete this,
+# the script and the boltdb_shipper/schema entries once the last boltdb table
+# (2026-10-30) has expired, early February 2027.
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: loki-boltdb-sweep
+spec:
+  schedule: "37 */6 * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 2
+  jobTemplate:
+    spec:
+      backoffLimit: 1
+      activeDeadlineSeconds: 3600
+      template:
+        spec:
+          restartPolicy: Never
+          # Same node as Loki: the volume is ReadWriteOnce.
+          affinity:
+            podAffinity:
+              requiredDuringSchedulingIgnoredDuringExecution:
+                - topologyKey: kubernetes.io/hostname
+                  labelSelector:
+                    matchLabels:
+                      app.kubernetes.io/name: loki
+                      app.kubernetes.io/component: single-binary
+          securityContext:
+            runAsUser: 10001
+            runAsGroup: 10001
+            runAsNonRoot: true
+            seccompProfile:
+              type: RuntimeDefault
+          containers:
+            - name: sweep
+              image: docker.io/library/python:3.15.1-alpine3.24@sha256:54448f67d7c31c39e5cdd3ea2d6382395ce142806c284425f8e897d78a0465b3
+              command: [python3, -u, /scripts/boltdb-sweep.py]
+              securityContext:
+                allowPrivilegeEscalation: false
+                readOnlyRootFilesystem: true
+                capabilities:
+                  drop: [ALL]
+              resources:
+                requests: {cpu: 10m, memory: 32Mi}
+                limits: {memory: 128Mi}
+              volumeMounts:
+                - {name: storage, mountPath: /var/loki}
+                - {name: scripts, mountPath: /scripts}
+          volumes:
+            - name: storage
+              persistentVolumeClaim:
+                claimName: storage-loki-0
+            - name: scripts
+              configMap:
+                name: loki-boltdb-sweep
