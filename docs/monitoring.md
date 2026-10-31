@@ -5,7 +5,7 @@ side by side. Every other dashboard is one click away in the link bar.
 
 | Folder | Dashboards | Data |
 | --- | --- | --- |
-| Home | Energy & water, Climate, Devices, Heat pump, 3D printing | TimescaleDB `tsdb` (MQTT via Telegraf, myUplink, FMI, Fingrid, Datahub); the spot-price panels still read InfluxDB `nordpool` |
+| Home | Energy & water, Climate, Devices, Heat pump, 3D printing | TimescaleDB `tsdb` (MQTT via Telegraf, myUplink, FMI, Fingrid, Datahub, Nord Pool) |
 | Homelab | Services, Workloads, Hardware, Network, Logs & security, Apps | Prometheus, Loki, app PostgreSQL databases |
 | Kubernetes, Loki | Stock kube-prometheus-stack and Loki mixin dashboards | Prometheus |
 | Legacy | The old hand-made dashboards (Home, Indoor, Outdoor, Appliances, 3D printing, Loki logs), kept for reference until InfluxDB is decommissioned | InfluxDB `home`, Loki |
@@ -47,10 +47,6 @@ House panels are SQL against TimescaleDB (datasource `tsdb`, see [Querying](#que
   filter (keep the `IN`: it lets compressed chunks be skipped by `device_id`); `latest(query, key)` keeps the last
   row per series; `agg(fn, col)` maps `mean`, `last`, `spread`, … to SQL.
 - `home.ble()`, `power()`, `cost()`, `water()`, `electricity()`, `fingrid()` and `heatpump.nibe()` cover most panels.
-
-Panels that need today's Nord Pool prices still run Flux. Since 2026-10-31 15:35 UTC nordpool-mqtt also writes
-`nordpool_price` in `tsdb` (see [Writers](#writers)), so their SQL can be switched on: set `PRICES_IN_TSDB = True`
-in `home.py` and delete the Flux helpers.
 
 `legacy/` holds the old dashboards that were made in the UI, exported once as plain JSON (not generated). They
 are frozen: fix them by editing the JSON, or port a panel to the generator. They were not ported to SQL: they keep
@@ -190,8 +186,7 @@ handles at most 26 weeks. Any failed check stops the job (`CronJobLastRunFailed`
 
 The house's time series are moving from InfluxDB to TimescaleDB. Since **2026-10-31 13:00 UTC** (the dual-write
 start) both stores receive the same live data, and everything before it was copied from InfluxDB. The generated
-Grafana dashboards and the Grafana alert rules read `tsdb`, except the spot-price panels and the price alert (see
-[Dashboards are code](#dashboards-are-code)). homectl's sensor and spot price widgets read `tsdb` too. Every
+Grafana dashboards and the Grafana alert rules read `tsdb`; only the legacy dashboards still query InfluxDB. homectl's sensor and spot price widgets read `tsdb` too. Every
 writer writes to both stores, and InfluxDB stays as the fallback until it is decommissioned (see
 [What still uses InfluxDB](#what-still-uses-influxdb)).
 
@@ -339,7 +334,7 @@ Remove these before decommissioning InfluxDB (`clusters/homelab/{apps,infrastruc
   (`apps/influxdb/config.yaml`) and telegraf-cloud (`apps/influxdb/telegraf-cloud.yaml`); the first `[[influxdb2]]`
   target of nordpool-mqtt (`apps/nordpool-mqtt/config.yaml`); the `influxdb` target in `scripts/datahub-import.py`.
   Telegraf itself stays: move the two Deployments and their config out of `apps/influxdb/` with it.
-- **Readers:** the Grafana spot-price panels and price alert (Flux until `PRICES_IN_TSDB`), the `legacy/` dashboards
+- **Readers:** the `legacy/` Grafana dashboards
   and the `influxdb-home` datasource; homectl's InfluxDB fallback (its `influxdb` widget source and the InfluxDB
   branches in `server/src/api/widgets/`, unused while `TSDB_URL` is set); `scripts/influx-to-tsdb.py` and its Job.
 - **Around it:** the `influxdb-compaction` CronJob and its scripts, its HTTPRoute (`infrastructure/monitoring/influxdb/`) and
@@ -356,9 +351,7 @@ Remove these before decommissioning InfluxDB (`clusters/homelab/{apps,infrastruc
 - Backups (`homelab.backups` in `targets/rules.yaml`): `PostgresDumpStale` fires when `postgres-dump` has not
   succeeded for 36 h, `CronJobLastRunFailed` when any CronJob's latest run failed. The stock `KubeJobFailed` is a
   plain warning and never reaches Discord. Immich's own database backups are not monitored.
-- Grafana-managed rules for the house data are in `grafana/grafana-alerting.sops.yaml` and query `tsdb`; only the
-  price rule still runs Flux, with its SQL waiting in [price-tomorrow.sql](/infrastructure/monitoring/grafana/price-tomorrow.sql)
-  until Nord Pool prices reach `tsdb` live. They cover the freezer, the fridge, water flowing non-stop for 3 hours (normal use always pauses within
+- Grafana-managed rules for the house data are in `grafana/grafana-alerting.sops.yaml` and query `tsdb`. They cover the freezer, the fridge, water flowing non-stop for 3 hours (normal use always pauses within
   about 2 hours), home sensors going silent, and the sauna being ready, from the upstairs bathroom BLE sensor (device `D83431306571`). It fires when, over the
   last 20 minutes, the temperature has risen at least 2 °C, humidity at most 5 points, and it is now at least 26 °C:
   sauna heating is a steady dry rise, while a shower sends humidity up at once and barely moves the temperature. It
