@@ -155,6 +155,135 @@ handles at most 26 weeks. Any failed check stops the job (`CronJobLastRunFailed`
   files on startup. Until then list the week in `SKIP_WEEKS` in the script, or the compaction would leave the hidden
   raw data behind.
 
+## TimescaleDB (tsdb)
+
+The house's time series are moving from InfluxDB to TimescaleDB. Since **2026-10-31 13:00 UTC** (the dual-write
+start) both stores receive the same live data, and everything before it was copied from InfluxDB. InfluxDB stays the
+source of truth, and the dashboards, alerts and homectl keep reading it, until they are ported to SQL.
+
+- **Cluster:** CloudNativePG `tsdb` ([apps/tsdb/tsdb.yaml](/apps/tsdb/tsdb.yaml)), separate from `postgres-ha`, one
+  instance on `nfs-csi` (60 Gi; the class can't grow a volume). A replica would share the NAS with the primary, so
+  it would double every write without protecting the data; Telegraf buffers while the instance restarts. Connect to
+  `tsdb-rw.default.svc:5432`, database `tsdb`. The calendar day is Helsinki's: the database's default `timezone` is
+  `Europe/Helsinki` (storage is `timestamptz`, so this only affects how times are shown and truncated).
+- **Image:** `ghcr.io/fruitiex/postgresql-timescaledb`, CloudNativePG's PostgreSQL 18 image plus TimescaleDB from
+  Timescale's apt repository with the Timescale License, which compression and continuous aggregates need
+  (CloudNativePG only publishes the Apache-only build). [images/postgresql-timescaledb](/images/postgresql-timescaledb)
+  is built by `.github/workflows/tsdb-image.yaml`, which smoke-tests compression before pushing and then pins the
+  new digest in `apps/` through the image-update dispatch. Renovate proposes base image and TimescaleDB updates for
+  review. Keep the dump job's image equal to the cluster's: `pg_dump` and the extension version must match.
+- **Roles** (managed role secrets in `apps/tsdb/*.sops.yaml`, passwords in the Agents vault as "homelab
+  TimescaleDB …"):
+  - `tsdb` owns the database and every table; Telegraf, the relay and the backfill write as `tsdb`.
+  - `grafana_ro`: SELECT on all tables (including future ones, through default privileges), `pg_monitor`,
+    read-only by default with a 30 s statement timeout (set in [bootstrap.sql](/apps/tsdb/bootstrap.sql)). Its
+    password differs from the one on `postgres-ha`.
+  - `postgres`, the superuser, is used only by `tsdb-dump` and for maintenance.
+- **Backup:** the `tsdb-dump` CronJob (02:47 Helsinki) writes `pg_dump -Fc` of `tsdb` plus the roles to the
+  `tsdb-dumps` volume, which the NAS backs up; it keeps 3 days because Hyper Backup keeps the older versions. The
+  restore steps are at the top of [tsdb-dump.yaml](/apps/tsdb/tsdb-dump.yaml) (TimescaleDB needs
+  `timescaledb_pre_restore()`/`timescaledb_post_restore()` around `pg_restore`). `TsdbDumpStale` fires after 36 h
+  without a successful dump. The PodMonitor `tsdb` scrapes CloudNativePG's metrics.
+
+### Schema
+
+[schema.sql](/apps/tsdb/schema.sql) creates one hypertable per InfluxDB measurement in Telegraf's
+`outputs.postgresql` layout: a `time` column, one `text` column per tag, one typed column per field (`double
+precision`, `bigint`, `text`). A row is one InfluxDB point with all its fields, so fields of the same message
+share a row. It runs once at bootstrap and can be re-run.
+
+| Table | Tags | Fields | Written by |
+| --- | --- | --- | --- |
+| `mqtt_consumer` | `kind`, `integration_id`, `device_id`, `topic`, `name`, `entity`, `mac`, `brand`, `model`, `model_id`, `type` | one column per MQTT field (`tempc`, `hum`, `batt`, `raw_19`, `"on"`, `state`, `brightness`, `rate`, …) | telegraf-home |
+| `esphome`, `esphome_binary` | `component`, `device_id`, `entity`, `topic` | `value` (double; text `ON`/`OFF`) | telegraf-home |
+| `nibe` | `id`, `name`, `unit` | `value` | telegraf-cloud |
+| `fmi_observation`, `fmi_forecast`, `fmi_daily` | `param` | `value` | telegraf-cloud |
+| `fingrid`, `fingrid_hourly` | `series` | `value` | telegraf-cloud (`fingrid_hourly`: backfill only) |
+| `verisure` | `topic` | `value` (text) | telegraf-cloud |
+| `electricity` | `source`, `resolution` | `kwh` | `datahub-import.py` (through InfluxDB for now) |
+| `nordpool_price` | `id` | `price` (c/kWh incl. VAT) | nordpool-mqtt (through InfluxDB for now) |
+
+- Telegraf adds a column when a device reports a new field, typed by its first value. If a later value has another
+  type, Telegraf drops that batch for this table (InfluxDB still gets it), so convert such a field before it reaches
+  the outputs. The history keeps values whose InfluxDB type differed from the column's in `<field>_<type>`, for
+  example `sensor_value_string`. `tsdb_migration.columns` records which column holds which InfluxDB tag or field.
+- `on` is an SQL keyword and some Zigbee fields are mixed case: quote them (`"on"`, `"device_applicationVersion"`).
+- Neighbours' BLE devices were not copied: the backfill keeps the `tagpass` list of telegraf-home.
+- **Indexes:** every table has `(series tags, time DESC)` (`mqtt_consumer`: `device_id` and `integration_id`).
+- **Compression:** chunks older than 7 days move to the columnstore, segmented by the series tags
+  (`mqtt_consumer`: `integration_id, device_id`) and ordered by `time DESC`; `chunk_compression_stats('mqtt_consumer')`
+  shows about 40× less space. Chunks are a day for `mqtt_consumer` and up to a year for the small tables. Nothing
+  expires.
+- **Re-sent points replace old ones.** FMI, Fingrid, Datahub and Nord Pool writers send the same point again (FMI
+  returns the last hours on every fetch, the forecast is rewritten hourly, Datahub exports overlap). InfluxDB
+  overwrote such points; here the `replace_point` trigger on those tables deletes the stored row with the same tags
+  and time first. It is a trigger, not a unique index plus `ON CONFLICT`, because Telegraf can't send
+  `ON CONFLICT` and TimescaleDB checks unique indexes on compressed chunks before triggers run. The append-only
+  tables (`mqtt_consumer`, `esphome*`, `nibe`, `verisure`) have none.
+
+### Writers
+
+- telegraf-home and telegraf-cloud have a `postgresql` output next to the unchanged `influxdb_v2` output. Each
+  output has its own buffer (50 000 metrics, about two hours of MQTT data), and `startup_error_behavior = "retry"`
+  plus an optional `PGPASSWORD` secret let Telegraf start while `tsdb` is down, so a `tsdb` outage never stops
+  InfluxDB writes.
+- **tsdb-relay** ([apps/tsdb/relay.yaml](/apps/tsdb/relay.yaml)) is a Telegraf that accepts the InfluxDB v2 write
+  API on `http://tsdb-relay.default.svc:8086` (token: secret `tsdb-relay`, Agents vault "homelab TimescaleDB relay
+  write token") and writes to `tsdb`. The bucket becomes a tag, and bucket `nordpool`'s measurement `price` becomes
+  table `nordpool_price`. Nothing uses it yet. nordpool-mqtt and the import scripts still write only to InfluxDB, so
+  `nordpool_price` and `electricity` are as current as the last backfill run; re-run it for those tables
+  (`ONLY_TABLES=nordpool_price,electricity`) until they move. To move one: point it at the relay (nordpool-mqtt:
+  its InfluxDB URL and token settings; the scripts: `influx write --host http://tsdb-relay.default.svc:8086`), or
+  add an `influxdb_v2` output to the relay so one write reaches both stores.
+
+### Backfill and verification
+
+[scripts/influx-to-tsdb.py](/scripts/influx-to-tsdb.py) copied InfluxDB into `tsdb`, run as the Job in
+[scripts/influx-to-tsdb-job.yaml](/scripts/influx-to-tsdb-job.yaml) (usage in the file):
+
+- `backfill` goes week by week from 2019-12, a day at a time for raw MQTT data and never more than a week per
+  request, and waits while InfluxDB or a node is short of memory (Prometheus). For each chunk it deletes the range
+  and inserts it again in one transaction, so it can be re-run; done chunks are listed in `tsdb_migration.chunks`.
+  Live tables stop at `CUTOFF` (the dual-write start); the others are copied up to now.
+- `verify` compares, per table, week and field, InfluxDB's point count and sum with the table's, plus a few random
+  values (`tsdb_migration.verify`); `live 6` does the same per hour for the last hours of dual writing.
+- InfluxDB's compacted history (1-minute means older than 90 days) was copied as it is.
+
+### Querying
+
+Grafana's PostgreSQL datasource macros work as usual (`$__timeFilter(time)`, `$__timeGroupAlias(time, $__interval)`).
+Always bound `time`: compressed chunks are only skipped by the time filter. Flux patterns and their SQL:
+
+~~~sql
+-- aggregateWindow(every: 1d, fn: sum, timeSrc: "_start") with location Europe/Helsinki
+SELECT time_bucket('1 day', time, 'Europe/Helsinki') AS time, sum(kwh) AS used
+FROM electricity WHERE $__timeFilter(time) GROUP BY 1 ORDER BY 1;
+
+-- dict.get(dict: names, key: r.device_id) + group by place (names: INDOOR in home.py). Both BLE gateways
+-- report each sensor, so the mean merges them.
+SELECT $__timeGroupAlias(time, $__interval), n.place AS metric, avg(m.tempc) AS value
+FROM mqtt_consumer m
+JOIN (VALUES ('C76A05062842', 'Bedroom'), ('D83431306571', 'Upstairs bathroom')) AS n (device_id, place) USING (device_id)
+WHERE $__timeFilter(m.time) AND m.tempc IS NOT NULL
+GROUP BY 1, 2 ORDER BY 1;
+
+-- join(energy, price) on the hour: plug energy (mean W over an hour = Wh) times the spot price (c/kWh), in €
+WITH energy AS (
+  SELECT time_bucket('1 hour', time) AS hour, name AS device, avg(raw_19) / 10.0 AS wh
+  FROM mqtt_consumer WHERE integration_id = 'tuya' AND raw_19 IS NOT NULL AND $__timeFilter(time) GROUP BY 1, 2),
+price AS (
+  SELECT time_bucket('1 hour', time) AS hour, avg(price) AS c_kwh
+  FROM nordpool_price WHERE $__timeFilter(time) GROUP BY 1)
+SELECT hour AS time, device AS metric, wh / 1000 * c_kwh / 100 AS eur
+FROM energy JOIN price USING (hour) ORDER BY 1;
+
+-- last(): latest value per series, with a bounded lookback
+SELECT DISTINCT ON (device_id) device_id, time, batt
+FROM mqtt_consumer
+WHERE batt IS NOT NULL AND integration_id IN ('ble3', 'ble4') AND time > now() - interval '1 day'
+ORDER BY device_id, time DESC;
+~~~
+
 ## Alerts
 
 - Discord channels: `#flux-notifications` gets only Flux's own notifications (its notification provider);
