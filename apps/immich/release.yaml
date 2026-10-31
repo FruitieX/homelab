@@ -73,7 +73,7 @@ spec:
                   memory: 32Mi
               image:
                 repository: docker.io/valkey/valkey
-                tag: 8.0-alpine
+                tag: 8.1-alpine
 
     machine-learning:
       controllers:
