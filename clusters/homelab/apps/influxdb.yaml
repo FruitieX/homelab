@@ -10,7 +10,8 @@ spec:
     kind: GitRepository
     name: flux-system
   path: ./apps/influxdb
-  prune: true
+  # Keep the Telegraf objects when this Kustomization is replaced by apps/telegraf.
+  prune: false
   wait: true
   decryption:
     provider: sops
