@@ -1,19 +1,19 @@
 #!/usr/bin/env python3
-"""Backfill Finnish day-ahead spot prices into InfluxDB (bucket nordpool) and TimescaleDB (table nordpool_price)
-in nordpool-mqtt's format.
+"""Backfill Finnish day-ahead spot prices into TimescaleDB (table nordpool_price) in nordpool-mqtt's format.
 
     python3 scripts/spot-price-backfill.py 2020-01-01 2025-04-05T22:00:00Z
 
 Prices come from Elering's public Nord Pool price API (area fi, EUR/MWh) and are stored like nordpool-mqtt
 stores them: measurement `price`, tag `id=price`, field `price` in c/kWh including the VAT in force on that
-day, timestamped at the start of each period. WRITE_TO and DRY_RUN work as in datahub-import.py.
+day, timestamped at the start of each period. Bucket `nordpool` maps them to table nordpool_price in
+tsdb-relay. DRY_RUN works as in datahub-import.py.
 """
 import datetime as dt, importlib.util, json, os, sys, time, urllib.request
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 spec = importlib.util.spec_from_file_location("datahub_import", os.path.join(HERE, "datahub-import.py"))
-influx = importlib.util.module_from_spec(spec)
-spec.loader.exec_module(influx)
+datahub = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(datahub)
 
 # Finnish VAT on electricity: 10 % from 2022-12-01 to 2023-04-30, 24 % otherwise until 2024-09-01, then 25.5 %.
 VAT = [(dt.date(2024, 9, 1), 25.5), (dt.date(2023, 5, 1), 24.0), (dt.date(2022, 12, 1), 10.0), (dt.date(1900, 1, 1), 24.0)]
@@ -44,7 +44,7 @@ def main():
                 lines.append(f"price,id=price price={price} {ts}\n")
         cur = nxt
         time.sleep(1)
-    influx.write("".join(lines), bucket="nordpool")
+    datahub.write("".join(lines), bucket="nordpool")
     print(f"wrote {len(lines)} prices")
 
 

@@ -112,16 +112,15 @@ and its InfluxDB token ("homelab InfluxDB telegraf-nibe token" in 1Password) can
 
 **Whole-house electricity** comes from Fingrid Datahub, which has no consumer API. Export the consumption CSV from
 oma.datahub.fi and run `KUBECONFIG=kubeconfig python3 scripts/datahub-import.py consumption.csv` (measurement
-`electricity`, field `kwh`, hourly until the meter is replaced). Exports can overlap. The script writes to InfluxDB
-and, through [tsdb-relay](#writers), to `tsdb`; `WRITE_TO=tsdb` writes only to `tsdb` and `DRY_RUN=1` only prints
-what it would write (both work for the backfill scripts below too). The energy dashboard's
+`electricity`, field `kwh`, hourly until the meter is replaced). Exports can overlap. The script writes to `tsdb`
+through [tsdb-relay](#writers); `DRY_RUN=1` only prints what it would write (this works for the backfill scripts
+below too). The energy dashboard's
 "expected from weather" line is a model fitted on 2021–2024 (`ELEC_*` in `home.py`).
 
 History before the live collectors started was backfilled from 2020 with scripts that can be re-run:
 `scripts/spot-price-backfill.py` (Nord Pool FI prices from Elering's public API, written in nordpool-mqtt's
 format with the VAT of each day) and `scripts/fmi-backfill.py` (hourly FMI observations; live data is
-10-minute). The FMI daily means and Fingrid's hourly CO₂ intensity were loaded the same way. Like
-`datahub-import.py` they write to both stores. Elering has 15-minute prices since October 2025, while
+10-minute). The FMI daily means and Fingrid's hourly CO₂ intensity were loaded the same way. Elering has 15-minute prices since October 2025, while
 nordpool-mqtt stores hourly averages, so don't re-run the spot price backfill over recent days.
 
 The heat pump dashboard's shower estimate uses constants in `heatpump.py`. They come from the water meter
@@ -271,8 +270,8 @@ share a row. It runs once at bootstrap and can be re-run.
   - nordpool-mqtt has two `[[influxdb2]]` targets in its `Settings.toml` (`apps/nordpool-mqtt/config.yaml`):
     InfluxDB and the relay, written independently. It writes a day's prices when they are fetched (at start-up and
     when the next day's are published), so a missed write is repaired by restarting it.
-  - `datahub-import.py`, `spot-price-backfill.py` and `fmi-backfill.py` run `influx write` in the InfluxDB pod,
-    once against InfluxDB and once with `--host` set to the relay (`WRITE_TO` picks the targets).
+  - `datahub-import.py`, `spot-price-backfill.py` and `fmi-backfill.py` post line protocol to the relay from
+    inside its pod (busybox `wget` with the pod's own `RELAY_TOKEN`).
 
 ### Backfill and verification
 
@@ -332,7 +331,7 @@ Remove these before decommissioning InfluxDB (`clusters/homelab/{apps,infrastruc
 
 - **Writers** (dual-writing; drop the InfluxDB side): the `influxdb_v2` outputs of telegraf-home
   (`apps/influxdb/config.yaml`) and telegraf-cloud (`apps/influxdb/telegraf-cloud.yaml`); the first `[[influxdb2]]`
-  target of nordpool-mqtt (`apps/nordpool-mqtt/config.yaml`); the `influxdb` target in `scripts/datahub-import.py`.
+  target of nordpool-mqtt (`apps/nordpool-mqtt/config.yaml`).
   Telegraf itself stays: move the two Deployments and their config out of `apps/influxdb/` with it.
 - **Readers:** the `influxdb-home` datasource; homectl's InfluxDB fallback (its `influxdb` widget source and the InfluxDB
   branches in `server/src/api/widgets/`, unused while `TSDB_URL` is set); `scripts/influx-to-tsdb.py` and its Job.
