@@ -71,9 +71,12 @@ spec:
   resources:
     requests:
       cpu: 100m
-      memory: 1Gi
+      memory: 1536Mi
+    # A burst of Grafana panel queries (each sort/hash may use work_mem, and
+    # compressed chunks are decompressed in memory) exceeded 2Gi and got the
+    # instance OOM-killed on 2026-10-31.
     limits:
-      memory: 2Gi
+      memory: 4Gi
 
   # nfs-csi volumes can't be expanded, so this is sized for about five years:
   # compressed history grows by a few GB a year, plus the uncompressed last
