@@ -77,6 +77,12 @@ spec:
       commonConfig:
         replication_factor: 1
       auth_enabled: false
+      # The single pod only joins itself, and loki-memberlist lists it only
+      # once Ready (~1-2 min after start). The community chart aborts after
+      # ~5 min of failed joins; keep Loki's default of not aborting, so a
+      # slow WAL replay can't turn into a crash loop.
+      extraMemberlistConfig:
+        abort_if_cluster_join_fails: false
       storage:
         type: filesystem
         bucketNames:
