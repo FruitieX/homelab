@@ -9,13 +9,14 @@ spec:
   chart:
     spec:
       chart: loki
-      version: "7.5.0"
+      version: "20.2.0"
       sourceRef:
         kind: HelmRepository
-        name: grafana
+        name: grafana-community
         namespace: flux-system
   values:
-    deploymentMode: SingleBinary
+    # Monolithic is the community chart's name for SingleBinary.
+    deploymentMode: Monolithic
     # loki-sc-rules sidecar: loads ConfigMaps labelled loki_rule (e.g.
     # security-rules.yaml) for the ruler. With auth disabled the tenant is
     # "fake", hence the folder.
@@ -67,8 +68,6 @@ spec:
     compactor:
       replicas: 0
     indexGateway:
-      replicas: 0
-    bloomCompactor:
       replicas: 0
     bloomGateway:
       replicas: 0
@@ -138,7 +137,10 @@ spec:
         enabled: true
         annotations:
           grafana_folder: Loki
+      # rules only covers recording rules; the Loki mixin alerts are separate.
       rules:
+        enabled: true
+      alerts:
         enabled: true
       serviceMonitor:
         enabled: true
