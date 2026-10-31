@@ -5,10 +5,10 @@ side by side. Every other dashboard is one click away in the link bar.
 
 | Folder | Dashboards | Data |
 | --- | --- | --- |
-| Home | Energy & water, Climate, Devices, Heat pump, 3D printing | InfluxDB `home` (MQTT via Telegraf, myUplink) and `nordpool` |
+| Home | Energy & water, Climate, Devices, Heat pump, 3D printing | TimescaleDB `tsdb` (MQTT via Telegraf, myUplink, FMI, Fingrid, Datahub); the spot-price panels still read InfluxDB `nordpool` |
 | Homelab | Services, Workloads, Hardware, Network, Logs & security, Apps | Prometheus, Loki, app PostgreSQL databases |
 | Kubernetes, Loki | Stock kube-prometheus-stack and Loki mixin dashboards | Prometheus |
-| Legacy | The old hand-made dashboards (Home, Indoor, Outdoor, Appliances, 3D printing, Loki logs), kept for reference | InfluxDB `home`, Loki |
+| Legacy | The old hand-made dashboards (Home, Indoor, Outdoor, Appliances, 3D printing, Loki logs), kept for reference until InfluxDB is decommissioned | InfluxDB `home`, Loki |
 
 Every dashboard and datasource is provisioned from this repository; nothing lives only in Grafana's database.
 
@@ -31,8 +31,31 @@ variable substitution because dashboards use `${...}` themselves. Saving in the 
 A new BLE sensor appears on the dashboards only after you add its `device_id` to the maps in `home.py`. Unlisted
 ids are ignored on purpose, because neighbours' sensors show up too.
 
+House panels are SQL against TimescaleDB (datasource `tsdb`, see [Querying](#querying)), built with the helpers in
+`lib.py`:
+
+- `tsdb(query)` makes the target. With the default `time_series` format every text column becomes a label of the
+  numeric columns, like a Flux group key: name the value column `"Value"` and the label columns `place`, `device`,
+  `series` or `point`, which the panels' `${__field.labels.…}` display names use. Text values (the alarm mode) and
+  rows without a time column need `fmt="table"`.
+- Ranges are templates over the time column: `RANGE` (the dashboard's, `$__timeFilter`), `since("3 hours")`, `TODAY`
+  and `MONTH` (Helsinki calendar). `where(rng, col)` fills one in.
+- `bucket(every)` groups by Grafana's interval or a fixed width (`"10 minutes"`, `"1 day"`); days, weeks and months
+  follow Helsinki's calendar and weeks start on Monday. Buckets are stamped at their start (Flux's
+  `aggregateWindow` stamped the end).
+- `values(mapping, key, label)` and `in_list(keys)` turn a Python dict of ids into a `VALUES` join and an `IN`
+  filter (keep the `IN`: it lets compressed chunks be skipped by `device_id`); `latest(query, key)` keeps the last
+  row per series; `agg(fn, col)` maps `mean`, `last`, `spread`, … to SQL.
+- `home.ble()`, `power()`, `cost()`, `water()`, `electricity()`, `fingrid()` and `heatpump.nibe()` cover most panels.
+
+Panels that need today's Nord Pool prices still run Flux: `nordpool_price` in `tsdb` only gets new prices from
+backfill runs until nordpool-mqtt writes there (see [Writers](#writers)). Their SQL is ready; set
+`PRICES_IN_TSDB = True` in `home.py` and delete the Flux helpers once it does.
+
 `legacy/` holds the old dashboards that were made in the UI, exported once as plain JSON (not generated). They
-are frozen: fix them by editing the JSON, or port a panel to the generator. BLE sensors are heard by more than
+are frozen: fix them by editing the JSON, or port a panel to the generator. They were not ported to SQL: they keep
+querying InfluxDB and go away when InfluxDB is decommissioned. The `influxdb-home` datasource stays provisioned for
+them and as a rollback for the generated dashboards. BLE sensors are heard by more than
 one gateway (`integration_id` `ble3`, `ble4`, …), so their queries merge gateways with `group()` instead of
 filtering on one.
 
@@ -93,7 +116,9 @@ and its InfluxDB token ("homelab InfluxDB telegraf-nibe token" in 1Password) can
 
 **Whole-house electricity** comes from Fingrid Datahub, which has no consumer API. Export the consumption CSV from
 oma.datahub.fi and run `KUBECONFIG=kubeconfig python3 scripts/datahub-import.py consumption.csv` (measurement
-`electricity`, field `kwh`, hourly until the meter is replaced). Exports can overlap. The energy dashboard's
+`electricity`, field `kwh`, hourly until the meter is replaced). Exports can overlap. The script writes to InfluxDB
+only, and the dashboards read `tsdb`, so copy the import over afterwards with the backfill job
+(`ONLY_TABLES=electricity`, see [Backfill and verification](#backfill-and-verification)). The energy dashboard's
 "expected from weather" line is a model fitted on 2021–2024 (`ELEC_*` in `home.py`).
 
 History before the live collectors started was backfilled from 2020 with scripts that can be re-run:
@@ -158,8 +183,10 @@ handles at most 26 weeks. Any failed check stops the job (`CronJobLastRunFailed`
 ## TimescaleDB (tsdb)
 
 The house's time series are moving from InfluxDB to TimescaleDB. Since **2026-10-31 13:00 UTC** (the dual-write
-start) both stores receive the same live data, and everything before it was copied from InfluxDB. InfluxDB stays the
-source of truth, and the dashboards, alerts and homectl keep reading it, until they are ported to SQL.
+start) both stores receive the same live data, and everything before it was copied from InfluxDB. The generated
+Grafana dashboards and the Grafana alert rules read `tsdb`, except the spot-price panels and the price alert (see
+[Dashboards are code](#dashboards-are-code)). homectl and the legacy dashboards still read InfluxDB, which stays
+the source of truth until the remaining writers move.
 
 - **Cluster:** CloudNativePG `tsdb` ([apps/tsdb/tsdb.yaml](/apps/tsdb/tsdb.yaml)), separate from `postgres-ha`, one
   instance on `nfs-csi` (60 Gi; the class can't grow a volume). A replica would share the NAS with the primary, so
@@ -179,6 +206,9 @@ source of truth, and the dashboards, alerts and homectl keep reading it, until t
     read-only by default with a 30 s statement timeout (set in [bootstrap.sql](/apps/tsdb/bootstrap.sql)). Its
     password differs from the one on `postgres-ha`.
   - `postgres`, the superuser, is used only by `tsdb-dump` and for maintenance.
+- **Grafana** queries it as `grafana_ro` through the provisioned datasource `tsdb` ("TimescaleDB tsdb", key
+  `tsdb-datasource.yaml` in `grafana/grafana-datasources.sops.yaml`). The database's `Europe/Helsinki` timezone
+  applies to its sessions; `$__timeFilter` passes UTC instants, so only truncation depends on it.
 - **Backup:** the `tsdb-dump` CronJob (02:47 Helsinki) writes `pg_dump -Fc` of `tsdb` plus the roles to the
   `tsdb-dumps` volume, which the NAS backs up; it keeps 3 days because Hyper Backup keeps the older versions. The
   restore steps are at the top of [tsdb-dump.yaml](/apps/tsdb/tsdb-dump.yaml) (TimescaleDB needs
@@ -253,7 +283,9 @@ share a row. It runs once at bootstrap and can be re-run.
 ### Querying
 
 Grafana's PostgreSQL datasource macros work as usual (`$__timeFilter(time)`, `$__timeGroupAlias(time, $__interval)`).
-Always bound `time`: compressed chunks are only skipped by the time filter. Flux patterns and their SQL:
+Always bound `time`: chunks are only skipped by the time filter, and only for literals and `now() - interval`. A
+calendar bound such as `date_trunc('day', now(), 'Europe/Helsinki')` scans every chunk (3 s instead of 5 ms on
+`mqtt_consumer`), so add a redundant `time > now() - interval '1 day'`. Flux patterns and their SQL:
 
 ~~~sql
 -- aggregateWindow(every: 1d, fn: sum, timeSrc: "_start") with location Europe/Helsinki
@@ -295,7 +327,9 @@ ORDER BY device_id, time DESC;
 - Backups (`homelab.backups` in `targets/rules.yaml`): `PostgresDumpStale` fires when `postgres-dump` has not
   succeeded for 36 h, `CronJobLastRunFailed` when any CronJob's latest run failed. The stock `KubeJobFailed` is a
   plain warning and never reaches Discord. Immich's own database backups are not monitored.
-- Grafana-managed rules for the InfluxDB data are in `grafana/grafana-alerting.sops.yaml`. They cover the freezer, the fridge, water flowing non-stop for 3 hours (normal use always pauses within
+- Grafana-managed rules for the house data are in `grafana/grafana-alerting.sops.yaml` and query `tsdb`; only the
+  price rule still runs Flux, with its SQL waiting in [price-tomorrow.sql](/infrastructure/monitoring/grafana/price-tomorrow.sql)
+  until Nord Pool prices reach `tsdb` live. They cover the freezer, the fridge, water flowing non-stop for 3 hours (normal use always pauses within
   about 2 hours), home sensors going silent, and the sauna being ready, from the upstairs bathroom BLE sensor (device `D83431306571`). It fires when, over the
   last 20 minutes, the temperature has risen at least 2 °C, humidity at most 5 points, and it is now at least 26 °C:
   sauna heating is a steady dry rise, while a shower sends humidity up at once and barely moves the temperature. It
@@ -311,7 +345,7 @@ ORDER BY device_id, time DESC;
   - Alarm isn't armed: Verisure mode `disarmed` between 23:30 and 05:00 (measurement `verisure`, topic
     `home/verisure/mode`). The household usually arms at 23:15–00:15, so 23:00 would nag nightly.
   - Electricity prices tomorrow: from 14:00, once tomorrow's prices are in, only if some hours are at or above
-    30 c/kWh or at or below 0 c/kWh (VAT included); about 43 days a year in the past 12 months. The Flux query builds
+    30 c/kWh or at or below 0 c/kWh (VAT included); about 43 days a year in the past 12 months. The query builds
     the message itself and passes it in the `text` label.
   The last two carry `notify=reminder` and go to the "Home reminders" contact point, which sends no resolved message.
 - Device health and upkeep (thresholds from the same data):
