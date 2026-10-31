@@ -39,6 +39,14 @@ spec:
           - pg_monitor
         passwordSecret:
           name: tsdb-grafana-ro
+      # homectl's sensor and spot price widgets: SELECT on mqtt_consumer
+      # and nordpool_price only, same settings as grafana_ro.
+      - name: homectl_ro
+        ensure: present
+        login: true
+        connectionLimit: 8
+        passwordSecret:
+          name: tsdb-homectl-ro
 
   postgresql:
     shared_preload_libraries:
@@ -75,7 +83,7 @@ spec:
     size: 60Gi
 
   # Only used when the cluster is first created. The ConfigMap tsdb-schema
-  # holds bootstrap.sql (extension, grafana_ro settings, timezone) and
+  # holds bootstrap.sql (extension, read-only role settings, timezone) and
   # schema.sql (hypertables); see docs/monitoring.md.
   bootstrap:
     initdb:

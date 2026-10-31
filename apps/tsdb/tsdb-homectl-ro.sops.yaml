@@ -1,0 +1,38 @@
+# Login of the read-only homectl_ro role on tsdb (homectl's sensor and spot price widgets). Agents vault item "homelab TimescaleDB homectl_ro (read-only)".
+apiVersion: v1
+kind: Secret
+metadata:
+    name: tsdb-homectl-ro
+    namespace: default
+    labels:
+        cnpg.io/reload: "true"
+type: kubernetes.io/basic-auth
+stringData:
+    username: ENC[AES256_GCM,data:yjDc5oXFerYnag==,iv:kE0ScFvhqCUHI6CHYJf5E9SxV9BWnz1yMLcw0ePN7LY=,tag:k9/nS3yV4zsffXf6bSTbUA==,type:str]
+    password: ENC[AES256_GCM,data:X/2dV1/5gLKfWQe8wLoz0LocV4EeI7fP4PYzqj8u9kcdEV1zoiHvCRpSzA==,iv:tw2P6hpNs5cLsNreBe/lJHrzzPfDuyUQ0+vKoqFb1kk=,tag:8X7iWDcVtCsogGWxvIcuig==,type:str]
+sops:
+    encrypted_regex: ^(data|stringData)$
+    lastmodified: "2026-10-31T15:26:37Z"
+    mac: ENC[AES256_GCM,data:e+VZ2SUL5znGhhyiycNX8DLjtHvC2nx1p2LPB7wWRizcQyLbIM43w80wdx/LiK932dWSo3U3HDZ1+Wi3m39ulvYlgJLphzFLxBB1Q09LeCNbKKRfCGYB0z6EJ6JfjFdNCah0kEoGT7BOmlIYKsXGwM+cdyXqvjWn9xjmu7VCQ4I=,iv:Vf8KQmjRMnFSzS4Xa8MQJwtcNga7n2HH27y9nkBR6k0=,tag:SCRp70XXRwkOkZf0lqyCzw==,type:str]
+    pgp:
+        - created_at: "2026-10-31T15:26:37Z"
+          enc: |-
+            -----BEGIN PGP MESSAGE-----
+
+            hQIMA8WjeZLD+fxwAQ//UvD26d1CXM8ycXzEaKzKslnpKNTVggW9BN0N6U+7gwfe
+            //QtBUxavXhpbGeJ/Y0HqWU1QJIrRDgUHANQ7xkwiVDBfmUPPtOSgFh+Dzay/uoZ
+            Px+UnYrv5SSL6uQRDX417I2srvzcqFwbB6bpkU9dd/C9WFyo6o/k4t/kT6V7hexF
+            IoMFQPhKkiX7N1E97tUtCJe9Rk3CgNoYA2c4AKjeJF5+vACITvKLCaCXtIBEcc+1
+            /secamvEu5bumTDH9zWKqUDzfIWTJQLq87yo+i8RjwFmNEroGwKfxkF0ro+IjHab
+            /r9O0SeSsVqqd4egj/VyXEFuIvv1p6e44V4lsMPBovH+OIhfwy5gYT7Kn7D368Za
+            AbFs4mfASLwLdgCMRygIPfaK3OzuWYAqwtP1KVRfuJw27k4V2aZXrUS3oh9M52bC
+            Nzhl3ExZvKq7DMHlfbfQoOpTMu12Fnm2dD4q7YQWjm0qO/BF6251oaSWqZRFgyIa
+            /u4/MH1Ni8B9OxGAsJlU8DGyHiHVo0Fuo+XbDnSeF/CNdI/VcxEHeBng3NMiMs2U
+            gEnu6QMKFtmVdDYP6ls5Lk1h5SqP2D3So03ki24rNrWB60JJhEG5Ip5cnkG5Js2b
+            26iEx+rLG3AxM76B8lsNVeCuUsOAueCXBdkd88XPuKYa76zN9ipdd8oR7mWL6nPS
+            XgGijiroPgb1NvDxEwi6RYF1XxSIS9+LbMKR0fq06XXxuJ5ctpF01sy8MxziHh9N
+            ksqphd8vybfbgF/a2da5BgGvRE3FiXERDezyQ1RoPWYwFdPpdWp2dYIm3WLf2Ss=
+            =o80Z
+            -----END PGP MESSAGE-----
+          fp: 3536F7F9345D96C86FB7F9CD21FAFEE575B18815
+    version: 3.13.3

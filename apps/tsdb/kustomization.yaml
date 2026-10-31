@@ -4,6 +4,7 @@ resources:
   - ./tsdb-superuser.sops.yaml
   - ./tsdb-app.sops.yaml
   - ./tsdb-grafana-ro.sops.yaml
+  - ./tsdb-homectl-ro.sops.yaml
   - ./tsdb.yaml
   - ./tsdb-dump.yaml
   - ./tsdb-relay.sops.yaml

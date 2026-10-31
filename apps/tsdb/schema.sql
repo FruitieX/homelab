@@ -103,4 +103,8 @@ RESET ROLE;
 GRANT USAGE ON SCHEMA public TO grafana_ro;
 GRANT SELECT ON ALL TABLES IN SCHEMA public TO grafana_ro;
 ALTER DEFAULT PRIVILEGES FOR ROLE tsdb IN SCHEMA public GRANT SELECT ON TABLES TO grafana_ro;
+
+-- homectl's widgets read only the sensor history and the spot prices.
+GRANT USAGE ON SCHEMA public TO homectl_ro;
+GRANT SELECT ON mqtt_consumer, nordpool_price TO homectl_ro;
 COMMIT;
