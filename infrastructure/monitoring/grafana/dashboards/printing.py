@@ -1,8 +1,8 @@
 """3D printing dashboard: Bambuddy (printer), the printer's smart plug and filament storage."""
 
 import home
-from lib import (BAD, GOOD, MUTED, SLOTS, WARN, Dashboard, bargauge, by_name, fixed_colors, flux, prom, sql,
-                 stat, state_timeline, table, thresholds, timeseries, value_map)
+from lib import (BAD, GOOD, MONTH, MUTED, SLOTS, WARN, Dashboard, bargauge, by_name, fixed_colors, prom, sql, stat,
+                 state_timeline, table, thresholds, timeseries, tsdb, value_map)
 
 PRINTER = '{printer_name="Bambu Lab X2D"}'
 STATE = value_map([(0, "Unknown", MUTED), (1, "Idle", MUTED), (2, "Printing", SLOTS[0]), (3, "Paused", WARN),
@@ -37,11 +37,10 @@ def printing_dashboard():
         prom(f'max(bambuddy_bed_temp_celsius{PRINTER})', legend="Bed"),
         prom(f'max(bambuddy_chamber_temp_celsius{PRINTER})', legend="Chamber")],
         unit="celsius", decimals=0, graph=False, text_mode="value_and_name", thr=thresholds(SLOTS[0])), 16, 5)
-    d.add(stat("Plug power", [flux('''from(bucket: "home")
-  |> range(start: -10m)
-  |> filter(fn: (r) => r._measurement == "mqtt_consumer" and r.integration_id == "tuya" and r._field == "raw_19" and r.name == "3D printer")
-  |> last()
-  |> map(fn: (r) => ({_time: r._time, _value: float(v: r._value) / 10.0}))''')], unit="watt", decimals=0,
+    d.add(stat("Plug power", [tsdb('''
+SELECT time, raw_19 / 10.0 AS "Value" FROM mqtt_consumer
+WHERE integration_id = 'tuya' AND name = '3D printer' AND raw_19 IS NOT NULL AND time > now() - interval '10 minutes'
+ORDER BY time DESC LIMIT 1''', fmt="table")], unit="watt", decimals=0,
                graph=False), 4, 5)
     d.add(stat("Wi-Fi", [prom(f'max(bambuddy_wifi_signal_dbm{PRINTER})')], unit="dBm", decimals=0, graph=False,
                thr=thresholds(BAD, (-75, WARN), (-65, GOOD))), 4, 5)
@@ -68,10 +67,10 @@ def printing_dashboard():
     d.add(stat("Filament used", [prom('max(bambuddy_filament_used_grams)')], unit="massg", decimals=1,
                graph=False), 4, 4)
     d.add(stat("Print time", [prom('max(bambuddy_print_time_seconds)')], unit="s", decimals=0, graph=False), 4, 4)
-    d.add(stat("Plug cost this month", [flux(home.TZ + 'import "date"\n' + home.cost(
-        start='date.truncate(t: now(), unit: 1mo)', stop="now()") + '''
+    d.add(stat("Plug cost this month", [home.priced(home.total(home.cost(MONTH)) + " WHERE device = '3D printer'",
+                                                  'import "date"\n' + home.flux_cost(start=home.MONTH_FLUX, stop="now()") + '''
   |> filter(fn: (r) => r.device == "3D printer")
-  |> group() |> sum()''')], unit="currencyEUR", decimals=2, graph=False,
+  |> group() |> sum()''', fmt="table")], unit="currencyEUR", decimals=2, graph=False,
                desc="The printer's smart-plug energy at the hourly spot price."), 4, 4)
     d.add(timeseries("Prints per week", [sql("bambuddy", '''
 SELECT date_trunc('week', coalesce(started_at, created_at)) AS time, status AS metric, count(*) AS value
@@ -85,10 +84,7 @@ SELECT date_trunc('week', coalesce(started_at, created_at)) AS time, coalesce(fi
 FROM print_archives WHERE deleted_at IS NULL AND $__timeFilter(coalesce(started_at, created_at))
 GROUP BY 1, 2 ORDER BY 1''', fmt="time_series")], unit="massg", bars=True, stack=True, decimals=0, time_from="1y",
                      display_name="${__field.labels.metric}"), 8, 8)
-    d.add(timeseries("Printer energy per day", [flux(home.TZ + home.power(every="1h", devices=["3D printer"],
-                                                                          time_src="_start") + '''
-  |> aggregateWindow(every: 1d, fn: sum, createEmpty: false, timeSrc: "_start")
-  |> map(fn: (r) => ({r with _value: r._value / 1000.0}))''')], unit="kwatth", bars=True, decimals=2,
+    d.add(timeseries("Printer energy per day", [tsdb(home.daily_energy(devices=["3D printer"]))], unit="kwatth", bars=True, decimals=2,
                      time_from="30d", display_name="Energy", color={"mode": "fixed", "fixedColor": SLOTS[4]}), 8, 8)
 
     d.row("Print history (Bambuddy archive)")
@@ -146,22 +142,22 @@ FROM spool WHERE archived_at IS NULL ORDER BY 4''')],
         desc="Spool inventory as Bambuddy tracks it; weights are only as good as its usage tracking."), 12, 8)
 
     d.row("Filament storage")
-    d.add(bargauge("Humidity now", [flux(home.ble("hum", home.PRINTING, start="-6h", stop="now()") + "\n  |> last()")],
+    d.add(bargauge("Humidity now", [tsdb(home.ble_now("hum", home.PRINTING, "6 hours"))],
                    unit="humidity", decimals=0, minv=0, maxv=60, display_name=home.BY_PLACE,
                    thr=thresholds(GOOD, (20, WARN), (35, BAD)),
                    desc="Keep filament below about 20 % RH; above 35 % it starts absorbing moisture."), 8, 9)
-    d.add(timeseries("Humidity", [flux(home.ble("hum", home.PRINTING))], unit="humidity", decimals=0, fill=0,
+    d.add(timeseries("Humidity", [tsdb(home.ble("hum", home.PRINTING))], unit="humidity", decimals=0, fill=0,
                      display_name=home.BY_PLACE, overrides=fixed_colors(dict(zip(home.PRINTING.values(), SLOTS))),
                      time_from="7d", legend="right"), 16, 9)
-    d.add(timeseries("Dryer and box temperatures", [flux(home.ble("tempc", home.PRINTING))], unit="celsius",
+    d.add(timeseries("Dryer and box temperatures", [tsdb(home.ble("tempc", home.PRINTING))], unit="celsius",
                      decimals=1, fill=0, display_name=home.BY_PLACE,
                      overrides=fixed_colors(dict(zip(home.PRINTING.values(), SLOTS))), time_from="7d",
                      legend="right"), 12, 8)
-    d.add(timeseries("Storage room temperature", [flux(home.ble("tempc", {k: "Storage room" for k in STORAGE_ROOM}))],
+    d.add(timeseries("Storage room temperature", [tsdb(home.ble("tempc", STORAGE_ROOM))],
                      unit="celsius", decimals=1, fill=0, display_name=home.BY_PLACE, time_from="7d",
                      color={"mode": "fixed", "fixedColor": SLOTS[1]}, desc="Where the printer and spare spools live."),
           6, 8)
-    d.add(timeseries("Storage room humidity", [flux(home.ble("hum", {k: "Storage room" for k in STORAGE_ROOM}))],
+    d.add(timeseries("Storage room humidity", [tsdb(home.ble("hum", STORAGE_ROOM))],
                      unit="humidity", decimals=0, fill=0, display_name=home.BY_PLACE, time_from="7d",
                      color={"mode": "fixed", "fixedColor": SLOTS[0]}), 6, 8)
     return d

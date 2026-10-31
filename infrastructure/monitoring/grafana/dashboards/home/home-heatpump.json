@@ -71,10 +71,13 @@
    "targets": [
     {
      "datasource": {
-      "type": "influxdb",
-      "uid": "influxdb-home"
+      "type": "grafana-postgresql-datasource",
+      "uid": "tsdb"
      },
-     "query": "import \"dict\"\nfrom(bucket: \"home\")\n  |> range(start: -15m, stop: now())\n  |> filter(fn: (r) => r._measurement == \"nibe\" and r._field == \"value\")\n  |> filter(fn: (r) => r.id == \"49994\")\n  |> map(fn: (r) => ({_time: r._time, _value: r._value, point: dict.get(dict: [\"49994\": \"49994\"], key: r.id, default: r.id)}))\n  |> group(columns: [\"point\"])\n  |> aggregateWindow(every: 15m, fn: last, createEmpty: false)\n\n  |> last()",
+     "rawSql": "SELECT * FROM (\n  SELECT DISTINCT ON (id) time, point, value AS \"Value\"\n  FROM nibe JOIN (VALUES ('49994', '49994')) AS n (id, point) USING (id)\n  WHERE time > now() - interval '15 minutes' AND id IN ('49994')\n  ORDER BY id, time DESC) l ORDER BY time",
+     "format": "time_series",
+     "rawQuery": true,
+     "editorMode": "code",
      "refId": "A"
     }
    ],
@@ -140,8 +143,8 @@
     "showPercentChange": false
    },
    "datasource": {
-    "type": "influxdb",
-    "uid": "influxdb-home"
+    "type": "grafana-postgresql-datasource",
+    "uid": "tsdb"
    },
    "description": "What the compressor is working on.",
    "id": 2,
@@ -158,10 +161,13 @@
    "targets": [
     {
      "datasource": {
-      "type": "influxdb",
-      "uid": "influxdb-home"
+      "type": "grafana-postgresql-datasource",
+      "uid": "tsdb"
      },
-     "query": "import \"dict\"\nfrom(bucket: \"home\")\n  |> range(start: -15m, stop: now())\n  |> filter(fn: (r) => r._measurement == \"nibe\" and r._field == \"value\")\n  |> filter(fn: (r) => r.id == \"40013\")\n  |> map(fn: (r) => ({_time: r._time, _value: r._value, point: dict.get(dict: [\"40013\": \"40013\"], key: r.id, default: r.id)}))\n  |> group(columns: [\"point\"])\n  |> aggregateWindow(every: 15m, fn: last, createEmpty: false)\n\n  |> last()",
+     "rawSql": "SELECT * FROM (\n  SELECT DISTINCT ON (id) time, point, value AS \"Value\"\n  FROM nibe JOIN (VALUES ('40013', '40013')) AS n (id, point) USING (id)\n  WHERE time > now() - interval '15 minutes' AND id IN ('40013')\n  ORDER BY id, time DESC) l ORDER BY time",
+     "format": "time_series",
+     "rawQuery": true,
+     "editorMode": "code",
      "refId": "A"
     }
    ],
@@ -210,8 +216,8 @@
     "showPercentChange": false
    },
    "datasource": {
-    "type": "influxdb",
-    "uid": "influxdb-home"
+    "type": "grafana-postgresql-datasource",
+    "uid": "tsdb"
    },
    "description": "Top of the tank (BT7), where hot water is drawn from.",
    "id": 3,
@@ -228,19 +234,24 @@
    "targets": [
     {
      "datasource": {
-      "type": "influxdb",
-      "uid": "influxdb-home"
+      "type": "grafana-postgresql-datasource",
+      "uid": "tsdb"
      },
-     "query": "import \"date\"\nimport \"math\"\nmonth = float(v: date.month(t: now()))\ncold = 9.0 + 4.0 * math.cos(x: 2.0 * math.pi * (month - 8.5) / 12.0)\nfrom(bucket: \"home\")\n  |> range(start: -15m)\n  |> filter(fn: (r) => r._measurement == \"nibe\" and r._field == \"value\" and r.id == \"40013\")\n  |> last()\n  |> map(fn: (r) => ({_time: r._time, _value: if r._value <= 40.0 then 0.0 else\n      180.0 * 0.86 * (r._value - cold) / (40.0 - cold) / 4.8}))\n  |> keep(columns: [\"_time\", \"_value\"])",
-     "legendFormat": "Our estimate",
+     "rawSql": "WITH c AS (SELECT 9.0 + 4.0 * cos(2 * pi() * (extract(month FROM now()) - 8.5) / 12) AS cold)\nSELECT time, CASE WHEN value <= 40.0 THEN 0 ELSE\n       180 * 0.86 * (value - cold) / (40.0 - cold) / 4.8 END AS \"Our estimate\"\nFROM nibe, c\nWHERE id = '40013' AND time > now() - interval '15 minutes'\nORDER BY time DESC LIMIT 1",
+     "format": "table",
+     "rawQuery": true,
+     "editorMode": "code",
      "refId": "A"
     },
     {
      "datasource": {
-      "type": "influxdb",
-      "uid": "influxdb-home"
+      "type": "grafana-postgresql-datasource",
+      "uid": "tsdb"
      },
-     "query": "import \"dict\"\nfrom(bucket: \"home\")\n  |> range(start: -15m, stop: now())\n  |> filter(fn: (r) => r._measurement == \"nibe\" and r._field == \"value\")\n  |> filter(fn: (r) => r.id == \"50345\")\n  |> map(fn: (r) => ({_time: r._time, _value: r._value, point: dict.get(dict: [\"50345\": \"NIBE\"], key: r.id, default: r.id)}))\n  |> group(columns: [\"point\"])\n  |> aggregateWindow(every: 15m, fn: last, createEmpty: false)\n\n  |> last()",
+     "rawSql": "SELECT * FROM (\n  SELECT DISTINCT ON (id) time, point, value AS \"Value\"\n  FROM nibe JOIN (VALUES ('50345', 'NIBE')) AS n (id, point) USING (id)\n  WHERE time > now() - interval '15 minutes' AND id IN ('50345')\n  ORDER BY id, time DESC) l ORDER BY time",
+     "format": "time_series",
+     "rawQuery": true,
+     "editorMode": "code",
      "refId": "B"
     }
    ],
@@ -294,8 +305,8 @@
     "showPercentChange": false
    },
    "datasource": {
-    "type": "influxdb",
-    "uid": "influxdb-home"
+    "type": "grafana-postgresql-datasource",
+    "uid": "tsdb"
    },
    "description": "Our estimate uses this household's showers: 4.8 L/min of mixed water, measured from the water meter. NIBE's own figure assumes a higher flow.",
    "id": 4,
@@ -312,10 +323,13 @@
    "targets": [
     {
      "datasource": {
-      "type": "influxdb",
-      "uid": "influxdb-home"
+      "type": "grafana-postgresql-datasource",
+      "uid": "tsdb"
      },
-     "query": "import \"dict\"\nfrom(bucket: \"home\")\n  |> range(start: -15m, stop: now())\n  |> filter(fn: (r) => r._measurement == \"nibe\" and r._field == \"value\")\n  |> filter(fn: (r) => r.id == \"41778\")\n  |> map(fn: (r) => ({_time: r._time, _value: r._value, point: dict.get(dict: [\"41778\": \"41778\"], key: r.id, default: r.id)}))\n  |> group(columns: [\"point\"])\n  |> aggregateWindow(every: 15m, fn: last, createEmpty: false)\n\n  |> last()",
+     "rawSql": "SELECT * FROM (\n  SELECT DISTINCT ON (id) time, point, value AS \"Value\"\n  FROM nibe JOIN (VALUES ('41778', '41778')) AS n (id, point) USING (id)\n  WHERE time > now() - interval '15 minutes' AND id IN ('41778')\n  ORDER BY id, time DESC) l ORDER BY time",
+     "format": "time_series",
+     "rawQuery": true,
+     "editorMode": "code",
      "refId": "A"
     }
    ],
@@ -356,8 +370,8 @@
     "showPercentChange": false
    },
    "datasource": {
-    "type": "influxdb",
-    "uid": "influxdb-home"
+    "type": "grafana-postgresql-datasource",
+    "uid": "tsdb"
    },
    "id": 5,
    "gridPos": {
@@ -373,19 +387,14 @@
    "targets": [
     {
      "datasource": {
-      "type": "influxdb",
-      "uid": "influxdb-home"
+      "type": "grafana-postgresql-datasource",
+      "uid": "tsdb"
      },
-     "query": "import \"dict\"\nfrom(bucket: \"home\")\n  |> range(start: -15m, stop: now())\n  |> filter(fn: (r) => r._measurement == \"nibe\" and r._field == \"value\")\n  |> filter(fn: (r) => r.id == \"40008\")\n  |> map(fn: (r) => ({_time: r._time, _value: r._value, point: dict.get(dict: [\"40008\": \"Supply\"], key: r.id, default: r.id)}))\n  |> group(columns: [\"point\"])\n  |> aggregateWindow(every: 15m, fn: last, createEmpty: false)\n\n  |> last()",
+     "rawSql": "SELECT * FROM (\n  SELECT DISTINCT ON (id) time, point, value AS \"Value\"\n  FROM nibe JOIN (VALUES ('40008', 'Supply'), ('43009', 'Target')) AS n (id, point) USING (id)\n  WHERE time > now() - interval '15 minutes' AND id IN ('40008', '43009')\n  ORDER BY id, time DESC) l ORDER BY time",
+     "format": "time_series",
+     "rawQuery": true,
+     "editorMode": "code",
      "refId": "A"
-    },
-    {
-     "datasource": {
-      "type": "influxdb",
-      "uid": "influxdb-home"
-     },
-     "query": "import \"dict\"\nfrom(bucket: \"home\")\n  |> range(start: -15m, stop: now())\n  |> filter(fn: (r) => r._measurement == \"nibe\" and r._field == \"value\")\n  |> filter(fn: (r) => r.id == \"43009\")\n  |> map(fn: (r) => ({_time: r._time, _value: r._value, point: dict.get(dict: [\"43009\": \"Target\"], key: r.id, default: r.id)}))\n  |> group(columns: [\"point\"])\n  |> aggregateWindow(every: 15m, fn: last, createEmpty: false)\n\n  |> last()",
-     "refId": "B"
     }
    ],
    "fieldConfig": {
@@ -425,8 +434,8 @@
     "showPercentChange": false
    },
    "datasource": {
-    "type": "influxdb",
-    "uid": "influxdb-home"
+    "type": "grafana-postgresql-datasource",
+    "uid": "tsdb"
    },
    "description": "Water going out to the radiators/floor (BT63) and the temperature the heating curve asks for.",
    "id": 6,
@@ -443,10 +452,13 @@
    "targets": [
     {
      "datasource": {
-      "type": "influxdb",
-      "uid": "influxdb-home"
+      "type": "grafana-postgresql-datasource",
+      "uid": "tsdb"
      },
-     "query": "import \"dict\"\nfrom(bucket: \"home\")\n  |> range(start: -15m, stop: now())\n  |> filter(fn: (r) => r._measurement == \"nibe\" and r._field == \"value\")\n  |> filter(fn: (r) => r.id == \"40004\")\n  |> map(fn: (r) => ({_time: r._time, _value: r._value, point: dict.get(dict: [\"40004\": \"40004\"], key: r.id, default: r.id)}))\n  |> group(columns: [\"point\"])\n  |> aggregateWindow(every: 15m, fn: last, createEmpty: false)\n\n  |> last()",
+     "rawSql": "SELECT * FROM (\n  SELECT DISTINCT ON (id) time, point, value AS \"Value\"\n  FROM nibe JOIN (VALUES ('40004', '40004')) AS n (id, point) USING (id)\n  WHERE time > now() - interval '15 minutes' AND id IN ('40004')\n  ORDER BY id, time DESC) l ORDER BY time",
+     "format": "time_series",
+     "rawQuery": true,
+     "editorMode": "code",
      "refId": "A"
     }
    ],
@@ -487,8 +499,8 @@
     "showPercentChange": false
    },
    "datasource": {
-    "type": "influxdb",
-    "uid": "influxdb-home"
+    "type": "grafana-postgresql-datasource",
+    "uid": "tsdb"
    },
    "description": "The pump's own outdoor sensor (BT1).",
    "id": 7,
@@ -505,10 +517,13 @@
    "targets": [
     {
      "datasource": {
-      "type": "influxdb",
-      "uid": "influxdb-home"
+      "type": "grafana-postgresql-datasource",
+      "uid": "tsdb"
      },
-     "query": "import \"dict\"\nfrom(bucket: \"home\")\n  |> range(start: -15m, stop: now())\n  |> filter(fn: (r) => r._measurement == \"nibe\" and r._field == \"value\")\n  |> filter(fn: (r) => r.id == \"40941\")\n  |> map(fn: (r) => ({_time: r._time, _value: r._value, point: dict.get(dict: [\"40941\": \"40941\"], key: r.id, default: r.id)}))\n  |> group(columns: [\"point\"])\n  |> aggregateWindow(every: 15m, fn: last, createEmpty: false)\n\n  |> last()",
+     "rawSql": "SELECT * FROM (\n  SELECT DISTINCT ON (id) time, point, value AS \"Value\"\n  FROM nibe JOIN (VALUES ('40941', '40941')) AS n (id, point) USING (id)\n  WHERE time > now() - interval '15 minutes' AND id IN ('40941')\n  ORDER BY id, time DESC) l ORDER BY time",
+     "format": "time_series",
+     "rawQuery": true,
+     "editorMode": "code",
      "refId": "A"
     }
    ],
@@ -556,8 +571,8 @@
     "showPercentChange": false
    },
    "datasource": {
-    "type": "influxdb",
-    "uid": "influxdb-home"
+    "type": "grafana-postgresql-datasource",
+    "uid": "tsdb"
    },
    "description": "Heat deficit the pump is working off. The compressor starts at −60; the electric heater is allowed in from −700.",
    "id": 8,
@@ -574,10 +589,13 @@
    "targets": [
     {
      "datasource": {
-      "type": "influxdb",
-      "uid": "influxdb-home"
+      "type": "grafana-postgresql-datasource",
+      "uid": "tsdb"
      },
-     "query": "import \"dict\"\nfrom(bucket: \"home\")\n  |> range(start: -15m, stop: now())\n  |> filter(fn: (r) => r._measurement == \"nibe\" and r._field == \"value\")\n  |> filter(fn: (r) => r.id == \"49993\")\n  |> map(fn: (r) => ({_time: r._time, _value: r._value, point: dict.get(dict: [\"49993\": \"49993\"], key: r.id, default: r.id)}))\n  |> group(columns: [\"point\"])\n  |> aggregateWindow(every: 15m, fn: last, createEmpty: false)\n\n  |> last()",
+     "rawSql": "SELECT * FROM (\n  SELECT DISTINCT ON (id) time, point, value AS \"Value\"\n  FROM nibe JOIN (VALUES ('49993', '49993')) AS n (id, point) USING (id)\n  WHERE time > now() - interval '15 minutes' AND id IN ('49993')\n  ORDER BY id, time DESC) l ORDER BY time",
+     "format": "time_series",
+     "rawQuery": true,
+     "editorMode": "code",
      "refId": "A"
     }
    ],
@@ -658,8 +676,8 @@
     "showPercentChange": false
    },
    "datasource": {
-    "type": "influxdb",
-    "uid": "influxdb-home"
+    "type": "grafana-postgresql-datasource",
+    "uid": "tsdb"
    },
    "description": "The built-in immersion heater (up to 6.5 kW).",
    "id": 9,
@@ -676,10 +694,13 @@
    "targets": [
     {
      "datasource": {
-      "type": "influxdb",
-      "uid": "influxdb-home"
+      "type": "grafana-postgresql-datasource",
+      "uid": "tsdb"
      },
-     "query": "import \"dict\"\nfrom(bucket: \"home\")\n  |> range(start: -15m, stop: now())\n  |> filter(fn: (r) => r._measurement == \"nibe\" and r._field == \"value\")\n  |> filter(fn: (r) => r.id == \"43084\")\n  |> map(fn: (r) => ({_time: r._time, _value: r._value, point: dict.get(dict: [\"43084\": \"43084\"], key: r.id, default: r.id)}))\n  |> group(columns: [\"point\"])\n  |> aggregateWindow(every: 15m, fn: last, createEmpty: false)\n\n  |> last()",
+     "rawSql": "SELECT * FROM (\n  SELECT DISTINCT ON (id) time, point, value AS \"Value\"\n  FROM nibe JOIN (VALUES ('43084', '43084')) AS n (id, point) USING (id)\n  WHERE time > now() - interval '15 minutes' AND id IN ('43084')\n  ORDER BY id, time DESC) l ORDER BY time",
+     "format": "time_series",
+     "rawQuery": true,
+     "editorMode": "code",
      "refId": "A"
     }
    ],
@@ -724,8 +745,8 @@
     "showPercentChange": false
    },
    "datasource": {
-    "type": "influxdb",
-    "uid": "influxdb-home"
+    "type": "grafana-postgresql-datasource",
+    "uid": "tsdb"
    },
    "id": 10,
    "gridPos": {
@@ -741,10 +762,13 @@
    "targets": [
     {
      "datasource": {
-      "type": "influxdb",
-      "uid": "influxdb-home"
+      "type": "grafana-postgresql-datasource",
+      "uid": "tsdb"
      },
-     "query": "import \"dict\"\nfrom(bucket: \"home\")\n  |> range(start: -15m, stop: now())\n  |> filter(fn: (r) => r._measurement == \"nibe\" and r._field == \"value\")\n  |> filter(fn: (r) => r.id == \"41929\")\n  |> map(fn: (r) => ({_time: r._time, _value: r._value, point: dict.get(dict: [\"41929\": \"41929\"], key: r.id, default: r.id)}))\n  |> group(columns: [\"point\"])\n  |> aggregateWindow(every: 15m, fn: last, createEmpty: false)\n\n  |> last()",
+     "rawSql": "SELECT * FROM (\n  SELECT DISTINCT ON (id) time, point, value AS \"Value\"\n  FROM nibe JOIN (VALUES ('41929', '41929')) AS n (id, point) USING (id)\n  WHERE time > now() - interval '15 minutes' AND id IN ('41929')\n  ORDER BY id, time DESC) l ORDER BY time",
+     "format": "time_series",
+     "rawQuery": true,
+     "editorMode": "code",
      "refId": "A"
     }
    ],
@@ -810,8 +834,8 @@
     "showPercentChange": false
    },
    "datasource": {
-    "type": "influxdb",
-    "uid": "influxdb-home"
+    "type": "grafana-postgresql-datasource",
+    "uid": "tsdb"
    },
    "description": "How the pump rates the current Nord Pool price.",
    "id": 11,
@@ -828,10 +852,13 @@
    "targets": [
     {
      "datasource": {
-      "type": "influxdb",
-      "uid": "influxdb-home"
+      "type": "grafana-postgresql-datasource",
+      "uid": "tsdb"
      },
-     "query": "import \"dict\"\nfrom(bucket: \"home\")\n  |> range(start: -15m, stop: now())\n  |> filter(fn: (r) => r._measurement == \"nibe\" and r._field == \"value\")\n  |> filter(fn: (r) => r.id == \"50221\")\n  |> map(fn: (r) => ({_time: r._time, _value: r._value, point: dict.get(dict: [\"50221\": \"50221\"], key: r.id, default: r.id)}))\n  |> group(columns: [\"point\"])\n  |> aggregateWindow(every: 15m, fn: last, createEmpty: false)\n\n  |> last()",
+     "rawSql": "SELECT * FROM (\n  SELECT DISTINCT ON (id) time, point, value AS \"Value\"\n  FROM nibe JOIN (VALUES ('50221', '50221')) AS n (id, point) USING (id)\n  WHERE time > now() - interval '15 minutes' AND id IN ('50221')\n  ORDER BY id, time DESC) l ORDER BY time",
+     "format": "time_series",
+     "rawQuery": true,
+     "editorMode": "code",
      "refId": "A"
     }
    ],
@@ -872,8 +899,8 @@
     "showPercentChange": false
    },
    "datasource": {
-    "type": "influxdb",
-    "uid": "influxdb-home"
+    "type": "grafana-postgresql-datasource",
+    "uid": "tsdb"
    },
    "id": 12,
    "gridPos": {
@@ -889,11 +916,13 @@
    "targets": [
     {
      "datasource": {
-      "type": "influxdb",
-      "uid": "influxdb-home"
+      "type": "grafana-postgresql-datasource",
+      "uid": "tsdb"
      },
-     "query": "import \"date\"\nimport \"math\"\nmonth = float(v: date.month(t: now()))\ncold = 9.0 + 4.0 * math.cos(x: 2.0 * math.pi * (month - 8.5) / 12.0)\nfrom(bucket: \"home\")\n  |> range(start: -15m)\n  |> filter(fn: (r) => r._measurement == \"nibe\" and r._field == \"value\" and r.id == \"40013\")\n  |> last()\n  |> map(fn: (r) => ({_time: r._time, _value: if r._value <= 40.0 then 0.0 else\n      180.0 * 0.86 * (r._value - cold) / (40.0 - cold) / 65.0}))\n  |> keep(columns: [\"_time\", \"_value\"])",
-     "legendFormat": "Showers",
+     "rawSql": "WITH c AS (SELECT 9.0 + 4.0 * cos(2 * pi() * (extract(month FROM now()) - 8.5) / 12) AS cold)\nSELECT time, CASE WHEN value <= 40.0 THEN 0 ELSE\n       180 * 0.86 * (value - cold) / (40.0 - cold) / 65.0 END AS \"Showers\"\nFROM nibe, c\nWHERE id = '40013' AND time > now() - interval '15 minutes'\nORDER BY time DESC LIMIT 1",
+     "format": "table",
+     "rawQuery": true,
+     "editorMode": "code",
      "refId": "A"
     }
    ],
@@ -941,8 +970,8 @@
     "showPercentChange": false
    },
    "datasource": {
-    "type": "influxdb",
-    "uid": "influxdb-home"
+    "type": "grafana-postgresql-datasource",
+    "uid": "tsdb"
    },
    "description": "Typical showers (65 L at 4.8 L/min) the tank can give right now.",
    "id": 13,
@@ -972,34 +1001,46 @@
    "targets": [
     {
      "datasource": {
-      "type": "influxdb",
-      "uid": "influxdb-home"
+      "type": "grafana-postgresql-datasource",
+      "uid": "tsdb"
      },
-     "query": "import \"dict\"\nfrom(bucket: \"home\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"nibe\" and r._field == \"value\")\n  |> filter(fn: (r) => r.id == \"49994\")\n  |> map(fn: (r) => ({_time: r._time, _value: r._value, point: dict.get(dict: [\"49994\": \"Priority\"], key: r.id, default: r.id)}))\n  |> group(columns: [\"point\"])\n  |> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false)",
+     "rawSql": "SELECT $__timeGroupAlias(time, $__interval), point, last(value, time) AS \"Value\"\nFROM nibe JOIN (VALUES ('49994', 'Priority')) AS n (id, point) USING (id)\nWHERE $__timeFilter(time) AND id IN ('49994')\nGROUP BY 1, 2 ORDER BY 1",
+     "format": "time_series",
+     "rawQuery": true,
+     "editorMode": "code",
      "refId": "A"
     },
     {
      "datasource": {
-      "type": "influxdb",
-      "uid": "influxdb-home"
+      "type": "grafana-postgresql-datasource",
+      "uid": "tsdb"
      },
-     "query": "import \"dict\"\nfrom(bucket: \"home\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"nibe\" and r._field == \"value\")\n  |> filter(fn: (r) => r.id == \"43427\")\n  |> map(fn: (r) => ({_time: r._time, _value: r._value, point: dict.get(dict: [\"43427\": \"Compressor\"], key: r.id, default: r.id)}))\n  |> group(columns: [\"point\"])\n  |> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false)",
+     "rawSql": "SELECT $__timeGroupAlias(time, $__interval), point, last(value, time) AS \"Value\"\nFROM nibe JOIN (VALUES ('43427', 'Compressor')) AS n (id, point) USING (id)\nWHERE $__timeFilter(time) AND id IN ('43427')\nGROUP BY 1, 2 ORDER BY 1",
+     "format": "time_series",
+     "rawQuery": true,
+     "editorMode": "code",
      "refId": "B"
     },
     {
      "datasource": {
-      "type": "influxdb",
-      "uid": "influxdb-home"
+      "type": "grafana-postgresql-datasource",
+      "uid": "tsdb"
      },
-     "query": "import \"dict\"\nfrom(bucket: \"home\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"nibe\" and r._field == \"value\")\n  |> filter(fn: (r) => r.id == \"49993\")\n  |> map(fn: (r) => ({_time: r._time, _value: r._value, point: dict.get(dict: [\"49993\": \"Electric heater\"], key: r.id, default: r.id)}))\n  |> group(columns: [\"point\"])\n  |> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false)",
+     "rawSql": "SELECT $__timeGroupAlias(time, $__interval), point, last(value, time) AS \"Value\"\nFROM nibe JOIN (VALUES ('49993', 'Electric heater')) AS n (id, point) USING (id)\nWHERE $__timeFilter(time) AND id IN ('49993')\nGROUP BY 1, 2 ORDER BY 1",
+     "format": "time_series",
+     "rawQuery": true,
+     "editorMode": "code",
      "refId": "C"
     },
     {
      "datasource": {
-      "type": "influxdb",
-      "uid": "influxdb-home"
+      "type": "grafana-postgresql-datasource",
+      "uid": "tsdb"
      },
-     "query": "import \"dict\"\nfrom(bucket: \"home\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"nibe\" and r._field == \"value\")\n  |> filter(fn: (r) => r.id == \"41929\")\n  |> map(fn: (r) => ({_time: r._time, _value: r._value, point: dict.get(dict: [\"41929\": \"Spot price\"], key: r.id, default: r.id)}))\n  |> group(columns: [\"point\"])\n  |> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false)",
+     "rawSql": "SELECT $__timeGroupAlias(time, $__interval), point, last(value, time) AS \"Value\"\nFROM nibe JOIN (VALUES ('41929', 'Spot price')) AS n (id, point) USING (id)\nWHERE $__timeFilter(time) AND id IN ('41929')\nGROUP BY 1, 2 ORDER BY 1",
+     "format": "time_series",
+     "rawQuery": true,
+     "editorMode": "code",
      "refId": "D"
     }
    ],
@@ -1196,8 +1237,8 @@
     }
    },
    "datasource": {
-    "type": "influxdb",
-    "uid": "influxdb-home"
+    "type": "grafana-postgresql-datasource",
+    "uid": "tsdb"
    },
    "id": 15,
    "gridPos": {
@@ -1213,10 +1254,13 @@
    "targets": [
     {
      "datasource": {
-      "type": "influxdb",
-      "uid": "influxdb-home"
+      "type": "grafana-postgresql-datasource",
+      "uid": "tsdb"
      },
-     "query": "import \"dict\"\nfrom(bucket: \"home\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"nibe\" and r._field == \"value\")\n  |> filter(fn: (r) => r.id == \"40013\" or r.id == \"40014\")\n  |> map(fn: (r) => ({_time: r._time, _value: r._value, point: dict.get(dict: [\"40013\": \"Top (BT7)\", \"40014\": \"Charging (BT6)\"], key: r.id, default: r.id)}))\n  |> group(columns: [\"point\"])\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)",
+     "rawSql": "SELECT $__timeGroupAlias(time, $__interval), point, avg(value) AS \"Value\"\nFROM nibe JOIN (VALUES ('40013', 'Top (BT7)'), ('40014', 'Charging (BT6)')) AS n (id, point) USING (id)\nWHERE $__timeFilter(time) AND id IN ('40013', '40014')\nGROUP BY 1, 2 ORDER BY 1",
+     "format": "time_series",
+     "rawQuery": true,
+     "editorMode": "code",
      "refId": "A"
     }
    ],
@@ -1294,8 +1338,8 @@
     }
    },
    "datasource": {
-    "type": "influxdb",
-    "uid": "influxdb-home"
+    "type": "grafana-postgresql-datasource",
+    "uid": "tsdb"
    },
    "description": "The tank reheats when the charging sensor drops; a shower shows as a fall at the top.",
    "id": 16,
@@ -1312,10 +1356,13 @@
    "targets": [
     {
      "datasource": {
-      "type": "influxdb",
-      "uid": "influxdb-home"
+      "type": "grafana-postgresql-datasource",
+      "uid": "tsdb"
      },
-     "query": "import \"timezone\"\noption location = timezone.location(name: \"Europe/Helsinki\")\nfrom(bucket: \"home\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"mqtt_consumer\" and r.name == \"watermeter\" and r._field == \"rate\")\n  |> filter(fn: (r) => r._value > -20.0 and r._value < 20.0)\n  |> keep(columns: [\"_time\", \"_value\"])\n  |> aggregateWindow(every: 10m, fn: sum, createEmpty: false)",
+     "rawSql": "SELECT time_bucket('10 minutes', time) AS time, sum(rate) AS \"Value\"\nFROM mqtt_consumer\nWHERE integration_id IS NULL AND device_id IS NULL AND name = 'watermeter' AND $__timeFilter(time)\n  AND rate > -20 AND rate < 20\nGROUP BY 1 ORDER BY 1",
+     "format": "time_series",
+     "rawQuery": true,
+     "editorMode": "code",
      "refId": "A"
     }
    ],
@@ -1363,8 +1410,8 @@
     }
    },
    "datasource": {
-    "type": "influxdb",
-    "uid": "influxdb-home"
+    "type": "grafana-postgresql-datasource",
+    "uid": "tsdb"
    },
    "description": "From the water meter, per 10 minutes. Hot-water reheats follow big draws.",
    "id": 17,
@@ -1381,10 +1428,13 @@
    "targets": [
     {
      "datasource": {
-      "type": "influxdb",
-      "uid": "influxdb-home"
+      "type": "grafana-postgresql-datasource",
+      "uid": "tsdb"
      },
-     "query": "import \"dict\"\nfrom(bucket: \"home\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"nibe\" and r._field == \"value\")\n  |> filter(fn: (r) => r.id == \"40008\" or r.id == \"40012\" or r.id == \"43009\")\n  |> map(fn: (r) => ({_time: r._time, _value: r._value, point: dict.get(dict: [\"40008\": \"Supply (BT63)\", \"40012\": \"Return (BT3)\", \"43009\": \"Target supply\"], key: r.id, default: r.id)}))\n  |> group(columns: [\"point\"])\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)",
+     "rawSql": "SELECT $__timeGroupAlias(time, $__interval), point, avg(value) AS \"Value\"\nFROM nibe JOIN (VALUES ('40008', 'Supply (BT63)'), ('40012', 'Return (BT3)'), ('43009', 'Target supply')) AS n (id, point) USING (id)\nWHERE $__timeFilter(time) AND id IN ('40008', '40012', '43009')\nGROUP BY 1, 2 ORDER BY 1",
+     "format": "time_series",
+     "rawQuery": true,
+     "editorMode": "code",
      "refId": "A"
     }
    ],
@@ -1495,8 +1545,8 @@
     }
    },
    "datasource": {
-    "type": "influxdb",
-    "uid": "influxdb-home"
+    "type": "grafana-postgresql-datasource",
+    "uid": "tsdb"
    },
    "id": 18,
    "gridPos": {
@@ -1512,10 +1562,13 @@
    "targets": [
     {
      "datasource": {
-      "type": "influxdb",
-      "uid": "influxdb-home"
+      "type": "grafana-postgresql-datasource",
+      "uid": "tsdb"
      },
-     "query": "import \"dict\"\nfrom(bucket: \"home\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"nibe\" and r._field == \"value\")\n  |> filter(fn: (r) => r.id == \"40025\" or r.id == \"40026\" or r.id == \"40004\")\n  |> map(fn: (r) => ({_time: r._time, _value: r._value, point: dict.get(dict: [\"40025\": \"From rooms (BT20)\", \"40026\": \"Out of the house (BT21)\", \"40004\": \"Outdoor (BT1)\"], key: r.id, default: r.id)}))\n  |> group(columns: [\"point\"])\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)",
+     "rawSql": "SELECT $__timeGroupAlias(time, $__interval), point, avg(value) AS \"Value\"\nFROM nibe JOIN (VALUES ('40025', 'From rooms (BT20)'), ('40026', 'Out of the house (BT21)'), ('40004', 'Outdoor (BT1)')) AS n (id, point) USING (id)\nWHERE $__timeFilter(time) AND id IN ('40025', '40026', '40004')\nGROUP BY 1, 2 ORDER BY 1",
+     "format": "time_series",
+     "rawQuery": true,
+     "editorMode": "code",
      "refId": "A"
     }
    ],
@@ -1608,8 +1661,8 @@
     }
    },
    "datasource": {
-    "type": "influxdb",
-    "uid": "influxdb-home"
+    "type": "grafana-postgresql-datasource",
+    "uid": "tsdb"
    },
    "description": "Exhaust air from the rooms and what is left after the pump has taken its heat.",
    "id": 19,
@@ -1626,10 +1679,13 @@
    "targets": [
     {
      "datasource": {
-      "type": "influxdb",
-      "uid": "influxdb-home"
+      "type": "grafana-postgresql-datasource",
+      "uid": "tsdb"
      },
-     "query": "import \"dict\"\nfrom(bucket: \"home\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"nibe\" and r._field == \"value\")\n  |> filter(fn: (r) => r.id == \"41778\")\n  |> map(fn: (r) => ({_time: r._time, _value: r._value, point: dict.get(dict: [\"41778\": \"Compressor\"], key: r.id, default: r.id)}))\n  |> group(columns: [\"point\"])\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)",
+     "rawSql": "SELECT $__timeGroupAlias(time, $__interval), point, avg(value) AS \"Value\"\nFROM nibe JOIN (VALUES ('41778', 'Compressor')) AS n (id, point) USING (id)\nWHERE $__timeFilter(time) AND id IN ('41778')\nGROUP BY 1, 2 ORDER BY 1",
+     "format": "time_series",
+     "rawQuery": true,
+     "editorMode": "code",
      "refId": "A"
     }
    ],
@@ -1678,8 +1734,8 @@
     }
    },
    "datasource": {
-    "type": "influxdb",
-    "uid": "influxdb-home"
+    "type": "grafana-postgresql-datasource",
+    "uid": "tsdb"
    },
    "id": 20,
    "gridPos": {
@@ -1695,10 +1751,13 @@
    "targets": [
     {
      "datasource": {
-      "type": "influxdb",
-      "uid": "influxdb-home"
+      "type": "grafana-postgresql-datasource",
+      "uid": "tsdb"
      },
-     "query": "import \"dict\"\nfrom(bucket: \"home\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"nibe\" and r._field == \"value\")\n  |> filter(fn: (r) => r.id == \"40941\")\n  |> map(fn: (r) => ({_time: r._time, _value: r._value, point: dict.get(dict: [\"40941\": \"Degree minutes\"], key: r.id, default: r.id)}))\n  |> group(columns: [\"point\"])\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)",
+     "rawSql": "SELECT $__timeGroupAlias(time, $__interval), point, avg(value) AS \"Value\"\nFROM nibe JOIN (VALUES ('40941', 'Degree minutes')) AS n (id, point) USING (id)\nWHERE $__timeFilter(time) AND id IN ('40941')\nGROUP BY 1, 2 ORDER BY 1",
+     "format": "time_series",
+     "rawQuery": true,
+     "editorMode": "code",
      "refId": "A"
     }
    ],
@@ -1758,8 +1817,8 @@
     }
    },
    "datasource": {
-    "type": "influxdb",
-    "uid": "influxdb-home"
+    "type": "grafana-postgresql-datasource",
+    "uid": "tsdb"
    },
    "description": "Below −60 the compressor starts; near 0 the house is warm enough.",
    "id": 21,
@@ -1789,18 +1848,24 @@
    "targets": [
     {
      "datasource": {
-      "type": "influxdb",
-      "uid": "influxdb-home"
+      "type": "grafana-postgresql-datasource",
+      "uid": "tsdb"
      },
-     "query": "import \"timezone\"\nimport \"dict\"\noption location = timezone.location(name: \"Europe/Helsinki\")\n\nfrom(bucket: \"home\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"nibe\" and r._field == \"value\")\n  |> filter(fn: (r) => r.id == \"44308\" or r.id == \"44306\")\n  |> map(fn: (r) => ({_time: r._time, _value: r._value, point: dict.get(dict: [\"44308\": \"Heating, compressor\", \"44306\": \"Hot water, compressor\"], key: r.id, default: r.id)}))\n  |> group(columns: [\"point\"])\n  |> aggregateWindow(every: 1d, fn: spread, createEmpty: false)",
+     "rawSql": "SELECT time_bucket('1 day', time, 'Europe/Helsinki') AS time, point, max(value) - min(value) AS \"Value\"\nFROM nibe JOIN (VALUES ('44308', 'Heating, compressor'), ('44306', 'Hot water, compressor')) AS n (id, point) USING (id)\nWHERE $__timeFilter(time) AND id IN ('44308', '44306')\nGROUP BY 1, 2 ORDER BY 1",
+     "format": "time_series",
+     "rawQuery": true,
+     "editorMode": "code",
      "refId": "A"
     },
     {
      "datasource": {
-      "type": "influxdb",
-      "uid": "influxdb-home"
+      "type": "grafana-postgresql-datasource",
+      "uid": "tsdb"
      },
-     "query": "import \"timezone\"\nimport \"dict\"\noption location = timezone.location(name: \"Europe/Helsinki\")\n\ntotal = \nfrom(bucket: \"home\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"nibe\" and r._field == \"value\")\n  |> filter(fn: (r) => r.id == \"44300\" or r.id == \"44298\")\n  |> map(fn: (r) => ({_time: r._time, _value: r._value, point: dict.get(dict: [\"44300\": \"44300\", \"44298\": \"44298\"], key: r.id, default: r.id)}))\n  |> group(columns: [\"point\"])\n  |> aggregateWindow(every: 1d, fn: spread, createEmpty: false)\n\n  |> group() |> aggregateWindow(every: 1d, fn: sum, createEmpty: false)\ncomp = \nfrom(bucket: \"home\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"nibe\" and r._field == \"value\")\n  |> filter(fn: (r) => r.id == \"44308\" or r.id == \"44306\")\n  |> map(fn: (r) => ({_time: r._time, _value: r._value, point: dict.get(dict: [\"44308\": \"c\", \"44306\": \"c\"], key: r.id, default: r.id)}))\n  |> group(columns: [\"point\"])\n  |> aggregateWindow(every: 1d, fn: spread, createEmpty: false)\n\n  |> group() |> aggregateWindow(every: 1d, fn: sum, createEmpty: false)\njoin(tables: {t: total, c: comp}, on: [\"_time\"])\n  |> map(fn: (r) => ({_time: r._time, _value: r._value_t - r._value_c, point: \"Electric heater\"}))\n  |> group(columns: [\"point\"])",
+     "rawSql": "WITH total AS (\nSELECT time, sum(s) AS v FROM (\n  SELECT time_bucket('1 day', time, 'Europe/Helsinki') AS time, id, max(value) - min(value) AS s\n  FROM nibe WHERE $__timeFilter(time) AND id IN ('44300', '44298') GROUP BY 1, 2) d\nGROUP BY 1), comp AS (\nSELECT time, sum(s) AS v FROM (\n  SELECT time_bucket('1 day', time, 'Europe/Helsinki') AS time, id, max(value) - min(value) AS s\n  FROM nibe WHERE $__timeFilter(time) AND id IN ('44308', '44306') GROUP BY 1, 2) d\nGROUP BY 1)\nSELECT time, 'Electric heater' AS point, total.v - comp.v AS \"Value\"\nFROM total JOIN comp USING (time) ORDER BY 1",
+     "format": "time_series",
+     "rawQuery": true,
+     "editorMode": "code",
      "refId": "B"
     }
    ],
@@ -1893,8 +1958,8 @@
     }
    },
    "datasource": {
-    "type": "influxdb",
-    "uid": "influxdb-home"
+    "type": "grafana-postgresql-datasource",
+    "uid": "tsdb"
    },
    "description": "From the pump's heat meters. History starts when the poller was added (2026-10-25).",
    "timeFrom": "30d",
@@ -1912,10 +1977,13 @@
    "targets": [
     {
      "datasource": {
-      "type": "influxdb",
-      "uid": "influxdb-home"
+      "type": "grafana-postgresql-datasource",
+      "uid": "tsdb"
      },
-     "query": "import \"timezone\"\nimport \"dict\"\noption location = timezone.location(name: \"Europe/Helsinki\")\n\nfrom(bucket: \"home\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"nibe\" and r._field == \"value\")\n  |> filter(fn: (r) => r.id == \"43144\")\n  |> map(fn: (r) => ({_time: r._time, _value: r._value, point: dict.get(dict: [\"43144\": \"Compressor\"], key: r.id, default: r.id)}))\n  |> group(columns: [\"point\"])\n  |> aggregateWindow(every: 1d, fn: spread, createEmpty: false)",
+     "rawSql": "SELECT time_bucket('1 day', time, 'Europe/Helsinki') AS time, point, max(value) - min(value) AS \"Value\"\nFROM nibe JOIN (VALUES ('43144', 'Compressor')) AS n (id, point) USING (id)\nWHERE $__timeFilter(time) AND id IN ('43144')\nGROUP BY 1, 2 ORDER BY 1",
+     "format": "time_series",
+     "rawQuery": true,
+     "editorMode": "code",
      "refId": "A"
     }
    ],
@@ -1963,8 +2031,8 @@
     }
    },
    "datasource": {
-    "type": "influxdb",
-    "uid": "influxdb-home"
+    "type": "grafana-postgresql-datasource",
+    "uid": "tsdb"
    },
    "description": "The pump's own compressor energy counter (myUplink calls it \"time factor\").",
    "timeFrom": "30d",
@@ -1982,10 +2050,13 @@
    "targets": [
     {
      "datasource": {
-      "type": "influxdb",
-      "uid": "influxdb-home"
+      "type": "grafana-postgresql-datasource",
+      "uid": "tsdb"
      },
-     "query": "import \"timezone\"\nimport \"dict\"\noption location = timezone.location(name: \"Europe/Helsinki\")\n\nheat = \nfrom(bucket: \"home\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"nibe\" and r._field == \"value\")\n  |> filter(fn: (r) => r.id == \"44308\" or r.id == \"44306\")\n  |> map(fn: (r) => ({_time: r._time, _value: r._value, point: dict.get(dict: [\"44308\": \"Heating, compressor\", \"44306\": \"Hot water, compressor\"], key: r.id, default: r.id)}))\n  |> group(columns: [\"point\"])\n  |> aggregateWindow(every: 1d, fn: spread, createEmpty: false)\n\n  |> group() |> aggregateWindow(every: 1d, fn: sum, createEmpty: false)\nelec = \nfrom(bucket: \"home\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"nibe\" and r._field == \"value\")\n  |> filter(fn: (r) => r.id == \"43144\")\n  |> map(fn: (r) => ({_time: r._time, _value: r._value, point: dict.get(dict: [\"43144\": \"e\"], key: r.id, default: r.id)}))\n  |> group(columns: [\"point\"])\n  |> aggregateWindow(every: 1d, fn: spread, createEmpty: false)\n\n  |> group()\njoin(tables: {h: heat, e: elec}, on: [\"_time\"])\n  |> filter(fn: (r) => r._value_e > 0.5)\n  |> map(fn: (r) => ({_time: r._time, _value: r._value_h / r._value_e}))",
+     "rawSql": "WITH heat AS (\nSELECT time, sum(s) AS v FROM (\n  SELECT time_bucket('1 day', time, 'Europe/Helsinki') AS time, id, max(value) - min(value) AS s\n  FROM nibe WHERE $__timeFilter(time) AND id IN ('44308', '44306') GROUP BY 1, 2) d\nGROUP BY 1), elec AS (\nSELECT time, sum(s) AS v FROM (\n  SELECT time_bucket('1 day', time, 'Europe/Helsinki') AS time, id, max(value) - min(value) AS s\n  FROM nibe WHERE $__timeFilter(time) AND id IN ('43144') GROUP BY 1, 2) d\nGROUP BY 1)\nSELECT time, heat.v / elec.v AS \"Value\"\nFROM heat JOIN elec USING (time) WHERE elec.v > 0.5 ORDER BY 1",
+     "format": "time_series",
+     "rawQuery": true,
+     "editorMode": "code",
      "refId": "A"
     }
    ],
@@ -2032,8 +2103,8 @@
     }
    },
    "datasource": {
-    "type": "influxdb",
-    "uid": "influxdb-home"
+    "type": "grafana-postgresql-datasource",
+    "uid": "tsdb"
    },
    "description": "Compressor heat divided by the compressor energy counter: an efficiency estimate from the pump's own counters, not a measured COP (fans and pumps are not included).",
    "timeFrom": "30d",
@@ -2051,10 +2122,13 @@
    "targets": [
     {
      "datasource": {
-      "type": "influxdb",
-      "uid": "influxdb-home"
+      "type": "grafana-postgresql-datasource",
+      "uid": "tsdb"
      },
-     "query": "import \"dict\"\nfrom(bucket: \"home\")\n  |> range(start: -15m, stop: now())\n  |> filter(fn: (r) => r._measurement == \"nibe\" and r._field == \"value\")\n  |> filter(fn: (r) => r.id == \"43420\" or r.id == \"43424\" or r.id == \"43416\" or r.id == \"43081\")\n  |> map(fn: (r) => ({_time: r._time, _value: r._value, point: dict.get(dict: [\"43420\": \"Running hours\", \"43424\": \"Hot water hours\", \"43416\": \"Compressor starts\", \"43081\": \"Heater hours (weighted)\"], key: r.id, default: r.id)}))\n  |> group(columns: [\"point\"])\n  |> aggregateWindow(every: 15m, fn: last, createEmpty: false)\n\n  |> last()",
+     "rawSql": "SELECT * FROM (\n  SELECT DISTINCT ON (id) time, point, value AS \"Value\"\n  FROM nibe JOIN (VALUES ('43420', 'Running hours'), ('43424', 'Hot water hours'), ('43416', 'Compressor starts'), ('43081', 'Heater hours (weighted)')) AS n (id, point) USING (id)\n  WHERE time > now() - interval '15 minutes' AND id IN ('43420', '43424', '43416', '43081')\n  ORDER BY id, time DESC) l ORDER BY time",
+     "format": "time_series",
+     "rawQuery": true,
+     "editorMode": "code",
      "refId": "A"
     }
    ],
@@ -2095,8 +2169,8 @@
     "showPercentChange": false
    },
    "datasource": {
-    "type": "influxdb",
-    "uid": "influxdb-home"
+    "type": "grafana-postgresql-datasource",
+    "uid": "tsdb"
    },
    "description": "Since installation. Heater hours are weighted by heater power.",
    "id": 26,
@@ -2113,10 +2187,13 @@
    "targets": [
     {
      "datasource": {
-      "type": "influxdb",
-      "uid": "influxdb-home"
+      "type": "grafana-postgresql-datasource",
+      "uid": "tsdb"
      },
-     "query": "import \"dict\"\nfrom(bucket: \"home\")\n  |> range(start: -15m, stop: now())\n  |> filter(fn: (r) => r._measurement == \"nibe\" and r._field == \"value\")\n  |> filter(fn: (r) => r.id == \"44300\" or r.id == \"44298\")\n  |> map(fn: (r) => ({_time: r._time, _value: r._value, point: dict.get(dict: [\"44300\": \"Heating\", \"44298\": \"Hot water\"], key: r.id, default: r.id)}))\n  |> group(columns: [\"point\"])\n  |> aggregateWindow(every: 15m, fn: last, createEmpty: false)\n\n  |> last()",
+     "rawSql": "SELECT * FROM (\n  SELECT DISTINCT ON (id) time, point, value AS \"Value\"\n  FROM nibe JOIN (VALUES ('44300', 'Heating'), ('44298', 'Hot water')) AS n (id, point) USING (id)\n  WHERE time > now() - interval '15 minutes' AND id IN ('44300', '44298')\n  ORDER BY id, time DESC) l ORDER BY time",
+     "format": "time_series",
+     "rawQuery": true,
+     "editorMode": "code",
      "refId": "A"
     }
    ],
@@ -2158,8 +2235,8 @@
     "showPercentChange": false
    },
    "datasource": {
-    "type": "influxdb",
-    "uid": "influxdb-home"
+    "type": "grafana-postgresql-datasource",
+    "uid": "tsdb"
    },
    "description": "All heat delivered, including the electric heater.",
    "id": 27,
@@ -2189,10 +2266,13 @@
    "targets": [
     {
      "datasource": {
-      "type": "influxdb",
-      "uid": "influxdb-home"
+      "type": "grafana-postgresql-datasource",
+      "uid": "tsdb"
      },
-     "query": "import \"dict\"\nnames = [\"47007\": \"Heating curve\", \"47011\": \"Curve offset\", \"47041\": \"Hot water demand (0 eco, 1 normal, 2 lux)\",\n         \"47137\": \"Operating mode (0 auto)\", \"47212\": \"Max electric heater (×10 W)\", \"47206\": \"Compressor starts at (DM)\",\n         \"48072\": \"Heater allowed from (DM below start)\", \"47375\": \"Stop heating above (°C)\",\n         \"47376\": \"Stop electric heater above (°C)\", \"48442\": \"Smart Price Adaption on\",\n         \"48444\": \"Price effect on room temperature\", \"48566\": \"Price effect on hot water\",\n         \"47050\": \"Periodic hot-water boost on\", \"47051\": \"Boost every (days)\"]\nfrom(bucket: \"home\")\n  |> range(start: -1h)\n  |> filter(fn: (r) => r._measurement == \"nibe\" and r._field == \"value\")\n  |> filter(fn: (r) => dict.get(dict: names, key: r.id, default: \"\") != \"\")\n  |> last()\n  |> map(fn: (r) => ({Setting: dict.get(dict: names, key: r.id, default: r.id), Value: r._value, Since: r._time}))\n  |> group()\n  |> keep(columns: [\"Setting\", \"Value\"])",
+     "rawSql": "SELECT DISTINCT ON (id) setting AS \"Setting\", value AS \"Value\"\nFROM nibe JOIN (VALUES ('47007', 'Heating curve'), ('47011', 'Curve offset'), ('47041', 'Hot water demand (0 eco, 1 normal, 2 lux)'), ('47137', 'Operating mode (0 auto)'), ('47212', 'Max electric heater (×10 W)'), ('47206', 'Compressor starts at (DM)'), ('48072', 'Heater allowed from (DM below start)'), ('47375', 'Stop heating above (°C)'), ('47376', 'Stop electric heater above (°C)'), ('48442', 'Smart Price Adaption on'), ('48444', 'Price effect on room temperature'), ('48566', 'Price effect on hot water'), ('47050', 'Periodic hot-water boost on'), ('47051', 'Boost every (days)')) AS n (id, setting) USING (id)\nWHERE time > now() - interval '1 hour' AND id IN ('47007', '47011', '47041', '47137', '47212', '47206', '48072', '47375', '47376', '48442', '48444', '48566', '47050', '47051')\nORDER BY id, time DESC",
+     "format": "table",
+     "rawQuery": true,
+     "editorMode": "code",
      "refId": "A"
     }
    ],
@@ -2221,8 +2301,8 @@
     }
    },
    "datasource": {
-    "type": "influxdb",
-    "uid": "influxdb-home"
+    "type": "grafana-postgresql-datasource",
+    "uid": "tsdb"
    },
    "description": "Current values of settings that matter for comfort and cost. Change them on the pump or in myUplink.",
    "id": 29,
@@ -2239,10 +2319,13 @@
    "targets": [
     {
      "datasource": {
-      "type": "influxdb",
-      "uid": "influxdb-home"
+      "type": "grafana-postgresql-datasource",
+      "uid": "tsdb"
      },
-     "query": "import \"dict\"\nfrom(bucket: \"home\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"nibe\" and r._field == \"value\")\n  |> filter(fn: (r) => r.id == \"47007\" or r.id == \"47011\" or r.id == \"47041\")\n  |> map(fn: (r) => ({_time: r._time, _value: r._value, point: dict.get(dict: [\"47007\": \"Heating curve\", \"47011\": \"Curve offset\", \"47041\": \"Hot water demand\"], key: r.id, default: r.id)}))\n  |> group(columns: [\"point\"])\n  |> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false)",
+     "rawSql": "SELECT $__timeGroupAlias(time, $__interval), point, last(value, time) AS \"Value\"\nFROM nibe JOIN (VALUES ('47007', 'Heating curve'), ('47011', 'Curve offset'), ('47041', 'Hot water demand')) AS n (id, point) USING (id)\nWHERE $__timeFilter(time) AND id IN ('47007', '47011', '47041')\nGROUP BY 1, 2 ORDER BY 1",
+     "format": "time_series",
+     "rawQuery": true,
+     "editorMode": "code",
      "refId": "A"
     }
    ],
@@ -2288,8 +2371,8 @@
     }
    },
    "datasource": {
-    "type": "influxdb",
-    "uid": "influxdb-home"
+    "type": "grafana-postgresql-datasource",
+    "uid": "tsdb"
    },
    "description": "Step changes show when someone adjusted the pump.",
    "id": 30,

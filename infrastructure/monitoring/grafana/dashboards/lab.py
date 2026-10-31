@@ -3,8 +3,8 @@
 import heatpump
 import home
 from lib import (BAD, GOOD, LOKI, MUTED, SLOTS, WARN, Dashboard, barchart, bargauge, by_name, deploy_annotation,
-                 fixed_colors, flux, labels_to_fields, logs, loki, merge, organize, prom, reduce_rows, sort_by, sql,
-                 stat, state_timeline, status_history, table, thresholds, timeseries, value_map)
+                 fixed_colors, labels_to_fields, logs, loki, merge, organize, prom, reduce_rows, sort_by, sql,
+                 stat, state_timeline, status_history, table, thresholds, timeseries, tsdb, value_map)
 
 UP_DOWN = value_map([(1, "Up", GOOD), (0, "Down", BAD)])
 APPS = 'label_replace({metric}{{job=~"probe/kube-prometheus-stack/apps-.*"}}, "app", "$1", "instance", "https://([^/]+).*")'
@@ -560,16 +560,14 @@ def overview_dashboard():
     home.overview_house(d)
     home.overview_house_extra(
         d,
-        stat("Showers left", [flux(heatpump.hot_water_left(per="shower"), legend="Showers")], decimals=1, graph=False,
+        stat("Showers left", [heatpump.hot_water_left(per="shower")], decimals=1, graph=False,
              thr=thresholds(BAD, (1, WARN), (2, SLOTS[0])), links=[{"title": "Heat pump", "url": "/d/home-heatpump"}],
              desc="Typical showers the hot-water tank can give now (heat pump dashboard)."),
-        stat("Grid CO₂", [flux(home.fingrid({"co2_consumption": "Consumed"}, start="-30m", stop="now()", fn="last")
-                               + "\n  |> last()")], unit="suffix: g/kWh", decimals=0, graph=False,
+        stat("Grid CO₂", [tsdb(home.fingrid_now({"co2_consumption": "Consumed"}))], unit="suffix: g/kWh", decimals=0, graph=False,
              thr=thresholds(GOOD, (50, WARN), (100, BAD)), links=[{"title": "Energy", "url": "/d/home-energy"}]))
-    d.add(barchart("Spot price today and tomorrow", [home.flux(home.TZ + 'import "date"\n' + home.prices(
-        start="today()", stop="date.add(d: 2d, to: today())"))], unit="c/kWh", decimals=1, thr=home.PRICE_THR,
+    d.add(barchart("Spot price today and tomorrow", [home.SPOT_TODAY_TOMORROW], unit="c/kWh", decimals=1, thr=home.PRICE_THR,
         color={"mode": "thresholds"}, x_field="_time", label_spacing=100, display_name="Price"), 12, 7)
-    d.add(timeseries("Power by plug", [home.flux(home.power())], unit="watt", stack=True, fill=40, gradient="none",
+    d.add(timeseries("Power by plug", [tsdb(home.power())], unit="watt", stack=True, fill=40, gradient="none",
                      display_name=home.BY_DEVICE, overrides=home.PLUG_OVERRIDES, legend="right", decimals=0), 12, 7)
     d.row("Homelab")
     d.add(stat("Apps down", [prom(f'count({APPS.format(metric="probe_success")} == 0) or vector(0)', instant=True)],

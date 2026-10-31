@@ -5,6 +5,7 @@ import json
 PROM = {"type": "prometheus", "uid": "prometheus"}
 LOKI = {"type": "loki", "uid": "loki"}
 INFLUX = {"type": "influxdb", "uid": "influxdb-home"}
+TSDB = {"type": "grafana-postgresql-datasource", "uid": "tsdb"}
 PG = {db: {"type": "grafana-postgresql-datasource", "uid": f"pg-{db}"} for db in ("ferrotune", "homectl", "immich", "bambuddy")}
 
 # Categorical slots, in fixed order (validated for adjacent-pair CVD
@@ -46,6 +47,68 @@ def flux(query, legend=""):
 
 def sql(db, query, fmt="table"):
     return {"datasource": PG[db], "rawSql": query.strip(), "format": fmt, "rawQuery": True, "editorMode": "code"}
+
+
+def tsdb(query, fmt="time_series"):
+    """SQL against TimescaleDB (docs/monitoring.md, "Querying"). With time_series, every text column becomes a
+    label of the numeric columns, like a Flux group key: name the value column "Value" and the label columns
+    after the Flux group columns (place, device, series, point) so displayName templates keep working.
+    Use fmt="table" for text values and for rows without a time column."""
+    return {"datasource": TSDB, "rawSql": query.strip(), "format": fmt, "rawQuery": True, "editorMode": "code"}
+
+
+# SQL fragments for tsdb. Ranges are templates over the time column ({t}); always bound time, because only the
+# time filter skips chunks. TimescaleDB excludes chunks for literals and now() - interval, but not for
+# date_trunc(..., 'Europe/Helsinki'), so the calendar ranges carry a redundant now() bound (3 s -> 5 ms).
+HEL = "'Europe/Helsinki'"
+RANGE = "$__timeFilter({t})"
+TODAY = "{t} >= date_trunc('day', now(), 'Europe/Helsinki') AND {t} > now() - interval '1 day'"
+MONTH = "{t} >= date_trunc('month', now(), 'Europe/Helsinki') AND {t} > now() - interval '31 days'"
+
+
+def since(interval):
+    """Range from `interval` ago, e.g. since("3 hours")."""
+    return "{t} > now() - interval '" + interval + "'"
+
+
+def where(rng, col="time"):
+    return rng.replace("{t}", col)
+
+
+def bucket(every=None, col="time"):
+    """GROUP BY expression aliased "time": Grafana's interval by default, else a PostgreSQL interval. Days and
+    longer follow Helsinki's calendar (weeks start on Monday)."""
+    if every is None:
+        return f"$__timeGroupAlias({col}, $__interval)"
+    if every.split()[-1].rstrip("s") in ("day", "week", "month", "year"):
+        return f"time_bucket('{every}', {col}, {HEL}) AS time"
+    return f"time_bucket('{every}', {col}) AS time"
+
+
+def lit(s):
+    return "'" + str(s).replace("'", "''") + "'"
+
+
+def in_list(keys):
+    return "(" + ", ".join(lit(k) for k in keys) + ")"
+
+
+def values(mapping, key, label):
+    """(VALUES ('id', 'Name'), ...) AS n (key, label): the SQL form of Flux dict.get()."""
+    return "(VALUES " + ", ".join(f"({lit(k)}, {lit(v)})" for k, v in mapping.items()) + f") AS n ({key}, {label})"
+
+
+def latest(query, key):
+    """Last row per `key` of a query with a time column (Flux last() per series)."""
+    return f"SELECT * FROM (SELECT DISTINCT ON ({key}) * FROM ({query}) q ORDER BY {key}, time DESC) l ORDER BY time"
+
+
+AGG = {"mean": "avg({v})", "min": "min({v})", "max": "max({v})", "sum": "sum({v})", "last": "last({v}, time)",
+       "spread": "max({v}) - min({v})"}
+
+
+def agg(fn, col):
+    return AGG[fn].format(v=col)
 
 
 # --- field config helpers ----------------------------------------------------

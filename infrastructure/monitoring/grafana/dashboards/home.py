@@ -1,10 +1,8 @@
-"""Home dashboards: energy & water, climate, devices (InfluxDB home/nordpool)."""
+"""Home dashboards: energy & water, climate, devices (TimescaleDB tsdb; prices still InfluxDB)."""
 
-from lib import (BAD, GOOD, MUTED, SLOTS, WARN, Dashboard, barchart, bargauge, by_name, fixed_colors, flux,
-                 organize, reduce_rows, stat, state_timeline, status_history, table, text, thresholds, timeseries,
-                 value_map)
-
-TZ = 'import "timezone"\noption location = timezone.location(name: "Europe/Helsinki")\n'
+from lib import (BAD, GOOD, HEL, MONTH, MUTED, RANGE, SLOTS, TODAY, WARN, Dashboard, agg, barchart, bargauge,
+                 bucket, by_name, fixed_colors, flux, in_list, latest, lit, organize, reduce_rows, since, stat,
+                 state_timeline, status_history, table, thresholds, timeseries, tsdb, value_map, values, where)
 
 # SwitchBot BLE sensors (device_id -> place). Unlisted ids are neighbours'.
 INDOOR = {
@@ -29,47 +27,190 @@ PLUGS = ["Fridge", "Freezer", "PC", "Sim racing rig", "3D printer", "Outdoor hea
 PLUG_COLORS = {name: SLOTS[i] for i, name in enumerate(PLUGS)}
 
 
-def _dict(names):
-    return "[" + ", ".join(f'"{k}": "{v}"' for k, v in names.items()) + "]"
 
-
-def _set(names):
-    return "[" + ", ".join(f'"{k}"' for k in names) + "]"
-
-
-def _ids(names):
-    """device_id filter InfluxDB can push down to storage (contains() cannot)."""
-    return " or ".join(f'r.device_id == "{k}"' for k in names)
-
-
-def ble(field, names, every="v.windowPeriod", start="v.timeRangeStart", stop="v.timeRangeStop", fn="mean"):
-    """One series per place; both BLE gateways report each sensor, mean merges them."""
+def ble(field, names, every=None, rng=RANGE, fn="mean"):
+    """One series per place; both BLE gateways report each sensor, so the mean merges them."""
     return f'''
-import "dict"
-names = {_dict(names)}
-from(bucket: "home")
-  |> range(start: {start}, stop: {stop})
-  |> filter(fn: (r) => r._measurement == "mqtt_consumer" and r._field == "{field}")
-  |> filter(fn: (r) => {_ids(names)})
-  |> map(fn: (r) => ({{_time: r._time, _value: float(v: r._value), place: dict.get(dict: names, key: r.device_id, default: r.device_id)}}))
-  |> group(columns: ["place"])
-  |> aggregateWindow(every: {every}, fn: {fn}, createEmpty: false)
-'''
+SELECT {bucket(every)}, place, {agg(fn, field)} AS "Value"
+FROM mqtt_consumer JOIN {values(names, "device_id", "place")} USING (device_id)
+WHERE {where(rng)} AND device_id IN {in_list(names)} AND {field} IS NOT NULL
+GROUP BY 1, 2 ORDER BY 1'''
 
 
-def power(every="v.windowPeriod", start="v.timeRangeStart", stop="v.timeRangeStop", devices=None, time_src="_stop"):
-    dev = ""
-    if devices:
-        dev = "\n  |> filter(fn: (r) => " + " or ".join(f'r.name == "{d}"' for d in devices) + ")"
+def ble_now(field, names, interval="3 hours"):
+    """The latest window of ble() per place."""
+    return latest(ble(field, names, rng=since(interval)), "place")
+
+
+def power(every=None, rng=RANGE, devices=None):
+    """Mean W per Tuya plug (raw_19 is tenths of a watt), labelled `device`."""
+    dev = f" AND name IN {in_list(devices)}" if devices else ""
+    return f'''
+SELECT {bucket(every)}, name AS device, avg(raw_19) / 10.0 AS "Value"
+FROM mqtt_consumer
+WHERE integration_id = 'tuya' AND raw_19 IS NOT NULL AND {where(rng)}{dev}
+GROUP BY 1, 2 ORDER BY 1'''
+
+
+def daily_energy(devices=None):
+    """kWh per plug and Helsinki day: hourly mean W (= Wh) summed."""
+    return f'''
+SELECT time_bucket('1 day', time, {HEL}) AS time, device, sum("Value") / 1000 AS "Value"
+FROM ({power("1 hour", devices=devices)}) h
+GROUP BY 1, 2 ORDER BY 1'''
+
+
+PLUGS_NOW = '''
+SELECT sum(w) AS "Value" FROM (
+  SELECT DISTINCT ON (name) raw_19 / 10.0 AS w FROM mqtt_consumer
+  WHERE integration_id = 'tuya' AND raw_19 IS NOT NULL AND time > now() - interval '10 minutes'
+  ORDER BY name, time DESC) l'''
+
+PLUG_ENERGY_TODAY = f'''
+SELECT sum("Value") / 1000 AS "Value" FROM ({power("1 hour", rng=TODAY)}) h'''
+
+
+def prices(rng=RANGE):
+    """Nord Pool spot price (c/kWh incl. VAT), hourly mean."""
+    return f'''
+SELECT time_bucket('1 hour', time) AS time, avg(price) AS "Value"
+FROM nordpool_price WHERE {where(rng)}
+GROUP BY 1 ORDER BY 1'''
+
+
+def cost(rng=RANGE):
+    """Hourly € per plug: mean W over an hour is Wh; price is c/kWh."""
+    return f'''
+WITH energy AS ({power("1 hour", rng=rng)}),
+price AS ({prices(rng)})
+SELECT time, device, energy."Value" / 1000 * price."Value" / 100 AS "Value"
+FROM energy JOIN price USING (time) ORDER BY 1'''
+
+
+def total(query):
+    """Sum of every row of a query (Flux group() |> sum())."""
+    return f'SELECT sum("Value") AS "Value" FROM ({query}) q'
+
+
+def daily_cost():
+    return f'''
+SELECT time_bucket('1 day', time, {HEL}) AS time, device, sum("Value") AS "Value"
+FROM ({cost()}) c GROUP BY 1, 2 ORDER BY 1'''
+
+
+PRICE_TODAY_TOMORROW = prices(TODAY + " AND {t} < date_trunc('day', now(), 'Europe/Helsinki') + interval '2 days'")
+PRICE_NOW = f'''
+SELECT * FROM ({prices("{t} > now() - interval '2 hours' AND {t} <= now()")}) p ORDER BY time DESC LIMIT 1'''
+PRICE_BY_HOUR = '''
+SELECT time_bucket('1 day', time, 'Europe/Helsinki') AS time,
+       to_char(time_bucket('1 hour', time) AT TIME ZONE 'Europe/Helsinki', 'HH24') AS hour, avg(price) AS "Value"
+FROM nordpool_price WHERE time > now() - interval '30 days' AND time <= now()
+GROUP BY 1, 2 ORDER BY 1'''
+
+
+def water(rng=RANGE, every="1 hour", extra=""):
+    """Litres per period, from the meter's `rate` field (litres since the previous reading)."""
+    return f'''
+SELECT {bucket(every)}, sum(rate) AS "Value"
+FROM mqtt_consumer
+WHERE integration_id IS NULL AND device_id IS NULL AND name = 'watermeter' AND {where(rng)}
+  AND rate > -20 AND rate < 20{extra}
+GROUP BY 1 ORDER BY 1'''
+
+
+WATER_TODAY = f'SELECT sum("Value") AS "Value" FROM ({water(TODAY)}) w'
+NIGHT = " AND extract(hour FROM time AT TIME ZONE 'Europe/Helsinki') BETWEEN 2 AND 4"
+
+# Weather model of daily electricity use, fitted on Datahub 2021–2024 against FMI daily mean temperature (R² 0.8).
+ELEC_BASE, ELEC_SLOPE, ELEC_BALANCE = 19.9, 1.86, 10.5
+
+
+def electricity(every=None, rng=RANGE):
+    """Metered whole-house kWh (Datahub, hourly), optionally summed per period as series "Used"."""
+    if not every:
+        return f'''
+SELECT time, kwh AS "Value" FROM electricity WHERE {where(rng)} ORDER BY 1'''
+    return f'''
+SELECT {bucket(every)}, 'Used' AS series, sum(kwh) AS "Value"
+FROM electricity WHERE {where(rng)}
+GROUP BY 1 ORDER BY 1'''
+
+
+def expected_electricity(rng=RANGE):
+    """Daily kWh the weather model expects, stamped at local midnight like electricity("1 day")."""
+    return f'''
+SELECT time_bucket('1 day', time, {HEL}) AS time, 'Expected from weather' AS series,
+       {ELEC_BASE} + {ELEC_SLOPE} * greatest({ELEC_BALANCE} - value, 0) AS "Value"
+FROM fmi_daily WHERE param = 'tday' AND {where(rng)} ORDER BY 1'''
+
+
+def fingrid(series, every=None, rng=RANGE, fn="mean"):
+    """Fingrid 3-minute data, one series per name, relabelled."""
+    return f'''
+SELECT {bucket(every)}, n.label AS series, {agg(fn, "value")} AS "Value"
+FROM fingrid JOIN {values(series, "code", "label")} ON fingrid.series = n.code
+WHERE {where(rng)} AND fingrid.series IN {in_list(series)}
+GROUP BY 1, 2 ORDER BY 1'''
+
+
+def fingrid_now(series):
+    """The latest value of each series, within half an hour."""
+    return f'''
+SELECT * FROM (
+  SELECT DISTINCT ON (fingrid.series) time, n.label AS series, value AS "Value"
+  FROM fingrid JOIN {values(series, "code", "label")} ON fingrid.series = n.code
+  WHERE time > now() - interval '30 minutes' AND fingrid.series IN {in_list(series)}
+  ORDER BY fingrid.series, time DESC) l ORDER BY time'''
+
+
+FINGRID_OTHER = '''
+SELECT * FROM (
+  SELECT $__timeGroupAlias(time, $__interval), 'Other' AS series,
+         avg(value) FILTER (WHERE series = 'production') - avg(value) FILTER (WHERE series = 'nuclear')
+         - avg(value) FILTER (WHERE series = 'hydro') - avg(value) FILTER (WHERE series = 'wind') AS "Value"
+  FROM fingrid
+  WHERE $__timeFilter(time) AND series IN ('production', 'nuclear', 'hydro', 'wind')
+  GROUP BY 1) o
+WHERE "Value" IS NOT NULL ORDER BY 1'''
+
+
+def household_co2(rng=RANGE):
+    """kg CO₂ per hour: metered kWh × the hour's consumption CO₂ intensity (backfilled hourly + live 3-min)."""
+    return f'''
+WITH co2 AS (
+  SELECT hour, avg(c) AS c FROM (
+    SELECT time_bucket('1 hour', time) AS hour, value AS c
+    FROM fingrid_hourly WHERE series = 'co2_consumption' AND {where(rng)}
+    UNION ALL
+    SELECT time_bucket('1 hour', time), avg(value)
+    FROM fingrid WHERE series = 'co2_consumption' AND {where(rng)} GROUP BY 1) u
+  GROUP BY 1)
+SELECT e.time, e.kwh * co2.c / 1000 AS "Value"
+FROM electricity e JOIN co2 ON co2.hour = e.time
+WHERE {where(rng, "e.time")} ORDER BY 1'''
+
+
+# Nord Pool prices reach tsdb only through backfill runs until nordpool-mqtt writes there (docs/monitoring.md,
+# "Writers"), so the panels that need today's prices stay on InfluxDB until then. Their SQL is above; flip this
+# and delete the Flux below once nordpool_price is live in tsdb.
+PRICES_IN_TSDB = False
+TZ = 'import "timezone"\noption location = timezone.location(name: "Europe/Helsinki")\n'
+
+
+def priced(sql_query, flux_query, fmt="time_series"):
+    return tsdb(sql_query, fmt) if PRICES_IN_TSDB else flux(TZ + flux_query)
+
+
+def flux_power(every="v.windowPeriod", start="v.timeRangeStart", stop="v.timeRangeStop"):
     return f'''from(bucket: "home")
   |> range(start: {start}, stop: {stop})
-  |> filter(fn: (r) => r._measurement == "mqtt_consumer" and r.integration_id == "tuya" and r._field == "raw_19"){dev}
+  |> filter(fn: (r) => r._measurement == "mqtt_consumer" and r.integration_id == "tuya" and r._field == "raw_19")
   |> map(fn: (r) => ({{_time: r._time, _value: float(v: r._value) / 10.0, device: r.name}}))
   |> group(columns: ["device"])
-  |> aggregateWindow(every: {every}, fn: mean, createEmpty: false, timeSrc: "{time_src}")'''
+  |> aggregateWindow(every: {every}, fn: mean, createEmpty: false, timeSrc: "_start")'''
 
 
-def prices(start="v.timeRangeStart", stop="v.timeRangeStop"):
+def flux_prices(start="v.timeRangeStart", stop="v.timeRangeStop"):
     return f'''from(bucket: "nordpool")
   |> range(start: {start}, stop: {stop})
   |> filter(fn: (r) => r._measurement == "price" and r._field == "price")
@@ -77,137 +218,52 @@ def prices(start="v.timeRangeStart", stop="v.timeRangeStop"):
   |> keep(columns: ["_time", "_value"])'''
 
 
-def cost(start="v.timeRangeStart", stop="v.timeRangeStop"):
+def flux_cost(start="v.timeRangeStart", stop="v.timeRangeStop"):
     """Hourly € per plug: mean W over an hour is Wh; price is c/kWh."""
-    return f'''energy = {power(every="1h", start=start, stop=stop, time_src="_start")}
-price = {prices(start=start, stop=stop)}
+    return f'''energy = {flux_power(every="1h", start=start, stop=stop)}
+price = {flux_prices(start=start, stop=stop)}
 join(tables: {{e: energy, p: price}}, on: ["_time"])
   |> map(fn: (r) => ({{_time: r._time, device: r.device, _value: r._value_e / 1000.0 * r._value_p / 100.0}}))
   |> group(columns: ["device"])'''
 
 
-def water(start="v.timeRangeStart", stop="v.timeRangeStop"):
-    """Litres since the previous reading (the meter's `rate` field)."""
-    return f'''from(bucket: "home")
-  |> range(start: {start}, stop: {stop})
-  |> filter(fn: (r) => r._measurement == "mqtt_consumer" and r.name == "watermeter" and r._field == "rate")
-  |> filter(fn: (r) => r._value > -20.0 and r._value < 20.0)
-  |> keep(columns: ["_time", "_value"])'''
+MONTH_FLUX = 'date.truncate(t: now(), unit: 1mo)'
+SPOT_NOW = priced(PRICE_NOW, flux_prices(start="-2h", stop="now()") + "\n  |> last()")
+SPOT_TODAY_TOMORROW = priced(PRICE_TODAY_TOMORROW, 'import "date"\n' + flux_prices(
+    start="today()", stop="date.add(d: 2d, to: today())"))
+COST_TODAY = priced(total(cost(TODAY)), flux_cost(start="today()", stop="now()") + "\n  |> group() |> sum()",
+                    fmt="table")
+COST_MONTH = priced(total(cost(MONTH)), 'import "date"\n' + flux_cost(start=MONTH_FLUX, stop="now()")
+                    + "\n  |> group() |> sum()", fmt="table")
 
 
-# Weather model of daily electricity use, fitted on Datahub 2021–2024 against FMI daily mean temperature (R² 0.8).
-ELEC_BASE, ELEC_SLOPE, ELEC_BALANCE = 19.9, 1.86, 10.5
-
-
-def electricity(every=None, start="v.timeRangeStart", stop="v.timeRangeStop"):
-    """Metered whole-house kWh (Datahub, hourly), optionally summed per period."""
-    q = f'''from(bucket: "home")
-  |> range(start: {start}, stop: {stop})
-  |> filter(fn: (r) => r._measurement == "electricity" and r._field == "kwh")
-  |> group()
-  |> keep(columns: ["_time", "_value"])'''
-    if every:
-        q += f'''
-  |> aggregateWindow(every: {every}, fn: sum, createEmpty: false, timeSrc: "_start")
-  |> set(key: "series", value: "Used")
-  |> group(columns: ["series"])'''
-    return q
-
-
-def expected_electricity(start="v.timeRangeStart", stop="v.timeRangeStop"):
-    """Daily kWh the weather model expects, stamped at local midnight like electricity(every="1d")."""
-    return f'''import "date"
-from(bucket: "home")
-  |> range(start: {start}, stop: {stop})
-  |> filter(fn: (r) => r._measurement == "fmi_daily" and r.param == "tday")
-  |> map(fn: (r) => ({{_time: date.truncate(t: r._time, unit: 1d), _value: {ELEC_BASE} + {ELEC_SLOPE} * (if r._value < {ELEC_BALANCE} then {ELEC_BALANCE} - r._value else 0.0), series: "Expected from weather"}}))
-  |> group(columns: ["series"])'''
-
-
-def fingrid(series, fn="mean", start="v.timeRangeStart", stop="v.timeRangeStop"):
-    """Fingrid 3-minute data (measurement fingrid), one series per name, relabelled."""
-    return f'''
-import "dict"
-from(bucket: "home")
-  |> range(start: {start}, stop: {stop})
-  |> filter(fn: (r) => r._measurement == "fingrid" and r._field == "value")
-  |> filter(fn: (r) => {" or ".join(f'r.series == "{k}"' for k in series)})
-  |> map(fn: (r) => ({{_time: r._time, _value: r._value, series: dict.get(dict: {_dict(series)}, key: r.series, default: r.series)}}))
-  |> group(columns: ["series"])
-  |> aggregateWindow(every: v.windowPeriod, fn: {fn}, createEmpty: false)
-'''
-
-
-def fingrid_other():
-    return '''from(bucket: "home")
-  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)
-  |> filter(fn: (r) => r._measurement == "fingrid" and r._field == "value")
-  |> filter(fn: (r) => r.series == "production" or r.series == "nuclear" or r.series == "hydro" or r.series == "wind")
-  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)
-  |> pivot(rowKey: ["_time"], columnKey: ["series"], valueColumn: "_value")
-  |> filter(fn: (r) => exists r.production and exists r.nuclear and exists r.hydro and exists r.wind)
-  |> map(fn: (r) => ({_time: r._time, _value: r.production - r.nuclear - r.hydro - r.wind, series: "Other"}))
-  |> group(columns: ["series"])'''
-
-
-def household_co2(start="v.timeRangeStart", stop="v.timeRangeStop"):
-    """kg CO₂ per hour: metered kWh × the hour's consumption CO₂ intensity (backfilled hourly + live 3-min)."""
-    return f'''
-hourly = from(bucket: "home")
-  |> range(start: {start}, stop: {stop})
-  |> filter(fn: (r) => r._measurement == "fingrid_hourly" and r.series == "co2_consumption")
-live = from(bucket: "home")
-  |> range(start: {start}, stop: {stop})
-  |> filter(fn: (r) => r._measurement == "fingrid" and r.series == "co2_consumption")
-  |> aggregateWindow(every: 1h, fn: mean, createEmpty: false, timeSrc: "_start")
-co2 = union(tables: [hourly, live])
-  |> group()
-  |> aggregateWindow(every: 1h, fn: mean, createEmpty: false, timeSrc: "_start")
-  |> set(key: "_field", value: "c")
-use = from(bucket: "home")
-  |> range(start: {start}, stop: {stop})
-  |> filter(fn: (r) => r._measurement == "electricity" and r._field == "kwh")
-  |> group()
-  |> keep(columns: ["_time", "_value"])
-  |> set(key: "_field", value: "u")
-union(tables: [use, co2])
-  |> keep(columns: ["_time", "_field", "_value"])
-  |> pivot(rowKey: ["_time"], columnKey: ["_field"], valueColumn: "_value")
-  |> filter(fn: (r) => exists r.u and exists r.c)
-  |> map(fn: (r) => ({{_time: r._time, _value: r.u * r.c / 1000.0}}))'''
-
-
-# Verisure alarm (verisure-bridge -> MQTT -> telegraf-cloud): measurement verisure, tag topic, string field.
+# Verisure alarm (verisure-bridge -> MQTT -> telegraf-cloud): table verisure, tag topic, text field.
 ALARM = value_map([("armed_away", "Armed away", SLOTS[1]), ("armed_home", "Armed stay", SLOTS[3]),
                    ("armed", "Armed", SLOTS[1]), ("disarmed", "Disarmed", MUTED)])
+ALARM_MODE = "topic = 'home/verisure/mode' AND time > now() - interval '365 days'"
 
 
-def alarm(start="v.timeRangeStart", stop="v.timeRangeStop", last=False):
-    """The alarm mode over a range, carrying the state from before the range in (points only exist on change)."""
-    sel = '''
-  |> filter(fn: (r) => r._measurement == "verisure" and r._field == "value" and r.topic == "home/verisure/mode")
-  |> keep(columns: ["_time", "_value"])'''
+def alarm(last=False):
+    """The alarm mode over the range, carrying the state from before the range in (points only exist on
+    change). Text values, so table format."""
     if last:
-        return f'''from(bucket: "home")
-  |> range(start: -365d)''' + sel + "\n  |> last()"
-    return f'''before = from(bucket: "home")
-  |> range(start: -365d, stop: {start})''' + sel + f'''
-  |> last()
-  |> map(fn: (r) => ({{r with _time: {start}}}))
-during = from(bucket: "home")
-  |> range(start: {start}, stop: {stop})''' + sel + '''
-union(tables: [before, during])
-  |> group()
-  |> sort(columns: ["_time"])'''
+        return tsdb(f'''
+SELECT time, value AS "Value" FROM verisure WHERE {ALARM_MODE} ORDER BY time DESC LIMIT 1''', fmt="table")
+    return tsdb(f'''
+(SELECT $__timeFrom()::timestamptz AS time, value AS "Value" FROM verisure
+ WHERE {ALARM_MODE} AND time < $__timeFrom() ORDER BY time DESC LIMIT 1)
+UNION ALL
+(SELECT time, value FROM verisure WHERE {ALARM_MODE} AND $__timeFilter(time))
+ORDER BY 1''', fmt="table")
 
 
 def overview_house_extra(d, showers_left, co2_now):
     """Second line of house tiles on the overview."""
-    d.add(stat("Alarm", [flux(alarm(last=True))], graph=False, mappings=ALARM, color_mode="background",
+    d.add(stat("Alarm", [alarm(last=True)], graph=False, mappings=ALARM, color_mode="background",
                fields="/^Value$/",
                thr=thresholds(MUTED), desc="Verisure, from the app's push notifications (verisure-bridge).",
                links=[{"title": "Devices", "url": "/d/home-devices"}]), 3, 4)
-    d.add(state_timeline("Alarm, last 24 h", [flux(alarm())], mappings=ALARM, color={"mode": "thresholds"},
+    d.add(state_timeline("Alarm, last 24 h", [alarm()], mappings=ALARM, color={"mode": "thresholds"},
                          display_name="Alarm",
                          thr=thresholds(MUTED), time_from="24h", show_values="auto"), 9, 4)
     d.add(showers_left, 3, 4)
@@ -225,35 +281,26 @@ def energy_dashboard():
                   description="Smart-plug power, what it costs at the Nord Pool spot price, and water use.")
 
     d.row("Right now")
-    d.add(stat("Spot price now", [flux(TZ + prices(start="-2h", stop="now()") + "\n  |> last()")],
+    d.add(stat("Spot price now", [SPOT_NOW],
                unit="c/kWh", decimals=2, thr=PRICE_THR, graph=False,
                desc="Nord Pool hourly spot price for Finland (excl. transfer and margin)."), 4, 4)
-    d.add(stat("Metered plugs now", [flux('''from(bucket: "home")
-  |> range(start: -10m)
-  |> filter(fn: (r) => r._measurement == "mqtt_consumer" and r.integration_id == "tuya" and r._field == "raw_19")
-  |> group(columns: ["name"]) |> last()
-  |> map(fn: (r) => ({r with _value: float(v: r._value) / 10.0}))
-  |> group() |> sum()''')], unit="watt", decimals=0, graph=False,
+    d.add(stat("Metered plugs now", [tsdb(PLUGS_NOW, fmt="table")], unit="watt", decimals=0, graph=False,
                desc="Sum of the Tuya smart plugs only, not the whole house."), 4, 4)
-    d.add(stat("Plug energy today", [flux(TZ + power(every="1h", start="today()", stop="now()", time_src="_start")
-                                          + '\n  |> group() |> sum() |> map(fn: (r) => ({r with _value: r._value / 1000.0}))')],
+    d.add(stat("Plug energy today", [tsdb(PLUG_ENERGY_TODAY, fmt="table")],
                unit="kwatth", decimals=2, graph=False), 4, 4)
-    d.add(stat("Plug cost today", [flux(TZ + cost(start="today()", stop="now()") + "\n  |> group() |> sum()")],
+    d.add(stat("Plug cost today", [COST_TODAY],
                unit="currencyEUR", decimals=2, graph=False), 4, 4)
-    d.add(stat("Plug cost this month", [flux(TZ + 'import "date"\n'
-                                             + cost(start='date.truncate(t: now(), unit: 1mo)', stop="now()")
-                                             + "\n  |> group() |> sum()")],
+    d.add(stat("Plug cost this month", [COST_MONTH],
                unit="currencyEUR", decimals=2, graph=False), 4, 4)
-    d.add(stat("Water today", [flux(TZ + water(start="today()", stop="now()") + "\n  |> sum()")],
+    d.add(stat("Water today", [tsdb(WATER_TODAY, fmt="table")],
                unit="litre", decimals=0, graph=False), 4, 4)
 
     d.row("Electricity price")
-    d.add(barchart("Spot price today and tomorrow", [flux(TZ + 'import "date"\n' + prices(
-        start="today()", stop="date.add(d: 2d, to: today())"))],
+    d.add(barchart("Spot price today and tomorrow", [SPOT_TODAY_TOMORROW],
         unit="c/kWh", decimals=1, thr=PRICE_THR, color={"mode": "thresholds"}, x_field="_time",
         label_spacing=100, display_name="Price",
         desc="Tomorrow's prices appear after Nord Pool publishes them, around 14:00."), 14, 8)
-    d.add(status_history("Price by hour of day (last 30 days)", [flux(TZ + 'import "date"\n' + prices(
+    d.add(status_history("Price by hour of day (last 30 days)", [priced(PRICE_BY_HOUR, 'import "date"\n' + flux_prices(
         start="-30d", stop="now()") + '''
   |> map(fn: (r) => ({_time: date.truncate(t: r._time, unit: 1d), _value: r._value,
       hour: if date.hour(t: r._time) < 10 then "0" + string(v: date.hour(t: r._time)) else string(v: date.hour(t: r._time))}))
@@ -263,126 +310,121 @@ def energy_dashboard():
         desc="Each row is an hour of the day, each column a day; darker is more expensive."), 10, 8)
 
     d.row("Power")
-    d.add(timeseries("Power by plug", [flux(power())], unit="watt", stack=True, fill=40, gradient="none",
+    d.add(timeseries("Power by plug", [tsdb(power())], unit="watt", stack=True, fill=40, gradient="none",
                      display_name=BY_DEVICE, overrides=PLUG_OVERRIDES, legend="right", legend_calcs=["mean", "max"],
                      decimals=0), 16, 9)
-    d.add(bargauge("Cost by plug this month", [flux(TZ + 'import "date"\n' + cost(
-        start='date.truncate(t: now(), unit: 1mo)', stop="now()") + "\n  |> sum()")],
+    d.add(bargauge("Cost by plug this month", [priced(f'''
+SELECT max(time) AS time, device, sum("Value") AS "Value" FROM ({cost(MONTH)}) c GROUP BY 2 ORDER BY 1''',
+        'import "date"\n' + flux_cost(start=MONTH_FLUX, stop="now()") + "\n  |> sum()")],
         unit="currencyEUR", decimals=2, display_name=BY_DEVICE, color={"mode": "fixed", "fixedColor": SLOTS[0]},
         reduce="sum", desc="Spot-price cost of each plug's metered energy since the 1st."), 8, 9)
-    d.add(timeseries("Daily energy by plug", [flux(TZ + power(every="1h", time_src="_start") + '''
-  |> aggregateWindow(every: 1d, fn: sum, createEmpty: false, timeSrc: "_start")
-  |> map(fn: (r) => ({r with _value: r._value / 1000.0}))''')], unit="kwatth", bars=True, stack=True,
+    d.add(timeseries("Daily energy by plug", [tsdb(daily_energy())], unit="kwatth", bars=True, stack=True,
                      display_name=BY_DEVICE, overrides=PLUG_OVERRIDES, time_from="30d", decimals=2), 12, 8)
-    d.add(timeseries("Daily cost by plug", [flux(TZ + cost() + '''
+    d.add(timeseries("Daily cost by plug", [priced(daily_cost(), flux_cost() + '''
   |> aggregateWindow(every: 1d, fn: sum, createEmpty: false, timeSrc: "_start")''')],
                      unit="currencyEUR", bars=True, stack=True, display_name=BY_DEVICE, overrides=PLUG_OVERRIDES,
                      time_from="30d", decimals=2), 12, 8)
 
     d.row("Fridge & freezer health")
-    d.add(timeseries("Compressor duty cycle", [flux(TZ + '''from(bucket: "home")
-  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)
-  |> filter(fn: (r) => r._measurement == "mqtt_consumer" and r.integration_id == "tuya" and r._field == "raw_19")
-  |> filter(fn: (r) => r.name == "Fridge" or r.name == "Freezer")
-  |> map(fn: (r) => ({_time: r._time, device: r.name, _value: if float(v: r._value) > 200.0 then 100.0 else 0.0}))
-  |> group(columns: ["device"])
-  |> aggregateWindow(every: 1d, fn: mean, createEmpty: false, timeSrc: "_start")''')],
+    d.add(timeseries("Compressor duty cycle", [tsdb(f'''
+SELECT time_bucket('1 day', time, {HEL}) AS time, name AS device,
+       avg(CASE WHEN raw_19 > 200 THEN 100.0 ELSE 0 END) AS "Value"
+FROM mqtt_consumer
+WHERE integration_id = 'tuya' AND raw_19 IS NOT NULL AND name IN ('Fridge', 'Freezer') AND $__timeFilter(time)
+GROUP BY 1, 2 ORDER BY 1''')],
                      unit="percent", minv=0, maxv=100, display_name=BY_DEVICE, overrides=PLUG_OVERRIDES,
                      time_from="60d", points="always", fill=0,
                      desc="Share of each day the compressor drew over 20 W. A steady climb means a door seal "
                           "or condenser problem; a one-day spike means a door was left open."), 12, 8)
-    d.add(timeseries("Fridge & freezer temperature", [flux(ble("tempc", COLD))], unit="celsius", decimals=1,
+    d.add(timeseries("Fridge & freezer temperature", [tsdb(ble("tempc", COLD))], unit="celsius", decimals=1,
                      display_name=BY_PLACE, overrides=fixed_colors({"Fridge": SLOTS[0], "Freezer": SLOTS[1]}),
                      time_from="7d", fill=0,
                      desc="Fridge should sit at 2–6 °C, the freezer at −16 °C or colder."), 12, 8)
 
     d.row("Whole house electricity (Datahub)")
-    d.add(stat("Last 12 months", [flux(electricity(start="-365d", stop="now()") + "\n  |> sum()")], unit="kwatth",
+    d.add(stat("Last 12 months", [tsdb(total(electricity(rng=since("365 days"))), fmt="table")], unit="kwatth",
                decimals=1, graph=False, desc="From Fingrid Datahub exports, imported with scripts/datahub-import.py. "
                                              "Datahub data arrives 1–2 days late and only when imported."), 4, 6)
-    d.add(stat("Expected from weather", [flux(expected_electricity(start="-365d", stop="now()") + "\n  |> sum()")],
+    d.add(stat("Expected from weather", [tsdb(total(expected_electricity(since("365 days"))), fmt="table")],
                unit="kwatth", decimals=1, graph=False, thr=thresholds(MUTED),
                desc=f"What the 2021–2024 house would have used in the same weather: {ELEC_BASE} kWh/day plus "
                     f"{ELEC_SLOPE} kWh for each degree the daily mean is below {ELEC_BALANCE} °C."), 4, 6)
-    d.add(timeseries("Electricity per day", [flux(electricity(every="1d")), flux(expected_electricity())],
+    d.add(timeseries("Electricity per day", [tsdb(electricity("1 day")), tsdb(expected_electricity())],
                      unit="kwatth", decimals=0, time_from="1y", display_name="${__field.labels.series}",
                      overrides=fixed_colors({"Used": SLOTS[0], "Expected from weather": MUTED})
                      + [by_name("Used", custom__drawStyle="bars", custom__fillOpacity=80, custom__lineWidth=1)],
                      desc="Bars: the house's metered use. Line: what the weather model expects."), 16, 6)
-    d.add(timeseries("Use vs weather-expected (30-day)", [flux(TZ + f'''
-used =
-{electricity(every="1d")}
-  |> group()
-  |> timedMovingAverage(every: 1d, period: 30d)
-exp =
-{expected_electricity()}
-  |> group()
-  |> timedMovingAverage(every: 1d, period: 30d)
-join(tables: {{u: used, e: exp}}, on: ["_time"])
-  |> map(fn: (r) => ({{_time: r._time, _value: r._value_u / r._value_e}}))
-''')],
+    # 30-day means of daily use and of the expectation (each over its own days), stamped at the window's end
+    # like Flux's timedMovingAverage.
+    d.add(timeseries("Use vs weather-expected (30-day)", [tsdb(f'''
+WITH used AS ({electricity("1 day")}),
+exp AS ({expected_electricity()}),
+days AS (SELECT time FROM used UNION SELECT time FROM exp),
+win AS (
+  SELECT d.time + interval '1 day' AS time,
+         avg(used."Value") OVER w AS u, avg(exp."Value") OVER w AS e
+  FROM days d LEFT JOIN used USING (time) LEFT JOIN exp USING (time)
+  WINDOW w AS (ORDER BY d.time RANGE BETWEEN interval '29 days' PRECEDING AND CURRENT ROW))
+SELECT time, u / e AS "Value" FROM win WHERE u IS NOT NULL AND e IS NOT NULL ORDER BY 1''')],
                      unit="percentunit", decimals=0, time_from="6y", display_name="Used ÷ expected",
                      color={"mode": "fixed", "fixedColor": SLOTS[3]}, thresholds_style="dashed",
                      thr=thresholds(MUTED, (1, MUTED)),
                      desc="Above 100 % means more electricity than the 2021–2024 house used in the same "
                           "weather: a new always-on load, the electric heater, or a less efficient heat pump."), 12, 8)
-    d.add(timeseries("Night base load", [flux(TZ + 'import "date"\n' + electricity() + '''
-  |> filter(fn: (r) => date.hour(t: r._time) >= 2 and date.hour(t: r._time) < 5)
-  |> aggregateWindow(every: 1w, fn: median, createEmpty: false, timeSrc: "_start")''')],
+    d.add(timeseries("Night base load", [tsdb(f'''
+SELECT time_bucket('1 week', time, {HEL}) AS time, percentile_cont(0.5) WITHIN GROUP (ORDER BY kwh) AS "Value"
+FROM electricity
+WHERE $__timeFilter(time) AND extract(hour FROM time AT TIME ZONE 'Europe/Helsinki') BETWEEN 2 AND 4
+GROUP BY 1 ORDER BY 1''')],
                      unit="kwatt", decimals=2, time_from="6y", display_name="02–05 median",
                      color={"mode": "fixed", "fixedColor": SLOTS[4]},
                      desc="Median hourly use between 02 and 05, per week. In summer this is the always-on load "
                           "(fridge, freezer, network, homelab, ventilation)."), 12, 8)
 
     d.row("Finnish grid (Fingrid)")
-    d.add(stat("CO₂ now", [flux(fingrid({"co2_consumption": "Consumed"}, start="-30m", stop="now()", fn="last")
-                                + "\n  |> last()")], unit="suffix: g/kWh", decimals=0, graph=False,
-               thr=thresholds(GOOD, (50, WARN), (100, BAD)),
+    d.add(stat("CO₂ now", [tsdb(fingrid_now({"co2_consumption": "Consumed"}))], unit="suffix: g/kWh", decimals=0,
+               graph=False, thr=thresholds(GOOD, (50, WARN), (100, BAD)),
                desc="Grams of CO₂ per kWh of electricity consumed in Finland, including imports (Fingrid, 3 min)."),
           4, 5)
-    d.add(stat("Grid state", [flux(fingrid({"system_state": "System", "shortage_status": "Shortage"}, start="-30m",
-                                           stop="now()", fn="last") + "\n  |> last()")],
+    d.add(stat("Grid state", [tsdb(fingrid_now({"system_state": "System", "shortage_status": "Shortage"}))],
                graph=False, text_mode="value_and_name", color_mode="background", display_name="${__field.labels.series}",
                mappings=value_map([(0, "Normal", GOOD), (1, "Normal", GOOD), (2, "Endangered", WARN),
                                    (3, "Disturbed", BAD), (4, "Serious", BAD), (5, "Restoring", WARN)]),
                overrides=[by_name("Shortage", mappings=value_map([(0, "No shortage", GOOD), (1, "Possible", WARN),
                                                                   (2, "High risk", BAD), (3, "Shortage", BAD)]))],
                thr=thresholds(MUTED), desc="Fingrid's power system state and electricity shortage status."), 8, 5)
-    d.add(stat("Your CO₂, last 12 months", [flux(household_co2(start="-365d", stop="now()") + "\n  |> sum()")],
+    d.add(stat("Your CO₂, last 12 months", [tsdb(total(household_co2(since("365 days"))), fmt="table")],
                unit="masskg", decimals=0, graph=False, thr=thresholds(SLOTS[4]),
                desc="Metered use each hour times that hour's CO₂ intensity of consumption."), 6, 5)
-    d.add(stat("Import / export", [flux(fingrid({"net_import": "Net import"}, start="-30m", stop="now()", fn="last")
-                                        + "\n  |> last()")], unit="megwatt", decimals=0, graph=False,
-               thr=thresholds(SLOTS[0]), desc="Positive: Finland imports electricity; negative: exports."), 6, 5)
-    d.add(timeseries("Production by source", [flux(fingrid({"nuclear": "Nuclear", "hydro": "Hydro", "wind": "Wind"})),
-                                               flux(TZ + fingrid_other())],
+    d.add(stat("Import / export", [tsdb(fingrid_now({"net_import": "Net import"}))], unit="megwatt", decimals=0,
+               graph=False, thr=thresholds(SLOTS[0]), desc="Positive: Finland imports electricity; negative: exports."),
+          6, 5)
+    d.add(timeseries("Production by source", [tsdb(fingrid({"nuclear": "Nuclear", "hydro": "Hydro", "wind": "Wind"})),
+                                               tsdb(FINGRID_OTHER)],
                      unit="megwatt", stack=True, fill=60, gradient="none", decimals=0, legend="right",
                      display_name="${__field.labels.series}",
                      overrides=fixed_colors({"Nuclear": SLOTS[6], "Hydro": SLOTS[0], "Wind": SLOTS[2],
                                              "Other": MUTED}), time_from="7d"), 16, 8)
-    d.add(timeseries("CO₂ intensity", [flux(fingrid({"co2_consumption": "Consumed", "co2_production": "Produced"}))],
+    d.add(timeseries("CO₂ intensity", [tsdb(fingrid({"co2_consumption": "Consumed", "co2_production": "Produced"}))],
                      decimals=0, fill=0, display_name="${__field.labels.series}", time_from="7d",
                      overrides=fixed_colors({"Consumed": SLOTS[4], "Produced": SLOTS[3]}),
                      desc="gCO₂/kWh. Consumed includes imports."), 8, 8)
-    d.add(timeseries("Your electricity CO₂ per month", [flux(TZ + household_co2() + '''
-  |> aggregateWindow(every: 1mo, fn: sum, createEmpty: false, timeSrc: "_start")''')],
+    d.add(timeseries("Your electricity CO₂ per month", [tsdb(f'''
+SELECT time_bucket('1 month', time, {HEL}) AS time, sum("Value") AS "Value"
+FROM ({household_co2()}) c GROUP BY 1 ORDER BY 1''')],
                      unit="masskg", bars=True, decimals=0, display_name="CO₂", time_from="6y",
                      color={"mode": "fixed", "fixedColor": SLOTS[4]},
                      desc="The Finnish grid got much cleaner after Olkiluoto 3 and the wind build-out: "
                           "similar use, a third of the emissions."), 24, 7)
 
     d.row("Water")
-    d.add(timeseries("Water per hour", [flux(TZ + water() + '''
-  |> aggregateWindow(every: 1h, fn: sum, createEmpty: true, timeSrc: "_start")''')],
+    d.add(timeseries("Water per hour", [tsdb(water())],
                      unit="litre", bars=True, display_name="Water", decimals=0,
                      color={"mode": "fixed", "fixedColor": SLOTS[0]}), 12, 8)
-    d.add(timeseries("Water per day", [flux(TZ + water() + '''
-  |> aggregateWindow(every: 1d, fn: sum, createEmpty: false, timeSrc: "_start")''')],
+    d.add(timeseries("Water per day", [tsdb(water(every="1 day"))],
                      unit="litre", bars=True, display_name="Water", decimals=0, time_from="60d",
                      color={"mode": "fixed", "fixedColor": SLOTS[0]}), 6, 8)
-    d.add(timeseries("Night-time water (02–05)", [flux(TZ + 'import "date"\n' + water() + '''
-  |> filter(fn: (r) => date.hour(t: r._time) >= 2 and date.hour(t: r._time) < 5)
-  |> aggregateWindow(every: 1d, fn: sum, createEmpty: true, timeSrc: "_start")''')],
+    d.add(timeseries("Night-time water (02–05)", [tsdb(water(every="1 day", extra=NIGHT))],
                      unit="litre", bars=True, display_name="Night use", decimals=1, time_from="60d",
                      thr=thresholds(GOOD, (5, WARN), (20, BAD)), color={"mode": "thresholds"},
                      desc="Water used between 02:00 and 05:00. A few litres every night points at a "
@@ -395,40 +437,35 @@ def climate_dashboard():
                   description="SwitchBot temperature/humidity sensors indoors, outdoors and around the 3D printer.")
 
     d.row("Now")
-    d.add(stat("Indoors", [flux(ble("tempc", INDOOR, start="-3h", stop="now()") + "\n  |> last()")],
+    d.add(stat("Indoors", [tsdb(ble_now("tempc", INDOOR))],
                unit="celsius", decimals=1, display_name=BY_PLACE, graph=False, text_mode="value_and_name",
                thr=thresholds(SLOTS[0], (19, GOOD), (24, WARN), (26, BAD)), color_mode="value"), 16, 4)
-    d.add(stat("Outdoors", [flux(ble("tempc", {OUTSIDE_ID: "Outside"}, start="-3h", stop="now()") + "\n  |> last()")],
+    d.add(stat("Outdoors", [tsdb(ble_now("tempc", {OUTSIDE_ID: "Outside"}))],
                unit="celsius", decimals=1, graph=False, display_name="Outside",
                thr=thresholds(SLOTS[0])), 4, 4)
-    d.add(stat("Indoor humidity", [flux(ble("hum", INDOOR, start="-3h", stop="now()") + '''
-  |> last() |> group() |> mean()''')], unit="humidity", decimals=0, graph=False,
+    d.add(stat("Indoor humidity", [tsdb(f'SELECT avg("Value") AS "Value" FROM ({ble_now("hum", INDOOR)}) l',
+                                        fmt="table")], unit="humidity", decimals=0, graph=False,
                thr=thresholds(WARN, (30, GOOD), (60, WARN)), desc="Average of the indoor sensors; 30–60 % is comfortable."), 4, 4)
 
     d.row("Indoors")
-    d.add(timeseries("Temperature", [flux(ble("tempc", INDOOR))], unit="celsius", decimals=1, fill=0,
+    d.add(timeseries("Temperature", [tsdb(ble("tempc", INDOOR))], unit="celsius", decimals=1, fill=0,
                      display_name=BY_PLACE, overrides=fixed_colors(dict(zip(INDOOR.values(), SLOTS))),
                      legend="right", legend_calcs=["min", "max", "lastNotNull"]), 16, 9)
-    d.add(table("Today", [flux(TZ + ble("tempc", INDOOR, start="today()", stop="now()", every="10m"))],
+    d.add(table("Today", [tsdb(ble("tempc", INDOOR, rng=TODAY, every="10 minutes"))],
                 unit="celsius", decimals=1, display_name=BY_PLACE,
                 transformations=[reduce_rows(["min", "max"]),
                                  organize(rename={"Field": "Room", "Min": "Low", "Max": "High"})],
                 sort=("Room", False)), 8, 9)
-    d.add(timeseries("Relative humidity", [flux(ble("hum", INDOOR))], unit="humidity", decimals=0, fill=0,
+    d.add(timeseries("Relative humidity", [tsdb(ble("hum", INDOOR))], unit="humidity", decimals=0, fill=0,
                      display_name=BY_PLACE, overrides=fixed_colors(dict(zip(INDOOR.values(), SLOTS))),
                      legend="right"), 16, 8)
-    d.add(timeseries("Outdoor air heated to 22 °C", [flux('''import "math"
-from(bucket: "home")
-  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)
-  |> filter(fn: (r) => r._measurement == "mqtt_consumer" and r.device_id == "''' + OUTSIDE_ID + '''")
-  |> filter(fn: (r) => r._field == "tempc" or r._field == "hum")
-  |> map(fn: (r) => ({r with _value: float(v: r._value)}))
-  |> group(columns: ["_field"])
-  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)
-  |> group()
-  |> pivot(rowKey: ["_time"], columnKey: ["_field"], valueColumn: "_value")
-  |> filter(fn: (r) => exists r.tempc and exists r.hum)
-  |> map(fn: (r) => ({_time: r._time, _value: r.hum * math.exp(x: 0.0624 * (r.tempc - 22.0))}))''')],
+    d.add(timeseries("Outdoor air heated to 22 °C", [tsdb(f'''
+SELECT * FROM (
+  SELECT $__timeGroupAlias(time, $__interval), avg(hum) * exp(0.0624 * (avg(tempc) - 22)) AS "Value"
+  FROM mqtt_consumer
+  WHERE $__timeFilter(time) AND device_id = {lit(OUTSIDE_ID)} AND (tempc IS NOT NULL OR hum IS NOT NULL)
+  GROUP BY 1) o
+WHERE "Value" IS NOT NULL ORDER BY 1''')],
                      unit="humidity", decimals=0, display_name="RH at 22 °C", fill=10,
                      thr=thresholds(BAD, (25, WARN), (35, GOOD)), thresholds_style="line+area",
                      color={"mode": "fixed", "fixedColor": SLOTS[0]},
@@ -436,59 +473,70 @@ from(bucket: "home")
                           "dries the house out and a humidifier helps."), 8, 8)
 
     d.row("Outdoors")
-    d.add(timeseries("Temperature", [flux(ble("tempc", OUTDOOR))], unit="celsius", decimals=1, fill=0,
+    d.add(timeseries("Temperature", [tsdb(ble("tempc", OUTDOOR))], unit="celsius", decimals=1, fill=0,
                      display_name=BY_PLACE, overrides=fixed_colors(dict(zip(OUTDOOR.values(), SLOTS))),
                      legend="right", legend_calcs=["min", "max", "lastNotNull"]), 16, 8)
-    d.add(timeseries("Daily range outside", [flux(TZ + ble("tempc", {OUTSIDE_ID: "Low"}, every="1d", fn="min")),
-                                             flux(TZ + ble("tempc", {OUTSIDE_ID: "High"}, every="1d", fn="max"))],
+    d.add(timeseries("Daily range outside", [tsdb(ble("tempc", {OUTSIDE_ID: "Low"}, every="1 day", fn="min")),
+                                             tsdb(ble("tempc", {OUTSIDE_ID: "High"}, every="1 day", fn="max"))],
                      unit="celsius", decimals=1, display_name=BY_PLACE, time_from="60d", fill=0, points="always",
                      overrides=fixed_colors({"Low": SLOTS[0], "High": SLOTS[1]})), 8, 8)
 
     d.row("Weather (FMI)")
-    d.add(barchart("Forecast, next 48 hours", [flux(TZ + fmi_forecast("Temperature"))], unit="celsius", decimals=0,
+    d.add(barchart("Forecast, next 48 hours", [tsdb(fmi_forecast("Temperature"))], unit="celsius", decimals=0,
                    thr=thresholds(SLOTS[0], (0, SLOTS[2]), (15, SLOTS[1])), color={"mode": "thresholds"},
                    label_spacing=100, desc="The Finnish Meteorological Institute's forecast for home, updated hourly."),
           16, 7)
-    d.add(barchart("Rain, next 48 hours", [flux(TZ + fmi_forecast("Precipitation1h"))], unit="lengthmm",
+    d.add(barchart("Rain, next 48 hours", [tsdb(fmi_forecast("Precipitation1h"))], unit="lengthmm",
                    decimals=1, color={"mode": "fixed", "fixedColor": SLOTS[0]}, label_spacing=100), 8, 7)
     d.add(timeseries("Outside: own sensor vs FMI", [
-        flux(ble("tempc", {OUTSIDE_ID: "Front yard sensor"})),
-        flux(fmi_observed({"t2m": "FMI Espoo Tapiola"}))],
+        tsdb(ble("tempc", {OUTSIDE_ID: "Front yard sensor"})),
+        tsdb(fmi_observed({"t2m": "FMI Espoo Tapiola"}))],
         unit="celsius", decimals=1, fill=0, display_name=BY_PLACE,
         overrides=fixed_colors({"Front yard sensor": SLOTS[1], "FMI Espoo Tapiola": SLOTS[0]}),
         desc="The front-yard SwitchBot next to the nearest official station, about 4 km away. Sun on the "
              "sensor shows up as afternoon peaks."), 12, 8)
-    d.add(timeseries("Wind", [flux(fmi_observed({"ws_10min": "Wind", "wg_10min": "Gusts"}))], unit="velocityms",
+    d.add(timeseries("Wind", [tsdb(fmi_observed({"ws_10min": "Wind", "wg_10min": "Gusts"}))], unit="velocityms",
                      decimals=1, fill=0, display_name=BY_PLACE,
                      overrides=fixed_colors({"Wind": SLOTS[0], "Gusts": SLOTS[3]})), 6, 8)
-    d.add(timeseries("Rain", [flux(fmi_observed({"r_1h": "Rain"}, every="1h", fn="max"))], unit="lengthmm",
+    d.add(timeseries("Rain", [tsdb(fmi_observed({"r_1h": "Rain"}, every="1 hour", fn="max"))], unit="lengthmm",
                      decimals=1, bars=True, display_name="Rain", color={"mode": "fixed", "fixedColor": SLOTS[0]},
                      desc="Hourly precipitation at the station."), 6, 8)
 
     return d
 
 
-def fmi_observed(params, every="v.windowPeriod", fn="mean"):
-    """FMI station observations (measurement fmi_observation), one series per param, labelled `place`."""
+def fmi_observed(params, every=None, fn="mean"):
+    """FMI station observations, one series per param, labelled `place`."""
     return f'''
-import "dict"
-from(bucket: "home")
-  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)
-  |> filter(fn: (r) => r._measurement == "fmi_observation" and r._field == "value")
-  |> filter(fn: (r) => {" or ".join(f'r.param == "{k}"' for k in params)})
-  |> map(fn: (r) => ({{_time: r._time, _value: r._value, place: dict.get(dict: {_dict(params)}, key: r.param, default: r.param)}}))
-  |> group(columns: ["place"])
-  |> aggregateWindow(every: {every}, fn: {fn}, createEmpty: false)
-'''
+SELECT {bucket(every)}, place, {agg(fn, "value")} AS "Value"
+FROM fmi_observation JOIN {values(params, "param", "place")} USING (param)
+WHERE $__timeFilter(time) AND param IN {in_list(params)}
+GROUP BY 1, 2 ORDER BY 1'''
 
 
 def fmi_forecast(param):
     """The latest FMI forecast for home, from the current hour on."""
-    return f'''import "date"
-from(bucket: "home")
-  |> range(start: date.truncate(t: now(), unit: 1h), stop: 48h)
-  |> filter(fn: (r) => r._measurement == "fmi_forecast" and r._field == "value" and r.param == "{param}")
-  |> keep(columns: ["_time", "_value"])'''
+    return f'''
+SELECT time, value AS "Value" FROM fmi_forecast
+WHERE param = {lit(param)} AND time >= date_trunc('hour', now()) AND time < now() + interval '48 hours'
+ORDER BY 1'''
+
+
+def batteries():
+    """Last battery report per device in the last 14 days: our BLE sensors and every Zigbee device."""
+    return f'''
+WITH ble AS (
+  SELECT DISTINCT ON (device_id) place AS device, 'SwitchBot (BLE)' AS kind, batt AS battery, time AS seen
+  FROM mqtt_consumer JOIN {values(ALL_BLE, "device_id", "place")} USING (device_id)
+  WHERE time > now() - interval '14 days' AND device_id IN {in_list(ALL_BLE)} AND batt IS NOT NULL
+  ORDER BY device_id, time DESC),
+zigbee AS (
+  SELECT DISTINCT ON (device_id) device_id AS device, 'Zigbee' AS kind, battery, time AS seen
+  FROM mqtt_consumer
+  WHERE time > now() - interval '14 days' AND integration_id = 'zigbee2mqtt' AND battery IS NOT NULL
+  ORDER BY device_id, time DESC)
+SELECT device, kind, battery, seen, extract(epoch FROM now() - seen) / 3600 AS hours
+FROM (SELECT * FROM ble UNION ALL SELECT * FROM zigbee) b'''
 
 
 def devices_dashboard():
@@ -496,31 +544,14 @@ def devices_dashboard():
                   description="Batteries, radio links and silent sensors.")
 
     d.row("Alarm")
-    d.add(state_timeline("Verisure alarm", [flux(alarm())], mappings=ALARM, color={"mode": "thresholds"},
+    d.add(state_timeline("Verisure alarm", [alarm()], mappings=ALARM, color={"mode": "thresholds"},
                          display_name="Alarm",
                          thr=thresholds(MUTED), show_values="auto",
                          desc="Mode from Verisure's API, looked up on each arm/disarm push. 'Armed' means the push "
                               "arrived but the mode lookup did not answer."), 24, 4)
 
-    battery_q = f'''import "dict"
-names = {_dict(ALL_BLE)}
-ble = from(bucket: "home")
-  |> range(start: -14d)
-  |> filter(fn: (r) => r._measurement == "mqtt_consumer" and r._field == "batt")
-  |> filter(fn: (r) => {_ids(ALL_BLE)})
-  |> group(columns: ["device_id"]) |> last()
-  |> map(fn: (r) => ({{device: dict.get(dict: names, key: r.device_id, default: r.device_id), kind: "SwitchBot (BLE)", battery: float(v: r._value), seen: r._time}}))
-zigbee = from(bucket: "home")
-  |> range(start: -14d)
-  |> filter(fn: (r) => r._measurement == "mqtt_consumer" and r.integration_id == "zigbee2mqtt" and r._field == "battery")
-  |> group(columns: ["device_id"]) |> last()
-  |> map(fn: (r) => ({{device: r.device_id, kind: "Zigbee", battery: float(v: r._value), seen: r._time}}))
-union(tables: [ble, zigbee])
-  |> group()
-  |> map(fn: (r) => ({{r with hours: float(v: int(v: now()) - int(v: r.seen)) / 3600000000000.0}}))
-  |> sort(columns: ["battery"])'''
     d.row("Batteries")
-    d.add(table("Batteries (lowest first)", [flux(battery_q)], cell_height="sm",
+    d.add(table("Batteries (lowest first)", [tsdb(batteries() + "\nORDER BY battery", fmt="table")], cell_height="sm",
                 overrides=[
                     by_name("battery", unit="percent", displayName="Battery", min=0, max=100,
                             thresholds=thresholds(BAD, (15, WARN), (30, GOOD)),
@@ -533,53 +564,53 @@ union(tables: [ble, zigbee])
                     by_name("device", displayName="Device"),
                     by_name("kind", displayName="Type"),
                 ], transformations=[organize(order=["device", "kind", "battery", "seen", "hours"])]), 14, 16)
-    d.add(stat("Below 20 %", [flux(battery_q + '\n  |> filter(fn: (r) => r.battery < 20.0) |> count(column: "battery")')],
+    d.add(stat("Below 20 %", [tsdb(f"SELECT count(*) AS battery FROM ({batteries()}) b WHERE battery < 20",
+                                   fmt="table")],
                graph=False, thr=thresholds(GOOD, (1, WARN)), nulls="0", desc="Devices to swap batteries in soon."), 5, 4)
-    d.add(stat("Silent for 24 h+", [flux(battery_q + '\n  |> filter(fn: (r) => r.hours > 24.0) |> count(column: "hours")')],
+    d.add(stat("Silent for 24 h+", [tsdb(f"SELECT count(*) AS hours FROM ({batteries()}) b WHERE hours > 24",
+                                         fmt="table")],
                graph=False, thr=thresholds(GOOD, (1, BAD)), nulls="0",
                desc="Battery devices that reported nothing for a day: dead battery or out of range."), 5, 4)
-    d.add(bargauge("Weakest Zigbee links", [flux('''from(bucket: "home")
-  |> range(start: -1d)
-  |> filter(fn: (r) => r._measurement == "mqtt_consumer" and r.integration_id == "zigbee2mqtt" and r._field == "linkquality")
-  |> group(columns: ["device_id"]) |> mean()
-  |> group() |> sort(columns: ["_value"]) |> limit(n: 12)
-  |> map(fn: (r) => ({_value: r._value, device: r.device_id}))''')], unit="none", decimals=0, minv=0, maxv=255,
+    d.add(bargauge("Weakest Zigbee links", [tsdb('''
+SELECT device_id AS device, avg(linkquality) AS "Value"
+FROM mqtt_consumer
+WHERE time > now() - interval '1 day' AND integration_id = 'zigbee2mqtt' AND linkquality IS NOT NULL
+GROUP BY 1 ORDER BY 2 LIMIT 12''', fmt="table")], unit="none", decimals=0, minv=0, maxv=255,
                    display_name="${__field.labels.device}", values=True,
                    thr=thresholds(BAD, (40, WARN), (80, GOOD)),
                    desc="Average link quality over the last day (0–255). Under ~40 the device needs a closer router."),
           10, 12)
     d.row("BLE sensors")
-    d.add(timeseries("Sensor batteries", [flux(ble("batt", ALL_BLE, every="12h"))], unit="percent", minv=0, maxv=100,
-                     display_name=BY_PLACE, time_from="30d", fill=0, legend="right"), 24, 9)
+    d.add(timeseries("Sensor batteries", [tsdb(ble("batt", ALL_BLE, every="12 hours"))], unit="percent", minv=0,
+                     maxv=100, display_name=BY_PLACE, time_from="30d", fill=0, legend="right"), 24, 9)
     return d
 
 
 def overview_house(d):
     """House tiles for the top-level overview dashboard."""
-    d.add(stat("Spot price", [flux(TZ + prices(start="-2h", stop="now()") + "\n  |> last()")], unit="c/kWh",
+    d.add(stat("Spot price", [SPOT_NOW], unit="c/kWh",
                decimals=2, thr=PRICE_THR, graph=False,
                links=[{"title": "Energy", "url": "/d/home-energy"}]), 3, 4)
-    d.add(stat("Plugs now", [flux('''from(bucket: "home")
-  |> range(start: -10m)
-  |> filter(fn: (r) => r._measurement == "mqtt_consumer" and r.integration_id == "tuya" and r._field == "raw_19")
-  |> group(columns: ["name"]) |> last()
-  |> map(fn: (r) => ({r with _value: float(v: r._value) / 10.0}))
-  |> group() |> sum()''')], unit="watt", decimals=0, graph=False), 3, 4)
-    d.add(stat("Plug cost today", [flux(TZ + cost(start="today()", stop="now()") + "\n  |> group() |> sum()")],
+    d.add(stat("Plugs now", [tsdb(PLUGS_NOW, fmt="table")], unit="watt", decimals=0, graph=False), 3, 4)
+    d.add(stat("Plug cost today", [COST_TODAY],
                unit="currencyEUR", decimals=2, graph=False), 3, 4)
-    d.add(stat("Water today", [flux(TZ + water(start="today()", stop="now()") + "\n  |> sum()")], unit="litre",
+    d.add(stat("Water today", [tsdb(WATER_TODAY, fmt="table")], unit="litre",
                decimals=0, graph=False), 3, 4)
-    d.add(stat("Outside", [flux(ble("tempc", {OUTSIDE_ID: "Outside"}, start="-3h", stop="now()") + "\n  |> last()")],
+    d.add(stat("Outside", [tsdb(ble_now("tempc", {OUTSIDE_ID: "Outside"}))],
                unit="celsius", decimals=1, graph=False, display_name="Outside",
                links=[{"title": "Climate", "url": "/d/home-climate"}]), 3, 4)
-    d.add(stat("Indoors (avg)", [flux(ble("tempc", INDOOR, start="-3h", stop="now()") + "\n  |> last() |> group() |> mean()")],
+    d.add(stat("Indoors (avg)", [tsdb(f'SELECT avg("Value") AS "Value" FROM ({ble_now("tempc", INDOOR)}) l',
+                                      fmt="table")],
                unit="celsius", decimals=1, graph=False, thr=thresholds(SLOTS[0], (19, GOOD), (25, WARN))), 3, 4)
-    d.add(stat("Freezer", [flux(ble("tempc", {"D43535302778": "Freezer"}, start="-3h", stop="now()") + "\n  |> last()")],
+    d.add(stat("Freezer", [tsdb(ble_now("tempc", {"D43535302778": "Freezer"}))],
                unit="celsius", decimals=1, graph=False, thr=thresholds(GOOD, (-15, WARN), (-10, BAD))), 3, 4)
-    d.add(stat("Low batteries", [flux(f'''from(bucket: "home")
-  |> range(start: -3d)
-  |> filter(fn: (r) => r._measurement == "mqtt_consumer" and ((r._field == "batt" and ({_ids(ALL_BLE)}))
-      or (r._field == "battery" and r.integration_id == "zigbee2mqtt")))
-  |> group(columns: ["device_id"]) |> last()
-  |> group() |> filter(fn: (r) => float(v: r._value) < 20.0) |> count()''')], graph=False,
+    d.add(stat("Low batteries", [tsdb(f'''
+SELECT count(*) AS "Value" FROM (
+  SELECT DISTINCT ON (device_id) coalesce(batt, battery) AS level
+  FROM mqtt_consumer
+  WHERE time > now() - interval '3 days'
+    AND ((batt IS NOT NULL AND device_id IN {in_list(ALL_BLE)})
+         OR (battery IS NOT NULL AND integration_id = 'zigbee2mqtt'))
+  ORDER BY device_id, time DESC) l
+WHERE level < 20''', fmt="table")], graph=False,
                thr=thresholds(GOOD, (1, WARN)), nulls="0", links=[{"title": "Devices", "url": "/d/home-devices"}]), 3, 4)
