@@ -28,7 +28,7 @@ spec:
               type: RuntimeDefault
           containers:
             - name: protect
-              image: docker.io/library/python:3.13.13-alpine3.23@sha256:420cd0bf0f3998275875e02ecd5808168cf0843cbb4d3c536432f729247b2acc
+              image: docker.io/library/python:3.15.1-alpine3.24@sha256:54448f67d7c31c39e5cdd3ea2d6382395ce142806c284425f8e897d78a0465b3
               imagePullPolicy: IfNotPresent
               command: [python3, -u, /config/protect.py]
               securityContext:
