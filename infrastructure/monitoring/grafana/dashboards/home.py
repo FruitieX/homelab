@@ -1,7 +1,7 @@
-"""Home dashboards: energy & water, climate, devices (TimescaleDB tsdb; prices still InfluxDB)."""
+"""Home dashboards: energy & water, climate, devices (TimescaleDB tsdb)."""
 
 from lib import (BAD, GOOD, HEL, MONTH, MUTED, RANGE, SLOTS, TODAY, WARN, Dashboard, agg, barchart, bargauge,
-                 bucket, by_name, fixed_colors, flux, in_list, latest, lit, organize, reduce_rows, since, stat,
+                 bucket, by_name, fixed_colors, in_list, latest, lit, organize, reduce_rows, since, stat,
                  state_timeline, status_history, table, thresholds, timeseries, tsdb, value_map, values, where)
 
 # SwitchBot BLE sensors (device_id -> place). Unlisted ids are neighbours'.
@@ -190,51 +190,10 @@ FROM electricity e JOIN co2 ON co2.hour = e.time
 WHERE {where(rng, "e.time")} ORDER BY 1'''
 
 
-# Nord Pool prices reach tsdb only through backfill runs until nordpool-mqtt writes there (docs/monitoring.md,
-# "Writers"), so the panels that need today's prices stay on InfluxDB until then. Their SQL is above; flip this
-# and delete the Flux below once nordpool_price is live in tsdb.
-PRICES_IN_TSDB = False
-TZ = 'import "timezone"\noption location = timezone.location(name: "Europe/Helsinki")\n'
-
-
-def priced(sql_query, flux_query, fmt="time_series"):
-    return tsdb(sql_query, fmt) if PRICES_IN_TSDB else flux(TZ + flux_query)
-
-
-def flux_power(every="v.windowPeriod", start="v.timeRangeStart", stop="v.timeRangeStop"):
-    return f'''from(bucket: "home")
-  |> range(start: {start}, stop: {stop})
-  |> filter(fn: (r) => r._measurement == "mqtt_consumer" and r.integration_id == "tuya" and r._field == "raw_19")
-  |> map(fn: (r) => ({{_time: r._time, _value: float(v: r._value) / 10.0, device: r.name}}))
-  |> group(columns: ["device"])
-  |> aggregateWindow(every: {every}, fn: mean, createEmpty: false, timeSrc: "_start")'''
-
-
-def flux_prices(start="v.timeRangeStart", stop="v.timeRangeStop"):
-    return f'''from(bucket: "nordpool")
-  |> range(start: {start}, stop: {stop})
-  |> filter(fn: (r) => r._measurement == "price" and r._field == "price")
-  |> aggregateWindow(every: 1h, fn: mean, createEmpty: false, timeSrc: "_start")
-  |> keep(columns: ["_time", "_value"])'''
-
-
-def flux_cost(start="v.timeRangeStart", stop="v.timeRangeStop"):
-    """Hourly € per plug: mean W over an hour is Wh; price is c/kWh."""
-    return f'''energy = {flux_power(every="1h", start=start, stop=stop)}
-price = {flux_prices(start=start, stop=stop)}
-join(tables: {{e: energy, p: price}}, on: ["_time"])
-  |> map(fn: (r) => ({{_time: r._time, device: r.device, _value: r._value_e / 1000.0 * r._value_p / 100.0}}))
-  |> group(columns: ["device"])'''
-
-
-MONTH_FLUX = 'date.truncate(t: now(), unit: 1mo)'
-SPOT_NOW = priced(PRICE_NOW, flux_prices(start="-2h", stop="now()") + "\n  |> last()")
-SPOT_TODAY_TOMORROW = priced(PRICE_TODAY_TOMORROW, 'import "date"\n' + flux_prices(
-    start="today()", stop="date.add(d: 2d, to: today())"))
-COST_TODAY = priced(total(cost(TODAY)), flux_cost(start="today()", stop="now()") + "\n  |> group() |> sum()",
-                    fmt="table")
-COST_MONTH = priced(total(cost(MONTH)), 'import "date"\n' + flux_cost(start=MONTH_FLUX, stop="now()")
-                    + "\n  |> group() |> sum()", fmt="table")
+SPOT_NOW = tsdb(PRICE_NOW)
+SPOT_TODAY_TOMORROW = tsdb(PRICE_TODAY_TOMORROW)
+COST_TODAY = tsdb(total(cost(TODAY)), fmt="table")
+COST_MONTH = tsdb(total(cost(MONTH)), fmt="table")
 
 
 # Verisure alarm (verisure-bridge -> MQTT -> telegraf-cloud): table verisure, tag topic, text field.
@@ -300,12 +259,7 @@ def energy_dashboard():
         unit="c/kWh", decimals=1, thr=PRICE_THR, color={"mode": "thresholds"}, x_field="_time",
         label_spacing=100, display_name="Price",
         desc="Tomorrow's prices appear after Nord Pool publishes them, around 14:00."), 14, 8)
-    d.add(status_history("Price by hour of day (last 30 days)", [priced(PRICE_BY_HOUR, 'import "date"\n' + flux_prices(
-        start="-30d", stop="now()") + '''
-  |> map(fn: (r) => ({_time: date.truncate(t: r._time, unit: 1d), _value: r._value,
-      hour: if date.hour(t: r._time) < 10 then "0" + string(v: date.hour(t: r._time)) else string(v: date.hour(t: r._time))}))
-  |> group(columns: ["hour"])
-  |> sort(columns: ["_time"])''')], unit="c/kWh", decimals=1, color={"mode": "continuous-blues"},
+    d.add(status_history("Price by hour of day (last 30 days)", [tsdb(PRICE_BY_HOUR)], unit="c/kWh", decimals=1, color={"mode": "continuous-blues"},
         display_name="${__field.labels.hour}:00", row_height=1, interval="1d", time_from="30d",
         desc="Each row is an hour of the day, each column a day; darker is more expensive."), 10, 8)
 
@@ -313,15 +267,13 @@ def energy_dashboard():
     d.add(timeseries("Power by plug", [tsdb(power())], unit="watt", stack=True, fill=40, gradient="none",
                      display_name=BY_DEVICE, overrides=PLUG_OVERRIDES, legend="right", legend_calcs=["mean", "max"],
                      decimals=0), 16, 9)
-    d.add(bargauge("Cost by plug this month", [priced(f'''
-SELECT max(time) AS time, device, sum("Value") AS "Value" FROM ({cost(MONTH)}) c GROUP BY 2 ORDER BY 1''',
-        'import "date"\n' + flux_cost(start=MONTH_FLUX, stop="now()") + "\n  |> sum()")],
+    d.add(bargauge("Cost by plug this month", [tsdb(f'''
+SELECT max(time) AS time, device, sum("Value") AS "Value" FROM ({cost(MONTH)}) c GROUP BY 2 ORDER BY 1''')],
         unit="currencyEUR", decimals=2, display_name=BY_DEVICE, color={"mode": "fixed", "fixedColor": SLOTS[0]},
         reduce="sum", desc="Spot-price cost of each plug's metered energy since the 1st."), 8, 9)
     d.add(timeseries("Daily energy by plug", [tsdb(daily_energy())], unit="kwatth", bars=True, stack=True,
                      display_name=BY_DEVICE, overrides=PLUG_OVERRIDES, time_from="30d", decimals=2), 12, 8)
-    d.add(timeseries("Daily cost by plug", [priced(daily_cost(), flux_cost() + '''
-  |> aggregateWindow(every: 1d, fn: sum, createEmpty: false, timeSrc: "_start")''')],
+    d.add(timeseries("Daily cost by plug", [tsdb(daily_cost())],
                      unit="currencyEUR", bars=True, stack=True, display_name=BY_DEVICE, overrides=PLUG_OVERRIDES,
                      time_from="30d", decimals=2), 12, 8)
 

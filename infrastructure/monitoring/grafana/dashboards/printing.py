@@ -67,10 +67,7 @@ ORDER BY time DESC LIMIT 1''', fmt="table")], unit="watt", decimals=0,
     d.add(stat("Filament used", [prom('max(bambuddy_filament_used_grams)')], unit="massg", decimals=1,
                graph=False), 4, 4)
     d.add(stat("Print time", [prom('max(bambuddy_print_time_seconds)')], unit="s", decimals=0, graph=False), 4, 4)
-    d.add(stat("Plug cost this month", [home.priced(home.total(home.cost(MONTH)) + " WHERE device = '3D printer'",
-                                                  'import "date"\n' + home.flux_cost(start=home.MONTH_FLUX, stop="now()") + '''
-  |> filter(fn: (r) => r.device == "3D printer")
-  |> group() |> sum()''', fmt="table")], unit="currencyEUR", decimals=2, graph=False,
+    d.add(stat("Plug cost this month", [tsdb(home.total(home.cost(MONTH)) + " WHERE device = '3D printer'", fmt="table")], unit="currencyEUR", decimals=2, graph=False,
                desc="The printer's smart-plug energy at the hourly spot price."), 4, 4)
     d.add(timeseries("Prints per week", [sql("bambuddy", '''
 SELECT date_trunc('week', coalesce(started_at, created_at)) AS time, status AS metric, count(*) AS value

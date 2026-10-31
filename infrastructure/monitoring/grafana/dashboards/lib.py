@@ -4,7 +4,6 @@ import json
 
 PROM = {"type": "prometheus", "uid": "prometheus"}
 LOKI = {"type": "loki", "uid": "loki"}
-INFLUX = {"type": "influxdb", "uid": "influxdb-home"}
 TSDB = {"type": "grafana-postgresql-datasource", "uid": "tsdb"}
 PG = {db: {"type": "grafana-postgresql-datasource", "uid": f"pg-{db}"} for db in ("ferrotune", "homectl", "immich", "bambuddy")}
 
@@ -31,17 +30,6 @@ def loki(expr, legend="", instant=False, max_lines=None):
     t = {"datasource": LOKI, "expr": expr, "legendFormat": legend, "queryType": "instant" if instant else "range"}
     if max_lines:
         t["maxLines"] = max_lines
-    return t
-
-
-def flux(query, legend=""):
-    """Flux requires imports before anything else; hoist (and dedupe) them."""
-    lines = query.strip().splitlines()
-    imports = list(dict.fromkeys(l for l in lines if l.startswith("import ")))
-    body = [l for l in lines if not l.startswith("import ")]
-    t = {"datasource": INFLUX, "query": "\n".join(imports + body).strip()}
-    if legend:
-        t["legendFormat"] = legend
     return t
 
 
