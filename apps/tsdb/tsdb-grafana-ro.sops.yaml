@@ -1,0 +1,38 @@
+# Login of the read-only grafana_ro role on tsdb. Agents vault item "homelab TimescaleDB grafana_ro (read-only)".
+apiVersion: v1
+kind: Secret
+metadata:
+    name: tsdb-grafana-ro
+    namespace: default
+    labels:
+        cnpg.io/reload: "true"
+type: kubernetes.io/basic-auth
+stringData:
+    username: ENC[AES256_GCM,data:rs3u32S3pq7ANg==,iv:ZoYvLqxWL4AeHzN7fb+OVXQs3MET+1Fz4mvxReXIx7k=,tag:J39oVEey+imExoMD60wreA==,type:str]
+    password: ENC[AES256_GCM,data:jWq6aB4Ha7Ht4m5VRpCO5kjcjbTLO4Lu3ilHmPGjlqAJxJLoPhJKRg==,iv:Vl268QHnmEV37xnHAgbK53haDNcSHgSBFH39SwGYHcU=,tag:OdAXMI0m18liXw+Xtyynfg==,type:str]
+sops:
+    encrypted_regex: ^(data|stringData)$
+    lastmodified: "2026-10-31T11:56:47Z"
+    mac: ENC[AES256_GCM,data:zNHkO11025Fru7m5hUWYXYpy+5eqyj7OPdm59oGX1SHHXk5lYJBGuQTQH8oLa9nslPUdKh8SH3bSMQ1pXTusZl9E0TIE1YIjzZ8Cl7O2s2+efvGGnlQXyZxWvGav9wjWmOxzpbELR4wpxE9aZ3ZNYRySeurUMNhYphZwN2N7Eos=,iv:H/D92FrNkZYSUjQDKzUDtgDBj9Gi4IF/KUCVIaEoHq8=,tag:nRjByrua3dN0JPWx6g1Y3g==,type:str]
+    pgp:
+        - created_at: "2026-10-31T11:56:47Z"
+          enc: |-
+            -----BEGIN PGP MESSAGE-----
+
+            hQIMA8WjeZLD+fxwARAAgh5wB45TheFsrbjM82J4Fa7TQdNUjIJnK803kiYCuuMx
+            lQ/cW7VBV0QtlYJezVfXxZeAIW66+SUUFfxNpwj5FzzuaKrB0Ev4BU+yvT7OgrE6
+            rvSINj2ECpvwT1zxnYZ5QgE2+SH4SGUFUATGInI7K1eAp4AT3DiV1hgdJjboRFx6
+            oVTbAY4kMkeVCDrYNgkrH7K4TpLCWudPVCfmzrgqRZCGliOn51m/C+uGWa9IaQ8J
+            0adgjFnYpN/cymWX7d0uQq2DB31p08k7/ROLYJbzsYcEEP7U2XFtlGehTYzvysa5
+            F1vFvoKTknd+suPgPJJwYTBSoE6SCMvLZ3KebzVViL9Cd2AHcJcX3eW67aHqIVpU
+            DgrnQcVTKbieBT/WYbVmhanlhn6FE8ntI27qqP42IZF0TQLKP4L1bVT40jBC9YKB
+            FkwiavNPjyXnhWcJcGHxzY+xxvETZE7I+jsZN2YCGWT6zsH+teR5maoy2VwVkKB5
+            7PwFAZ7Dq/7Zaz+RGD7hL1gSsR6/wFgG5xeRpHHDGBIFiKci6ADYhyLdDwtQHK96
+            3KU1FKdUTXH1b6s7kH+HUn1T83+zULiExchlvzq0h4AOTDMmIKYphl3NBXWKln5k
+            lpF6c+HsJllVTyYDQbxVlbI23CPSPNagYN0LU9NjBIRS2QGatD0egX+hTBvCHKDS
+            XgG19/smhSHV+on/FMKA4RJj+tvV2uzfS3qWvYycbdqEKhrfEwLvG688IH5GxTJS
+            hZexJJpdNgDV+FkY7pn+XLeqdWN+vPGH/huQwX+j43po1RUAeT2nn76a9BKA+EQ=
+            =onNO
+            -----END PGP MESSAGE-----
+          fp: 3536F7F9345D96C86FB7F9CD21FAFEE575B18815
+    version: 3.13.3

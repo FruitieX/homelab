@@ -1,0 +1,99 @@
+# Nightly logical backup of tsdb to an NFS volume, which the NAS's Hyper
+# Backup then copies off (like postgres-dump for the shared PostgreSQL).
+# Restore into a cluster running the same TimescaleDB version:
+#   psql -f roles-with-passwords.sql postgres
+#   createdb -O tsdb tsdb && psql -d tsdb -c 'CREATE EXTENSION timescaledb'
+#   psql -d tsdb -c 'SELECT timescaledb_pre_restore()'
+#   pg_restore -d tsdb tsdb.dump
+#   psql -d tsdb -c 'SELECT timescaledb_post_restore()'
+# Compressed chunks are dumped compressed, so a dump is about the size of the
+# database. KEEP_DAYS is short because Hyper Backup keeps the older versions.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: tsdb-dumps
+  namespace: default
+spec:
+  storageClassName: nfs-csi
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 100Gi
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: tsdb-dump
+  namespace: default
+spec:
+  schedule: "47 2 * * *"
+  timeZone: Europe/Helsinki
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 2
+      activeDeadlineSeconds: 7200
+      template:
+        spec:
+          restartPolicy: OnFailure
+          priorityClassName: homelab-batch
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 26
+            runAsGroup: 26
+            seccompProfile:
+              type: RuntimeDefault
+          containers:
+            - name: dump
+              # Same image as the cluster, so pg_dump matches its version.
+              image: ghcr.io/fruitiex/postgresql-timescaledb:18@sha256:fa6e5083bb3424f751235b2831ef792dc2a043263796a00735a7070fdbadc99f
+              env:
+                - name: PGHOST
+                  value: tsdb-rw
+                - name: PGUSER
+                  valueFrom:
+                    secretKeyRef:
+                      name: tsdb-superuser
+                      key: username
+                - name: PGPASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: tsdb-superuser
+                      key: password
+                - name: KEEP_DAYS
+                  value: "3"
+              securityContext:
+                allowPrivilegeEscalation: false
+                capabilities:
+                  drop: ["ALL"]
+              command: ["/bin/bash", "-ceu"]
+              args:
+                - |
+                  dir=/dumps/$(date +%F)
+                  mkdir -p "$dir.tmp"
+                  pg_dumpall --globals-only --no-role-passwords > "$dir.tmp/globals.sql"
+                  pg_dumpall --roles-only > "$dir.tmp/roles-with-passwords.sql"
+                  chmod 600 "$dir.tmp/roles-with-passwords.sql"
+                  # TimescaleDB's catalog has circular foreign keys; pg_dump
+                  # warns about them, which is expected.
+                  pg_dump -Fc -Z 1 -d tsdb -f "$dir.tmp/tsdb.dump"
+                  psql -d tsdb -Atc "select extversion from pg_extension where extname = 'timescaledb'" > "$dir.tmp/timescaledb-version"
+                  rm -rf "$dir" && mv "$dir.tmp" "$dir"
+                  find /dumps -mindepth 1 -maxdepth 1 -type d -mtime +"$KEEP_DAYS" -exec rm -rf {} +
+                  ls -la "$dir"
+              resources:
+                requests:
+                  cpu: 10m
+                  memory: 64Mi
+                limits:
+                  memory: 256Mi
+              volumeMounts:
+                - name: dumps
+                  mountPath: /dumps
+          volumes:
+            - name: dumps
+              persistentVolumeClaim:
+                claimName: tsdb-dumps

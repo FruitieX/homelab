@@ -1,0 +1,21 @@
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: tsdb
+spec:
+  interval: 30m
+  timeout: 10m
+  retryInterval: 30s
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+  path: ./apps/tsdb
+  prune: true
+  wait: true
+  dependsOn:
+    - name: csi-driver-nfs
+    - name: cloudnative-pg
+  decryption:
+    provider: sops
+    secretRef:
+      name: sops-gpg

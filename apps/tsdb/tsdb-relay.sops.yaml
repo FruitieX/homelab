@@ -1,0 +1,36 @@
+# Token clients send to tsdb-relay's InfluxDB v2 write API. Agents vault item
+# "homelab TimescaleDB relay write token".
+apiVersion: v1
+kind: Secret
+metadata:
+    name: tsdb-relay
+    namespace: default
+type: Opaque
+stringData:
+    RELAY_TOKEN: ENC[AES256_GCM,data:YzoFDFbvJg0wJd1lg965o48LhfiSti8Oa3RdiVBLcrf5rMKsl/eeXA==,iv:ElenGWDoIUbPGQSwoK3rlxrYbrqPJ9kiXx/q9qy2ruM=,tag:Gnw++jL6xk5S7qNNR7pplA==,type:str]
+sops:
+    encrypted_regex: ^(data|stringData)$
+    lastmodified: "2026-10-31T11:56:49Z"
+    mac: ENC[AES256_GCM,data:fNuyMRoDRN7UkKJrOfgFmLL1aO8I+Jx0KWB5TAgEq+UKX88Z/YYRI4+mmiVfzhiBnIlbdUtn8KL9LA8f3JvMg+TRNxPJ+zzk6gEdFQifvFdA3PK0W2YKo6PZhwmdEv17wbbUhybGomV0FQ+cX88PZKuLv2wwWiVI55elkHlFcbU=,iv:EXmQY8Uud4PQU/9Ldp/bDbkGTbFPfJbhTyGXRUFjOGo=,tag:4oDLr1OMJd4bgYFW64HmXA==,type:str]
+    pgp:
+        - created_at: "2026-10-31T11:56:49Z"
+          enc: |-
+            -----BEGIN PGP MESSAGE-----
+
+            hQIMA8WjeZLD+fxwAQ//Y95W35FTzO2hNmDKBkKZGkmGnbcgJHMv+cH2lGvy2gtS
+            Ns4VsCwRSpEoasx4JDeA9Tft8ixYRUBtOljMW/ZNcfH8uQPUta29h6i7pWVbWlTq
+            u+d7nK6KZk70//644nf+mn/sJLpEozlQg1xawJdbHDk6393mBPT2hPMFEIaWlqWg
+            PhxQVrOT5KvHBWg9r2MmDxieQyXFUkBvQlLtUgQDwHikNK9gkXTmouyntLD32+Ay
+            UjkaVulsPcIdrx7gVg2ph34TfRg6oz2zFrdyhoI+VuPiy3bzFycuUWVwREUI7Raq
+            l//33a9dnxjOhBfw4ORNHZWqz4jDbArCRmdFzHNUPxe4+9lK8myid29s5ajeJRJb
+            qf6NslaMHPjTiUQ/2SMbyefP42NOstfWTEb7JrRkhQxgpT03uWea4NDGnr6hUSIL
+            R0S4dNZHFSZSLj4DxBSZjY/qZC3fz73wdLh4ASvfLJQH57V2BzzlrQx8lsrAizST
+            G0OtqIJhZgHTpfEH+qhr9TGutyq1zxtnUkJYVJqr35i/xO9PlWqob/H+5W7zFQ8H
+            8JS9Vnfw/fBJKaR1TaYyMuk9Lx9gcKhEza36ni/avS0h/OqtIoN9/0CwJGg2UdOq
+            GoO5eRT8ukhFVaM2rTm+ahc6KvrM2f8Z62DZeNVelztkmQ6f6SdvW9xH1X4PKUXS
+            XgFI9SV+Lr42t7SfdjBCpaCqRlSVTQI5co+8LLwfpGB0xiL6wxxl4BI6uMeCn7oF
+            vCdAZB6CeTlB7MZgyNmfi272rk+tKJLnBltGgEvF3VXB66hkh55jMHXn2qR3VNE=
+            =bi25
+            -----END PGP MESSAGE-----
+          fp: 3536F7F9345D96C86FB7F9CD21FAFEE575B18815
+    version: 3.13.3

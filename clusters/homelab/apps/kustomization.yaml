@@ -4,6 +4,7 @@ namespace: flux-system
 resources:
   - mosquitto.yaml
   - postgres.yaml
+  - tsdb.yaml
   - add-bot.yaml
   - redoor.yaml
   - homectl.yaml

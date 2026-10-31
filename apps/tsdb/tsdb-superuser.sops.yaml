@@ -1,0 +1,38 @@
+# Superuser of the tsdb cluster (tsdb-dump, maintenance). Agents vault item "homelab TimescaleDB superuser".
+apiVersion: v1
+kind: Secret
+metadata:
+    name: tsdb-superuser
+    namespace: default
+    labels:
+        cnpg.io/reload: "true"
+type: kubernetes.io/basic-auth
+stringData:
+    username: ENC[AES256_GCM,data:a+A3kwIlJ3M=,iv:jH0bzlt2hPoXO3z3svdqxy/bYFBOXURAplBS8EdaRfc=,tag:BI5Ry7fkx45U3ojHwivBtw==,type:str]
+    password: ENC[AES256_GCM,data:uEBuHev86LEj4LyFbdwBGo2KsMRQzwhlkBrMsh/reYKIeW4WPefFJg==,iv:KZuax84ARujZbhw09kWh/YN5weWPTzvoRjVIPXOk/6A=,tag:r7Kylh9E4ps3bjkWb+SJtQ==,type:str]
+sops:
+    encrypted_regex: ^(data|stringData)$
+    lastmodified: "2026-10-31T11:56:51Z"
+    mac: ENC[AES256_GCM,data:cOW2qpU9S6Vx8hUMBtT4s54I8BAp+EnDD9bKAcZC60ZYwm1qu6K8brMpOxJ1ElqYO5dbP+mLui7R2A+hOJgV4kdLgHzJMkYMMoDLy1ClN4mbBhyTZDyjtHYwmI5alMJfUIgHG2QLRAw2dyHlpoR9cDAQ8fD3HuH1+1UPOYxOgd8=,iv:VemZEJyL/JACvSXyYSYlSkv19/brUItsZ9yR/mcFzKg=,tag:RVv3foNByhklAVUftYR32g==,type:str]
+    pgp:
+        - created_at: "2026-10-31T11:56:51Z"
+          enc: |-
+            -----BEGIN PGP MESSAGE-----
+
+            hQIMA8WjeZLD+fxwAQ//e5lbyeqqWnCdu+ad4n9xV+r8+sKzs5cWtiZT6BB/d7iI
+            pdV/fYekPK1ZzUSCFJjTe8mlkopXQVbAywBqQ7KNF8t24D5Mw7j27JCuQ3pnUMgO
+            hjBDCpNplqWo4ZWDmTAJOG4Lzzvkz8iG0I1cFgoQVdS9Z3P/Sg7gEyUth22dW/s/
+            vIbInt/kf2zcbjt8wOOOSRFD4Y6YyvE4e5/YdmgSrSwVcmucRJgNjmIErJds6QZF
+            OYKVXG1I1tLNWbnIOp2k7NpkG6NGLu+1ixsR/pXXZqr4a8pd9iwgtA2ABTDSVmiN
+            XIXbdQ7VhXuZ2cU8sKTk6I5+6H/pFBjAeRPkk4LPRJd0/xzc6Vcognp3mlt7tJt/
+            TfG5ZEnxm1e7Zp5EWXR16Ppumm6QeUdWEWNoAuO9g9B2lVf/BaV8rm+u03dGka9t
+            EebSY72jSdSdVrkg6i7HCFUIYURq3oNuSieW7nzcG4ADNmxeN9G41ME7fUbvNMcM
+            O48K77cy1a3ctfK+cBxkrSf0twybQO2JRz7vjx7Mb4hw+fhzJAb8oyXov0AcMyxk
+            Ax5DEFcBbApsO90F8Xj5DsUDYq0/DCyZFF6sRxzJC5WI8Is/x2o2g6Y1RcW+iTGd
+            hrIBRjctCxVAIhJ397AEiCfaujRfg1dayue75S93W5oneRBdUa5f1vddK82eI2XS
+            XgGClJO1OBwxTPjouUsITzu4CJB9ItJQ1YaS+NQorAJ+rNIOBNsDWJdWkEtBwWvX
+            rJfSwJ6fEJ903labAdjAf0Buc9ijM43o6Hu1k8w0xAslIwu8FL2zUNog+4iTNqI=
+            =nnDh
+            -----END PGP MESSAGE-----
+          fp: 3536F7F9345D96C86FB7F9CD21FAFEE575B18815
+    version: 3.13.3

@@ -1,0 +1,38 @@
+# Login of the tsdb owner role (writers: Telegraf, relay, backfill). Agents vault item "homelab TimescaleDB tsdb (owner)".
+apiVersion: v1
+kind: Secret
+metadata:
+    name: tsdb-app
+    namespace: default
+    labels:
+        cnpg.io/reload: "true"
+type: kubernetes.io/basic-auth
+stringData:
+    username: ENC[AES256_GCM,data:bYExCQ==,iv:GWOdd9WM1ZK2qxNTUTNb2XH/tDSC3Da4xl5Tt9+NBus=,tag:Kw9hXukeZVvSopwAdn9MgA==,type:str]
+    password: ENC[AES256_GCM,data:wRBJlvs2X5HUELdCRMnh7cebmrwjRp27HHhPVhL+9gkwCPcj7a1NhA==,iv:jUP+DKsNmMWP9CZnPG4IPL+usjH1ogq5unUKjCLONT8=,tag:sIcyQKlPWsCBMdtHSGkB0g==,type:str]
+sops:
+    encrypted_regex: ^(data|stringData)$
+    lastmodified: "2026-10-31T11:56:45Z"
+    mac: ENC[AES256_GCM,data:6cst2mSpNh1RZumKww0Lhnx8rAaG39di6QwUoAi0G2op2bacSvZg4KJ7nW1semxr07AqghVAjPJHpRryFIVxNWyAgghl2YiEQ0AdEjEc8bXGr0z24DaG9slyuPJVbyIH+RdmbVmiojRIpbt9wDY6eowly4DC6F/tAM7Mf2HlyY8=,iv:BRxwY1HcmydrS7XOyYgokohHA5pSvpkr9v7e9QuEAaI=,tag:wdknjld8WvVVe90n1aFpfQ==,type:str]
+    pgp:
+        - created_at: "2026-10-31T11:56:45Z"
+          enc: |-
+            -----BEGIN PGP MESSAGE-----
+
+            hQIMA8WjeZLD+fxwARAAyDxeub2UnsmUNqQG6rtQFAUX7LplJ5cghpX4HZDwLVol
+            oqga8TaQODeNOtz1GTbbVJSP2R91fb0Vp1vdH4RDxDoGlDPdupoVk/pd5hU5i4ll
+            4o/uRm9AG0tlP5tcnf6NJTR6vJrGKTVsT1QvrEON00HkwqNe4QZlRTC8Wk/GYPNo
+            JyeQj3TS/mzrTAfgraooTG35VO/EADlsErxSiec1OgAbMg9NXxieYkdxGsVxwFvv
+            AJaAjlno6+Pg7riiivUrZKuJAmiGoGhVLY5DeoSK6pYudJ8+Az6YaVxoSqRSw2Xn
+            hlJ2q/zgCqqXUDRUKJ8v324UiALaPYif0lPAEoi9eeK3WK+xwZ7hI3WmA1dEkqDE
+            4es1uPHwUEejDuCn2T9ghaxypw6Uinfm+2aWoqkEd7FsR1EXAtwoJyTfJWsYTFo4
+            nj6P+XUr3rK21jcdOTV5XTOtTxGIEg+pp+5a4gLzqM9dQOli3pAUeC3JKD580/rj
+            dUP3YRGCOE3AcbmFed8pi2zVqNuC3kQzY/DaIAIGkO8ZgIY/hqoMNhZd9uOu9s1Y
+            N4iW20/zNqbsDJ18ZnQeUZDOb2e7RDxb6TNVyTuofeDPF6Va8oO/MzFTg94w3DI6
+            mei+McS9yF/EtIxKXdD1i1fSdxBv5SvgwPUDG1XvhZMHVr0ZMNH3QQefjjwN+ibS
+            XgGbb8Em2s3iaKUSrGDphHkQfnXVXEyXsgAtreJFkKXo9hwGMOdcG7clfz5kw8qP
+            htoDoKGn/dPCzX41CZkuSzSJpVkagBV91lnFPjyu/hm6oMM0SgAQymVoDVvjUSA=
+            =eVqd
+            -----END PGP MESSAGE-----
+          fp: 3536F7F9345D96C86FB7F9CD21FAFEE575B18815
+    version: 3.13.3

@@ -193,6 +193,31 @@ spec:
           annotations:
             summary: "The nightly PostgreSQL dump has not succeeded in 36 hours"
             description: "kubectl -n default get cronjob postgres-dump; check its failed Jobs and their logs. The shared PostgreSQL has no other off-cluster copy."
+        - alert: TsdbDumpStale
+          # Also fires if the CronJob has never succeeded since it was created.
+          expr: |
+            (
+            (
+              (time() - kube_cronjob_status_last_successful_time{namespace="default",cronjob="tsdb-dump"} > 129600)
+              and on(namespace, cronjob)
+              (kube_cronjob_status_last_successful_time{namespace="default",cronjob="tsdb-dump"} > 0)
+            )
+            or
+            (
+              (time() - kube_cronjob_created{namespace="default",cronjob="tsdb-dump"} > 129600)
+              unless on(namespace, cronjob)
+              (kube_cronjob_status_last_successful_time{namespace="default",cronjob="tsdb-dump"} > 0)
+            )
+            or
+            absent(kube_cronjob_created{namespace="default",cronjob="tsdb-dump"})
+            )
+          for: 30m
+          labels:
+            homelab: "true"
+            severity: warning
+          annotations:
+            summary: "The nightly TimescaleDB (tsdb) dump has not succeeded in 36 hours"
+            description: "kubectl -n default get cronjob tsdb-dump; check its failed Jobs and their logs. tsdb has no other off-cluster copy."
         - alert: CronJobLastRunFailed
           # Scheduled after the last success (or never succeeded) and nothing
           # is running any more: the latest run failed. Suspended CronJobs are

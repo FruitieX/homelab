@@ -1,0 +1,94 @@
+# TimescaleDB for the house's time series (docs/monitoring.md), replacing
+# InfluxDB in stages. It is a separate CloudNativePG cluster from the shared
+# postgres-ha: different extension, much larger volume, and its own
+# resources, so a heavy query or backfill here can't starve the apps.
+#
+# One instance: the volume lives on the NAS like postgres-ha's, so a replica
+# would protect against losing a node but not the NAS, at the cost of
+# doubling every write and the memory. The writers (Telegraf) buffer while
+# the instance restarts, and the nightly tsdb-dump is the backup.
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: tsdb
+  namespace: default
+spec:
+  instances: 1
+  # CloudNativePG's PostgreSQL 18 image plus TimescaleDB (TSL), built from
+  # images/postgresql-timescaledb by .github/workflows/tsdb-image.yaml.
+  imageName: ghcr.io/fruitiex/postgresql-timescaledb:18@sha256:fa6e5083bb3424f751235b2831ef792dc2a043263796a00735a7070fdbadc99f
+  priorityClassName: homelab-home
+  smartShutdownTimeout: 10
+  # A single instance with a PodDisruptionBudget would block every node
+  # drain; accept a short restart instead (Telegraf buffers meanwhile).
+  enablePDB: false
+
+  enableSuperuserAccess: true
+  superuserSecret:
+    name: tsdb-superuser
+
+  managed:
+    roles:
+      # SELECT-only, read-only by default, 30 s statement timeout (set in
+      # bootstrap.sql; CNPG doesn't manage per-role settings).
+      - name: grafana_ro
+        ensure: present
+        login: true
+        connectionLimit: 20
+        inRoles:
+          - pg_monitor
+        passwordSecret:
+          name: tsdb-grafana-ro
+
+  postgresql:
+    shared_preload_libraries:
+      - timescaledb
+    parameters:
+      max_connections: "60"
+      shared_buffers: 512MB
+      effective_cache_size: 1536MB
+      work_mem: 16MB
+      maintenance_work_mem: 256MB
+      max_wal_size: 2GB
+      wal_compression: "on"
+      checkpoint_timeout: 15min
+      # Grafana's queries are short; JIT compilation only adds latency.
+      jit: "off"
+      timezone: Etc/UTC
+      log_timezone: Etc/UTC
+      max_worker_processes: "16"
+      timescaledb.max_background_workers: "8"
+      timescaledb.telemetry_level: "off"
+
+  resources:
+    requests:
+      cpu: 100m
+      memory: 1Gi
+    limits:
+      memory: 2Gi
+
+  # nfs-csi volumes can't be expanded, so this is sized for about five years:
+  # compressed history grows by a few GB a year, plus the uncompressed last
+  # week, WAL and room for a dump/restore.
+  storage:
+    storageClass: nfs-csi
+    size: 60Gi
+
+  # Only used when the cluster is first created. The ConfigMap tsdb-schema
+  # holds bootstrap.sql (extension, grafana_ro settings, timezone) and
+  # schema.sql (hypertables); see docs/monitoring.md.
+  bootstrap:
+    initdb:
+      database: tsdb
+      owner: tsdb
+      secret:
+        name: tsdb-app
+      encoding: UTF8
+      localeCollate: en_US.utf8
+      localeCType: en_US.utf8
+      postInitApplicationSQLRefs:
+        configMapRefs:
+          - name: tsdb-schema
+            key: bootstrap.sql
+          - name: tsdb-schema
+            key: schema.sql
