@@ -1,0 +1,10 @@
+# Grafana moved the Grafana and Loki (OSS) charts here in 2026; the old
+# `grafana` repository keeps Alloy, and its Loki chart is now for Grafana
+# Enterprise Logs only.
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: HelmRepository
+metadata:
+  name: grafana-community
+spec:
+  interval: 24h
+  url: https://grafana-community.github.io/helm-charts
