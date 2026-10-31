@@ -20,7 +20,7 @@ spec:
           restartPolicy: Never
           containers:
             - name: compact
-              image: influxdb:2.7.4-alpine   # same image as the server, for the influx CLI
+              image: influxdb:2.9.1-alpine   # same image as the server, for the influx CLI
               command: ["sh", "/scripts/compact.sh", "auto", "26"]
               env:
                 - name: INFLUX_HOST
