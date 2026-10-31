@@ -22,8 +22,8 @@
  "panels": [
   {
    "datasource": {
-    "type": "influxdb",
-    "uid": "influxdb-home"
+    "type": "grafana-postgresql-datasource",
+    "uid": "tsdb"
    },
    "fieldConfig": {
     "defaults": {
@@ -183,21 +183,27 @@
    "targets": [
     {
      "datasource": {
-      "type": "influxdb",
-      "uid": "influxdb-home"
+      "type": "grafana-postgresql-datasource",
+      "uid": "tsdb"
      },
-     "hide": true,
-     "query": "import \"date\"\nimport \"timezone\"\n\noption location = timezone.location(name: \"Europe/Helsinki\")\n\nfrom(bucket: \"home\")\n  |> range(start: date.sub(from: today(), d: 1d), stop: date.add(to: today(), d: 1d))\n  |> filter(fn: (r) => r[\"_measurement\"] == \"mqtt_consumer\")\n  |> filter(fn: (r) => r[\"_field\"] == \"raw_19\") \n  |> filter(fn: (r) => r[\"integration_id\"] == \"tuya\")\n  |> filter(fn: (r) => r[\"kind\"] == \"devices\")\n  |> filter(fn: (r) => r[\"name\"] == \"3D printer\")\n  |> aggregateWindow(every: 1m, fn: mean, createEmpty: false)\n  |> map(fn: (r) => ({ r with _value: r._value * 0.1 }))\n  |> drop(columns: [\"device_id\", \"topic\"])\n  |> yield(name: \"mean\")",
-     "refId": "power"
+     "editorMode": "code",
+     "format": "time_series",
+     "rawQuery": true,
+     "rawSql": "SELECT time_bucket('1 minute', time) + interval '1 minute' AS time,\n  integration_id, kind, name, avg(raw_19) * 0.1 AS raw_19\nFROM mqtt_consumer\nWHERE time >= date_subtract(date_trunc('day', now(), 'Europe/Helsinki'), interval '1 day', 'Europe/Helsinki') AND time < date_add(date_trunc('day', now(), 'Europe/Helsinki'), interval '1 day', 'Europe/Helsinki') AND time > now() - interval '2 days'\n  AND integration_id = 'tuya' AND kind = 'devices' AND name = '3D printer' AND raw_19 IS NOT NULL\nGROUP BY 1, 2, 3, 4 ORDER BY 1",
+     "refId": "power",
+     "hide": true
     },
     {
      "datasource": {
-      "type": "influxdb",
-      "uid": "influxdb-home"
+      "type": "grafana-postgresql-datasource",
+      "uid": "tsdb"
      },
-     "hide": true,
-     "query": "import \"date\"\nimport \"timezone\"\n\noption location = timezone.location(name: \"Europe/Helsinki\")\n\nfrom(bucket: \"home\")\n  |> range(start: date.sub(from: today(), d: 1d), stop: date.add(to: today(), d: 1d))\n  |> filter(fn: (r) => r[\"_measurement\"] == \"mqtt_consumer\")\n  |> filter(fn: (r) => r[\"_field\"] == \"price\")\n  |> filter(fn: (r) => r[\"integration_id\"] == \"nordpool\")\n  |> drop(columns: [\"device_id\", \"topic\"])\n  |> yield(name: \"mean\")",
-     "refId": "cents_per_kwh"
+     "editorMode": "code",
+     "format": "time_series",
+     "rawQuery": true,
+     "rawSql": "SELECT time, integration_id, kind, name, price\nFROM mqtt_consumer\nWHERE time >= date_subtract(date_trunc('day', now(), 'Europe/Helsinki'), interval '1 day', 'Europe/Helsinki') AND time < date_add(date_trunc('day', now(), 'Europe/Helsinki'), interval '1 day', 'Europe/Helsinki') AND time > now() - interval '2 days'\n  AND integration_id = 'nordpool' AND price IS NOT NULL\nORDER BY 1",
+     "refId": "cents_per_kwh",
+     "hide": true
     },
     {
      "datasource": {
@@ -309,8 +315,8 @@
   },
   {
    "datasource": {
-    "type": "influxdb",
-    "uid": "influxdb-home"
+    "type": "grafana-postgresql-datasource",
+    "uid": "tsdb"
    },
    "fieldConfig": {
     "defaults": {
@@ -358,12 +364,15 @@
    "targets": [
     {
      "datasource": {
-      "type": "influxdb",
-      "uid": "influxdb-home"
+      "type": "grafana-postgresql-datasource",
+      "uid": "tsdb"
      },
-     "hide": false,
-     "query": "import \"date\"\nimport \"timezone\"\n\noption location = timezone.location(name: \"Europe/Helsinki\")\n\nfrom(bucket: \"home\")\n  |> range(start: date.sub(from: today(), d: 1d), stop: date.add(to: today(), d: 1d))\n  |> filter(fn: (r) => r[\"_measurement\"] == \"mqtt_consumer\")\n  |> filter(fn: (r) => r[\"_field\"] == \"raw_19\") \n  |> filter(fn: (r) => r[\"integration_id\"] == \"tuya\")\n  |> filter(fn: (r) => r[\"kind\"] == \"devices\")\n  |> filter(fn: (r) => r[\"name\"] == \"3D printer\")\n  |> aggregateWindow(every: 1m, fn: mean, createEmpty: false)\n  |> map(fn: (r) => ({ r with _value: r._value * 0.1 }))\n  |> yield(name: \"mean\")",
-     "refId": "power"
+     "editorMode": "code",
+     "format": "time_series",
+     "rawQuery": true,
+     "rawSql": "SELECT time_bucket('1 minute', time) + interval '1 minute' AS time,\n  integration_id, kind, name, device_id, topic, avg(raw_19) * 0.1 AS raw_19\nFROM mqtt_consumer\nWHERE time >= date_subtract(date_trunc('day', now(), 'Europe/Helsinki'), interval '1 day', 'Europe/Helsinki') AND time < date_add(date_trunc('day', now(), 'Europe/Helsinki'), interval '1 day', 'Europe/Helsinki') AND time > now() - interval '2 days'\n  AND integration_id = 'tuya' AND kind = 'devices' AND name = '3D printer' AND raw_19 IS NOT NULL\nGROUP BY 1, 2, 3, 4, 5, 6 ORDER BY 1",
+     "refId": "power",
+     "hide": false
     }
    ],
    "title": "3D printer consumption",
@@ -371,8 +380,8 @@
   },
   {
    "datasource": {
-    "type": "influxdb",
-    "uid": "influxdb-home"
+    "type": "grafana-postgresql-datasource",
+    "uid": "tsdb"
    },
    "description": "",
    "fieldConfig": {
@@ -499,10 +508,13 @@
    "targets": [
     {
      "datasource": {
-      "type": "influxdb",
-      "uid": "influxdb-home"
+      "type": "grafana-postgresql-datasource",
+      "uid": "tsdb"
      },
-     "query": "from(bucket: \"home\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"mqtt_consumer\")\n  |> filter(fn: (r) => r[\"_field\"] == \"tempc\")\n  |> filter(fn: (r) => r[\"brand\"] == \"SwitchBot\")\n  |> filter(fn: (r) => r[\"device_id\"] == \"C76A03460A73\")\n  |> group(columns: [\"_field\"])\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\n  |> yield(name: \"mean\")",
+     "editorMode": "code",
+     "format": "time_series",
+     "rawQuery": true,
+     "rawSql": "SELECT least(time_bucket($__interval_ms * interval '1 ms', time) + $__interval_ms * interval '1 ms', $__timeTo()) AS time, avg(tempc) AS tempc\nFROM mqtt_consumer\nWHERE $__timeFilter(time) AND device_id = 'C76A03460A73' AND brand = 'SwitchBot'\n  AND (tempc IS NOT NULL)\nGROUP BY 1 ORDER BY 1",
      "refId": "A"
     }
    ],
@@ -511,8 +523,8 @@
   },
   {
    "datasource": {
-    "type": "influxdb",
-    "uid": "influxdb-home"
+    "type": "grafana-postgresql-datasource",
+    "uid": "tsdb"
    },
    "description": "",
    "fieldConfig": {
@@ -646,10 +658,13 @@
    "targets": [
     {
      "datasource": {
-      "type": "influxdb",
-      "uid": "influxdb-home"
+      "type": "grafana-postgresql-datasource",
+      "uid": "tsdb"
      },
-     "query": "from(bucket: \"home\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"mqtt_consumer\")\n  |> filter(fn: (r) => r[\"_field\"] == \"hum\")\n  |> filter(fn: (r) => r[\"brand\"] == \"SwitchBot\")\n  |> filter(fn: (r) => r[\"device_id\"] == \"C76A03460A73\")\n  |> group(columns: [\"_field\"])\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\n  |> yield(name: \"mean\")",
+     "editorMode": "code",
+     "format": "time_series",
+     "rawQuery": true,
+     "rawSql": "SELECT least(time_bucket($__interval_ms * interval '1 ms', time) + $__interval_ms * interval '1 ms', $__timeTo()) AS time, avg(hum) AS hum\nFROM mqtt_consumer\nWHERE $__timeFilter(time) AND device_id = 'C76A03460A73' AND brand = 'SwitchBot'\n  AND (hum IS NOT NULL)\nGROUP BY 1 ORDER BY 1",
      "refId": "A"
     }
    ],
@@ -658,8 +673,8 @@
   },
   {
    "datasource": {
-    "type": "influxdb",
-    "uid": "influxdb-home"
+    "type": "grafana-postgresql-datasource",
+    "uid": "tsdb"
    },
    "description": "",
    "fieldConfig": {
@@ -739,10 +754,13 @@
    "targets": [
     {
      "datasource": {
-      "type": "influxdb",
-      "uid": "influxdb-home"
+      "type": "grafana-postgresql-datasource",
+      "uid": "tsdb"
      },
-     "query": "from(bucket: \"home\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"mqtt_consumer\")\n  |> filter(fn: (r) => r[\"_field\"] == \"tempc\")\n  |> filter(fn: (r) => r[\"brand\"] == \"SwitchBot\")\n  |> filter(fn: (r) => r[\"device_id\"] == \"CE2A83062A34\")\n  |> group(columns: [\"_field\"])\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\n  |> yield(name: \"mean\")",
+     "editorMode": "code",
+     "format": "time_series",
+     "rawQuery": true,
+     "rawSql": "SELECT least(time_bucket($__interval_ms * interval '1 ms', time) + $__interval_ms * interval '1 ms', $__timeTo()) AS time, avg(tempc) AS tempc\nFROM mqtt_consumer\nWHERE $__timeFilter(time) AND device_id = 'CE2A83062A34' AND brand = 'SwitchBot'\n  AND (tempc IS NOT NULL)\nGROUP BY 1 ORDER BY 1",
      "refId": "A"
     }
    ],
@@ -751,8 +769,8 @@
   },
   {
    "datasource": {
-    "type": "influxdb",
-    "uid": "influxdb-home"
+    "type": "grafana-postgresql-datasource",
+    "uid": "tsdb"
    },
    "description": "",
    "fieldConfig": {
@@ -830,10 +848,13 @@
    "targets": [
     {
      "datasource": {
-      "type": "influxdb",
-      "uid": "influxdb-home"
+      "type": "grafana-postgresql-datasource",
+      "uid": "tsdb"
      },
-     "query": "from(bucket: \"home\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"mqtt_consumer\")\n  |> filter(fn: (r) => r[\"_field\"] == \"hum\")\n  |> filter(fn: (r) => r[\"brand\"] == \"SwitchBot\")\n  |> filter(fn: (r) => r[\"device_id\"] == \"CE2A83062A34\")\n  |> group(columns: [\"_field\"])\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\n  |> yield(name: \"mean\")",
+     "editorMode": "code",
+     "format": "time_series",
+     "rawQuery": true,
+     "rawSql": "SELECT least(time_bucket($__interval_ms * interval '1 ms', time) + $__interval_ms * interval '1 ms', $__timeTo()) AS time, avg(hum) AS hum\nFROM mqtt_consumer\nWHERE $__timeFilter(time) AND device_id = 'CE2A83062A34' AND brand = 'SwitchBot'\n  AND (hum IS NOT NULL)\nGROUP BY 1 ORDER BY 1",
      "refId": "A"
     }
    ],
@@ -842,8 +863,8 @@
   },
   {
    "datasource": {
-    "type": "influxdb",
-    "uid": "influxdb-home"
+    "type": "grafana-postgresql-datasource",
+    "uid": "tsdb"
    },
    "description": "",
    "fieldConfig": {
@@ -967,10 +988,13 @@
    "targets": [
     {
      "datasource": {
-      "type": "influxdb",
-      "uid": "influxdb-home"
+      "type": "grafana-postgresql-datasource",
+      "uid": "tsdb"
      },
-     "query": "from(bucket: \"home\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"mqtt_consumer\")\n  |> filter(fn: (r) => r[\"_field\"] == \"tempc\")\n  |> filter(fn: (r) => r[\"brand\"] == \"SwitchBot\")\n  |> filter(fn: (r) => r[\"device_id\"] == \"CE2A83062A34\")\n  |> group(columns: [\"_field\"])\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\n  |> yield(name: \"mean\")",
+     "editorMode": "code",
+     "format": "time_series",
+     "rawQuery": true,
+     "rawSql": "SELECT least(time_bucket($__interval_ms * interval '1 ms', time) + $__interval_ms * interval '1 ms', $__timeTo()) AS time, avg(tempc) AS tempc\nFROM mqtt_consumer\nWHERE $__timeFilter(time) AND device_id = 'CE2A83062A34' AND brand = 'SwitchBot'\n  AND (tempc IS NOT NULL)\nGROUP BY 1 ORDER BY 1",
      "refId": "A"
     }
    ],
@@ -979,8 +1003,8 @@
   },
   {
    "datasource": {
-    "type": "influxdb",
-    "uid": "influxdb-home"
+    "type": "grafana-postgresql-datasource",
+    "uid": "tsdb"
    },
    "description": "",
    "fieldConfig": {
@@ -1089,10 +1113,13 @@
    "targets": [
     {
      "datasource": {
-      "type": "influxdb",
-      "uid": "influxdb-home"
+      "type": "grafana-postgresql-datasource",
+      "uid": "tsdb"
      },
-     "query": "from(bucket: \"home\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"mqtt_consumer\")\n  |> filter(fn: (r) => r[\"_field\"] == \"hum\")\n  |> filter(fn: (r) => r[\"brand\"] == \"SwitchBot\")\n  |> filter(fn: (r) => r[\"device_id\"] == \"CE2A83062A34\")\n  |> group(columns: [\"_field\"])\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\n  |> yield(name: \"mean\")",
+     "editorMode": "code",
+     "format": "time_series",
+     "rawQuery": true,
+     "rawSql": "SELECT least(time_bucket($__interval_ms * interval '1 ms', time) + $__interval_ms * interval '1 ms', $__timeTo()) AS time, avg(hum) AS hum\nFROM mqtt_consumer\nWHERE $__timeFilter(time) AND device_id = 'CE2A83062A34' AND brand = 'SwitchBot'\n  AND (hum IS NOT NULL)\nGROUP BY 1 ORDER BY 1",
      "refId": "A"
     }
    ],
@@ -1101,8 +1128,8 @@
   },
   {
    "datasource": {
-    "type": "influxdb",
-    "uid": "influxdb-home"
+    "type": "grafana-postgresql-datasource",
+    "uid": "tsdb"
    },
    "description": "",
    "fieldConfig": {
@@ -1226,10 +1253,13 @@
    "targets": [
     {
      "datasource": {
-      "type": "influxdb",
-      "uid": "influxdb-home"
+      "type": "grafana-postgresql-datasource",
+      "uid": "tsdb"
      },
-     "query": "from(bucket: \"home\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"mqtt_consumer\")\n  |> filter(fn: (r) => r[\"_field\"] == \"tempc\")\n  |> filter(fn: (r) => r[\"brand\"] == \"SwitchBot\")\n  |> filter(fn: (r) => r[\"device_id\"] == \"C76A00462055\")\n  |> group(columns: [\"_field\"])\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\n  |> yield(name: \"mean\")",
+     "editorMode": "code",
+     "format": "time_series",
+     "rawQuery": true,
+     "rawSql": "SELECT least(time_bucket($__interval_ms * interval '1 ms', time) + $__interval_ms * interval '1 ms', $__timeTo()) AS time, avg(tempc) AS tempc\nFROM mqtt_consumer\nWHERE $__timeFilter(time) AND device_id = 'C76A00462055' AND brand = 'SwitchBot'\n  AND (tempc IS NOT NULL)\nGROUP BY 1 ORDER BY 1",
      "refId": "A"
     }
    ],
@@ -1238,8 +1268,8 @@
   },
   {
    "datasource": {
-    "type": "influxdb",
-    "uid": "influxdb-home"
+    "type": "grafana-postgresql-datasource",
+    "uid": "tsdb"
    },
    "description": "",
    "fieldConfig": {
@@ -1348,10 +1378,13 @@
    "targets": [
     {
      "datasource": {
-      "type": "influxdb",
-      "uid": "influxdb-home"
+      "type": "grafana-postgresql-datasource",
+      "uid": "tsdb"
      },
-     "query": "from(bucket: \"home\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"mqtt_consumer\")\n  |> filter(fn: (r) => r[\"_field\"] == \"hum\")\n  |> filter(fn: (r) => r[\"brand\"] == \"SwitchBot\")\n  |> filter(fn: (r) => r[\"device_id\"] == \"C76A00462055\")\n  |> group(columns: [\"_field\"])\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\n  |> yield(name: \"mean\")",
+     "editorMode": "code",
+     "format": "time_series",
+     "rawQuery": true,
+     "rawSql": "SELECT least(time_bucket($__interval_ms * interval '1 ms', time) + $__interval_ms * interval '1 ms', $__timeTo()) AS time, avg(hum) AS hum\nFROM mqtt_consumer\nWHERE $__timeFilter(time) AND device_id = 'C76A00462055' AND brand = 'SwitchBot'\n  AND (hum IS NOT NULL)\nGROUP BY 1 ORDER BY 1",
      "refId": "A"
     }
    ],
@@ -1360,8 +1393,8 @@
   },
   {
    "datasource": {
-    "type": "influxdb",
-    "uid": "influxdb-home"
+    "type": "grafana-postgresql-datasource",
+    "uid": "tsdb"
    },
    "description": "",
    "fieldConfig": {
@@ -1485,10 +1518,13 @@
    "targets": [
     {
      "datasource": {
-      "type": "influxdb",
-      "uid": "influxdb-home"
+      "type": "grafana-postgresql-datasource",
+      "uid": "tsdb"
      },
-     "query": "from(bucket: \"home\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"mqtt_consumer\")\n  |> filter(fn: (r) => r[\"_field\"] == \"tempc\")\n  |> filter(fn: (r) => r[\"brand\"] == \"SwitchBot\")\n  |> filter(fn: (r) => r[\"device_id\"] == \"C76A05065C4E\")\n  |> group(columns: [\"_field\"])\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\n  |> yield(name: \"mean\")",
+     "editorMode": "code",
+     "format": "time_series",
+     "rawQuery": true,
+     "rawSql": "SELECT least(time_bucket($__interval_ms * interval '1 ms', time) + $__interval_ms * interval '1 ms', $__timeTo()) AS time, avg(tempc) AS tempc\nFROM mqtt_consumer\nWHERE $__timeFilter(time) AND device_id = 'C76A05065C4E' AND brand = 'SwitchBot'\n  AND (tempc IS NOT NULL)\nGROUP BY 1 ORDER BY 1",
      "refId": "A"
     }
    ],
@@ -1497,8 +1533,8 @@
   },
   {
    "datasource": {
-    "type": "influxdb",
-    "uid": "influxdb-home"
+    "type": "grafana-postgresql-datasource",
+    "uid": "tsdb"
    },
    "description": "",
    "fieldConfig": {
@@ -1607,10 +1643,13 @@
    "targets": [
     {
      "datasource": {
-      "type": "influxdb",
-      "uid": "influxdb-home"
+      "type": "grafana-postgresql-datasource",
+      "uid": "tsdb"
      },
-     "query": "from(bucket: \"home\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"mqtt_consumer\")\n  |> filter(fn: (r) => r[\"_field\"] == \"hum\")\n  |> filter(fn: (r) => r[\"brand\"] == \"SwitchBot\")\n  |> filter(fn: (r) => r[\"device_id\"] == \"C76A05065C4E\")\n  |> group(columns: [\"_field\"])\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\n  |> yield(name: \"mean\")",
+     "editorMode": "code",
+     "format": "time_series",
+     "rawQuery": true,
+     "rawSql": "SELECT least(time_bucket($__interval_ms * interval '1 ms', time) + $__interval_ms * interval '1 ms', $__timeTo()) AS time, avg(hum) AS hum\nFROM mqtt_consumer\nWHERE $__timeFilter(time) AND device_id = 'C76A05065C4E' AND brand = 'SwitchBot'\n  AND (hum IS NOT NULL)\nGROUP BY 1 ORDER BY 1",
      "refId": "A"
     }
    ],
@@ -1619,8 +1658,8 @@
   },
   {
    "datasource": {
-    "type": "influxdb",
-    "uid": "influxdb-home"
+    "type": "grafana-postgresql-datasource",
+    "uid": "tsdb"
    },
    "description": "",
    "fieldConfig": {
@@ -1744,10 +1783,13 @@
    "targets": [
     {
      "datasource": {
-      "type": "influxdb",
-      "uid": "influxdb-home"
+      "type": "grafana-postgresql-datasource",
+      "uid": "tsdb"
      },
-     "query": "from(bucket: \"home\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"mqtt_consumer\")\n  |> filter(fn: (r) => r[\"_field\"] == \"tempc\")\n  |> filter(fn: (r) => r[\"brand\"] == \"SwitchBot\")\n  |> filter(fn: (r) => r[\"device_id\"] == \"CE2A82463295\")\n  |> group(columns: [\"_field\"])\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\n  |> yield(name: \"mean\")",
+     "editorMode": "code",
+     "format": "time_series",
+     "rawQuery": true,
+     "rawSql": "SELECT least(time_bucket($__interval_ms * interval '1 ms', time) + $__interval_ms * interval '1 ms', $__timeTo()) AS time, avg(tempc) AS tempc\nFROM mqtt_consumer\nWHERE $__timeFilter(time) AND device_id = 'CE2A82463295' AND brand = 'SwitchBot'\n  AND (tempc IS NOT NULL)\nGROUP BY 1 ORDER BY 1",
      "refId": "A"
     }
    ],
@@ -1756,8 +1798,8 @@
   },
   {
    "datasource": {
-    "type": "influxdb",
-    "uid": "influxdb-home"
+    "type": "grafana-postgresql-datasource",
+    "uid": "tsdb"
    },
    "description": "",
    "fieldConfig": {
@@ -1866,10 +1908,13 @@
    "targets": [
     {
      "datasource": {
-      "type": "influxdb",
-      "uid": "influxdb-home"
+      "type": "grafana-postgresql-datasource",
+      "uid": "tsdb"
      },
-     "query": "from(bucket: \"home\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"mqtt_consumer\")\n  |> filter(fn: (r) => r[\"_field\"] == \"hum\")\n  |> filter(fn: (r) => r[\"brand\"] == \"SwitchBot\")\n  |> filter(fn: (r) => r[\"device_id\"] == \"CE2A82463295\")\n  |> group(columns: [\"_field\"])\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\n  |> yield(name: \"mean\")",
+     "editorMode": "code",
+     "format": "time_series",
+     "rawQuery": true,
+     "rawSql": "SELECT least(time_bucket($__interval_ms * interval '1 ms', time) + $__interval_ms * interval '1 ms', $__timeTo()) AS time, avg(hum) AS hum\nFROM mqtt_consumer\nWHERE $__timeFilter(time) AND device_id = 'CE2A82463295' AND brand = 'SwitchBot'\n  AND (hum IS NOT NULL)\nGROUP BY 1 ORDER BY 1",
      "refId": "A"
     }
    ],
@@ -1878,8 +1923,8 @@
   },
   {
    "datasource": {
-    "type": "influxdb",
-    "uid": "influxdb-home"
+    "type": "grafana-postgresql-datasource",
+    "uid": "tsdb"
    },
    "description": "",
    "fieldConfig": {
@@ -2003,10 +2048,13 @@
    "targets": [
     {
      "datasource": {
-      "type": "influxdb",
-      "uid": "influxdb-home"
+      "type": "grafana-postgresql-datasource",
+      "uid": "tsdb"
      },
-     "query": "from(bucket: \"home\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"mqtt_consumer\")\n  |> filter(fn: (r) => r[\"_field\"] == \"tempc\")\n  |> filter(fn: (r) => r[\"brand\"] == \"SwitchBot\")\n  |> filter(fn: (r) => r[\"device_id\"] == \"D9343130222A\")\n  |> group(columns: [\"_field\"])\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\n  |> yield(name: \"mean\")",
+     "editorMode": "code",
+     "format": "time_series",
+     "rawQuery": true,
+     "rawSql": "SELECT least(time_bucket($__interval_ms * interval '1 ms', time) + $__interval_ms * interval '1 ms', $__timeTo()) AS time, avg(tempc) AS tempc\nFROM mqtt_consumer\nWHERE $__timeFilter(time) AND device_id = 'D9343130222A' AND brand = 'SwitchBot'\n  AND (tempc IS NOT NULL)\nGROUP BY 1 ORDER BY 1",
      "refId": "A"
     }
    ],
@@ -2015,8 +2063,8 @@
   },
   {
    "datasource": {
-    "type": "influxdb",
-    "uid": "influxdb-home"
+    "type": "grafana-postgresql-datasource",
+    "uid": "tsdb"
    },
    "description": "",
    "fieldConfig": {
@@ -2125,10 +2173,13 @@
    "targets": [
     {
      "datasource": {
-      "type": "influxdb",
-      "uid": "influxdb-home"
+      "type": "grafana-postgresql-datasource",
+      "uid": "tsdb"
      },
-     "query": "from(bucket: \"home\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"mqtt_consumer\")\n  |> filter(fn: (r) => r[\"_field\"] == \"hum\")\n  |> filter(fn: (r) => r[\"brand\"] == \"SwitchBot\")\n  |> filter(fn: (r) => r[\"device_id\"] == \"D9343130222A\")\n  |> group(columns: [\"_field\"])\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\n  |> yield(name: \"mean\")",
+     "editorMode": "code",
+     "format": "time_series",
+     "rawQuery": true,
+     "rawSql": "SELECT least(time_bucket($__interval_ms * interval '1 ms', time) + $__interval_ms * interval '1 ms', $__timeTo()) AS time, avg(hum) AS hum\nFROM mqtt_consumer\nWHERE $__timeFilter(time) AND device_id = 'D9343130222A' AND brand = 'SwitchBot'\n  AND (hum IS NOT NULL)\nGROUP BY 1 ORDER BY 1",
      "refId": "A"
     }
    ],
@@ -2137,8 +2188,8 @@
   },
   {
    "datasource": {
-    "type": "influxdb",
-    "uid": "influxdb-home"
+    "type": "grafana-postgresql-datasource",
+    "uid": "tsdb"
    },
    "description": "",
    "fieldConfig": {
@@ -2262,10 +2313,13 @@
    "targets": [
     {
      "datasource": {
-      "type": "influxdb",
-      "uid": "influxdb-home"
+      "type": "grafana-postgresql-datasource",
+      "uid": "tsdb"
      },
-     "query": "from(bucket: \"home\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"mqtt_consumer\")\n  |> filter(fn: (r) => r[\"_field\"] == \"tempc\")\n  |> filter(fn: (r) => r[\"brand\"] == \"SwitchBot\")\n  |> filter(fn: (r) => r[\"device_id\"] == \"CE2A8486490B\")\n  |> group(columns: [\"_field\"])\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\n  |> yield(name: \"mean\")",
+     "editorMode": "code",
+     "format": "time_series",
+     "rawQuery": true,
+     "rawSql": "SELECT least(time_bucket($__interval_ms * interval '1 ms', time) + $__interval_ms * interval '1 ms', $__timeTo()) AS time, avg(tempc) AS tempc\nFROM mqtt_consumer\nWHERE $__timeFilter(time) AND device_id = 'CE2A8486490B' AND brand = 'SwitchBot'\n  AND (tempc IS NOT NULL)\nGROUP BY 1 ORDER BY 1",
      "refId": "A"
     }
    ],
@@ -2274,8 +2328,8 @@
   },
   {
    "datasource": {
-    "type": "influxdb",
-    "uid": "influxdb-home"
+    "type": "grafana-postgresql-datasource",
+    "uid": "tsdb"
    },
    "description": "",
    "fieldConfig": {
@@ -2384,10 +2438,13 @@
    "targets": [
     {
      "datasource": {
-      "type": "influxdb",
-      "uid": "influxdb-home"
+      "type": "grafana-postgresql-datasource",
+      "uid": "tsdb"
      },
-     "query": "from(bucket: \"home\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"mqtt_consumer\")\n  |> filter(fn: (r) => r[\"_field\"] == \"hum\")\n  |> filter(fn: (r) => r[\"brand\"] == \"SwitchBot\")\n  |> filter(fn: (r) => r[\"device_id\"] == \"CE2A8486490B\")\n  |> group(columns: [\"_field\"])\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\n  |> yield(name: \"mean\")",
+     "editorMode": "code",
+     "format": "time_series",
+     "rawQuery": true,
+     "rawSql": "SELECT least(time_bucket($__interval_ms * interval '1 ms', time) + $__interval_ms * interval '1 ms', $__timeTo()) AS time, avg(hum) AS hum\nFROM mqtt_consumer\nWHERE $__timeFilter(time) AND device_id = 'CE2A8486490B' AND brand = 'SwitchBot'\n  AND (hum IS NOT NULL)\nGROUP BY 1 ORDER BY 1",
      "refId": "A"
     }
    ],

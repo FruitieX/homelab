@@ -8,7 +8,7 @@ side by side. Every other dashboard is one click away in the link bar.
 | Home | Energy & water, Climate, Devices, Heat pump, 3D printing | TimescaleDB `tsdb` (MQTT via Telegraf, myUplink, FMI, Fingrid, Datahub, Nord Pool) |
 | Homelab | Services, Workloads, Hardware, Network, Logs & security, Apps | Prometheus, Loki, app PostgreSQL databases |
 | Kubernetes, Loki | Stock kube-prometheus-stack and Loki mixin dashboards | Prometheus |
-| Legacy | The old hand-made dashboards (Home, Indoor, Outdoor, Appliances, 3D printing, Loki logs), kept for reference until InfluxDB is decommissioned | InfluxDB `home`, Loki |
+| Legacy | The old hand-made dashboards (Home, Indoor, Outdoor, Appliances, 3D printing, Loki logs) | TimescaleDB `tsdb`, Loki |
 
 Every dashboard and datasource is provisioned from this repository; nothing lives only in Grafana's database.
 
@@ -49,11 +49,11 @@ House panels are SQL against TimescaleDB (datasource `tsdb`, see [Querying](#que
 - `home.ble()`, `power()`, `cost()`, `water()`, `electricity()`, `fingrid()` and `heatpump.nibe()` cover most panels.
 
 `legacy/` holds the old dashboards that were made in the UI, exported once as plain JSON (not generated). They
-are frozen: fix them by editing the JSON, or port a panel to the generator. They were not ported to SQL: they keep
-querying InfluxDB and go away when InfluxDB is decommissioned. The `influxdb-home` datasource stays provisioned for
-them and as a rollback for the generated dashboards. BLE sensors are heard by more than
-one gateway (`integration_id` `ble3`, `ble4`, …), so their queries merge gateways with `group()` instead of
-filtering on one.
+are frozen: fix them by editing the JSON, or port a panel to the generator. Their queries are SQL on `tsdb`,
+ported one to one from Flux: buckets are stamped at their end like Flux's `aggregateWindow`, and the series keep
+Flux's field names and labels (`tempc`, `price {integration_id=…}`), which their overrides, transformations and
+server-side expressions match on. BLE sensors are heard by more than one gateway (`integration_id` `ble3`,
+`ble4`, …), so their queries merge gateways instead of filtering on one.
 
 ## Collectors
 
@@ -334,8 +334,7 @@ Remove these before decommissioning InfluxDB (`clusters/homelab/{apps,infrastruc
   (`apps/influxdb/config.yaml`) and telegraf-cloud (`apps/influxdb/telegraf-cloud.yaml`); the first `[[influxdb2]]`
   target of nordpool-mqtt (`apps/nordpool-mqtt/config.yaml`); the `influxdb` target in `scripts/datahub-import.py`.
   Telegraf itself stays: move the two Deployments and their config out of `apps/influxdb/` with it.
-- **Readers:** the `legacy/` Grafana dashboards
-  and the `influxdb-home` datasource; homectl's InfluxDB fallback (its `influxdb` widget source and the InfluxDB
+- **Readers:** the `influxdb-home` datasource; homectl's InfluxDB fallback (its `influxdb` widget source and the InfluxDB
   branches in `server/src/api/widgets/`, unused while `TSDB_URL` is set); `scripts/influx-to-tsdb.py` and its Job.
 - **Around it:** the `influxdb-compaction` CronJob and its scripts, its HTTPRoute (`infrastructure/monitoring/influxdb/`) and
   Pocket ID policy, the Blackbox probes of both InfluxDB addresses, the `influxdata` Helm source, the
