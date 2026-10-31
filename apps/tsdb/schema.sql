@@ -26,6 +26,11 @@ DECLARE
   cond text := 'time = $1.time';
   col text;
 BEGIN
+  -- The InfluxDB backfill deletes its range first and sets this to skip the
+  -- per-row lookup.
+  IF current_setting('tsdb.skip_replace', true) = 'on' THEN
+    RETURN NEW;
+  END IF;
   FOREACH col IN ARRAY TG_ARGV LOOP
     cond := cond || format(' AND %1$I IS NOT DISTINCT FROM $1.%1$I', col);
   END LOOP;

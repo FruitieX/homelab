@@ -1,0 +1,95 @@
+# One-off Job running scripts/influx-to-tsdb.py in the cluster (a
+# port-forward drops on long streams). Not deployed by Flux. Usage:
+#   kubectl -n default create configmap influx-to-tsdb --from-file=scripts/influx-to-tsdb.py
+#   op-agent read "op://Agents/InfluxDB grafana read token/credential" \
+#     | kubectl -n default create secret generic influx-to-tsdb --from-file=INFLUX_TOKEN=/dev/stdin
+#   kubectl apply -f scripts/influx-to-tsdb-job.yaml   # edit args: backfill | verify | live 6
+#   kubectl -n default delete job,configmap,secret influx-to-tsdb   # afterwards
+# CUTOFF is the dual-write start (docs/monitoring.md); OWN_BLE is the
+# tagpass list of telegraf-home (apps/influxdb/config.yaml).
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: influx-to-tsdb
+  namespace: default
+spec:
+  backoffLimit: 0
+  ttlSecondsAfterFinished: 604800
+  template:
+    spec:
+      restartPolicy: Never
+      priorityClassName: homelab-batch
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65534
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: copy
+          image: python:3.15-slim@sha256:94d3426f1def7db4a106a232ac121bfd975393e5dfd40a619b955fae45fe7913
+          args: ["backfill"]
+          command:
+            - /bin/sh
+            - -ceu
+            - |
+              printf '%s\n' \
+                'psycopg==3.3.6 --hash=sha256:a1db9f7148b06a28606767efaca51fa6f9398c5c0a3810519be69d7000bdb631' \
+                'psycopg-binary==3.3.6 --hash=sha256:c61617eaae0112ca154da87ffb99b73af2c74067acac28dfb9a4455b019dff2e' \
+                > /tmp/requirements.txt
+              pip install --quiet --no-cache-dir --disable-pip-version-check --require-hashes \
+                --only-binary=:all: --target /tmp/deps -r /tmp/requirements.txt
+              PYTHONPATH=/tmp/deps exec python3 -u /script/influx-to-tsdb.py "$@"
+            - influx-to-tsdb
+          env:
+            - name: CUTOFF
+              value: "2026-10-31T13:00:00Z"
+            - name: OWN_BLE
+              value: "CE2A82463674 D63534385106 D83535301C43 D7353530665A C76A00462055 CE2A8486490B C76A05065C4E D83534387029 D7353530520F D83431306571 D4343037362D D9353438450D C76A03460A73 CE2A82463295 CE2A83062A34 D43535302778 D9343130222A C76A05062842 C76A0306280B C76A0246647E A4C138FD13EF"
+            - name: INFLUX_URL
+              value: http://influxdb-influxdb2.influxdb.svc
+            - name: INFLUX_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: influx-to-tsdb
+                  key: INFLUX_TOKEN
+            - name: PROM_URL
+              value: http://kube-prometheus-stack-prometheus.kube-prometheus-stack.svc:9090
+            - name: PGHOST
+              value: tsdb-rw
+            - name: PGDATABASE
+              value: tsdb
+            - name: PGSSLMODE
+              value: require
+            - name: PGUSER
+              valueFrom:
+                secretKeyRef:
+                  name: tsdb-app
+                  key: username
+            - name: PGPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: tsdb-app
+                  key: password
+            - name: HOME
+              value: /tmp
+          resources:
+            requests:
+              cpu: 200m
+              memory: 128Mi
+            limits:
+              memory: 512Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+          volumeMounts:
+            - name: script
+              mountPath: /script
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: script
+          configMap:
+            name: influx-to-tsdb
+        - name: tmp
+          emptyDir: {}
