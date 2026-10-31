@@ -86,8 +86,9 @@ I make use of the following pieces of software and infrastructure:
   client there. Node ports are disabled because source ranges don't apply to them
 - Immich has its own PostgreSQL (`immich-postgres`, [apps/immich/immich-postgres.yaml](/apps/immich/immich-postgres.yaml)),
   with the vector extensions Immich needs; it is reachable only inside the cluster (`immich-postgres.default.svc`)
-- The house's time series are moving from InfluxDB to TimescaleDB: the separate single-instance cluster `tsdb`
-  ([apps/tsdb](/apps/tsdb), `tsdb-rw.default.svc`, database `tsdb`), see [monitoring.md](monitoring.md#timescaledb-tsdb)
+- The house's time series are in TimescaleDB, the separate single-instance cluster `tsdb`
+  ([apps/tsdb](/apps/tsdb), `tsdb-rw.default.svc`, database `tsdb`), see [monitoring.md](monitoring.md#timescaledb-tsdb).
+  It replaced InfluxDB, whose data copy stays on the NAS for a few months
 
 ### Mosquitto (MQTT)
 

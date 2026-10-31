@@ -83,16 +83,16 @@ server-side expressions match on. BLE sensors are heard by more than one gateway
 `container`, `app`, `job`, `instance`, `component`, `node_name`, `stream`, `filename`). The Loki security rules and
 the log dashboards select on these, so keep them unchanged. Read offsets are kept in `/var/lib/alloy` on each node.
 
-Telegraf `telegraf-home` (config in `apps/telegraf/config.yaml`) stores MQTT data in bucket `home`, measurement
-`mqtt_consumer`, tagged `kind`/`integration_id`/`device_id` from the topic. It keeps only our own BLE sensors (a
+Telegraf `telegraf-home` (config in `apps/telegraf/config.yaml`) stores MQTT data in TimescaleDB table
+`mqtt_consumer` ([Schema](#schema)), tagged `kind`/`integration_id`/`device_id` from the topic. It keeps only our own BLE sensors (a
 `tagpass` list of device ids; the gateways also hear neighbours' devices), so add a new sensor there as well as in
 the dashboards. It drops repeated zigbee2mqtt device metadata and settings. ESPHome light state lands next to the
 old Tuya bulb history (`kind=lights`, `integration_id=esphome`); ESPHome chip temperature and Wi-Fi signal go to
-measurement `esphome`, thermal lockout (`ON`/`OFF`) to `esphome_binary`.
+table `esphome`, thermal lockout (`ON`/`OFF`) to `esphome_binary`.
 
-`apps/telegraf/telegraf-cloud.yaml` fetches cloud data into InfluxDB (bucket `home`, field `value`). Its
-credentials, the NIBE device id, the FMI station and the home coordinates are in `telegraf-cloud.sops.yaml`,
-and its InfluxDB token ("homelab InfluxDB telegraf-nibe token" in 1Password) can only write to `home`.
+`apps/telegraf/telegraf-cloud.yaml` fetches cloud data into TimescaleDB (one table per measurement, field
+`value`). Its credentials, the NIBE device id, the FMI station and the home coordinates are in
+`telegraf-cloud.sops.yaml`.
 
 - **NIBE F750 heat pump** (measurement `nibe`, tags `id`, `name`, `unit`): every myUplink data point, once a
   minute, the same interval as the official Home Assistant integration. Query by `id` (the parameter number),
@@ -101,7 +101,7 @@ and its InfluxDB token ("homelab InfluxDB telegraf-nibe token" in 1Password) can
   the compressor's energy counter in kWh.
 - **FMI weather** (no key): `fmi_observation` holds the nearest station's 10-minute observations, tagged by
   `param` (`t2m`, `ws_10min`, `r_1h` and so on). `fmi_forecast` holds the forecast for home, rewritten hourly so
-  future points are always the latest forecast. NaN values are skipped because InfluxDB cannot store them.
+  future points are always the latest forecast. NaN values are skipped.
 
 - **FMI daily means** (`fmi_daily`, `param=tday`): fetched every 6 hours, backfilled from 2020.
 - **Fingrid open data** (measurement `fingrid`, tag `series`): CO₂ intensity of consumption and production,
@@ -111,8 +111,8 @@ and its InfluxDB token ("homelab InfluxDB telegraf-nibe token" in 1Password) can
   key at the same time will cause 429 errors. `fingrid_hourly` holds hourly CO₂ intensity backfilled from 2020.
 
 **Whole-house electricity** comes from Fingrid Datahub, which has no consumer API. Export the consumption CSV from
-oma.datahub.fi and run `KUBECONFIG=kubeconfig python3 scripts/datahub-import.py consumption.csv` (measurement
-`electricity`, field `kwh`, hourly until the meter is replaced). Exports can overlap. The script writes to `tsdb`
+oma.datahub.fi and run `KUBECONFIG=kubeconfig python3 scripts/datahub-import.py consumption.csv` (table
+`electricity`, column `kwh`, hourly until the meter is replaced). Exports can overlap. The script writes to `tsdb`
 through [tsdb-relay](#writers); `DRY_RUN=1` only prints what it would write (this works for the backfill scripts
 below too). The energy dashboard's
 "expected from weather" line is a model fitted on 2021–2024 (`ELEC_*` in `home.py`).
@@ -140,54 +140,11 @@ To roll back, drop `DATABASE_URL` from the deployment and restore that file as `
 the migration would then be missing. The 3D printing dashboard reads the print archive, maintenance and spools
 from that database.
 
-## InfluxDB compaction
-
-InfluxDB is kept as the fallback while the time series move to [TimescaleDB](#timescaledb-tsdb), so its compaction
-keeps running; the CronJob and `home_staging` go away with InfluxDB (`tsdb` compresses chunks instead and keeps
-full resolution).
-
-The `home` bucket keeps full resolution for 90 days. After that, the monthly CronJob `influxdb-compaction`
-(`infrastructure/monitoring/influxdb/compaction.yaml`, 03:17 UTC on the 3rd) rewrites the high-frequency MQTT
-data to one value per minute. Nothing is dropped outright: history is compacted, not deleted.
-
-- **Rewritten** (measurement `mqtt_consumer`): Tuya plugs, Tuya/LIFX/Hue/ESPHome bulbs, Zigbee, and our own BLE
-  sensors.
-  Numeric measurements (power, current, voltage, brightness, temperature, humidity, battery, RSSI, link quality, …)
-  become the 1-minute mean; states, colours, counters (Tuya `raw_17` energy), versions and strings keep the last
-  value of the minute. Every series keeps all its tags, so dashboards, alerts and homectl queries are unchanged.
-- **Dropped** while rewriting: BLE `tempf`, redundant Zigbee fields (`device_*`, `update_*`, presence-sensor settings,
-  `color_h`/`color_s`, which duplicate `color_hue`/`color_saturation`) and BLE devices that are not ours (the list
-  is `OWNER_BLE` in `compaction/compact.sh`; add new sensors there and in `home.py`). Telegraf drops the same at ingest.
-- **Never touched:** water meter, NIBE, FMI, prices, Datahub electricity, Fingrid, Verisure.
-
-`compaction/compact.sh` works one shard group (Monday to Monday) at a time: it aggregates the week into bucket
-`home_staging`, checks per series and field that the staged points equal the non-empty raw minutes and that last
-values and plug power, current and voltage 1-minute means match, deletes the raw week, copies the staged week back, checks again and writes a
-`compaction_done` marker into `home_staging`. Marked weeks are skipped, so a run can be repeated safely; each run
-handles at most 26 weeks. Any failed check stops the job (`CronJobLastRunFailed` fires).
-
-- **Run now:** `kubectl -n influxdb create job --from=cronjob/influxdb-compaction compaction-manual`.
-- **Resume after a failure:** the log names the week. If the job stopped after the delete, that week only exists in
-  `home_staging`; run `sh /scripts/compact.sh --resume-copyback <week-start>` in a pod built like the CronJob's.
-  Otherwise just run the job again.
-- **Restore:** take an `influx backup` before large changes (it needs the operator token, "admin's Token"). To undo a
-  week, restore its shard from the backup into a scratch bucket (`influx restore --bucket home --new-bucket ...`)
-  and copy the week back with Flux `to()`.
-- `home_staging` must keep infinite retention: writes older than a bucket's retention are silently dropped.
-- Data that is on disk but invisible to queries (a field returns nothing for a week although its TSM files hold it)
-  means a damaged per-shard field index, `data/<bucket-id>/autogen/<shard>/fields.idx`; compare its size with
-  neighbouring shards. Fix: stop InfluxDB (suspend the HelmRelease, scale the StatefulSet to 0), move that
-  `fields.idx` out of the shard from a pod mounting the PVC, and start it again: InfluxDB rebuilds the file from the TSM
-  files on startup. Until then list the week in `SKIP_WEEKS` in the script, or the compaction would leave the hidden
-  raw data behind.
-
 ## TimescaleDB (tsdb)
 
-The house's time series are moving from InfluxDB to TimescaleDB. Since **2026-10-31 13:00 UTC** (the dual-write
-start) both stores receive the same live data, and everything before it was copied from InfluxDB. The generated
-Grafana dashboards and the Grafana alert rules read `tsdb`; only the legacy dashboards still query InfluxDB. homectl's sensor and spot price widgets read `tsdb` too. Every
-writer writes to both stores, and InfluxDB stays as the fallback until it is decommissioned (see
-[What still uses InfluxDB](#what-still-uses-influxdb)).
+TimescaleDB holds the house's time series. It replaced InfluxDB on 2026-10-31: the history was copied (see
+[History from InfluxDB](#history-from-influxdb)), and every writer, dashboard, alert rule and homectl widget uses
+`tsdb`.
 
 - **Cluster:** CloudNativePG `tsdb` ([apps/tsdb/tsdb.yaml](/apps/tsdb/tsdb.yaml)), separate from `postgres-ha`, one
   instance on `nfs-csi` (60 Gi; the class can't grow a volume). A replica would share the NAS with the primary, so
@@ -207,8 +164,8 @@ writer writes to both stores, and InfluxDB stays as the fallback until it is dec
     read-only by default with a 30 s statement timeout (set in [bootstrap.sql](/apps/tsdb/bootstrap.sql)). Its
     password differs from the one on `postgres-ha`.
   - `homectl_ro`: SELECT on `mqtt_consumer` and `nordpool_price` only, otherwise like `grafana_ro`. homectl gets it
-    as `TSDB_URL` in `homectl-server-env` and then reads its sensor history and spot price widgets from `tsdb`
-    instead of its InfluxDB widget source; removing `TSDB_URL` switches back. CloudNativePG creates a managed role
+    as `TSDB_URL` in `homectl-server-env` and reads its sensor history and spot price widgets from `tsdb`. Without
+    `TSDB_URL` it would fall back to its InfluxDB widget source, which no longer exists. CloudNativePG creates a managed role
     but not its settings or grants: for a new read-only role run its lines from bootstrap.sql and schema.sql by hand.
   - `postgres`, the superuser, is used only by `tsdb-dump` and for maintenance.
 - **Grafana** queries it as `grafana_ro` through the provisioned datasource `tsdb` ("TimescaleDB tsdb", key
@@ -222,9 +179,9 @@ writer writes to both stores, and InfluxDB stays as the fallback until it is dec
 
 ### Schema
 
-[schema.sql](/apps/tsdb/schema.sql) creates one hypertable per InfluxDB measurement in Telegraf's
+[schema.sql](/apps/tsdb/schema.sql) creates one hypertable per measurement in Telegraf's
 `outputs.postgresql` layout: a `time` column, one `text` column per tag, one typed column per field (`double
-precision`, `bigint`, `text`). A row is one InfluxDB point with all its fields, so fields of the same message
+precision`, `bigint`, `text`). A row is one line-protocol point with all its fields, so fields of the same message
 share a row. It runs once at bootstrap and can be re-run.
 
 | Table | Tags | Fields | Written by |
@@ -239,8 +196,8 @@ share a row. It runs once at bootstrap and can be re-run.
 | `nordpool_price` | `id` | `price` (c/kWh incl. VAT) | nordpool-mqtt, `spot-price-backfill.py` (through tsdb-relay) |
 
 - Telegraf adds a column when a device reports a new field, typed by its first value. If a later value has another
-  type, Telegraf drops that batch for this table (InfluxDB still gets it), so convert such a field before it reaches
-  the outputs. The history keeps values whose InfluxDB type differed from the column's in `<field>_<type>`, for
+  type, Telegraf drops that batch for this table, so convert such a field before it reaches the output. The
+  history copied from InfluxDB keeps values whose InfluxDB type differed from the column's in `<field>_<type>`, for
   example `sensor_value_string`. `tsdb_migration.columns` records which column holds which InfluxDB tag or field.
 - `on` is an SQL keyword and some Zigbee fields are mixed case: quote them (`"on"`, `"device_applicationVersion"`).
 - Neighbours' BLE devices were not copied: the backfill keeps the `tagpass` list of telegraf-home.
@@ -272,19 +229,18 @@ share a row. It runs once at bootstrap and can be re-run.
   - `datahub-import.py`, `spot-price-backfill.py` and `fmi-backfill.py` post line protocol to the relay from
     inside its pod (busybox `wget` with the pod's own `RELAY_TOKEN`).
 
-### Backfill and verification
+### History from InfluxDB
 
-[scripts/influx-to-tsdb.py](/scripts/influx-to-tsdb.py) copied InfluxDB into `tsdb`, run as the Job in
-[scripts/influx-to-tsdb-job.yaml](/scripts/influx-to-tsdb-job.yaml) (usage in the file):
+InfluxDB held the house data from 2019-12 until 2026-10-31. `scripts/influx-to-tsdb.py` (removed after the
+migration; `git log --all -- scripts/influx-to-tsdb.py`) copied it week by week and verified every table, week and
+field by point count and sum, plus random values. Its bookkeeping stays in schema `tsdb_migration`. InfluxDB had
+compacted MQTT data older than 90 days to 1-minute means, so the older part of `mqtt_consumer` has that resolution.
 
-- `backfill` goes week by week from 2019-12, a day at a time for raw MQTT data and never more than a week per
-  request, and waits while InfluxDB or a node is short of memory (Prometheus). For each chunk it deletes the range
-  and inserts it again in one transaction, so it can be re-run; done chunks are listed in `tsdb_migration.chunks`
-  and skipped. Live tables stop at `CUTOFF` (the dual-write start); the others are copied up to now, and a re-run
-  copies their current week again.
-- `verify` compares, per table, week and field, InfluxDB's point count and sum with the table's, plus a few random
-  values (`tsdb_migration.verify`); `live 6` does the same per hour for the last hours of dual writing.
-- InfluxDB's compacted history (1-minute means older than 90 days) was copied as it is.
+InfluxDB's data directory stays on the NAS for a few months: the released volume (reclaim policy `Retain`) in
+`/volume3/homelab/influxdb-influxdb2`, the cold copy `influxdb-final-backup-20261031` taken after the last write,
+and `influxdb-influxdb2-backup-2.7.4-20261031` from before the upgrade to 2.9. To read one, run InfluxDB 2.9 on a
+copy of the directory with the operator token from 1Password ("admin's Token"). Delete them, and the released PV,
+once nothing is missing from `tsdb`.
 
 ### Querying
 
@@ -322,17 +278,6 @@ FROM mqtt_consumer
 WHERE batt IS NOT NULL AND integration_id IN ('ble3', 'ble4') AND time > now() - interval '1 day'
 ORDER BY device_id, time DESC;
 ~~~
-
-### What still uses InfluxDB
-
-Remove these before decommissioning InfluxDB (`clusters/homelab/{apps,infrastructure}/influxdb.yaml`). Its
-`/metrics` (`http_api_requests_total` by `path` and `user_agent`) shows who still queries or writes.
-
-- **Readers:** the `influxdb-home` datasource; homectl's InfluxDB fallback (its `influxdb` widget source and the InfluxDB
-  branches in `server/src/api/widgets/`, unused while `TSDB_URL` is set); `scripts/influx-to-tsdb.py` and its Job.
-- **Around it:** the `influxdb-compaction` CronJob and its scripts, its HTTPRoute (`infrastructure/monitoring/influxdb/`) and
-  Pocket ID policy, the Blackbox probes of both InfluxDB addresses, the `influxdata` Helm source, the
-  `influxdb-auth` secret and the InfluxDB tokens in 1Password. Keep a final `influx backup` on the NAS.
 
 ## Alerts
 
@@ -391,13 +336,8 @@ Remove these before decommissioning InfluxDB (`clusters/homelab/{apps,infrastruc
   array of `label=value` strings or `object_matchers`; a plain object fails the reload (`cannot unmarshal object
   into Go struct field Route.matchers of type []string`) and the whole `home-alerts.json` then fails to provision,
   silently killing every rule in the file.
-- **In-cluster clients must not use the public InfluxDB URL.** The `influxdb.fruitiex.org` route requires
-  Pocket ID sign-in. A machine client writing to it gets the login page, and Telegraf treated that as success,
-  so data was silently lost. In-cluster clients use `http://influxdb-influxdb2.influxdb.svc`. homectl's InfluxDB
-  URL is a setting in its database (`widget_settings`, key `influxdb`), used only when `TSDB_URL` is unset.
 - **Datasource UIDs must not equal another datasource's name.** Grafana resolves a reference by name as well,
-  so the uid `influxdb` resolved to the old UI datasource *named* `influxdb` (since deleted). That is why the
-  provisioned one is `influxdb-home`.
+  so a provisioned uid `influxdb` once resolved to an old UI-made datasource *named* `influxdb`.
 - **Each datasource ConfigMap needs a unique key.** The sidecar writes every key into one directory, so two
   `datasource.yaml` keys overwrite each other.
 - **kube-prometheus-stack CRDs:** Flux skips CRDs on upgrade by default, which left them at their 2023
