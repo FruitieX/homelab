@@ -162,7 +162,11 @@ spec:
               cpu: 1m
               memory: 4Mi
             limits:
-              cpu: 20m
+              # Each check forks cat, md5sum and sleep: a few ms of CPU at
+              # once, more than a 20m limit allows per 100 ms period, so most
+              # of its periods were throttled (CPUThrottlingHigh) although it
+              # averages 0.3m.
+              cpu: 100m
               memory: 16Mi
       volumes:
         - name: config
