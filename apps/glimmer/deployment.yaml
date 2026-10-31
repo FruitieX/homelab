@@ -30,7 +30,7 @@ spec:
       terminationGracePeriodSeconds: 30
       containers:
         - name: glimmer
-          image: ghcr.io/fruitiex/glimmer:ad451b8922845e64051899031d95a45012490ebb@sha256:1f31bdcc73b663c4a91fd99e227cab6dc2a97dd87cf9027628f70fbce846d1cb
+          image: ghcr.io/fruitiex/glimmer:a56aabca08a2bc4247d7cbb1d5428fc572694241@sha256:dfb4070b0b0e3070708853fed50f19f48da9e9fe93f9538e0394c3a3d8895d14
           imagePullPolicy: Always
           env:
             - name: GLIMMER_ORIGIN
