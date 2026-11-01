@@ -57,7 +57,7 @@ spec:
       # them before signalling mosquitto.
       initContainers:
         - name: copy-auth
-          image: busybox:1.37
+          image: busybox:1.38
           command:
             - sh
             - -c
@@ -119,7 +119,7 @@ spec:
         # this re-copies the auth files (see copy-auth) and sends SIGHUP when
         # they change, so auth changes need no restart.
         - name: reload-on-change
-          image: busybox:1.37
+          image: busybox:1.38
           command:
             - sh
             - -c
