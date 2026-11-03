@@ -6,6 +6,8 @@ metadata:
   annotations:
     secret.reloader.stakater.com/reload: "lifx-mqtt-config"
 spec:
+  # Moved to Glimmer; kept here so it can be brought back by changing this.
+  replicas: 0
   selector:
     matchLabels:
       app: lifx-mqtt
