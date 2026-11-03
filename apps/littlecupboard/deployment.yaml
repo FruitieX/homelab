@@ -30,7 +30,7 @@ spec:
       terminationGracePeriodSeconds: 30
       containers:
         - name: littlecupboard
-          image: ghcr.io/fruitiex/littlecupboard:8d25487dd406a85e35450e0383ce707e4fb44789@sha256:34068e2147b0a29e4a4be7701dc27aff3e3394a9a63529b0ee79dd56a3057edb
+          image: ghcr.io/fruitiex/littlecupboard:2f0c64ece8741952225049cad7e13c4c900227c8@sha256:0fe91786e1d67585258008c490689cff255ae15a07fa45f39ac7c9cbff35ccf0
           imagePullPolicy: Always
           envFrom:
             - secretRef:
