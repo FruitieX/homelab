@@ -29,7 +29,7 @@ spec:
         fsGroupChangePolicy: OnRootMismatch
       containers:
         - name: oriel-hub
-          image: ghcr.io/fruitiex/oriel-hub:main@sha256:c6c9c0045bbb68ce11b35b29c4249825447b2ce9759a1433c744f23c3f107b1c
+          image: ghcr.io/fruitiex/oriel-hub:main@sha256:3150d61352ab0ed67af28a8db4e72daa612e190cbcc95f0fae39ebf34e738896
           imagePullPolicy: Always
           envFrom:
             - secretRef:
