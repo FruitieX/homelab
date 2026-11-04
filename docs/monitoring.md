@@ -234,7 +234,10 @@ share a row. It runs once at bootstrap and can be re-run.
 InfluxDB held the house data from 2019-12 until 2026-10-31. `scripts/influx-to-tsdb.py` (removed after the
 migration; `git log --all -- scripts/influx-to-tsdb.py`) copied it week by week and verified every table, week and
 field by point count and sum, plus random values. Its bookkeeping stays in schema `tsdb_migration`. InfluxDB had
-compacted MQTT data older than 90 days to 1-minute means, so the older part of `mqtt_consumer` has that resolution.
+compacted MQTT data older than 90 days to 1-minute means; those days (2024-07-29 to 2026-07-26) were then replaced
+with the raw readings from a full `influx backup` taken just before the compaction, verified per day and field
+(`tsdb_migration.raw_restore`, `raw_restore_verify`). `mqtt_consumer` is raw throughout. Most of its old volume is
+light and device state messages that Telegraf has dropped since 2026-10-30.
 
 InfluxDB's data directory stays on the NAS for a few months: the released volume (reclaim policy `Retain`) in
 `/volume3/homelab/influxdb-influxdb2`, the cold copy `influxdb-final-backup-20261031` taken after the last write,
