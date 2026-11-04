@@ -247,8 +247,10 @@ migration; `git log --all -- scripts/influx-to-tsdb.py`) copied it week by week 
 field by point count and sum, plus random values. Its bookkeeping stays in schema `tsdb_migration`. InfluxDB had
 compacted MQTT data older than 90 days to 1-minute means; those days (2024-07-29 to 2026-07-26) were then replaced
 with the raw readings from a full `influx backup` taken just before the compaction, verified per day and field
-(`tsdb_migration.raw_restore`, `raw_restore_verify`). `mqtt_consumer` is raw throughout. Most of its old volume is
-light and device state messages that Telegraf has dropped since 2026-10-30.
+(`tsdb_migration.raw_restore`, `raw_restore_verify`). Sensor rows stay raw, but in those days the light and device
+state messages (`kind` `lights` and `devices`, most of the old volume, dropped by Telegraf since 2026-10-30) are
+1-minute means per series again, with the last value of the minute for non-numeric fields, as InfluxDB's compaction
+had them (`tsdb_migration.thin_lights`).
 
 InfluxDB's data directory stays on the NAS for a few months: the released volume (reclaim policy `Retain`) in
 `/volume3/homelab/influxdb-influxdb2`, the cold copy `influxdb-final-backup-20261031` taken after the last write,
