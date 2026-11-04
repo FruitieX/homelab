@@ -19,7 +19,7 @@ spec:
             claimName: photoframe-rs-config
       containers:
         - name: photoframe-rs
-          image: ghcr.io/fruitiex/photoframe-rs-server:main@sha256:00d1be5dc3aeb4f2f9af850fa9b9dda5a9d4d6721d22c0103749fb8eaf368618
+          image: ghcr.io/fruitiex/photoframe-rs-server:main@sha256:edf8f5d634e994c70e29e0992f0233c9d6f29cdacb866718dc9e3f0f91b2f3d4
           resources:
             requests:
               memory: 80Mi
