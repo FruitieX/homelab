@@ -1,13 +1,11 @@
 # Nightly logical backup of tsdb to an NFS volume, which the NAS's Hyper
-# Backup then copies off (like postgres-dump for the shared PostgreSQL).
-# Restore into a cluster running the same TimescaleDB version:
-#   psql -f roles-with-passwords.sql postgres
-#   createdb -O tsdb tsdb && psql -d tsdb -c 'CREATE EXTENSION timescaledb'
-#   psql -d tsdb -c 'SELECT timescaledb_pre_restore()'
-#   pg_restore -d tsdb tsdb.dump
-#   psql -d tsdb -c 'SELECT timescaledb_post_restore()'
-# Compressed chunks are dumped compressed, so a dump is about the size of the
-# database. KEEP_DAYS is short because Hyper Backup keeps the older versions.
+# Backup copies off (like postgres-dump for the shared PostgreSQL).
+# tsdb-dump.sh keeps /dumps/latest as a pg_dump directory dump whose data files
+# have stable names and only change when their table does, so old compressed
+# chunks cost Hyper Backup nothing after the first night. Restore with
+# latest/restore-dump.sh (a copy of restore-dump.sh), see its header.
+# KEEP_DAYS dated pg_dump -Fc copies are kept as well; set it to "0" once Hyper
+# Backup covers latest/.
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
@@ -69,21 +67,7 @@ spec:
                 allowPrivilegeEscalation: false
                 capabilities:
                   drop: ["ALL"]
-              command: ["/bin/bash", "-ceu"]
-              args:
-                - |
-                  dir=/dumps/$(date +%F)
-                  mkdir -p "$dir.tmp"
-                  pg_dumpall --globals-only --no-role-passwords > "$dir.tmp/globals.sql"
-                  pg_dumpall --roles-only > "$dir.tmp/roles-with-passwords.sql"
-                  chmod 600 "$dir.tmp/roles-with-passwords.sql"
-                  # TimescaleDB's catalog has circular foreign keys; pg_dump
-                  # warns about them, which is expected.
-                  pg_dump -Fc -Z 1 -d tsdb -f "$dir.tmp/tsdb.dump"
-                  psql -d tsdb -Atc "select extversion from pg_extension where extname = 'timescaledb'" > "$dir.tmp/timescaledb-version"
-                  rm -rf "$dir" && mv "$dir.tmp" "$dir"
-                  find /dumps -mindepth 1 -maxdepth 1 -type d -mtime +"$KEEP_DAYS" -exec rm -rf {} +
-                  ls -la "$dir"
+              command: ["/bin/bash", "/scripts/tsdb-dump.sh"]
               resources:
                 requests:
                   cpu: 10m
@@ -93,7 +77,12 @@ spec:
               volumeMounts:
                 - name: dumps
                   mountPath: /dumps
+                - name: scripts
+                  mountPath: /scripts
           volumes:
             - name: dumps
               persistentVolumeClaim:
                 claimName: tsdb-dumps
+            - name: scripts
+              configMap:
+                name: tsdb-dump-scripts

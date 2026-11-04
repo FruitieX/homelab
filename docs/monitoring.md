@@ -171,11 +171,17 @@ TimescaleDB holds the house's time series. It replaced InfluxDB on 2026-10-31: t
 - **Grafana** queries it as `grafana_ro` through the provisioned datasource `tsdb` ("TimescaleDB tsdb", key
   `tsdb-datasource.yaml` in `grafana/grafana-datasources.sops.yaml`). The database's `Europe/Helsinki` timezone
   applies to its sessions; `$__timeFilter` passes UTC instants, so only truncation depends on it.
-- **Backup:** the `tsdb-dump` CronJob (02:47 Helsinki) writes `pg_dump -Fc` of `tsdb` plus the roles to the
-  `tsdb-dumps` volume, which the NAS backs up; it keeps 3 days because Hyper Backup keeps the older versions. The
-  restore steps are at the top of [tsdb-dump.yaml](/apps/tsdb/tsdb-dump.yaml) (TimescaleDB needs
-  `timescaledb_pre_restore()`/`timescaledb_post_restore()` around `pg_restore`). `TsdbDumpStale` fires after 36 h
-  without a successful dump. The PodMonitor `tsdb` scrapes CloudNativePG's metrics.
+- **Backup:** the `tsdb-dump` CronJob (02:47 Helsinki, [tsdb-dump.sh](/apps/tsdb/tsdb-dump.sh)) writes the
+  `tsdb-dumps` volume for the NAS's Hyper Backup to version. `latest/` is a `pg_dump -Fd` dump plus the roles,
+  with each table's data in `data/<schema>.<table>.dat.zst` and `manifest.tsv` mapping pg_dump's dumpIds to those
+  names. A file is only replaced when its content changes, so old compressed chunks keep their file (content and
+  mtime) and only new or recompressed chunks reach the backup each night. Updates are staged as `*.new` and
+  committed with renames, so a failed run leaves the previous dump intact. To restore, run
+  `latest/restore-dump.sh [--roles] LATEST_DIR [DBNAME]` against a superuser connection on a server with the same
+  PostgreSQL and TimescaleDB versions: it rebuilds the pg_dump directory and runs `pg_restore` between
+  `timescaledb_pre_restore()` and `timescaledb_post_restore()`. The job also keeps `KEEP_DAYS` (3) dated
+  `pg_dump -Fc` copies (`YYYY-MM-DD/tsdb.dump`); set it to `"0"` once Hyper Backup covers `latest/`.
+  `TsdbDumpStale` fires after 36 h without a successful dump. The PodMonitor `tsdb` scrapes CloudNativePG's metrics.
 
 ### Schema
 

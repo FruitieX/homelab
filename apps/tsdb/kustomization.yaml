@@ -16,5 +16,11 @@ configMapGenerator:
     files:
       - bootstrap.sql
       - schema.sql
-generatorOptions:
-  disableNameSuffixHash: true
+    options:
+      disableNameSuffixHash: true
+  # Hash suffix, so a script change rolls the CronJob's pod template.
+  - name: tsdb-dump-scripts
+    namespace: default
+    files:
+      - tsdb-dump.sh
+      - restore-dump.sh
