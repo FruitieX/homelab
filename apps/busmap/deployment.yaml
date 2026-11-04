@@ -26,7 +26,7 @@ spec:
         runAsGroup: 101
       containers:
         - name: busmap
-          image: ghcr.io/fruitiex/busmap:main@sha256:13b98b3da23a13ff140af60dfe5c98429d91fd101d0aff5502fc390640004c2d
+          image: ghcr.io/fruitiex/busmap:main@sha256:576786fed226937424f1cd61e48ff1bd1725df257dcb522e9fb288ad8729c39d
           imagePullPolicy: Always
           ports:
             - name: http
