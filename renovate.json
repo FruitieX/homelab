@@ -32,6 +32,16 @@
       "enabled": false
     },
     {
+      "description": "Ignore private builds in the LAN-only registry, which Renovate cannot reach",
+      "matchDatasources": [
+        "docker"
+      ],
+      "matchPackageNames": [
+        "/^[^/]+:5050/private//"
+      ],
+      "enabled": false
+    },
+    {
       "description": "Let new releases settle for a few days before proposing them; digests stay quick. Registries without release timestamps are not held forever",
       "matchUpdateTypes": [
         "major",
