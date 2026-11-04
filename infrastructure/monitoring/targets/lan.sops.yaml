@@ -1,5 +1,5 @@
-# LAN scrape targets (addresses SOPS-encrypted; this repo is public).
-# Proxmox hosts run Debian's prometheus-node-exporter on :9100.
+# LAN scrape targets (addresses and host labels SOPS-encrypted; this repo is public).
+# Proxmox hosts run Debian's prometheus-node-exporter on :9100, the NixOS hosts NixOS's.
 apiVersion: monitoring.coreos.com/v1alpha1
 kind: ScrapeConfig
 metadata:
@@ -9,46 +9,94 @@ spec:
     scrapeInterval: 30s
     staticConfigs:
         - labels:
-            host: mango
+            host: ENC[AES256_GCM,data:uqjVPU8=,iv:12JKz0O7Bx6S4xmytd5MGthEfKMW9i+C3HycmQy7akE=,tag:MQL5V6quJjWpcmrfiIlBNQ==,type:str]
           targets:
-            - ENC[AES256_GCM,data:Yp4+neMJqegdaiBQYgSfzY5mmQ==,iv:dlhIaaNxMIUGr+jW3xX5hc+2whT3jDK4jpfTE4aOBKo=,tag:GlLIBj0KgoHQhbv/mZTrbg==,type:str]
+            - ENC[AES256_GCM,data:QcErlrtSX/rpHAIBCpvkYoUeUg==,iv:EspcSZ9kYtrQf5hcVfI+oLB7sSH4yw1r6BDI02p0BHQ=,tag:76hAbuoNs6GBf80M/GPrQA==,type:str]
         - labels:
-            host: mandarin
+            host: ENC[AES256_GCM,data:Za/3ymb7JPk=,iv:QR7ouNAWmvxe2VfFp6nXX1QnB+oSuPWhZ/DKKw9UOvo=,tag:DHPh6fIdlgU1Y3QJ2cNxEw==,type:str]
           targets:
-            - ENC[AES256_GCM,data:NezE/57SduU121g7qjvURm2mFA==,iv:UscUkqqGJAFPdN2YshaaB0a6VQWjYPIsUNQKlkVkzFI=,tag:C48Id/mbto8QyebfAYoWiQ==,type:str]
+            - ENC[AES256_GCM,data:EEu6eHbt4lAFzHZOnsa6AAfBVQ==,iv:C2aHrYBIFBDVBM40wV8UKJrEcoll+IJQin1bYvhi2Ts=,tag:vEmIWEvluqEgPbt+K+QKPw==,type:str]
         - labels:
-            host: mulberry
+            host: ENC[AES256_GCM,data:8X2xdTWagoM=,iv:da6F8QwhSTOtYzfDK8Ga16inZFscsNJ2E7fuFkC05uM=,tag:c8bj6YldHC2baHtfRDEL9A==,type:str]
           targets:
-            - ENC[AES256_GCM,data:PNsFV01S7I3+fY1WeiUXxHIw,iv:FNmR3apj6DZovnx14s5Zc5ELlgVGkrjRLmQGj3kPx/E=,tag:TV+3xxgAwFLJUscnzFRGJQ==,type:str]
+            - ENC[AES256_GCM,data:V859A10GtO6IehYREBzxZLOl,iv:ZsA1wP8oIOWwSy5fA+wNSNh48/HipElCrgwYWGzJOKM=,tag:zxqKxMgLTN9qAQbJ8qFUrg==,type:str]
     relabelings:
         - targetLabel: job
           replacement: proxmox-node
 sops:
-    lastmodified: "2026-10-23T12:26:16Z"
-    mac: ENC[AES256_GCM,data:YCNnlC4j2TJLuarCd3OmSpRafTSr9GcThlNrlFGKeMWssVJwYAVpYCoxhlWW6ElnQuaWdzJGS+F3Ykd2IvrIxHJ1Dt1ihyn9kwWkaRAJNLdNV/q+o71Ys1wHw4l3uFkwnvIViDCqcsCr3KsNULZCDvXDBn4GTfC+EvB3WCeEse0=,iv:o6i7pifNex1HQhSbq8EYVsAtFUMffA8YskvDLI6qAIk=,tag:J3NirGiDMK9Z4Fv0R3nnwg==,type:str]
+    encrypted_regex: ^(targets|labels)$
+    lastmodified: "2026-11-04T15:43:13Z"
+    mac: ENC[AES256_GCM,data:WMYBJa/E2FcA+yw3Iha+BMmbVrQv5UWhr9mAVVMbCxI+5AAdhA5eUmDOJV+m56IAgVm5ngsZKV1/ILQMoirb/TwptBmAqTaIW5xIgZE5Xjf/nKhLz4ULt23EAOK7lQNbjA9ySc9m0QGVf0jTneMo9gTSgcfOpE3wcFOZcNnFZ8U=,iv:o6b1aFGLvXTdIU+uzCvQygT2I7FhPuiFeQe+lVLkYGs=,tag:6KBXNcbqAJAjmlFzGojOGA==,type:str]
     pgp:
-        - created_at: "2026-10-23T12:26:16Z"
+        - created_at: "2026-11-04T15:43:13Z"
           enc: |-
             -----BEGIN PGP MESSAGE-----
 
-            hQIMA8WjeZLD+fxwAQ/9FoKKs1/3sgd7qC6iwUUI/zEu8LU2ta0IjfnGNlhO+179
-            TqcpG9nR70O2cHpENru867jHSco5LUfBs9alT3NlpZs8Y7W8CAqm3rQdkQnta68N
-            ZPINduW1dK0rt12+hjsy3iusGrvdplXa1x26w5aMNa+MLw5WjTBBoKf6Cl2evq/c
-            Vk3MWc463FIkwiFgQC6oSW6qyZDKA26u9eMpCMIALE1X7gT11tdMxHTbGFIL0Mai
-            R2ViyaUfGjx7l5FFBgF0RGkBEneow3Vlo1/ldQDjplma7TQ3+q1c5glSJpYYK7/W
-            QZge35Hj1KpMXfPzOWvGks7vtU4JIa2csPFyJtBylfkr+YiyMUhO5enp2kV/sC6V
-            Ht1TlIgV4DvhjI3TDW408DftQaPD10i3LVY9wtRmQlX7AbcYbiw/Sm8BSSvw8qb+
-            FtX2h3WhUZYck3Fiqs/3K75oCEkVKg0EArKXq84O9gl9kppIpaNcNXUiSk67lWAe
-            POA+asIEGocK+TTqzAnEkBmzQdJiiA1yMxa+A7Xuz0ZuLZw4yw4SJX4k/NvKORJ/
-            49bVhZ3AgJoyDeMJSDeode0gmsQxWAlSjceNIUQuoZAyamUOeCGbmmqgL4meiLHd
-            fhNPaj+0uBcDMRqpOI8HAA+UxszMOYtx6JnKc4IhXEVN14WvtBQlN4+vbUltFibS
-            XgFdoHVtYlXaGoxoyoW16/wuK/q18bdZLDk06mC7GNt+e/6A8960Z2pwuKHG1OyP
-            AUU1BHWqo/pAhw7HMwFAsZbVVybGjuisWCg5X4L/Xd/aR1gU9v2Sd0O8/xPSm/E=
-            =lUqj
+            hQIMA8WjeZLD+fxwAQ//QdMS3JSPrcrcYzl5WFO0RECrHIe09+83YOKNRC6oZuqP
+            keUOt/eN+haxTNKNf3+xrlvnUm4h9TD6KXP3lXTyEv0K6Yp/NL9Fg2LceGhZXubT
+            MqYr7HM82eY+sdkTU9HSqJNEiQi9Ccfalv9Uz9A23QqT/TPI//VVXMyoIJAtJb1m
+            6KGXvXB+AE66FtvUuCamlpO7ws9KjoUQKkFStxoO4UBgoCQiOsngWOD4m2b9g0hs
+            dc2MM1I42Oo4gLSe3NSjNBcnWBEGPvuYIgB7lJxJsBmw60UWAbKrqaC8sh0vpHh4
+            m8dal3VuWt72XEXUXfmtLhvGgtU6vVMHjj0132kL88qsrsUGiNlKlVEKcjE0EYUA
+            VhLtmS5LccQI7SJ8jqIeiSdCAKLz2zN1Zqxurcbsx5XqKGEwM85xx7/pkuzlAW/p
+            jbKJJNdm25EFHXE7fBdLupsMMOeZT4coeLBeA+ExgYIDeHNTgptdl4QIFRRcxx4X
+            KtMn8SsvxKls9C4+tgCEvIhDz1GNQf123LgyPWiozHOOt8ngjbxxBDxmIQT09L1b
+            ehgldbIl2/IvaWXEuEj/+8gtMDuOUGhnfJSB60szLWpY77VqI/7nHhIBr64csQ2c
+            tLJcc3wiFi3CB4KA3j5JglxNxnq3Gi3T303d0ZZJT+wuNNsuCR/d8YY7OPSuVZDS
+            XgF4JY2yJ7QrMHwbsz4+WD8JYL4DlqRBEqMOIoi0D621doZXm1Z5qGh9WFMec+18
+            ABoZ9NXOJuvmWhUju825JVIpv2lmSUgiOZVsLf/YlTOrEp4+TfEXAH8Z+oB3l/E=
+            =joDm
             -----END PGP MESSAGE-----
           fp: 3536F7F9345D96C86FB7F9CD21FAFEE575B18815
-    encrypted_regex: ^targets$
-    version: 3.11.0
+    version: 3.13.3
+---
+# NixOS hosts (node exporter with the systemd and textfile collectors). Some
+# only run on demand, so no rule alerts on their absence.
+apiVersion: monitoring.coreos.com/v1alpha1
+kind: ScrapeConfig
+metadata:
+    name: nixos-node
+    namespace: kube-prometheus-stack
+spec:
+    scrapeInterval: 30s
+    staticConfigs:
+        - labels:
+            host: ENC[AES256_GCM,data:f4AwqTKaAD0=,iv:ZOZuxvJdOHwYadY1esTR90mvCmlwOLwC9MMrbaXj/K0=,tag:6wDKy7XNYkf+zOwu5OmZGw==,type:str]
+          targets:
+            - ENC[AES256_GCM,data:woG3YbDSX6/LKKBNOzRDzCzy,iv:Qo+bCulkJq9z2c3erUmHRU6B8uRiqmhAARqu4SKj77o=,tag:nrzSUrJHOd5R8BjSNpI6Dw==,type:str]
+        - labels:
+            host: ENC[AES256_GCM,data:hCiv/A==,iv:amSAEAsEDUCBVWkPUtRMYeR/9tZalyxA8qRiuksAtqA=,tag:7aJdqJWG5BCriuGrJ2ihRQ==,type:str]
+          targets:
+            - ENC[AES256_GCM,data:moZ04LaLAknv/Q16kiPAb+cH,iv:pqXULOIUTYE4bZhiZg+nWOuenw3iiDObfthWglrO35s=,tag:mzCR/eY0yp6/AShF1Mm9HA==,type:str]
+    relabelings:
+        - targetLabel: job
+          replacement: nixos-node
+sops:
+    encrypted_regex: ^(targets|labels)$
+    lastmodified: "2026-11-04T15:43:13Z"
+    mac: ENC[AES256_GCM,data:WMYBJa/E2FcA+yw3Iha+BMmbVrQv5UWhr9mAVVMbCxI+5AAdhA5eUmDOJV+m56IAgVm5ngsZKV1/ILQMoirb/TwptBmAqTaIW5xIgZE5Xjf/nKhLz4ULt23EAOK7lQNbjA9ySc9m0QGVf0jTneMo9gTSgcfOpE3wcFOZcNnFZ8U=,iv:o6b1aFGLvXTdIU+uzCvQygT2I7FhPuiFeQe+lVLkYGs=,tag:6KBXNcbqAJAjmlFzGojOGA==,type:str]
+    pgp:
+        - created_at: "2026-11-04T15:43:13Z"
+          enc: |-
+            -----BEGIN PGP MESSAGE-----
+
+            hQIMA8WjeZLD+fxwAQ//QdMS3JSPrcrcYzl5WFO0RECrHIe09+83YOKNRC6oZuqP
+            keUOt/eN+haxTNKNf3+xrlvnUm4h9TD6KXP3lXTyEv0K6Yp/NL9Fg2LceGhZXubT
+            MqYr7HM82eY+sdkTU9HSqJNEiQi9Ccfalv9Uz9A23QqT/TPI//VVXMyoIJAtJb1m
+            6KGXvXB+AE66FtvUuCamlpO7ws9KjoUQKkFStxoO4UBgoCQiOsngWOD4m2b9g0hs
+            dc2MM1I42Oo4gLSe3NSjNBcnWBEGPvuYIgB7lJxJsBmw60UWAbKrqaC8sh0vpHh4
+            m8dal3VuWt72XEXUXfmtLhvGgtU6vVMHjj0132kL88qsrsUGiNlKlVEKcjE0EYUA
+            VhLtmS5LccQI7SJ8jqIeiSdCAKLz2zN1Zqxurcbsx5XqKGEwM85xx7/pkuzlAW/p
+            jbKJJNdm25EFHXE7fBdLupsMMOeZT4coeLBeA+ExgYIDeHNTgptdl4QIFRRcxx4X
+            KtMn8SsvxKls9C4+tgCEvIhDz1GNQf123LgyPWiozHOOt8ngjbxxBDxmIQT09L1b
+            ehgldbIl2/IvaWXEuEj/+8gtMDuOUGhnfJSB60szLWpY77VqI/7nHhIBr64csQ2c
+            tLJcc3wiFi3CB4KA3j5JglxNxnq3Gi3T303d0ZZJT+wuNNsuCR/d8YY7OPSuVZDS
+            XgF4JY2yJ7QrMHwbsz4+WD8JYL4DlqRBEqMOIoi0D621doZXm1Z5qGh9WFMec+18
+            ABoZ9NXOJuvmWhUju825JVIpv2lmSUgiOZVsLf/YlTOrEp4+TfEXAH8Z+oB3l/E=
+            =joDm
+            -----END PGP MESSAGE-----
+          fp: 3536F7F9345D96C86FB7F9CD21FAFEE575B18815
+    version: 3.13.3
 ---
 apiVersion: monitoring.coreos.com/v1alpha1
 kind: ScrapeConfig
@@ -66,17 +114,17 @@ spec:
             - "1"
     staticConfigs:
         - labels:
-            host: mango
+            host: ENC[AES256_GCM,data:ipm3sUo=,iv:rg3b2BZy/c7JZlBm4at2GsQ0z1wrGhauLm+mnYNIsV4=,tag:X/rpoT9LBi2/PM0gnQpU3A==,type:str]
           targets:
-            - ENC[AES256_GCM,data:wK2XMM+dgHuBU3As3R4=,iv:OQe0awErnwjXpqjHOvXf2qoBL7E49ElIzCWvElhKKmg=,tag:f5JeKb2S2VsvLEAfyLS/rg==,type:str]
+            - ENC[AES256_GCM,data:tWktguBpWi57SMHqwHg=,iv:jiyzIZpKZiSAZPcqVnWUWm58ttgjvKCPtjFcJ78DxyQ=,tag:vpJy2oAoOyELgCWrahLOMQ==,type:str]
         - labels:
-            host: mandarin
+            host: ENC[AES256_GCM,data:OLHhH2qwp1M=,iv:/6bCYanQ4K1Z2xdIv5OTlZc697mAUYH3u6rOzXEVaMk=,tag:QAUWwpLE3q0jKJMB646s4g==,type:str]
           targets:
-            - ENC[AES256_GCM,data:SUNIYVdJTzB0e8krRnk=,iv:v9OSjxSMlodqmhNxN/YKCOvzqR1eSy67Ym290PBb6J0=,tag:+Eas+VqZFMQ9ogeaqdi9ag==,type:str]
+            - ENC[AES256_GCM,data:xe7EEajSMkpGlils8og=,iv:QRH+jC23FZwxAZlxAuduU97Bhkwy7kARh6vaB0hbFkA=,tag:6zFG+6McXfA1VZJkYeamPA==,type:str]
         - labels:
-            host: mulberry
+            host: ENC[AES256_GCM,data:d53pNWoPFmw=,iv:HDfNMjpYdgj3ZepA/Lr31eumyoxkdPMUZcMa7Z7TuhQ=,tag:tfGGvNl9Pz0ynh7yhHXy3g==,type:str]
           targets:
-            - ENC[AES256_GCM,data:qiQMeAIdEhYXjx4ODg==,iv:gy6/l26ae1D6ueG23I3TEiT4wtYm76ujt4OPCZYYMU0=,tag:aQz4RcrAtxMn6kT9jlqb2g==,type:str]
+            - ENC[AES256_GCM,data:OzJNwGdbS11UOBG/Qg==,iv:axX6mQuZvfku8ZRM3TIXFqsVuuQ/nJGvflo0eai0vFA=,tag:t06ioVzTwskiflLmt86EEQ==,type:str]
     relabelings:
         - targetLabel: job
           replacement: proxmox-pve
@@ -92,31 +140,31 @@ spec:
         - targetLabel: __address__
           replacement: pve-exporter.kube-prometheus-stack.svc:9221
 sops:
-    lastmodified: "2026-10-23T12:26:16Z"
-    mac: ENC[AES256_GCM,data:YCNnlC4j2TJLuarCd3OmSpRafTSr9GcThlNrlFGKeMWssVJwYAVpYCoxhlWW6ElnQuaWdzJGS+F3Ykd2IvrIxHJ1Dt1ihyn9kwWkaRAJNLdNV/q+o71Ys1wHw4l3uFkwnvIViDCqcsCr3KsNULZCDvXDBn4GTfC+EvB3WCeEse0=,iv:o6i7pifNex1HQhSbq8EYVsAtFUMffA8YskvDLI6qAIk=,tag:J3NirGiDMK9Z4Fv0R3nnwg==,type:str]
+    encrypted_regex: ^(targets|labels)$
+    lastmodified: "2026-11-04T15:43:13Z"
+    mac: ENC[AES256_GCM,data:WMYBJa/E2FcA+yw3Iha+BMmbVrQv5UWhr9mAVVMbCxI+5AAdhA5eUmDOJV+m56IAgVm5ngsZKV1/ILQMoirb/TwptBmAqTaIW5xIgZE5Xjf/nKhLz4ULt23EAOK7lQNbjA9ySc9m0QGVf0jTneMo9gTSgcfOpE3wcFOZcNnFZ8U=,iv:o6b1aFGLvXTdIU+uzCvQygT2I7FhPuiFeQe+lVLkYGs=,tag:6KBXNcbqAJAjmlFzGojOGA==,type:str]
     pgp:
-        - created_at: "2026-10-23T12:26:16Z"
+        - created_at: "2026-11-04T15:43:13Z"
           enc: |-
             -----BEGIN PGP MESSAGE-----
 
-            hQIMA8WjeZLD+fxwAQ/9FoKKs1/3sgd7qC6iwUUI/zEu8LU2ta0IjfnGNlhO+179
-            TqcpG9nR70O2cHpENru867jHSco5LUfBs9alT3NlpZs8Y7W8CAqm3rQdkQnta68N
-            ZPINduW1dK0rt12+hjsy3iusGrvdplXa1x26w5aMNa+MLw5WjTBBoKf6Cl2evq/c
-            Vk3MWc463FIkwiFgQC6oSW6qyZDKA26u9eMpCMIALE1X7gT11tdMxHTbGFIL0Mai
-            R2ViyaUfGjx7l5FFBgF0RGkBEneow3Vlo1/ldQDjplma7TQ3+q1c5glSJpYYK7/W
-            QZge35Hj1KpMXfPzOWvGks7vtU4JIa2csPFyJtBylfkr+YiyMUhO5enp2kV/sC6V
-            Ht1TlIgV4DvhjI3TDW408DftQaPD10i3LVY9wtRmQlX7AbcYbiw/Sm8BSSvw8qb+
-            FtX2h3WhUZYck3Fiqs/3K75oCEkVKg0EArKXq84O9gl9kppIpaNcNXUiSk67lWAe
-            POA+asIEGocK+TTqzAnEkBmzQdJiiA1yMxa+A7Xuz0ZuLZw4yw4SJX4k/NvKORJ/
-            49bVhZ3AgJoyDeMJSDeode0gmsQxWAlSjceNIUQuoZAyamUOeCGbmmqgL4meiLHd
-            fhNPaj+0uBcDMRqpOI8HAA+UxszMOYtx6JnKc4IhXEVN14WvtBQlN4+vbUltFibS
-            XgFdoHVtYlXaGoxoyoW16/wuK/q18bdZLDk06mC7GNt+e/6A8960Z2pwuKHG1OyP
-            AUU1BHWqo/pAhw7HMwFAsZbVVybGjuisWCg5X4L/Xd/aR1gU9v2Sd0O8/xPSm/E=
-            =lUqj
+            hQIMA8WjeZLD+fxwAQ//QdMS3JSPrcrcYzl5WFO0RECrHIe09+83YOKNRC6oZuqP
+            keUOt/eN+haxTNKNf3+xrlvnUm4h9TD6KXP3lXTyEv0K6Yp/NL9Fg2LceGhZXubT
+            MqYr7HM82eY+sdkTU9HSqJNEiQi9Ccfalv9Uz9A23QqT/TPI//VVXMyoIJAtJb1m
+            6KGXvXB+AE66FtvUuCamlpO7ws9KjoUQKkFStxoO4UBgoCQiOsngWOD4m2b9g0hs
+            dc2MM1I42Oo4gLSe3NSjNBcnWBEGPvuYIgB7lJxJsBmw60UWAbKrqaC8sh0vpHh4
+            m8dal3VuWt72XEXUXfmtLhvGgtU6vVMHjj0132kL88qsrsUGiNlKlVEKcjE0EYUA
+            VhLtmS5LccQI7SJ8jqIeiSdCAKLz2zN1Zqxurcbsx5XqKGEwM85xx7/pkuzlAW/p
+            jbKJJNdm25EFHXE7fBdLupsMMOeZT4coeLBeA+ExgYIDeHNTgptdl4QIFRRcxx4X
+            KtMn8SsvxKls9C4+tgCEvIhDz1GNQf123LgyPWiozHOOt8ngjbxxBDxmIQT09L1b
+            ehgldbIl2/IvaWXEuEj/+8gtMDuOUGhnfJSB60szLWpY77VqI/7nHhIBr64csQ2c
+            tLJcc3wiFi3CB4KA3j5JglxNxnq3Gi3T303d0ZZJT+wuNNsuCR/d8YY7OPSuVZDS
+            XgF4JY2yJ7QrMHwbsz4+WD8JYL4DlqRBEqMOIoi0D621doZXm1Z5qGh9WFMec+18
+            ABoZ9NXOJuvmWhUju825JVIpv2lmSUgiOZVsLf/YlTOrEp4+TfEXAH8Z+oB3l/E=
+            =joDm
             -----END PGP MESSAGE-----
           fp: 3536F7F9345D96C86FB7F9CD21FAFEE575B18815
-    encrypted_regex: ^targets$
-    version: 3.11.0
+    version: 3.13.3
 ---
 apiVersion: monitoring.coreos.com/v1alpha1
 kind: ScrapeConfig
@@ -139,9 +187,9 @@ spec:
             - nectarine
     staticConfigs:
         - labels:
-            host: nectarine
+            host: ENC[AES256_GCM,data:HvgSo+i3w8WN,iv:05saLHpkLnKRWo0z0ynrtVl8tcjQMnrYqlogmHYt+nU=,tag:l2nRG+EtzYnC6de8PCeKiA==,type:str]
           targets:
-            - ENC[AES256_GCM,data:Uw3Kb5lV3bI0HsHK,iv:bND6POgXu1j1XNGU93DwqzC8fdzy8v7PmE7reavDG0w=,tag:4wT1JCYX8V0xqa5zuarWoA==,type:str]
+            - ENC[AES256_GCM,data:LFMCKrhhv9tBKoyW,iv:qN/+HKIybVx62M8KhkevXXIJV8qL8cv5yyd2lwTTP7U=,tag:sfronPvfkK2pzs7FWvgFZA==,type:str]
     relabelings:
         - targetLabel: job
           replacement: nas-snmp
@@ -181,31 +229,31 @@ spec:
           targetLabel: diskID
           replacement: M.2 Drive 1
 sops:
-    lastmodified: "2026-10-23T12:26:16Z"
-    mac: ENC[AES256_GCM,data:YCNnlC4j2TJLuarCd3OmSpRafTSr9GcThlNrlFGKeMWssVJwYAVpYCoxhlWW6ElnQuaWdzJGS+F3Ykd2IvrIxHJ1Dt1ihyn9kwWkaRAJNLdNV/q+o71Ys1wHw4l3uFkwnvIViDCqcsCr3KsNULZCDvXDBn4GTfC+EvB3WCeEse0=,iv:o6i7pifNex1HQhSbq8EYVsAtFUMffA8YskvDLI6qAIk=,tag:J3NirGiDMK9Z4Fv0R3nnwg==,type:str]
+    encrypted_regex: ^(targets|labels)$
+    lastmodified: "2026-11-04T15:43:13Z"
+    mac: ENC[AES256_GCM,data:WMYBJa/E2FcA+yw3Iha+BMmbVrQv5UWhr9mAVVMbCxI+5AAdhA5eUmDOJV+m56IAgVm5ngsZKV1/ILQMoirb/TwptBmAqTaIW5xIgZE5Xjf/nKhLz4ULt23EAOK7lQNbjA9ySc9m0QGVf0jTneMo9gTSgcfOpE3wcFOZcNnFZ8U=,iv:o6b1aFGLvXTdIU+uzCvQygT2I7FhPuiFeQe+lVLkYGs=,tag:6KBXNcbqAJAjmlFzGojOGA==,type:str]
     pgp:
-        - created_at: "2026-10-23T12:26:16Z"
+        - created_at: "2026-11-04T15:43:13Z"
           enc: |-
             -----BEGIN PGP MESSAGE-----
 
-            hQIMA8WjeZLD+fxwAQ/9FoKKs1/3sgd7qC6iwUUI/zEu8LU2ta0IjfnGNlhO+179
-            TqcpG9nR70O2cHpENru867jHSco5LUfBs9alT3NlpZs8Y7W8CAqm3rQdkQnta68N
-            ZPINduW1dK0rt12+hjsy3iusGrvdplXa1x26w5aMNa+MLw5WjTBBoKf6Cl2evq/c
-            Vk3MWc463FIkwiFgQC6oSW6qyZDKA26u9eMpCMIALE1X7gT11tdMxHTbGFIL0Mai
-            R2ViyaUfGjx7l5FFBgF0RGkBEneow3Vlo1/ldQDjplma7TQ3+q1c5glSJpYYK7/W
-            QZge35Hj1KpMXfPzOWvGks7vtU4JIa2csPFyJtBylfkr+YiyMUhO5enp2kV/sC6V
-            Ht1TlIgV4DvhjI3TDW408DftQaPD10i3LVY9wtRmQlX7AbcYbiw/Sm8BSSvw8qb+
-            FtX2h3WhUZYck3Fiqs/3K75oCEkVKg0EArKXq84O9gl9kppIpaNcNXUiSk67lWAe
-            POA+asIEGocK+TTqzAnEkBmzQdJiiA1yMxa+A7Xuz0ZuLZw4yw4SJX4k/NvKORJ/
-            49bVhZ3AgJoyDeMJSDeode0gmsQxWAlSjceNIUQuoZAyamUOeCGbmmqgL4meiLHd
-            fhNPaj+0uBcDMRqpOI8HAA+UxszMOYtx6JnKc4IhXEVN14WvtBQlN4+vbUltFibS
-            XgFdoHVtYlXaGoxoyoW16/wuK/q18bdZLDk06mC7GNt+e/6A8960Z2pwuKHG1OyP
-            AUU1BHWqo/pAhw7HMwFAsZbVVybGjuisWCg5X4L/Xd/aR1gU9v2Sd0O8/xPSm/E=
-            =lUqj
+            hQIMA8WjeZLD+fxwAQ//QdMS3JSPrcrcYzl5WFO0RECrHIe09+83YOKNRC6oZuqP
+            keUOt/eN+haxTNKNf3+xrlvnUm4h9TD6KXP3lXTyEv0K6Yp/NL9Fg2LceGhZXubT
+            MqYr7HM82eY+sdkTU9HSqJNEiQi9Ccfalv9Uz9A23QqT/TPI//VVXMyoIJAtJb1m
+            6KGXvXB+AE66FtvUuCamlpO7ws9KjoUQKkFStxoO4UBgoCQiOsngWOD4m2b9g0hs
+            dc2MM1I42Oo4gLSe3NSjNBcnWBEGPvuYIgB7lJxJsBmw60UWAbKrqaC8sh0vpHh4
+            m8dal3VuWt72XEXUXfmtLhvGgtU6vVMHjj0132kL88qsrsUGiNlKlVEKcjE0EYUA
+            VhLtmS5LccQI7SJ8jqIeiSdCAKLz2zN1Zqxurcbsx5XqKGEwM85xx7/pkuzlAW/p
+            jbKJJNdm25EFHXE7fBdLupsMMOeZT4coeLBeA+ExgYIDeHNTgptdl4QIFRRcxx4X
+            KtMn8SsvxKls9C4+tgCEvIhDz1GNQf123LgyPWiozHOOt8ngjbxxBDxmIQT09L1b
+            ehgldbIl2/IvaWXEuEj/+8gtMDuOUGhnfJSB60szLWpY77VqI/7nHhIBr64csQ2c
+            tLJcc3wiFi3CB4KA3j5JglxNxnq3Gi3T303d0ZZJT+wuNNsuCR/d8YY7OPSuVZDS
+            XgF4JY2yJ7QrMHwbsz4+WD8JYL4DlqRBEqMOIoi0D621doZXm1Z5qGh9WFMec+18
+            ABoZ9NXOJuvmWhUju825JVIpv2lmSUgiOZVsLf/YlTOrEp4+TfEXAH8Z+oB3l/E=
+            =joDm
             -----END PGP MESSAGE-----
           fp: 3536F7F9345D96C86FB7F9CD21FAFEE575B18815
-    encrypted_regex: ^targets$
-    version: 3.11.0
+    version: 3.13.3
 ---
 apiVersion: monitoring.coreos.com/v1alpha1
 kind: ScrapeConfig
@@ -220,40 +268,40 @@ spec:
             - tcp_connect
     staticConfigs:
         - labels:
-            host: nectarine
-            service: DSM
+            host: ENC[AES256_GCM,data:hnCETvoYu1iK,iv:mWXbYnZDXEVta1CJCuO7KxghW5LCDDsNGqGV/e2TGJA=,tag:cCp+XuoY2AGeKIjg9JItDQ==,type:str]
+            service: ENC[AES256_GCM,data:H5wP,iv:bI55nvcNBF7+oIfaTBbBwo0ChSqMfCZSymydPvZlCHc=,tag:qiGKsVnFK2QrqQbWTEaMHA==,type:str]
           targets:
-            - ENC[AES256_GCM,data:9JzlIUHmaXwr850x8jWr6zs=,iv:a28JdCZWvHnCyAEuPFZ0OirOHm1UGYhr7MM57ovbydk=,tag:gSv7uoYDl1d18q04rw9SNw==,type:str]
+            - ENC[AES256_GCM,data:/6wS5a94FL1WcSUZA5tf9U4=,iv:OM/7DnJXx1lAnIVijMSIoZ2gw5eFAzwKe1d52EZeRWM=,tag:6C7dbF2OBpLZVtdBnkEt5A==,type:str]
         - labels:
-            host: mango
-            service: Proxmox
+            host: ENC[AES256_GCM,data:jZFdi9g=,iv:/chfqKnZxwurFb4U/D0Go+FTOmsLKM78Y5f0b4HuzxI=,tag:YXta2L5Lsr38bt+1ZkCA1Q==,type:str]
+            service: ENC[AES256_GCM,data:f4/lAbhbOw==,iv:/j7/FKYOgGN0cFukiZVKSJvsKI1HdBxSe8UNbIehpS8=,tag:nkXUmlibOWA0wChBPGpbhQ==,type:str]
           targets:
-            - ENC[AES256_GCM,data:1vMG9e6RmOkUYgNFrDK2WuGiOw==,iv:EYMX+JROljo4auXQmWkDU6ofrK0iUmpFf/TnOgNWiSc=,tag:KJ3mqLuozKB2S+5+1M2t6w==,type:str]
+            - ENC[AES256_GCM,data:DfPs5fr9hBKLEzzrKQcQ5Grg/g==,iv:QwpeS9ib7kJQzp4+pjFUNLidKmfHmIKLCDvyCGlcRrw=,tag:mheNt9go5cA1aOk/3kpx2Q==,type:str]
         - labels:
-            host: mandarin
-            service: Proxmox
+            host: ENC[AES256_GCM,data:ngS0yoN73WY=,iv:ufojxF4xI6MsFgAIQ9oJP4Sd6W7pF4PpfMeKS1jRepI=,tag:jD0JKv2BSzfyYo1z9JEoKA==,type:str]
+            service: ENC[AES256_GCM,data:PQWpUxSt/A==,iv:Y0DhqqkMCGEzZYtnpXHHipzF53gwr/hkk6ncjd8+cQQ=,tag:Q6bEqgR0qr7tSFKl4+Z3xg==,type:str]
           targets:
-            - ENC[AES256_GCM,data:LGNmyj45Q+Zxoz5seT16NSwqXg==,iv:Ge1uEgeiq7Kbyh4y2clHDp/jpYEDsk/mcVgEO1cLazc=,tag:0WBUPvUacYH6PVlllxGQew==,type:str]
+            - ENC[AES256_GCM,data:vvSkxQ/Xg7B2fPds9bGyBy3MMQ==,iv:W38mB1UiOQiI6T78PIUm9K7UHYBHrSWTo9c6GoZLMNw=,tag:qfl5o1mGb7kuRdlAOYl4Hw==,type:str]
         - labels:
-            host: mulberry
-            service: Proxmox
+            host: ENC[AES256_GCM,data:kbTKbYRTnqM=,iv:EXyB7lhrfAbe17TGXYF/TJWtqZTC+GY44/xjI/P4Lqc=,tag:Rtm/4u7jsc6gxvKsDiGT4g==,type:str]
+            service: ENC[AES256_GCM,data:v6/maltaNQ==,iv:09x5eGOjvgiGCpO3BxRKEqpK5VEmEvvK1kW7LFHb5js=,tag:e4Nu/sITiZDEbwrflfFK2g==,type:str]
           targets:
-            - ENC[AES256_GCM,data:u0mqqzTjRmJf6os2WJpxVvFB,iv:0XArz5vrkE+7dK+UDSm2rG8fdJ9r02JfwfSndXXGuoI=,tag:6DbQ1lmeXva6GOrbB/yP3Q==,type:str]
+            - ENC[AES256_GCM,data:G436uWjspN0FsFvzzJU5N10B,iv:EmeQ+7vrWPEUMfa7MxOZtm/09F0VndeYbtSkbdpr5hQ=,tag:d8aWTduTiABPro55iOsyRw==,type:str]
         - labels:
-            host: gateway
-            service: UniFi
+            host: ENC[AES256_GCM,data:l3lkCDAORw==,iv:feCsi10fY2iU8gHKft05VeGP/urj1tHdvtWaZCOQ2m8=,tag:HfUh/WCk+3Lg2K1D7xcWgA==,type:str]
+            service: ENC[AES256_GCM,data:RC/xDKk=,iv:+7P6hO9nl8VZHFDO4KgKUIyMaopOMpPFbHo5QGl1bn0=,tag:v2G0xGAK2pH6ldX79brsDw==,type:str]
           targets:
-            - ENC[AES256_GCM,data:/PzWAOQs1fnPig92dWzt,iv:7+0r2o2kHWWmpctXoDKqkY46N4ldys7QP4ROsEASo8k=,tag:jgLQpgOXrCUvdfmMJzCXWw==,type:str]
+            - ENC[AES256_GCM,data:11DeCK4iypuwzxhiQ3Su,iv:9PN9EhH3hB9COnlRaMRMeVXxZPmSiAgQtmhrra7gwqU=,tag:ss7+qgO2S2Sca6TjZ+ERpw==,type:str]
         - labels:
-            host: honeydew
-            service: SSH
+            host: ENC[AES256_GCM,data:UwgkdT7LQtM=,iv:NiJaR4XEzp5Nc591Gr6WTShoQ6W05FsQRhkRaGEJ2eg=,tag:wPaGM51u4lwvwMOCuH5oPQ==,type:str]
+            service: ENC[AES256_GCM,data:HX3p,iv:a5QTwfbtz+KrVnTgvoZRW+aLeTy8w9yCWdroVlkA398=,tag:3KmNpZEMcIakOaMeRrsNoA==,type:str]
           targets:
-            - ENC[AES256_GCM,data:bLdM0I0IsLpsvwxWJQxxEQ==,iv:Yxh8CaPMS1YVx8j0m6+AdI9y/WdI87jPz9tRyZs4vVk=,tag:blFrrCldsxKKl2eDz9T2kw==,type:str]
+            - ENC[AES256_GCM,data:SDU4tW2ae+z/YHH/VeDM4Q==,iv:nOz4xJohKX+p3BoVz/H8lGzqoP51tL21HTh4yqJoRbo=,tag:VaKN8aOFKtfD+SEEpO5ezA==,type:str]
         - labels:
-            host: zigbee2mqtt
-            service: Zigbee2MQTT
+            host: ENC[AES256_GCM,data:8TcJquGT8Hjw3L4=,iv:TENDbfdsbgrcpv7HGvVlyPM3/Cjv33dw8qsE8KNfOf4=,tag:dqEJ+h9Y1h5kdWJAz+q/Cw==,type:str]
+            service: ENC[AES256_GCM,data:n6dfELTt1BoOz24=,iv:WXMhsF4kz9ulYMjkNN2IdK2dYwhwLMGyh3e+WY77ByQ=,tag:PSa1cthTxRDWytvU1/VyDQ==,type:str]
           targets:
-            - ENC[AES256_GCM,data:yFd9uhwHEUzhPF4ISWw2sIo=,iv:wovJxGzB5QtxvBO355YuUeedrhQErQwper8HxPE55zM=,tag:QMCLiJ9RMSuojwB6deifWw==,type:str]
+            - ENC[AES256_GCM,data:f3ERKdA8UwkYsGhUXx9+i3Q=,iv:KwxrR3uug1AACtB92p+FB+9pWZOXYiGAviaoEN3NJs0=,tag:DshF3qBLGTXhISNlvldr1A==,type:str]
     relabelings:
         - targetLabel: job
           replacement: lan-hosts
@@ -266,28 +314,28 @@ spec:
         - targetLabel: __address__
           replacement: blackbox-exporter.kube-prometheus-stack.svc:9115
 sops:
-    lastmodified: "2026-10-23T12:26:16Z"
-    mac: ENC[AES256_GCM,data:YCNnlC4j2TJLuarCd3OmSpRafTSr9GcThlNrlFGKeMWssVJwYAVpYCoxhlWW6ElnQuaWdzJGS+F3Ykd2IvrIxHJ1Dt1ihyn9kwWkaRAJNLdNV/q+o71Ys1wHw4l3uFkwnvIViDCqcsCr3KsNULZCDvXDBn4GTfC+EvB3WCeEse0=,iv:o6i7pifNex1HQhSbq8EYVsAtFUMffA8YskvDLI6qAIk=,tag:J3NirGiDMK9Z4Fv0R3nnwg==,type:str]
+    encrypted_regex: ^(targets|labels)$
+    lastmodified: "2026-11-04T15:43:13Z"
+    mac: ENC[AES256_GCM,data:WMYBJa/E2FcA+yw3Iha+BMmbVrQv5UWhr9mAVVMbCxI+5AAdhA5eUmDOJV+m56IAgVm5ngsZKV1/ILQMoirb/TwptBmAqTaIW5xIgZE5Xjf/nKhLz4ULt23EAOK7lQNbjA9ySc9m0QGVf0jTneMo9gTSgcfOpE3wcFOZcNnFZ8U=,iv:o6b1aFGLvXTdIU+uzCvQygT2I7FhPuiFeQe+lVLkYGs=,tag:6KBXNcbqAJAjmlFzGojOGA==,type:str]
     pgp:
-        - created_at: "2026-10-23T12:26:16Z"
+        - created_at: "2026-11-04T15:43:13Z"
           enc: |-
             -----BEGIN PGP MESSAGE-----
 
-            hQIMA8WjeZLD+fxwAQ/9FoKKs1/3sgd7qC6iwUUI/zEu8LU2ta0IjfnGNlhO+179
-            TqcpG9nR70O2cHpENru867jHSco5LUfBs9alT3NlpZs8Y7W8CAqm3rQdkQnta68N
-            ZPINduW1dK0rt12+hjsy3iusGrvdplXa1x26w5aMNa+MLw5WjTBBoKf6Cl2evq/c
-            Vk3MWc463FIkwiFgQC6oSW6qyZDKA26u9eMpCMIALE1X7gT11tdMxHTbGFIL0Mai
-            R2ViyaUfGjx7l5FFBgF0RGkBEneow3Vlo1/ldQDjplma7TQ3+q1c5glSJpYYK7/W
-            QZge35Hj1KpMXfPzOWvGks7vtU4JIa2csPFyJtBylfkr+YiyMUhO5enp2kV/sC6V
-            Ht1TlIgV4DvhjI3TDW408DftQaPD10i3LVY9wtRmQlX7AbcYbiw/Sm8BSSvw8qb+
-            FtX2h3WhUZYck3Fiqs/3K75oCEkVKg0EArKXq84O9gl9kppIpaNcNXUiSk67lWAe
-            POA+asIEGocK+TTqzAnEkBmzQdJiiA1yMxa+A7Xuz0ZuLZw4yw4SJX4k/NvKORJ/
-            49bVhZ3AgJoyDeMJSDeode0gmsQxWAlSjceNIUQuoZAyamUOeCGbmmqgL4meiLHd
-            fhNPaj+0uBcDMRqpOI8HAA+UxszMOYtx6JnKc4IhXEVN14WvtBQlN4+vbUltFibS
-            XgFdoHVtYlXaGoxoyoW16/wuK/q18bdZLDk06mC7GNt+e/6A8960Z2pwuKHG1OyP
-            AUU1BHWqo/pAhw7HMwFAsZbVVybGjuisWCg5X4L/Xd/aR1gU9v2Sd0O8/xPSm/E=
-            =lUqj
+            hQIMA8WjeZLD+fxwAQ//QdMS3JSPrcrcYzl5WFO0RECrHIe09+83YOKNRC6oZuqP
+            keUOt/eN+haxTNKNf3+xrlvnUm4h9TD6KXP3lXTyEv0K6Yp/NL9Fg2LceGhZXubT
+            MqYr7HM82eY+sdkTU9HSqJNEiQi9Ccfalv9Uz9A23QqT/TPI//VVXMyoIJAtJb1m
+            6KGXvXB+AE66FtvUuCamlpO7ws9KjoUQKkFStxoO4UBgoCQiOsngWOD4m2b9g0hs
+            dc2MM1I42Oo4gLSe3NSjNBcnWBEGPvuYIgB7lJxJsBmw60UWAbKrqaC8sh0vpHh4
+            m8dal3VuWt72XEXUXfmtLhvGgtU6vVMHjj0132kL88qsrsUGiNlKlVEKcjE0EYUA
+            VhLtmS5LccQI7SJ8jqIeiSdCAKLz2zN1Zqxurcbsx5XqKGEwM85xx7/pkuzlAW/p
+            jbKJJNdm25EFHXE7fBdLupsMMOeZT4coeLBeA+ExgYIDeHNTgptdl4QIFRRcxx4X
+            KtMn8SsvxKls9C4+tgCEvIhDz1GNQf123LgyPWiozHOOt8ngjbxxBDxmIQT09L1b
+            ehgldbIl2/IvaWXEuEj/+8gtMDuOUGhnfJSB60szLWpY77VqI/7nHhIBr64csQ2c
+            tLJcc3wiFi3CB4KA3j5JglxNxnq3Gi3T303d0ZZJT+wuNNsuCR/d8YY7OPSuVZDS
+            XgF4JY2yJ7QrMHwbsz4+WD8JYL4DlqRBEqMOIoi0D621doZXm1Z5qGh9WFMec+18
+            ABoZ9NXOJuvmWhUju825JVIpv2lmSUgiOZVsLf/YlTOrEp4+TfEXAH8Z+oB3l/E=
+            =joDm
             -----END PGP MESSAGE-----
           fp: 3536F7F9345D96C86FB7F9CD21FAFEE575B18815
-    encrypted_regex: ^targets$
-    version: 3.11.0
+    version: 3.13.3

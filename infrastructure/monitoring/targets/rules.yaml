@@ -164,6 +164,70 @@ spec:
             severity: warning
           annotations:
             summary: "{{ $labels.host }}:{{ $labels.mountpoint }} has under 10% free"
+    # NixOS hosts (job nixos-node). Some only run on demand, so nothing here
+    # alerts on a host being down; these rules only see hosts that answer.
+    - name: homelab.nixos
+      rules:
+        - alert: NixosHostHot
+          # Small build machines run warmer than the Proxmox hosts under
+          # sustained builds; same hysteresis as ProxmoxHostHot, 5°C higher.
+          expr: |
+            (
+              max by (host) (
+                node_hwmon_temp_celsius{job="nixos-node"}
+                  * on (host, chip) group_left (chip_name)
+                node_hwmon_chip_names{job="nixos-node", chip_name=~"k10temp|coretemp"}
+              ) > 90
+            )
+            or
+            (
+              max by (host) (
+                node_hwmon_temp_celsius{job="nixos-node"}
+                  * on (host, chip) group_left (chip_name)
+                node_hwmon_chip_names{job="nixos-node", chip_name=~"k10temp|coretemp"}
+              ) > 85
+              and on (host) ALERTS{alertname="NixosHostHot", alertstate="firing"}
+            )
+          for: 30m
+          keep_firing_for: 10m
+          labels:
+            homelab: "true"
+            severity: warning
+          annotations:
+            summary: "{{ $labels.host }} CPU is at {{ $value | printf \"%.0f\" }}°C"
+        - alert: NixosHostDiskFillingUp
+          # /nix/store is a bind mount of /, so skip the duplicate.
+          expr: |
+            node_filesystem_avail_bytes{job="nixos-node", fstype!~"tmpfs|ramfs|fuse.*", mountpoint!="/nix/store"}
+              / node_filesystem_size_bytes{job="nixos-node", fstype!~"tmpfs|ramfs|fuse.*", mountpoint!="/nix/store"} < 0.1
+          for: 15m
+          labels:
+            homelab: "true"
+            severity: warning
+          annotations:
+            summary: "{{ $labels.host }}:{{ $labels.mountpoint }} has under 10% free"
+            description: "Builds and old generations fill the Nix store: nix-collect-garbage --delete-older-than 14d, or prune Docker images."
+        - alert: NixosUnitFailed
+          # node_systemd_user_unit_failed covers the user units (T3 Code, the
+          # remote-control bridges), which the systemd collector cannot see.
+          expr: |
+            node_systemd_unit_state{job="nixos-node", state="failed"} == 1
+            or node_systemd_user_unit_failed{job="nixos-node"} == 1
+          for: 15m
+          labels:
+            homelab: "true"
+            severity: warning
+          annotations:
+            summary: "{{ $labels.host }}: {{ $labels.name }} has failed"
+            description: "journalctl -u {{ $labels.name }} (add --user for user units) on {{ $labels.host }}."
+        - alert: NixosHostOOMKill
+          expr: increase(node_vmstat_oom_kill{job="nixos-node"}[10m]) > 0
+          labels:
+            homelab: "true"
+            severity: warning
+          annotations:
+            summary: "The kernel OOM-killed a process on {{ $labels.host }}"
+            description: "Usually a build running too many jobs at once; journalctl -k | grep -i oom shows what was killed."
     - name: homelab.backups
       rules:
         # The stock KubeJobFailed is a plain warning, which the Alertmanager

@@ -68,12 +68,16 @@ server-side expressions match on. BLE sensors are heard by more than one gateway
   - Debian `prometheus-node-exporter` on each host, on port 9100.
   - `pve-exporter`, using one read-only `prometheus@pve!exporter` token per host. The tokens are stored in
     1Password as "Proxmox <host> API token" and in `pve-exporter.sops.yaml`.
+- **NixOS hosts** (job `nixos-node`): NixOS's node exporter on port 9100, open only to the Talos network, with the
+  systemd collector. A timer on each host writes failed systemd *user* units to the textfile collector as
+  `node_systemd_user_unit_failed`, because the systemd collector only sees system units. Some of these hosts only
+  run on demand, so the `homelab.nixos` rules never alert on a host being down.
 - **NAS:** `snmp-exporter` with the built-in `synology` module, using SNMP v2c from DSM. The community string is
   in 1Password ("nectarine SNMP community"). Disk IDs are hex-encoded by SNMP, so a metric relabeling maps them
   to "Disk N".
 - **UniFi:** `unpoller` with a UniFi Network API key (1Password "UniFi homelab API key").
-- **LAN targets:** every scrape config that names a LAN address is in `lan.sops.yaml`. Only `targets` is
-  encrypted there, because this repo is public.
+- **LAN targets:** every scrape config that names a LAN address is in `lan.sops.yaml`. Only `targets` and
+  `labels` (host names) are encrypted there, because this repo is public.
 
 - **Internet:** ICMP to public resolvers, the SSH banner of GitHub on ports 22 and 443, and TCP to the cloud APIs
   the homelab uses (`group="internet"`). ICMP works unprivileged through the pod's `ping_group_range` sysctl.
