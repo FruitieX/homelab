@@ -44,9 +44,23 @@ commit() {
   rm -f "$latest/COMMITTING"
 }
 
-# Stage $1 as $2.new unless $2 already has the same content.
+# Whether $2 exists with the content of $1. The \restrict lines of
+# pg_dumpall's output carry a random key, so they don't count.
+same() {
+  [[ -e $2 ]] || return 1
+  if [[ $2 == *.sql ]]; then
+    cmp -s <(grep -v '^\\\(un\)\?restrict ' "$1") <(grep -v '^\\\(un\)\?restrict ' "$2")
+  else
+    cmp -s "$1" "$2"
+  fi
+}
+
+# Stage $1 as $2.new unless $2 already has its content.
 stage() {
-  if cmp -s "$1" "$2"; then rm -f "$1"; return 1; fi
+  if same "$1" "$2"; then
+    rm -f "$1"
+    return 1
+  fi
   mv -f "$1" "$2.new"
 }
 
