@@ -1,7 +1,7 @@
 {
  "uid": "lab-hardware",
  "title": "Homelab · Hardware",
- "description": "Proxmox hosts and their Talos VMs, the NixOS hosts, and the Synology NAS.",
+ "description": "Proxmox hosts and their Talos VMs, and the Synology NAS.",
  "tags": [
   "homelab-nav",
   "homelab"
@@ -924,7 +924,7 @@
   },
   {
    "type": "row",
-   "title": "NixOS hosts",
+   "title": "NAS (nectarine)",
    "collapsed": false,
    "id": 12,
    "gridPos": {
@@ -932,675 +932,6 @@
     "w": 24,
     "x": 0,
     "y": 30
-   },
-   "panels": []
-  },
-  {
-   "type": "stat",
-   "title": "CPU temperature",
-   "targets": [
-    {
-     "datasource": {
-      "type": "prometheus",
-      "uid": "prometheus"
-     },
-     "expr": "max by (host) (node_hwmon_temp_celsius{job=\"nixos-node\"} * on (instance, chip) group_left (chip_name) node_hwmon_chip_names{job=\"nixos-node\", chip_name=~\"k10temp|coretemp\"})",
-     "legendFormat": "{{host}}",
-     "range": true,
-     "instant": false,
-     "refId": "A"
-    }
-   ],
-   "fieldConfig": {
-    "defaults": {
-     "custom": {},
-     "unit": "celsius",
-     "decimals": 0,
-     "thresholds": {
-      "mode": "absolute",
-      "steps": [
-       {
-        "color": "#3aa655",
-        "value": null
-       },
-       {
-        "color": "#e0a100",
-        "value": 80
-       },
-       {
-        "color": "#e5484d",
-        "value": 95
-       }
-      ]
-     },
-     "color": {
-      "mode": "thresholds"
-     }
-    },
-    "overrides": []
-   },
-   "options": {
-    "reduceOptions": {
-     "calcs": [
-      "lastNotNull"
-     ],
-     "fields": "",
-     "values": false
-    },
-    "graphMode": "area",
-    "colorMode": "value",
-    "textMode": "value_and_name",
-    "justifyMode": "auto",
-    "orientation": "auto",
-    "wideLayout": true,
-    "showPercentChange": false
-   },
-   "datasource": {
-    "type": "prometheus",
-    "uid": "prometheus"
-   },
-   "description": "VMs have no temperature sensors.",
-   "id": 13,
-   "gridPos": {
-    "h": 5,
-    "w": 5,
-    "x": 0,
-    "y": 31
-   }
-  },
-  {
-   "type": "stat",
-   "title": "CPU used",
-   "targets": [
-    {
-     "datasource": {
-      "type": "prometheus",
-      "uid": "prometheus"
-     },
-     "expr": "1 - avg by (host) (rate(node_cpu_seconds_total{job=\"nixos-node\", mode=\"idle\"}[5m]))",
-     "legendFormat": "{{host}}",
-     "range": true,
-     "instant": false,
-     "refId": "A"
-    }
-   ],
-   "fieldConfig": {
-    "defaults": {
-     "custom": {},
-     "unit": "percentunit",
-     "decimals": 0,
-     "thresholds": {
-      "mode": "absolute",
-      "steps": [
-       {
-        "color": "#3aa655",
-        "value": null
-       },
-       {
-        "color": "#e0a100",
-        "value": 0.7
-       },
-       {
-        "color": "#e5484d",
-        "value": 0.9
-       }
-      ]
-     },
-     "color": {
-      "mode": "thresholds"
-     }
-    },
-    "overrides": []
-   },
-   "options": {
-    "reduceOptions": {
-     "calcs": [
-      "lastNotNull"
-     ],
-     "fields": "",
-     "values": false
-    },
-    "graphMode": "area",
-    "colorMode": "value",
-    "textMode": "value_and_name",
-    "justifyMode": "auto",
-    "orientation": "auto",
-    "wideLayout": true,
-    "showPercentChange": false
-   },
-   "datasource": {
-    "type": "prometheus",
-    "uid": "prometheus"
-   },
-   "id": 14,
-   "gridPos": {
-    "h": 5,
-    "w": 5,
-    "x": 5,
-    "y": 31
-   }
-  },
-  {
-   "type": "stat",
-   "title": "Memory used",
-   "targets": [
-    {
-     "datasource": {
-      "type": "prometheus",
-      "uid": "prometheus"
-     },
-     "expr": "1 - node_memory_MemAvailable_bytes{job=\"nixos-node\"} / node_memory_MemTotal_bytes{job=\"nixos-node\"}",
-     "legendFormat": "{{host}}",
-     "range": true,
-     "instant": false,
-     "refId": "A"
-    }
-   ],
-   "fieldConfig": {
-    "defaults": {
-     "custom": {},
-     "unit": "percentunit",
-     "decimals": 0,
-     "thresholds": {
-      "mode": "absolute",
-      "steps": [
-       {
-        "color": "#3aa655",
-        "value": null
-       },
-       {
-        "color": "#e0a100",
-        "value": 0.8
-       },
-       {
-        "color": "#e5484d",
-        "value": 0.92
-       }
-      ]
-     },
-     "color": {
-      "mode": "thresholds"
-     }
-    },
-    "overrides": []
-   },
-   "options": {
-    "reduceOptions": {
-     "calcs": [
-      "lastNotNull"
-     ],
-     "fields": "",
-     "values": false
-    },
-    "graphMode": "area",
-    "colorMode": "value",
-    "textMode": "value_and_name",
-    "justifyMode": "auto",
-    "orientation": "auto",
-    "wideLayout": true,
-    "showPercentChange": false
-   },
-   "datasource": {
-    "type": "prometheus",
-    "uid": "prometheus"
-   },
-   "id": 15,
-   "gridPos": {
-    "h": 5,
-    "w": 5,
-    "x": 10,
-    "y": 31
-   }
-  },
-  {
-   "type": "stat",
-   "title": "Disk free (/)",
-   "targets": [
-    {
-     "datasource": {
-      "type": "prometheus",
-      "uid": "prometheus"
-     },
-     "expr": "node_filesystem_avail_bytes{job=\"nixos-node\", mountpoint=\"/\"}",
-     "legendFormat": "{{host}}",
-     "range": true,
-     "instant": false,
-     "refId": "A"
-    }
-   ],
-   "fieldConfig": {
-    "defaults": {
-     "custom": {},
-     "unit": "bytes",
-     "decimals": 0,
-     "thresholds": {
-      "mode": "absolute",
-      "steps": [
-       {
-        "color": "#e5484d",
-        "value": null
-       },
-       {
-        "color": "#e0a100",
-        "value": 50000000000.0
-       },
-       {
-        "color": "#3aa655",
-        "value": 100000000000.0
-       }
-      ]
-     },
-     "color": {
-      "mode": "thresholds"
-     }
-    },
-    "overrides": []
-   },
-   "options": {
-    "reduceOptions": {
-     "calcs": [
-      "lastNotNull"
-     ],
-     "fields": "",
-     "values": false
-    },
-    "graphMode": "area",
-    "colorMode": "value",
-    "textMode": "value_and_name",
-    "justifyMode": "auto",
-    "orientation": "auto",
-    "wideLayout": true,
-    "showPercentChange": false
-   },
-   "datasource": {
-    "type": "prometheus",
-    "uid": "prometheus"
-   },
-   "id": 16,
-   "gridPos": {
-    "h": 5,
-    "w": 5,
-    "x": 15,
-    "y": 31
-   }
-  },
-  {
-   "type": "stat",
-   "title": "Failed units",
-   "targets": [
-    {
-     "datasource": {
-      "type": "prometheus",
-      "uid": "prometheus"
-     },
-     "expr": "count by (host) (node_systemd_unit_state{job=\"nixos-node\", state=\"failed\"} == 1 or node_systemd_user_unit_failed{job=\"nixos-node\"} == 1) or sum by (host) (up{job=\"nixos-node\"} == 1) * 0",
-     "legendFormat": "{{host}}",
-     "range": true,
-     "instant": false,
-     "refId": "A"
-    }
-   ],
-   "fieldConfig": {
-    "defaults": {
-     "custom": {},
-     "decimals": 0,
-     "thresholds": {
-      "mode": "absolute",
-      "steps": [
-       {
-        "color": "#3aa655",
-        "value": null
-       },
-       {
-        "color": "#e5484d",
-        "value": 1
-       }
-      ]
-     },
-     "color": {
-      "mode": "thresholds"
-     }
-    },
-    "overrides": []
-   },
-   "options": {
-    "reduceOptions": {
-     "calcs": [
-      "lastNotNull"
-     ],
-     "fields": "",
-     "values": false
-    },
-    "graphMode": "none",
-    "colorMode": "value",
-    "textMode": "value_and_name",
-    "justifyMode": "auto",
-    "orientation": "auto",
-    "wideLayout": true,
-    "showPercentChange": false
-   },
-   "datasource": {
-    "type": "prometheus",
-    "uid": "prometheus"
-   },
-   "description": "System and user units, including T3 Code and the remote-control bridges.",
-   "id": 17,
-   "gridPos": {
-    "h": 5,
-    "w": 4,
-    "x": 20,
-    "y": 31
-   }
-  },
-  {
-   "type": "timeseries",
-   "title": "CPU",
-   "targets": [
-    {
-     "datasource": {
-      "type": "prometheus",
-      "uid": "prometheus"
-     },
-     "expr": "1 - avg by (host) (rate(node_cpu_seconds_total{job=\"nixos-node\", mode=\"idle\"}[$__rate_interval]))",
-     "legendFormat": "{{host}}",
-     "range": true,
-     "instant": false,
-     "refId": "A"
-    }
-   ],
-   "fieldConfig": {
-    "defaults": {
-     "custom": {
-      "drawStyle": "line",
-      "lineWidth": 2,
-      "fillOpacity": 0,
-      "gradientMode": "opacity",
-      "lineInterpolation": "smooth",
-      "showPoints": "never",
-      "spanNulls": true,
-      "stacking": {
-       "mode": "none",
-       "group": "A"
-      },
-      "axisBorderShow": false,
-      "barAlignment": -1,
-      "thresholdsStyle": {
-       "mode": "off"
-      },
-      "insertNulls": 3600000
-     },
-     "unit": "percentunit",
-     "min": 0,
-     "color": {
-      "mode": "palette-classic"
-     }
-    },
-    "overrides": []
-   },
-   "options": {
-    "legend": {
-     "displayMode": "list",
-     "placement": "bottom",
-     "showLegend": true,
-     "calcs": []
-    },
-    "tooltip": {
-     "mode": "multi",
-     "sort": "desc"
-    }
-   },
-   "datasource": {
-    "type": "prometheus",
-    "uid": "prometheus"
-   },
-   "description": "Gaps are hosts that were switched off; some only run on demand.",
-   "id": 18,
-   "gridPos": {
-    "h": 8,
-    "w": 12,
-    "x": 0,
-    "y": 36
-   }
-  },
-  {
-   "type": "timeseries",
-   "title": "Memory used",
-   "targets": [
-    {
-     "datasource": {
-      "type": "prometheus",
-      "uid": "prometheus"
-     },
-     "expr": "node_memory_MemTotal_bytes{job=\"nixos-node\"} - node_memory_MemAvailable_bytes{job=\"nixos-node\"}",
-     "legendFormat": "{{host}}",
-     "range": true,
-     "instant": false,
-     "refId": "A"
-    }
-   ],
-   "fieldConfig": {
-    "defaults": {
-     "custom": {
-      "drawStyle": "line",
-      "lineWidth": 2,
-      "fillOpacity": 0,
-      "gradientMode": "opacity",
-      "lineInterpolation": "smooth",
-      "showPoints": "never",
-      "spanNulls": true,
-      "stacking": {
-       "mode": "none",
-       "group": "A"
-      },
-      "axisBorderShow": false,
-      "barAlignment": -1,
-      "thresholdsStyle": {
-       "mode": "off"
-      },
-      "insertNulls": 3600000
-     },
-     "unit": "bytes",
-     "min": 0,
-     "color": {
-      "mode": "palette-classic"
-     }
-    },
-    "overrides": []
-   },
-   "options": {
-    "legend": {
-     "displayMode": "list",
-     "placement": "bottom",
-     "showLegend": true,
-     "calcs": []
-    },
-    "tooltip": {
-     "mode": "multi",
-     "sort": "desc"
-    }
-   },
-   "datasource": {
-    "type": "prometheus",
-    "uid": "prometheus"
-   },
-   "id": 19,
-   "gridPos": {
-    "h": 8,
-    "w": 12,
-    "x": 12,
-    "y": 36
-   }
-  },
-  {
-   "type": "timeseries",
-   "title": "Disk free (/)",
-   "targets": [
-    {
-     "datasource": {
-      "type": "prometheus",
-      "uid": "prometheus"
-     },
-     "expr": "node_filesystem_avail_bytes{job=\"nixos-node\", mountpoint=\"/\"}",
-     "legendFormat": "{{host}}",
-     "range": true,
-     "instant": false,
-     "refId": "A"
-    }
-   ],
-   "fieldConfig": {
-    "defaults": {
-     "custom": {
-      "drawStyle": "line",
-      "lineWidth": 2,
-      "fillOpacity": 0,
-      "gradientMode": "opacity",
-      "lineInterpolation": "smooth",
-      "showPoints": "never",
-      "spanNulls": true,
-      "stacking": {
-       "mode": "none",
-       "group": "A"
-      },
-      "axisBorderShow": false,
-      "barAlignment": -1,
-      "thresholdsStyle": {
-       "mode": "off"
-      },
-      "insertNulls": 3600000
-     },
-     "unit": "bytes",
-     "min": 0,
-     "color": {
-      "mode": "palette-classic"
-     }
-    },
-    "overrides": []
-   },
-   "options": {
-    "legend": {
-     "displayMode": "list",
-     "placement": "bottom",
-     "showLegend": true,
-     "calcs": []
-    },
-    "tooltip": {
-     "mode": "multi",
-     "sort": "desc"
-    }
-   },
-   "datasource": {
-    "type": "prometheus",
-    "uid": "prometheus"
-   },
-   "id": 20,
-   "gridPos": {
-    "h": 8,
-    "w": 12,
-    "x": 0,
-    "y": 44
-   }
-  },
-  {
-   "type": "timeseries",
-   "title": "CPU and GPU temperature",
-   "targets": [
-    {
-     "datasource": {
-      "type": "prometheus",
-      "uid": "prometheus"
-     },
-     "expr": "max by (host) (node_hwmon_temp_celsius{job=\"nixos-node\"} * on (instance, chip) group_left (chip_name) node_hwmon_chip_names{job=\"nixos-node\", chip_name=~\"k10temp|coretemp\"})",
-     "legendFormat": "{{host}} CPU",
-     "range": true,
-     "instant": false,
-     "refId": "A"
-    },
-    {
-     "datasource": {
-      "type": "prometheus",
-      "uid": "prometheus"
-     },
-     "expr": "max by (host) (node_hwmon_temp_celsius{job=\"nixos-node\"} * on (instance, chip) group_left (chip_name) node_hwmon_chip_names{job=\"nixos-node\", chip_name=~\"amdgpu\"})",
-     "legendFormat": "{{host}} GPU",
-     "range": true,
-     "instant": false,
-     "refId": "B"
-    },
-    {
-     "datasource": {
-      "type": "prometheus",
-      "uid": "prometheus"
-     },
-     "expr": "max by (host) (node_hwmon_temp_celsius{job=\"nixos-node\"} * on (instance, chip) group_left (chip_name) node_hwmon_chip_names{job=\"nixos-node\", chip_name=~\"nvme\"})",
-     "legendFormat": "{{host}} NVMe",
-     "range": true,
-     "instant": false,
-     "refId": "C"
-    }
-   ],
-   "fieldConfig": {
-    "defaults": {
-     "custom": {
-      "drawStyle": "line",
-      "lineWidth": 2,
-      "fillOpacity": 0,
-      "gradientMode": "opacity",
-      "lineInterpolation": "smooth",
-      "showPoints": "never",
-      "spanNulls": true,
-      "stacking": {
-       "mode": "none",
-       "group": "A"
-      },
-      "axisBorderShow": false,
-      "barAlignment": -1,
-      "thresholdsStyle": {
-       "mode": "off"
-      },
-      "insertNulls": 3600000
-     },
-     "unit": "celsius",
-     "decimals": 0,
-     "color": {
-      "mode": "palette-classic"
-     }
-    },
-    "overrides": []
-   },
-   "options": {
-    "legend": {
-     "displayMode": "list",
-     "placement": "bottom",
-     "showLegend": true,
-     "calcs": []
-    },
-    "tooltip": {
-     "mode": "multi",
-     "sort": "desc"
-    }
-   },
-   "datasource": {
-    "type": "prometheus",
-    "uid": "prometheus"
-   },
-   "id": 21,
-   "gridPos": {
-    "h": 8,
-    "w": 12,
-    "x": 12,
-    "y": 44
-   }
-  },
-  {
-   "type": "row",
-   "title": "NAS (nectarine)",
-   "collapsed": false,
-   "id": 22,
-   "gridPos": {
-    "h": 1,
-    "w": 24,
-    "x": 0,
-    "y": 52
    },
    "panels": []
   },
@@ -1683,12 +1014,12 @@
     "type": "prometheus",
     "uid": "prometheus"
    },
-   "id": 23,
+   "id": 13,
    "gridPos": {
     "h": 4,
     "w": 4,
     "x": 0,
-    "y": 53
+    "y": 31
    }
   },
   {
@@ -1795,12 +1126,12 @@
     "type": "prometheus",
     "uid": "prometheus"
    },
-   "id": 24,
+   "id": 14,
    "gridPos": {
     "h": 4,
     "w": 4,
     "x": 4,
-    "y": 53
+    "y": 31
    }
   },
   {
@@ -1857,12 +1188,12 @@
     "type": "prometheus",
     "uid": "prometheus"
    },
-   "id": 25,
+   "id": 15,
    "gridPos": {
     "h": 4,
     "w": 4,
     "x": 8,
-    "y": 53
+    "y": 31
    }
   },
   {
@@ -1929,12 +1260,12 @@
     "type": "prometheus",
     "uid": "prometheus"
    },
-   "id": 26,
+   "id": 16,
    "gridPos": {
     "h": 4,
     "w": 4,
     "x": 12,
-    "y": 53
+    "y": 31
    }
   },
   {
@@ -2002,12 +1333,12 @@
     "uid": "prometheus"
    },
    "description": "Free space divided by the last 14 days' growth rate. Very large means the volume is not growing.",
-   "id": 27,
+   "id": 17,
    "gridPos": {
     "h": 4,
     "w": 4,
     "x": 16,
-    "y": 53
+    "y": 31
    }
   },
   {
@@ -2096,12 +1427,12 @@
     "type": "prometheus",
     "uid": "prometheus"
    },
-   "id": 28,
+   "id": 18,
    "gridPos": {
     "h": 4,
     "w": 4,
     "x": 20,
-    "y": 53
+    "y": 31
    }
   },
   {
@@ -2415,12 +1746,12 @@
      }
     }
    ],
-   "id": 29,
+   "id": 19,
    "gridPos": {
     "h": 7,
     "w": 12,
     "x": 0,
-    "y": 57
+    "y": 35
    }
   },
   {
@@ -2484,12 +1815,12 @@
     "type": "prometheus",
     "uid": "prometheus"
    },
-   "id": 30,
+   "id": 20,
    "gridPos": {
     "h": 7,
     "w": 12,
     "x": 12,
-    "y": 57
+    "y": 35
    }
   },
   {
@@ -2561,12 +1892,12 @@
     "type": "prometheus",
     "uid": "prometheus"
    },
-   "id": 31,
+   "id": 21,
    "gridPos": {
     "h": 6,
     "w": 8,
     "x": 0,
-    "y": 64
+    "y": 42
    }
   },
   {
@@ -2674,12 +2005,12 @@
    },
    "description": "The homelab NFS share (all nfs-csi volumes share it).",
    "timeFrom": "90d",
-   "id": 32,
+   "id": 22,
    "gridPos": {
     "h": 6,
     "w": 8,
     "x": 8,
-    "y": 64
+    "y": 42
    }
   },
   {
@@ -2784,12 +2115,12 @@
     "type": "prometheus",
     "uid": "prometheus"
    },
-   "id": 33,
+   "id": 23,
    "gridPos": {
     "h": 6,
     "w": 8,
     "x": 16,
-    "y": 64
+    "y": 42
    }
   }
  ]

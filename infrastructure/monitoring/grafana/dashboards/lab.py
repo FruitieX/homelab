@@ -220,7 +220,7 @@ FROM pg_stat_database WHERE datname IS NOT NULL AND datname NOT IN ('template0',
 
 def hardware_dashboard():
     d = Dashboard("lab-hardware", "Homelab · Hardware", folder="Homelab", tags=["homelab"], time="now-24h",
-                  description="Proxmox hosts and their Talos VMs, the NixOS hosts, and the Synology NAS.")
+                  description="Proxmox hosts and their Talos VMs, and the Synology NAS.")
     temp = ('max by (host) (node_hwmon_temp_celsius{{job="proxmox-node"}} * on (instance, chip) group_left (chip_name) '
             'node_hwmon_chip_names{{job="proxmox-node", chip_name=~"{chip}"}})')
     hosts = fixed_colors({"mango": SLOTS[0], "mandarin": SLOTS[1], "mulberry": SLOTS[2]})
@@ -255,37 +255,6 @@ def hardware_dashboard():
              legend="{{host}} in"),
         prom('sum by (host) (rate(node_network_transmit_bytes_total{job="proxmox-node", device=~"vmbr.*"}[$__rate_interval])) * 8',
              legend="{{host}} out")], unit="bps", fill=0, legend="right"), 12, 8)
-
-    d.row("NixOS hosts")
-    nx = '{job="nixos-node"}'
-    nx_fs = '{job="nixos-node", mountpoint="/"}'
-    nx_temp = temp.replace('proxmox-node', 'nixos-node')
-    d.add(stat("CPU temperature", [prom(nx_temp.format(chip="k10temp|coretemp"), legend="{{host}}")], unit="celsius",
-               decimals=0, text_mode="value_and_name", thr=thresholds(GOOD, (80, WARN), (95, BAD)),
-               desc="VMs have no temperature sensors."), 5, 5)
-    d.add(stat("CPU used", [prom(f'1 - avg by (host) (rate(node_cpu_seconds_total{{job="nixos-node", mode="idle"}}[5m]))',
-                                 legend="{{host}}")], unit="percentunit", decimals=0, text_mode="value_and_name",
-               thr=thresholds(GOOD, (0.7, WARN), (0.9, BAD))), 5, 5)
-    d.add(stat("Memory used", [prom(f'1 - node_memory_MemAvailable_bytes{nx} / node_memory_MemTotal_bytes{nx}',
-                                    legend="{{host}}")], unit="percentunit", decimals=0, text_mode="value_and_name",
-               thr=thresholds(GOOD, (0.8, WARN), (0.92, BAD))), 5, 5)
-    d.add(stat("Disk free (/)", [prom(f'node_filesystem_avail_bytes{nx_fs}', legend="{{host}}")], unit="bytes",
-               decimals=0, text_mode="value_and_name", thr=thresholds(BAD, (50e9, WARN), (100e9, GOOD))), 5, 5)
-    d.add(stat("Failed units", [prom('count by (host) (node_systemd_unit_state{job="nixos-node", state="failed"} == 1 '
-                                     f'or node_systemd_user_unit_failed{nx} == 1) or sum by (host) (up{nx} == 1) * 0',
-                                     legend="{{host}}")], decimals=0, graph=False, text_mode="value_and_name",
-               thr=thresholds(GOOD, (1, BAD)), desc="System and user units, including T3 Code and the remote-control bridges."), 4, 5)
-    d.add(timeseries("CPU", [prom(f'1 - avg by (host) (rate(node_cpu_seconds_total{{job="nixos-node", mode="idle"}}[$__rate_interval]))',
-                                  legend="{{host}}")], unit="percentunit", minv=0, fill=0,
-                     desc="Gaps are hosts that were switched off; some only run on demand."), 12, 8)
-    d.add(timeseries("Memory used", [prom(f'node_memory_MemTotal_bytes{nx} - node_memory_MemAvailable_bytes{nx}',
-                                          legend="{{host}}")], unit="bytes", minv=0, fill=0), 12, 8)
-    d.add(timeseries("Disk free (/)", [prom(f'node_filesystem_avail_bytes{nx_fs}', legend="{{host}}")], unit="bytes",
-                     minv=0, fill=0), 12, 8)
-    d.add(timeseries("CPU and GPU temperature", [
-        prom(nx_temp.format(chip="k10temp|coretemp"), legend="{{host}} CPU"),
-        prom(nx_temp.format(chip="amdgpu"), legend="{{host}} GPU"),
-        prom(nx_temp.format(chip="nvme"), legend="{{host}} NVMe")], unit="celsius", decimals=0, fill=0), 12, 8)
 
     d.row("NAS (nectarine)")
     nas = '{job="nas-snmp"}'

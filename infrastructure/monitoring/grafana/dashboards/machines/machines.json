@@ -1,0 +1,1434 @@
+{
+ "uid": "machines",
+ "title": "Machines",
+ "description": "The NixOS machines outside the cluster. Some only run on demand; gaps in the graphs are times they were off.",
+ "tags": [
+  "homelab-nav",
+  "machines"
+ ],
+ "timezone": "browser",
+ "editable": true,
+ "graphTooltip": 1,
+ "schemaVersion": 39,
+ "time": {
+  "from": "now-24h",
+  "to": "now"
+ },
+ "refresh": "1m",
+ "fiscalYearStartMonth": 0,
+ "liveNow": false,
+ "weekStart": "monday",
+ "links": [
+  {
+   "type": "dashboards",
+   "tags": [
+    "homelab-nav"
+   ],
+   "asDropdown": false,
+   "includeVars": false,
+   "keepTime": true,
+   "title": "Dashboards",
+   "icon": "external link",
+   "targetBlank": false
+  }
+ ],
+ "annotations": {
+  "list": [
+   {
+    "builtIn": 1,
+    "datasource": {
+     "type": "grafana",
+     "uid": "-- Grafana --"
+    },
+    "enable": true,
+    "hide": true,
+    "iconColor": "rgba(0, 211, 255, 1)",
+    "name": "Annotations & Alerts",
+    "type": "dashboard"
+   }
+  ]
+ },
+ "templating": {
+  "list": [
+   {
+    "type": "query",
+    "name": "host",
+    "label": "Host",
+    "datasource": {
+     "type": "prometheus",
+     "uid": "prometheus"
+    },
+    "query": {
+     "query": "label_values(up{job=\"nixos-node\"}, host)",
+     "refId": "host"
+    },
+    "definition": "label_values(up{job=\"nixos-node\"}, host)",
+    "refresh": 2,
+    "includeAll": true,
+    "multi": true,
+    "current": {
+     "text": "All",
+     "value": "$__all"
+    },
+    "allValue": ".+",
+    "sort": 1
+   }
+  ]
+ },
+ "panels": [
+  {
+   "type": "row",
+   "title": "Now",
+   "collapsed": false,
+   "id": 1,
+   "gridPos": {
+    "h": 1,
+    "w": 24,
+    "x": 0,
+    "y": 0
+   },
+   "panels": []
+  },
+  {
+   "type": "stat",
+   "title": "State",
+   "targets": [
+    {
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "up{job=\"nixos-node\", host=~\"$host\"}",
+     "legendFormat": "{{host}}",
+     "range": true,
+     "instant": false,
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {},
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "#7d7d7d",
+        "value": null
+       },
+       {
+        "color": "#3aa655",
+        "value": 1
+       }
+      ]
+     },
+     "mappings": [
+      {
+       "type": "value",
+       "options": {
+        "1": {
+         "text": "On",
+         "color": "#3aa655",
+         "index": 0
+        },
+        "0": {
+         "text": "Off",
+         "color": "#7d7d7d",
+         "index": 1
+        }
+       }
+      }
+     ],
+     "color": {
+      "mode": "thresholds"
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    },
+    "graphMode": "none",
+    "colorMode": "background",
+    "textMode": "value_and_name",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "wideLayout": true,
+    "showPercentChange": false
+   },
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "id": 2,
+   "gridPos": {
+    "h": 5,
+    "w": 4,
+    "x": 0,
+    "y": 1
+   }
+  },
+  {
+   "type": "stat",
+   "title": "Uptime",
+   "targets": [
+    {
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "time() - node_boot_time_seconds{job=\"nixos-node\", host=~\"$host\"}",
+     "legendFormat": "{{host}}",
+     "range": true,
+     "instant": false,
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {},
+     "unit": "s",
+     "decimals": 0,
+     "color": {
+      "mode": "thresholds"
+     },
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "#3987e5",
+        "value": null
+       }
+      ]
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    },
+    "graphMode": "none",
+    "colorMode": "value",
+    "textMode": "value_and_name",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "wideLayout": true,
+    "showPercentChange": false
+   },
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "id": 3,
+   "gridPos": {
+    "h": 5,
+    "w": 4,
+    "x": 4,
+    "y": 1
+   }
+  },
+  {
+   "type": "stat",
+   "title": "CPU used",
+   "targets": [
+    {
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "1 - avg by (host) (rate(node_cpu_seconds_total{job=\"nixos-node\", host=~\"$host\", mode=\"idle\"}[$__rate_interval]))",
+     "legendFormat": "{{host}}",
+     "range": true,
+     "instant": false,
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {},
+     "unit": "percentunit",
+     "decimals": 0,
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "#3aa655",
+        "value": null
+       },
+       {
+        "color": "#e0a100",
+        "value": 0.7
+       },
+       {
+        "color": "#e5484d",
+        "value": 0.9
+       }
+      ]
+     },
+     "color": {
+      "mode": "thresholds"
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    },
+    "graphMode": "area",
+    "colorMode": "value",
+    "textMode": "value_and_name",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "wideLayout": true,
+    "showPercentChange": false
+   },
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "id": 4,
+   "gridPos": {
+    "h": 5,
+    "w": 4,
+    "x": 8,
+    "y": 1
+   }
+  },
+  {
+   "type": "stat",
+   "title": "Memory used",
+   "targets": [
+    {
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "1 - node_memory_MemAvailable_bytes{job=\"nixos-node\", host=~\"$host\"} / node_memory_MemTotal_bytes{job=\"nixos-node\", host=~\"$host\"}",
+     "legendFormat": "{{host}}",
+     "range": true,
+     "instant": false,
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {},
+     "unit": "percentunit",
+     "decimals": 0,
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "#3aa655",
+        "value": null
+       },
+       {
+        "color": "#e0a100",
+        "value": 0.8
+       },
+       {
+        "color": "#e5484d",
+        "value": 0.92
+       }
+      ]
+     },
+     "color": {
+      "mode": "thresholds"
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    },
+    "graphMode": "area",
+    "colorMode": "value",
+    "textMode": "value_and_name",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "wideLayout": true,
+    "showPercentChange": false
+   },
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "id": 5,
+   "gridPos": {
+    "h": 5,
+    "w": 4,
+    "x": 12,
+    "y": 1
+   }
+  },
+  {
+   "type": "stat",
+   "title": "Disk free (/)",
+   "targets": [
+    {
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "node_filesystem_avail_bytes{job=\"nixos-node\", host=~\"$host\", mountpoint=\"/\"} / node_filesystem_size_bytes{job=\"nixos-node\", host=~\"$host\", mountpoint=\"/\"}",
+     "legendFormat": "{{host}}",
+     "range": true,
+     "instant": false,
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {},
+     "unit": "percentunit",
+     "decimals": 0,
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "#e5484d",
+        "value": null
+       },
+       {
+        "color": "#e0a100",
+        "value": 0.1
+       },
+       {
+        "color": "#3aa655",
+        "value": 0.2
+       }
+      ]
+     },
+     "color": {
+      "mode": "thresholds"
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    },
+    "graphMode": "area",
+    "colorMode": "value",
+    "textMode": "value_and_name",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "wideLayout": true,
+    "showPercentChange": false
+   },
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "id": 6,
+   "gridPos": {
+    "h": 5,
+    "w": 4,
+    "x": 16,
+    "y": 1
+   }
+  },
+  {
+   "type": "stat",
+   "title": "Failed units",
+   "targets": [
+    {
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "count by (host) (node_systemd_unit_state{job=\"nixos-node\", host=~\"$host\", state=\"failed\"} == 1 or node_systemd_user_unit_failed{job=\"nixos-node\", host=~\"$host\"} == 1) or sum by (host) (up{job=\"nixos-node\", host=~\"$host\"} == 1) * 0",
+     "legendFormat": "{{host}}",
+     "range": true,
+     "instant": false,
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {},
+     "decimals": 0,
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "#3aa655",
+        "value": null
+       },
+       {
+        "color": "#e5484d",
+        "value": 1
+       }
+      ]
+     },
+     "color": {
+      "mode": "thresholds"
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    },
+    "graphMode": "none",
+    "colorMode": "value",
+    "textMode": "value_and_name",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "wideLayout": true,
+    "showPercentChange": false
+   },
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "description": "System and user units (T3 Code and the remote-control bridges run as user units).",
+   "id": 7,
+   "gridPos": {
+    "h": 5,
+    "w": 4,
+    "x": 20,
+    "y": 1
+   }
+  },
+  {
+   "type": "row",
+   "title": "CPU",
+   "collapsed": false,
+   "id": 8,
+   "gridPos": {
+    "h": 1,
+    "w": 24,
+    "x": 0,
+    "y": 6
+   },
+   "panels": []
+  },
+  {
+   "type": "timeseries",
+   "title": "CPU used",
+   "targets": [
+    {
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "1 - avg by (host) (rate(node_cpu_seconds_total{job=\"nixos-node\", host=~\"$host\", mode=\"idle\"}[$__rate_interval]))",
+     "legendFormat": "{{host}}",
+     "range": true,
+     "instant": false,
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {
+      "drawStyle": "line",
+      "lineWidth": 2,
+      "fillOpacity": 0,
+      "gradientMode": "opacity",
+      "lineInterpolation": "smooth",
+      "showPoints": "never",
+      "spanNulls": true,
+      "stacking": {
+       "mode": "none",
+       "group": "A"
+      },
+      "axisBorderShow": false,
+      "barAlignment": -1,
+      "thresholdsStyle": {
+       "mode": "off"
+      },
+      "insertNulls": 3600000
+     },
+     "unit": "percentunit",
+     "min": 0,
+     "max": 1,
+     "color": {
+      "mode": "palette-classic"
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "legend": {
+     "displayMode": "list",
+     "placement": "bottom",
+     "showLegend": true,
+     "calcs": []
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "desc"
+    }
+   },
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "id": 9,
+   "gridPos": {
+    "h": 8,
+    "w": 8,
+    "x": 0,
+    "y": 7
+   }
+  },
+  {
+   "type": "timeseries",
+   "title": "Load per core",
+   "targets": [
+    {
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "node_load1{job=\"nixos-node\", host=~\"$host\"} / on (host) count by (host) (node_cpu_seconds_total{job=\"nixos-node\", host=~\"$host\", mode=\"idle\"})",
+     "legendFormat": "{{host}}",
+     "range": true,
+     "instant": false,
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {
+      "drawStyle": "line",
+      "lineWidth": 2,
+      "fillOpacity": 0,
+      "gradientMode": "opacity",
+      "lineInterpolation": "smooth",
+      "showPoints": "never",
+      "spanNulls": true,
+      "stacking": {
+       "mode": "none",
+       "group": "A"
+      },
+      "axisBorderShow": false,
+      "barAlignment": -1,
+      "thresholdsStyle": {
+       "mode": "off"
+      },
+      "insertNulls": 3600000
+     },
+     "unit": "short",
+     "decimals": 2,
+     "min": 0,
+     "color": {
+      "mode": "palette-classic"
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "legend": {
+     "displayMode": "list",
+     "placement": "bottom",
+     "showLegend": true,
+     "calcs": []
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "desc"
+    }
+   },
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "description": "1-minute load average divided by the number of cores. Above 1 means work is queueing.",
+   "id": 10,
+   "gridPos": {
+    "h": 8,
+    "w": 8,
+    "x": 8,
+    "y": 7
+   }
+  },
+  {
+   "type": "timeseries",
+   "title": "Temperature",
+   "targets": [
+    {
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "max by (host) (node_hwmon_temp_celsius{job=\"nixos-node\", host=~\"$host\"} * on (instance, chip) group_left (chip_name) node_hwmon_chip_names{job=\"nixos-node\", host=~\"$host\", chip_name=~\"k10temp|coretemp\"})",
+     "legendFormat": "{{host}} CPU",
+     "range": true,
+     "instant": false,
+     "refId": "A"
+    },
+    {
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "max by (host) (node_hwmon_temp_celsius{job=\"nixos-node\", host=~\"$host\"} * on (instance, chip) group_left (chip_name) node_hwmon_chip_names{job=\"nixos-node\", host=~\"$host\", chip_name=~\"amdgpu\"})",
+     "legendFormat": "{{host}} GPU",
+     "range": true,
+     "instant": false,
+     "refId": "B"
+    },
+    {
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "max by (host) (node_hwmon_temp_celsius{job=\"nixos-node\", host=~\"$host\"} * on (instance, chip) group_left (chip_name) node_hwmon_chip_names{job=\"nixos-node\", host=~\"$host\", chip_name=~\"nvme\"})",
+     "legendFormat": "{{host}} NVMe",
+     "range": true,
+     "instant": false,
+     "refId": "C"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {
+      "drawStyle": "line",
+      "lineWidth": 2,
+      "fillOpacity": 0,
+      "gradientMode": "opacity",
+      "lineInterpolation": "smooth",
+      "showPoints": "never",
+      "spanNulls": true,
+      "stacking": {
+       "mode": "none",
+       "group": "A"
+      },
+      "axisBorderShow": false,
+      "barAlignment": -1,
+      "thresholdsStyle": {
+       "mode": "off"
+      },
+      "insertNulls": 3600000
+     },
+     "unit": "celsius",
+     "decimals": 0,
+     "color": {
+      "mode": "palette-classic"
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "legend": {
+     "displayMode": "list",
+     "placement": "bottom",
+     "showLegend": true,
+     "calcs": []
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "desc"
+    }
+   },
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "description": "VMs have no temperature sensors. NixosHostHot fires above 90°C for 30 minutes.",
+   "id": 11,
+   "gridPos": {
+    "h": 8,
+    "w": 8,
+    "x": 16,
+    "y": 7
+   }
+  },
+  {
+   "type": "row",
+   "title": "Memory",
+   "collapsed": false,
+   "id": 12,
+   "gridPos": {
+    "h": 1,
+    "w": 24,
+    "x": 0,
+    "y": 15
+   },
+   "panels": []
+  },
+  {
+   "type": "timeseries",
+   "title": "Memory used",
+   "targets": [
+    {
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "node_memory_MemTotal_bytes{job=\"nixos-node\", host=~\"$host\"} - node_memory_MemAvailable_bytes{job=\"nixos-node\", host=~\"$host\"}",
+     "legendFormat": "{{host}}",
+     "range": true,
+     "instant": false,
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {
+      "drawStyle": "line",
+      "lineWidth": 2,
+      "fillOpacity": 0,
+      "gradientMode": "opacity",
+      "lineInterpolation": "smooth",
+      "showPoints": "never",
+      "spanNulls": true,
+      "stacking": {
+       "mode": "none",
+       "group": "A"
+      },
+      "axisBorderShow": false,
+      "barAlignment": -1,
+      "thresholdsStyle": {
+       "mode": "off"
+      },
+      "insertNulls": 3600000
+     },
+     "unit": "bytes",
+     "min": 0,
+     "color": {
+      "mode": "palette-classic"
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "legend": {
+     "displayMode": "list",
+     "placement": "bottom",
+     "showLegend": true,
+     "calcs": []
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "desc"
+    }
+   },
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "id": 13,
+   "gridPos": {
+    "h": 8,
+    "w": 8,
+    "x": 0,
+    "y": 16
+   }
+  },
+  {
+   "type": "timeseries",
+   "title": "Swap used",
+   "targets": [
+    {
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "node_memory_SwapTotal_bytes{job=\"nixos-node\", host=~\"$host\"} - node_memory_SwapFree_bytes{job=\"nixos-node\", host=~\"$host\"}",
+     "legendFormat": "{{host}}",
+     "range": true,
+     "instant": false,
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {
+      "drawStyle": "line",
+      "lineWidth": 2,
+      "fillOpacity": 0,
+      "gradientMode": "opacity",
+      "lineInterpolation": "smooth",
+      "showPoints": "never",
+      "spanNulls": true,
+      "stacking": {
+       "mode": "none",
+       "group": "A"
+      },
+      "axisBorderShow": false,
+      "barAlignment": -1,
+      "thresholdsStyle": {
+       "mode": "off"
+      },
+      "insertNulls": 3600000
+     },
+     "unit": "bytes",
+     "min": 0,
+     "color": {
+      "mode": "palette-classic"
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "legend": {
+     "displayMode": "list",
+     "placement": "bottom",
+     "showLegend": true,
+     "calcs": []
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "desc"
+    }
+   },
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "description": "zram, where the host has it.",
+   "id": 14,
+   "gridPos": {
+    "h": 8,
+    "w": 8,
+    "x": 8,
+    "y": 16
+   }
+  },
+  {
+   "type": "timeseries",
+   "title": "Pressure stalls",
+   "targets": [
+    {
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "avg by (host) (rate(node_pressure_memory_waiting_seconds_total{job=\"nixos-node\", host=~\"$host\"}[$__rate_interval]))",
+     "legendFormat": "{{host}} memory",
+     "range": true,
+     "instant": false,
+     "refId": "A"
+    },
+    {
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "avg by (host) (rate(node_pressure_io_waiting_seconds_total{job=\"nixos-node\", host=~\"$host\"}[$__rate_interval]))",
+     "legendFormat": "{{host}} I/O",
+     "range": true,
+     "instant": false,
+     "refId": "B"
+    },
+    {
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "avg by (host) (rate(node_pressure_cpu_waiting_seconds_total{job=\"nixos-node\", host=~\"$host\"}[$__rate_interval]))",
+     "legendFormat": "{{host}} CPU",
+     "range": true,
+     "instant": false,
+     "refId": "C"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {
+      "drawStyle": "line",
+      "lineWidth": 2,
+      "fillOpacity": 0,
+      "gradientMode": "opacity",
+      "lineInterpolation": "smooth",
+      "showPoints": "never",
+      "spanNulls": true,
+      "stacking": {
+       "mode": "none",
+       "group": "A"
+      },
+      "axisBorderShow": false,
+      "barAlignment": -1,
+      "thresholdsStyle": {
+       "mode": "off"
+      },
+      "insertNulls": 3600000
+     },
+     "unit": "percentunit",
+     "min": 0,
+     "color": {
+      "mode": "palette-classic"
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "legend": {
+     "displayMode": "list",
+     "placement": "bottom",
+     "showLegend": true,
+     "calcs": []
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "desc"
+    }
+   },
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "description": "Share of time some task waited for memory, I/O or CPU (Linux PSI). Sustained memory stalls come before OOM kills.",
+   "id": 15,
+   "gridPos": {
+    "h": 8,
+    "w": 8,
+    "x": 16,
+    "y": 16
+   }
+  },
+  {
+   "type": "row",
+   "title": "Disk and network",
+   "collapsed": false,
+   "id": 16,
+   "gridPos": {
+    "h": 1,
+    "w": 24,
+    "x": 0,
+    "y": 24
+   },
+   "panels": []
+  },
+  {
+   "type": "timeseries",
+   "title": "Free space",
+   "targets": [
+    {
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "node_filesystem_avail_bytes{job=\"nixos-node\", host=~\"$host\", fstype!~\"tmpfs|ramfs|fuse.*\", mountpoint!=\"/nix/store\"}",
+     "legendFormat": "{{host}}:{{mountpoint}}",
+     "range": true,
+     "instant": false,
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {
+      "drawStyle": "line",
+      "lineWidth": 2,
+      "fillOpacity": 0,
+      "gradientMode": "opacity",
+      "lineInterpolation": "smooth",
+      "showPoints": "never",
+      "spanNulls": true,
+      "stacking": {
+       "mode": "none",
+       "group": "A"
+      },
+      "axisBorderShow": false,
+      "barAlignment": -1,
+      "thresholdsStyle": {
+       "mode": "off"
+      },
+      "insertNulls": 3600000
+     },
+     "unit": "bytes",
+     "min": 0,
+     "color": {
+      "mode": "palette-classic"
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "legend": {
+     "displayMode": "list",
+     "placement": "bottom",
+     "showLegend": true,
+     "calcs": []
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "desc"
+    }
+   },
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "description": "NixosHostDiskFillingUp fires under 10% free.",
+   "id": 17,
+   "gridPos": {
+    "h": 8,
+    "w": 8,
+    "x": 0,
+    "y": 25
+   }
+  },
+  {
+   "type": "timeseries",
+   "title": "Disk I/O",
+   "targets": [
+    {
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "sum by (host) (rate(node_disk_read_bytes_total{job=\"nixos-node\", host=~\"$host\"}[$__rate_interval]))",
+     "legendFormat": "{{host}} read",
+     "range": true,
+     "instant": false,
+     "refId": "A"
+    },
+    {
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "sum by (host) (rate(node_disk_written_bytes_total{job=\"nixos-node\", host=~\"$host\"}[$__rate_interval]))",
+     "legendFormat": "{{host}} write",
+     "range": true,
+     "instant": false,
+     "refId": "B"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {
+      "drawStyle": "line",
+      "lineWidth": 2,
+      "fillOpacity": 0,
+      "gradientMode": "opacity",
+      "lineInterpolation": "smooth",
+      "showPoints": "never",
+      "spanNulls": true,
+      "stacking": {
+       "mode": "none",
+       "group": "A"
+      },
+      "axisBorderShow": false,
+      "barAlignment": -1,
+      "thresholdsStyle": {
+       "mode": "off"
+      },
+      "insertNulls": 3600000
+     },
+     "unit": "Bps",
+     "min": 0,
+     "color": {
+      "mode": "palette-classic"
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "legend": {
+     "displayMode": "list",
+     "placement": "bottom",
+     "showLegend": true,
+     "calcs": []
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "desc"
+    }
+   },
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "id": 18,
+   "gridPos": {
+    "h": 8,
+    "w": 8,
+    "x": 8,
+    "y": 25
+   }
+  },
+  {
+   "type": "timeseries",
+   "title": "Network",
+   "targets": [
+    {
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "sum by (host) (rate(node_network_receive_bytes_total{job=\"nixos-node\", host=~\"$host\", device=~\"en.*|eth.*|wl.*\"}[$__rate_interval])) * 8",
+     "legendFormat": "{{host}} in",
+     "range": true,
+     "instant": false,
+     "refId": "A"
+    },
+    {
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "sum by (host) (rate(node_network_transmit_bytes_total{job=\"nixos-node\", host=~\"$host\", device=~\"en.*|eth.*|wl.*\"}[$__rate_interval])) * 8",
+     "legendFormat": "{{host}} out",
+     "range": true,
+     "instant": false,
+     "refId": "B"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {
+      "drawStyle": "line",
+      "lineWidth": 2,
+      "fillOpacity": 0,
+      "gradientMode": "opacity",
+      "lineInterpolation": "smooth",
+      "showPoints": "never",
+      "spanNulls": true,
+      "stacking": {
+       "mode": "none",
+       "group": "A"
+      },
+      "axisBorderShow": false,
+      "barAlignment": -1,
+      "thresholdsStyle": {
+       "mode": "off"
+      },
+      "insertNulls": 3600000
+     },
+     "unit": "bps",
+     "min": 0,
+     "color": {
+      "mode": "palette-classic"
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "legend": {
+     "displayMode": "list",
+     "placement": "bottom",
+     "showLegend": true,
+     "calcs": []
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "desc"
+    }
+   },
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "id": 19,
+   "gridPos": {
+    "h": 8,
+    "w": 8,
+    "x": 16,
+    "y": 25
+   }
+  },
+  {
+   "type": "row",
+   "title": "Problems",
+   "collapsed": false,
+   "id": 20,
+   "gridPos": {
+    "h": 1,
+    "w": 24,
+    "x": 0,
+    "y": 33
+   },
+   "panels": []
+  },
+  {
+   "type": "table",
+   "title": "Failed units",
+   "targets": [
+    {
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "node_systemd_unit_state{job=\"nixos-node\", host=~\"$host\", state=\"failed\"} == 1",
+     "legendFormat": "",
+     "range": false,
+     "instant": true,
+     "format": "table",
+     "refId": "A"
+    },
+    {
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "node_systemd_user_unit_failed{job=\"nixos-node\", host=~\"$host\"} == 1",
+     "legendFormat": "",
+     "range": false,
+     "instant": true,
+     "format": "table",
+     "refId": "B"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {
+      "align": "auto",
+      "cellOptions": {
+       "type": "auto"
+      },
+      "inspect": false
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "showHeader": true,
+    "cellHeight": "sm",
+    "footer": {
+     "show": false,
+     "reducer": [
+      "sum"
+     ],
+     "countRows": false,
+     "fields": ""
+    }
+   },
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "description": "Empty is good. User units have a User; check them with journalctl --user -u <unit>.",
+   "transformations": [
+    {
+     "id": "merge",
+     "options": {}
+    },
+    {
+     "id": "organize",
+     "options": {
+      "renameByName": {
+       "host": "Host",
+       "name": "Unit",
+       "user": "User"
+      },
+      "excludeByName": {
+       "Time": true,
+       "Value": true,
+       "__name__": true,
+       "instance": true,
+       "job": true,
+       "state": true,
+       "type": true,
+       "Value #A": true,
+       "Value #B": true
+      }
+     }
+    }
+   ],
+   "id": 21,
+   "gridPos": {
+    "h": 8,
+    "w": 12,
+    "x": 0,
+    "y": 34
+   }
+  },
+  {
+   "type": "timeseries",
+   "title": "OOM kills",
+   "targets": [
+    {
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "increase(node_vmstat_oom_kill{job=\"nixos-node\", host=~\"$host\"}[$__interval])",
+     "legendFormat": "{{host}}",
+     "range": true,
+     "instant": false,
+     "refId": "A"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {
+      "drawStyle": "bars",
+      "lineWidth": 1,
+      "fillOpacity": 80,
+      "gradientMode": "none",
+      "lineInterpolation": "linear",
+      "showPoints": "never",
+      "spanNulls": false,
+      "stacking": {
+       "mode": "none",
+       "group": "A"
+      },
+      "axisBorderShow": false,
+      "barAlignment": -1,
+      "thresholdsStyle": {
+       "mode": "off"
+      },
+      "insertNulls": false
+     },
+     "unit": "short",
+     "decimals": 0,
+     "min": 0,
+     "color": {
+      "mode": "palette-classic"
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "legend": {
+     "displayMode": "list",
+     "placement": "bottom",
+     "showLegend": true,
+     "calcs": []
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "desc"
+    }
+   },
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "description": "Processes the kernel killed for lack of memory, usually builds running too many jobs.",
+   "id": 22,
+   "gridPos": {
+    "h": 8,
+    "w": 12,
+    "x": 12,
+    "y": 34
+   }
+  }
+ ]
+}

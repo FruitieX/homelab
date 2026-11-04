@@ -78,6 +78,12 @@ configMapGenerator:
     options:
       annotations:
         grafana_folder: Homelab
+  - name: grafana-dashboard-machines
+    files:
+      - machines.json=machines/machines.json
+    options:
+      annotations:
+        grafana_folder: Machines
   - name: grafana-dashboard-legacy-appliances
     files:
       - legacy-appliances.json=legacy/legacy-appliances.json

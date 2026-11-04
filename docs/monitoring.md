@@ -7,6 +7,7 @@ side by side. Every other dashboard is one click away in the link bar.
 | --- | --- | --- |
 | Home | Energy & water, Climate, Devices, Heat pump, 3D printing | TimescaleDB `tsdb` (MQTT via Telegraf, myUplink, FMI, Fingrid, Datahub, Nord Pool) |
 | Homelab | Services, Workloads, Hardware, Network, Logs & security, Apps | Prometheus, Loki, app PostgreSQL databases |
+| Machines | Machines (the NixOS hosts outside the cluster) | Prometheus (`job="nixos-node"`) |
 | Kubernetes, Loki | Stock kube-prometheus-stack and Loki mixin dashboards | Prometheus |
 | Legacy | The old hand-made dashboards (Home, Indoor, Outdoor, Appliances, 3D printing, Loki logs) | TimescaleDB `tsdb`, Loki |
 
@@ -20,7 +21,7 @@ Every dashboard and datasource is provisioned from this repository; nothing live
   one fixed colour.
 - `home.py` holds the house dashboards and the BLE sensor and smart plug names; `heatpump.py` and `printing.py`
   hold the heat pump and 3D printing dashboards.
-- `lab.py` holds the homelab dashboards and the overview.
+- `lab.py` holds the homelab dashboards and the overview; `machines.py` the Machines dashboard.
 
 Edit those files, then run `python3 infrastructure/monitoring/grafana/dashboards/generate.py` and commit the
 regenerated JSON and `kustomization.yaml`. The Grafana sidecar loads them from ConfigMaps labelled
