@@ -1,0 +1,161 @@
+# Runners for the private FruitieX/steady repository. Its CI runs Nix builds
+# and `docker run`s the built image, so pods get Nix copied from the nixos/nix
+# image into an emptyDir and a privileged Docker-in-Docker sidecar. Remove this
+# scale set before steady is made public (see README.md).
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: steady-runners
+  namespace: arc-runners-steady
+spec:
+  interval: 30m
+  timeout: 10m
+  dependsOn:
+    - name: actions-runner-controller
+      namespace: arc-systems
+  chart:
+    spec:
+      chart: gha-runner-scale-set
+      version: 0.15.1
+      sourceRef:
+        kind: HelmRepository
+        name: actions-runner-controller
+        namespace: flux-system
+  values:
+    githubConfigUrl: https://github.com/FruitieX/steady
+    githubConfigSecret: github-actions-runner
+
+    # Workflows should use: runs-on: homelab-steady
+    runnerScaleSetName: homelab-steady
+    scaleSetLabels:
+      - homelab-steady
+
+    # No idle pod; one build at a time.
+    minRunners: 0
+    maxRunners: 1
+
+    template:
+      spec:
+        # Builds yield to everything else when capacity is short.
+        priorityClassName: homelab-batch
+        automountServiceAccountToken: false
+        initContainers:
+          # Single-user Nix store for the runner user (uid 1001). The two
+          # root-only database lock files are recreated by Nix.
+          - name: init-nix
+            image: docker.io/nixos/nix:2.35.4@sha256:f159a58f390677f41e8e900a74b6e2f9c7f27b364122ae6acf7a652ce6c551c0
+            command:
+              - /nix/var/nix/profiles/default/bin/sh
+              - -c
+              - >-
+                tar -C /nix --exclude=var/nix/db/big-lock
+                --exclude=var/nix/db/reserved -cf - store var | tar -C /nix-copy -xf -
+            securityContext:
+              runAsNonRoot: true
+              runAsUser: 1001
+              runAsGroup: 1001
+              allowPrivilegeEscalation: false
+              capabilities:
+                drop: [ALL]
+              seccompProfile:
+                type: RuntimeDefault
+            resources:
+              requests:
+                cpu: 50m
+                memory: 64Mi
+              limits:
+                memory: 256Mi
+            volumeMounts:
+              - name: nix
+                mountPath: /nix-copy
+          # Native sidecar: starts before the runner and stops after it.
+          - name: dind
+            image: docker.io/library/docker:29.9.3-dind@sha256:d035bd30886e451b2727ef3cdb9af9a5c537a10d4bc5d18c08d0ffa597e46aeb
+            restartPolicy: Always
+            args:
+              - dockerd
+              - --host=unix:///var/run/docker.sock
+              # The runner image's docker group.
+              - --group=123
+            securityContext:
+              privileged: true
+            startupProbe:
+              exec:
+                command: [docker, info]
+              periodSeconds: 2
+              failureThreshold: 60
+            resources:
+              requests:
+                cpu: 50m
+                memory: 128Mi
+              limits:
+                memory: 2Gi
+            volumeMounts:
+              - name: dind-sock
+                mountPath: /var/run
+              - name: dind-storage
+                mountPath: /var/lib/docker
+              - name: work
+                mountPath: /home/runner/_work
+        containers:
+          - name: runner
+            image: ghcr.io/actions/actions-runner:2.338.2@sha256:759a1d94a15b05941aba5196974ff43fe15b4cbba29b694b35cbc32a1166b232
+            command: ["/home/runner/run.sh"]
+            env:
+              - name: PATH
+                value: /nix/var/nix/profiles/default/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+              # No build users or sandbox in an unprivileged single-user store.
+              - name: NIX_CONFIG
+                value: |
+                  experimental-features = nix-command flakes
+                  build-users-group =
+                  sandbox = false
+                  max-jobs = 2
+                  cores = 4
+              - name: DOCKER_HOST
+                value: unix:///var/run/docker.sock
+              - name: RUNNER_WAIT_FOR_DOCKER_IN_SECONDS
+                value: "120"
+            securityContext:
+              runAsNonRoot: true
+              runAsUser: 1001
+              runAsGroup: 1001
+              allowPrivilegeEscalation: false
+              capabilities:
+                drop: [ALL]
+              seccompProfile:
+                type: RuntimeDefault
+            resources:
+              requests:
+                cpu: "1"
+                memory: 2Gi
+                ephemeral-storage: 10Gi
+              limits:
+                cpu: "4"
+                memory: 6Gi
+            volumeMounts:
+              - name: nix
+                mountPath: /nix
+              - name: work
+                mountPath: /home/runner/_work
+              - name: dind-sock
+                mountPath: /var/run
+              # Chromium (UI tests) needs more than the default 64 MiB.
+              - name: dshm
+                mountPath: /dev/shm
+        volumes:
+          - name: nix
+            emptyDir:
+              sizeLimit: 30Gi
+          - name: work
+            emptyDir:
+              sizeLimit: 10Gi
+          - name: dind-sock
+            emptyDir: {}
+          - name: dind-storage
+            emptyDir:
+              sizeLimit: 15Gi
+          - name: dshm
+            emptyDir:
+              medium: Memory
+              sizeLimit: 1Gi

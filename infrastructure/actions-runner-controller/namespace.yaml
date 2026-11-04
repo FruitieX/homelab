@@ -13,3 +13,13 @@ metadata:
     pod-security.kubernetes.io/enforce: restricted
     pod-security.kubernetes.io/audit: restricted
     pod-security.kubernetes.io/warn: restricted
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: arc-runners-steady
+  labels:
+    # FruitieX/steady (private) builds and runs its image with Docker, so its
+    # runner pods have a privileged Docker-in-Docker sidecar. Keep them out of
+    # arc-runners (see README.md).
+    pod-security.kubernetes.io/enforce: privileged

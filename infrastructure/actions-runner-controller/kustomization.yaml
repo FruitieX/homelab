@@ -6,3 +6,5 @@ resources:
   - controller-release.yaml
   - flux-reconcile-rbac.yaml
   - runner-release.yaml
+  - steady-github-actions-runner-secret.yaml
+  - steady-runner-release.yaml

@@ -1,15 +1,27 @@
 # GitHub Actions runners
 
-This deploys GitHub's Actions Runner Controller (ARC) with a repository-scoped
-scale set for `FruitieX/homelab`, which keeps one idle runner available. Personal GitHub accounts do not have an account-wide
-runner scope, so each additional repository needs its own scale set.
+This deploys GitHub's Actions Runner Controller (ARC) with repository-scoped
+scale sets. Personal GitHub accounts do not have an account-wide runner scope,
+so each repository needs its own scale set:
+
+| Scale set / label | Repository | Namespace | Notes |
+| --- | --- | --- | --- |
+| `homelab` | `FruitieX/homelab` | `arc-runners` | One idle runner; unprivileged, restricted Pod Security (`runner-release.yaml`) |
+| `homelab-steady` | `FruitieX/steady` (private) | `arc-runners-steady` | Scales from zero, one job at a time; Nix and a privileged Docker-in-Docker sidecar (`steady-runner-release.yaml`) |
+
+The steady runner pod copies the `nixos/nix` image's `/nix` into an emptyDir
+in an init container, so the runner user (uid 1001) has a single-user Nix
+store without sandboxing (`nix` is on `PATH`, `cachix/install-nix-action`
+then skips its install). Docker is only needed because steady's CI loads,
+runs and pushes the image it builds. The store starts empty in every job.
 
 ## Create the GitHub credential
 
 Create a GitHub App installation token or a suitable personal access token and
-put it in `github-actions-runner-secret.yaml`. For this repository-level setup,
+put it in `github-actions-runner-secret.yaml` (and the copy for the steady
+namespace, `steady-github-actions-runner-secret.yaml`). For this repository-level setup,
 a fine-grained token should be restricted to the repositories using these
-scale sets (now only `FruitieX/homelab`) and have
+scale sets (now `FruitieX/homelab` and `FruitieX/steady`) and have
 `Administration: Read and write` permission for each repository.
 
 Do not commit the plaintext file. After replacing
@@ -39,6 +51,7 @@ flux reconcile source git flux-system
 flux reconcile kustomization actions-runner-controller --with-source
 kubectl get pods -n arc-systems
 kubectl get pods -n arc-runners
+kubectl get pods -n arc-runners-steady
 ```
 
 Use the runner in workflows with:
@@ -46,7 +59,7 @@ Use the runner in workflows with:
 ```yaml
 jobs:
   build:
-    runs-on: homelab
+    runs-on: homelab   # or homelab-steady in FruitieX/steady
 ```
 
 ## Public repositories get no in-cluster runners
@@ -70,7 +83,8 @@ hands strangers a foothold in the homelab. Rules:
   one that touches `.github/workflows`.
 - A private repository that needs in-cluster builds gets its own scale set
   (Docker-in-Docker only if its builds need it, in a separate privileged
-  namespace). Remove it before that repository is made public.
+  namespace, like `homelab-steady`). Remove it before that repository is
+  made public.
 
 ## Upgrading
 
@@ -81,7 +95,8 @@ with all three chart versions bumped in one commit:
 ```sh
 flux suspend kustomization actions-runner-controller
 kubectl -n arc-runners delete helmrelease homelab-runners
-# wait until arc-runners has no pods and arc-systems has no listener pods
+kubectl -n arc-runners-steady delete helmrelease steady-runners
+# wait until arc-runners and arc-runners-steady have no pods and arc-systems has no listener pods
 kubectl -n arc-systems delete helmrelease actions-runner-controller
 # only if the chart's crds/ changed between the versions:
 kubectl delete crd autoscalinglisteners.actions.github.com \
