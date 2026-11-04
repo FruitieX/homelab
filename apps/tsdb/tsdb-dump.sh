@@ -30,10 +30,12 @@ log() { printf '%s %s\n' "$(date +%T)" "$*"; }
 commit() {
   local f manifest=$latest/manifest.tsv
   [[ -e $latest/manifest.tsv.new ]] && manifest=$latest/manifest.tsv.new
+  local -A keep=()
+  while IFS=$'\t' read -r _ f _; do keep[$f]=1; done < "$manifest"
   for f in "$latest"/data/*.new; do mv -f "$f" "${f%.new}"; done
   # Drop data files of tables that no longer exist.
   for f in "$latest"/data/*; do
-    cut -f2 "$manifest" | grep -qxF "${f##*/}" || { rm -f "$f"; echo "${f##*/}" >> "$work/removed"; }
+    [[ ${keep[${f##*/}]:-} ]] || { rm -f "$f"; echo "${f##*/}" >> "$work/removed"; }
   done
   for f in "$latest"/*.new; do
     [[ $f == "$latest/manifest.tsv.new" ]] || mv -f "$f" "${f%.new}"
