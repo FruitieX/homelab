@@ -29,6 +29,9 @@ spec:
           env:
             - name: TZ
               value: Europe/Helsinki
+          ports:
+            - name: http
+              containerPort: 8080
           workingDir: /app
           volumeMounts:
             - mountPath: /app

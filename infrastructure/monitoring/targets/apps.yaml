@@ -13,6 +13,21 @@ spec:
       path: /api/v1/metrics
       interval: 60s
 ---
+# photoframe-rs update outcomes per frame (PhotoframeUpdateFailing in rules.yaml).
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: photoframe-rs
+  namespace: default
+spec:
+  selector:
+    matchLabels:
+      app: photoframe-rs
+  podMetricsEndpoints:
+    - port: http
+      path: /metrics
+      interval: 60s
+---
 # CloudNativePG instances of the shared PostgreSQL (apps/postgres/postgres-ha.yaml).
 apiVersion: monitoring.coreos.com/v1
 kind: PodMonitor

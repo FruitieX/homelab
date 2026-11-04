@@ -65,6 +65,9 @@ server-side expressions match on. BLE sensors are heard by more than one gateway
 - **Flux:** controller metrics via a PodMonitor. Resource readiness comes from `gotk_resource_info`, which
   kube-state-metrics builds with `customResourceState`.
 - **Bambuddy:** its `/api/v1/metrics` endpoint.
+- **photoframe-rs:** its `/metrics` endpoint, with each frame's update outcomes and push failure reasons.
+  `PhotoframeUpdateFailing` (`homelab.apps` in `targets/rules.yaml`) fires after two failed update jobs in a row,
+  counted after the app's own push retries.
 - **Proxmox:**
   - Debian `prometheus-node-exporter` on each host, on port 9100.
   - `pve-exporter`, using one read-only `prometheus@pve!exporter` token per host. The tokens are stored in

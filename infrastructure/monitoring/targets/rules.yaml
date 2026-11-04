@@ -86,6 +86,32 @@ spec:
           annotations:
             summary: "Shared PostgreSQL (CNPG postgres-ha) is running without a streaming replica"
             description: "A host or node loss now means downtime. kubectl get cluster postgres-ha; kubectl cnpg status postgres-ha."
+    - name: homelab.apps
+      rules:
+        - alert: PhotoframeUpdateFailing
+          # Counted per update job after photoframe-rs's own push retries
+          # (5 attempts over ~5 minutes), so a slow e-ink refresh or one Wi-Fi
+          # blip does not count. Resets to 0 on the next successful update.
+          expr: photoframe_update_consecutive_failures{job="default/photoframe-rs"} >= 2
+          for: 5m
+          labels:
+            homelab: "true"
+            severity: warning
+          annotations:
+            summary: "Photo frame {{ $labels.frame }} failed its last {{ $value }} photo updates"
+            description: >-
+              {{ with printf "sum by (result) (increase(photoframe_update_attempts_total{frame=%q, result!=\"success\"}[1d])) > 0" $labels.frame | query }}Failures in the last day:{{ range . }} {{ .Labels.result }}={{ .Value | humanize }}{{ end }}.{{ end }}
+              {{ with printf "sum by (reason) (increase(photoframe_push_failures_total{frame=%q}[1d])) > 0" $labels.frame | query }}Push failures by reason:{{ range . }} {{ .Labels.reason }}={{ .Value | humanize }}{{ end }}.{{ end }}
+              push_failed means the frame did not accept the image over Wi-Fi (connect, timeout, http_status);
+              no_image means no source produced a photo. kubectl -n default logs deploy/photoframe-rs | grep {{ $labels.frame }}
+        - alert: PhotoframeSourceErrors
+          expr: increase(photoframe_source_errors_total{job="default/photoframe-rs", kind="search"}[1h]) > 0
+          labels:
+            homelab: "true"
+            severity: warning
+          annotations:
+            summary: "photoframe-rs could not list photos from source {{ $labels.source }}"
+            description: "Frames keep showing photos from the last good listing. kubectl -n default logs deploy/photoframe-rs | grep 'immich search'"
     - name: homelab.hardware
       rules:
         - alert: NasVolumeFillingUp
