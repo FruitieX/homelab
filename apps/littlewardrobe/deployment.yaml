@@ -30,7 +30,7 @@ spec:
       terminationGracePeriodSeconds: 30
       containers:
         - name: littlewardrobe
-          image: ghcr.io/fruitiex/littlewardrobe:a1db476f426139e04d3b07510829b27baebef4a5@sha256:ef514b543c4525311c2a6b44a06bf0bf5d9d6a145158b80ba88d36f3988ef8d3
+          image: ghcr.io/fruitiex/littlewardrobe:c303385675d4be50461750c10d5532403d7f1698@sha256:170587212c1fbb99b3e2403d642b7541daf6faa7c0953b4f1dd8c20510c69496
           imagePullPolicy: Always
           envFrom:
             - secretRef:
