@@ -31,7 +31,7 @@ spec:
       terminationGracePeriodSeconds: 30
       containers:
         - name: llm-wiki-web
-          image: ghcr.io/fruitiex/llm-wiki-web:22a1cd7ba161f3c1d77494f4e0ae1936a124fd55@sha256:8f3bd0b95d3a027de4a558f06a79dbc29e2f4f2a5879b311470ade684421af7a
+          image: ghcr.io/fruitiex/llm-wiki-web:7f3a7feadb6b60d3806d1e4a8d66c14ce424b2da@sha256:54c063d0fd6ab4699e24714535dc585caf3354d3575c6945d2047df2f6cdf284
           imagePullPolicy: Always
           env:
             - name: LLM_WIKI_ORIGIN
