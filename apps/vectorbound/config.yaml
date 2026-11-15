@@ -1,0 +1,62 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: vectorbound-web
+data:
+  # Replaces the image's default server: the site comes from the image, downloads (demo builds)
+  # from the NFS volume under /files/. Directory listings stay off.
+  default.conf: |
+    server {
+        listen 8080;
+        server_name _;
+        root /usr/share/nginx/html;
+
+        charset utf-8;
+        sendfile on;
+        tcp_nopush on;
+        server_tokens off;
+
+        add_header X-Content-Type-Options nosniff always;
+        add_header Referrer-Policy strict-origin-when-cross-origin always;
+
+        # Probes; never cached, never logged.
+        location = /healthz {
+            access_log off;
+            default_type text/plain;
+            return 200 "ok\n";
+        }
+
+        # Astro writes hashed file names here.
+        location /_astro/ {
+            expires 1y;
+            try_files $uri =404;
+        }
+
+        # Clips, stills and fonts change rarely and are large.
+        location /media/ {
+            expires 30d;
+            try_files $uri =404;
+        }
+        location /img/ {
+            expires 30d;
+            try_files $uri =404;
+        }
+        location /fonts/ {
+            expires 30d;
+            try_files $uri =404;
+        }
+
+        # Demo builds and other hand-placed files: /files/demo/<build date>/<file>.
+        # Not linked from the site unless a page links it.
+        location /files/ {
+            alias /srv/files/;
+            autoindex off;
+            expires 1d;
+            try_files $uri =404;
+        }
+
+        location / {
+            expires 5m;
+            try_files $uri $uri/index.html $uri.html =404;
+        }
+    }

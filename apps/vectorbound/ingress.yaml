@@ -1,0 +1,31 @@
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: vectorbound
+  annotations:
+    # Use the existing public wildcard DNS instead of publishing gateway LAN IPs.
+    external-dns.alpha.kubernetes.io/exclude: "true"
+spec:
+  # Public: this is the game's marketing site, and the demo download lives on it too.
+  parentRefs:
+    - name: public
+      namespace: envoy-gateway-system
+      sectionName: https
+    - name: private
+      namespace: envoy-gateway-system
+      sectionName: https
+  hostnames:
+    - vectorbound.fruitiex.org
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /
+      # Envoy's default route timeout (15 s, measured until the upstream response is complete)
+      # would cut off a 900 MB demo download and the longer clips.
+      timeouts:
+        request: 0s
+        backendRequest: 0s
+      backendRefs:
+        - name: vectorbound
+          port: 8080
