@@ -28,7 +28,7 @@ spec:
       terminationGracePeriodSeconds: 30
       containers:
         - name: stretch
-          image: ghcr.io/fruitiex/stretch:0445b2b9d7a33af3fb6ae64508ac4d947192dc64@sha256:14bce51ef9db578b84282d8cb979d2faab3e1235378d47aa4d4a43c647ff10f4
+          image: ghcr.io/fruitiex/stretch:e567a142f45076493264dbe47df4f3ca235a6ab3@sha256:8a418e293095fcabe383609ea265292a5a5c6580dc923ee37b5c36e3fba2a1cf
           imagePullPolicy: Always
           env:
             - name: STRETCH_SQLITE_JOURNAL_MODE
