@@ -29,7 +29,7 @@ spec:
       containers:
         - name: vectorbound
           # Updated by .github/workflows/update-image.yaml on a push to FruitieX/strafe-site.
-          image: ghcr.io/fruitiex/strafe-site:main
+          image: ghcr.io/fruitiex/strafe-site:main@sha256:a4f19aa17f5dbdc0638f73d927bb8bfa7d942585acb5357b8f42acf1d31c9978
           imagePullPolicy: Always
           ports:
             - name: http
