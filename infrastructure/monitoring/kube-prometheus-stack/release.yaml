@@ -201,9 +201,13 @@ spec:
             - receiver: discord
               matchers:
                 - severity = "critical"
+            # KubePersistentVolumeFillingUp is left out: every PVC is on the
+            # NAS share and reports the whole volume, so it fired once per PVC
+            # (35 at a time) on any nightly write burst. NasVolumeFillingUp and
+            # NasVolumeAlmostFull (../targets/rules.yaml) cover that volume.
             - receiver: discord
               matchers:
-                - alertname =~ "PrometheusTSDBCompactionsFailing|KubePersistentVolumeFillingUp|NodeFilesystemAlmostOutOfSpace"
+                - alertname =~ "PrometheusTSDBCompactionsFailing|NodeFilesystemAlmostOutOfSpace"
         inhibit_rules:
           - source_matchers: [severity = "critical"]
             target_matchers: [severity =~ "warning|info"]
@@ -211,6 +215,10 @@ spec:
           - source_matchers: [severity = "warning"]
             target_matchers: [severity = "info"]
             equal: [namespace, alertname]
+          # The stock critical KubePersistentVolumeFillingUp (<3% free) would
+          # otherwise still reach Discord once per NAS-backed PVC.
+          - source_matchers: [alertname = "NasVolumeAlmostFull"]
+            target_matchers: [alertname =~ "KubePersistentVolumeFillingUp|KubePersistentVolumeInodesFillingUp"]
           - source_matchers: [alertname = "InfoInhibitor"]
             target_matchers: [severity = "info"]
             equal: [namespace]

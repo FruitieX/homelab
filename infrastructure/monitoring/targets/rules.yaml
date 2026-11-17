@@ -126,6 +126,19 @@ spec:
             severity: warning
           annotations:
             summary: "The NAS homelab volume will be full within 30 days at the current rate"
+        - alert: NasVolumeAlmostFull
+          # Hard floor for when the 30-day trend is too slow to notice; also
+          # inhibits the per-PVC stock alerts (see the Alertmanager config).
+          expr: |
+            max(kubelet_volume_stats_available_bytes{persistentvolumeclaim=~"postgres-ha-[0-9]+"})
+              / max(kubelet_volume_stats_capacity_bytes{persistentvolumeclaim=~"postgres-ha-[0-9]+"}) < 0.05
+          for: 15m
+          labels:
+            homelab: "true"
+            severity: critical
+          annotations:
+            summary: "The NAS homelab volume has {{ $value | humanizePercentage }} free"
+            description: "Every NFS PVC lives on it; apps and databases start failing writes when it fills."
         - alert: NasDiskUnhealthy
           expr: diskHealthStatus{job="nas-snmp"} != 1 or diskStatus{job="nas-snmp"} != 1
           for: 15m
