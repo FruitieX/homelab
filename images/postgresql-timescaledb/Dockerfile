@@ -8,7 +8,7 @@
 # into the final image, so it is the CNPG base plus timescaledb*.so/.sql.
 ARG BASE=ghcr.io/cloudnative-pg/postgresql:18.6-202610190957-standard-trixie@sha256:d72ace96f5803b12c341bb5dac48532e8c1f92f69e8a717a59d779bfc038dea9
 # renovate: datasource=github-releases depName=timescale/timescaledb
-ARG TIMESCALEDB_VERSION=2.31.0
+ARG TIMESCALEDB_VERSION=2.32.0
 
 FROM ${BASE} AS builder
 ARG PG_MAJOR=18
