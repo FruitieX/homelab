@@ -338,7 +338,12 @@ ORDER BY device_id, time DESC;
     JSON consumer drops booleans and the freezer draws 0 W whenever its compressor rests.
   - Frost tonight (`notify=reminder`): only the first frost after a frost-free week, from `fmi_forecast` and FMI's
     observed `t2m`, checked 17:00–23:00.
-  Battery and filament alerts carry `notify=maintenance`, which repeats every 72 h instead of 12 h.
+  - Heat pump alarm: NIBE point `45001` holds the pump's current alarm or info code (0 = none). It fires on a
+    code other than 183 (defrosting, many times a day, which also masks a standing alarm meanwhile) that has held
+    for 30 minutes without a 0; 162/163 (high condenser temperature) always cleared within 15 minutes. Alarm 184
+    (filter blocked) gets cleaning advice and `notify=maintenance`. myUplink's notifications endpoint is no
+    substitute: it reports every alarm as `DismissedByDevice` and `hasAlarm` false even while one is active.
+  Battery, filament and heat pump filter alerts carry `notify=maintenance`, which repeats every 72 h instead of 12 h.
 - Home, Sauna and Home reminders post to Discord `#home` and to ntfy (`apps/ntfy`, topic `home`, LAN/VPN only). The
   `home.title`/`home.message` templates keep messages to the title and summary; a failed query says so instead of
   reusing the rule's alarm text. A resolved alert shows the rule's `resolved` annotation ("Freezer plug is reporting
