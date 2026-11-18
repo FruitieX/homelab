@@ -77,6 +77,7 @@ CALL tsdb_table('esphome_binary', 'component text, device_id text, entity text, 
 -- telegraf-cloud
 CALL tsdb_table('nibe', 'id text, name text, unit text, value double precision',
   '7 days', 'id', 'id');
+CALL tsdb_table('nibe_connection', 'device text, value text', '30 days', 'device', 'device');
 CALL tsdb_table('verisure', 'topic text, value text', '30 days', 'topic', 'topic');
 CALL tsdb_table('fmi_observation', 'param text NOT NULL, value double precision',
   '7 days', 'param', NULL, 'param');

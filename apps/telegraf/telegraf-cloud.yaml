@@ -1,5 +1,6 @@
 # Cloud data sources written to TimescaleDB (tsdb), see docs/monitoring.md:
-# - NIBE F750 heat pump via the myUplink API, once a minute (measurement nibe).
+# - NIBE F750 heat pump via the myUplink API, once a minute (measurements nibe
+#   and nibe_connection).
 # - FMI open data: weather observations from the nearest station every 10 min
 #   (fmi_observation), daily mean temperatures (fmi_daily) and the forecast
 #   for home hourly (fmi_forecast).
@@ -45,6 +46,27 @@ data:
     # 65535 is a placeholder point with no data.
     [inputs.http.tagdrop]
       parameterId = ["65535"]
+
+    # The pump's connection to myUplink (Connected/Disconnected). While the
+    # pump is offline myUplink keeps serving the last point values, so the
+    # nibe rows above keep arriving and only this shows it.
+    [[inputs.http]]
+      urls = ["https://api.myuplink.com/v2/devices/${NIBE_DEVICE_ID}"]
+      token_url = "https://api.myuplink.com/oauth/token"
+      client_id = "${NIBE_CLIENT_ID}"
+      client_secret = "${NIBE_CLIENT_SECRET}"
+      scopes = ["READSYSTEM"]
+      timeout = "20s"
+      tagexclude = ["url"]
+      data_format = "json_v2"
+      [inputs.http.tags]
+        device = "F750"
+      [[inputs.http.json_v2]]
+        measurement_name = "nibe_connection"
+        [[inputs.http.json_v2.field]]
+          path = "connectionState"
+          rename = "value"
+          type = "string"
 
     # FMI open data (no key). The simple format has one element per value.
     [[inputs.http]]

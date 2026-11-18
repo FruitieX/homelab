@@ -106,7 +106,9 @@ table `esphome`, thermal lockout (`ON`/`OFF`) to `esphome_binary`.
   minute, the same interval as the official Home Assistant integration. Query by `id` (the parameter number),
   because NIBE can rename points. The myUplink app ("myUplink homelab API" in 1Password) only requests the
   `READSYSTEM` scope, so the poller cannot change pump settings. Point `43144` is labelled "time factor" but is
-  the compressor's energy counter in kWh.
+  the compressor's energy counter in kWh. Rows are stamped at poll time, not with the point's own `timestamp`
+  (its last change), and myUplink keeps serving the last values while the pump is offline, so the pump's
+  connection state is polled separately into `nibe_connection` (tag `device`, `value` `Connected`/`Disconnected`).
 - **FMI weather** (no key): `fmi_observation` holds the nearest station's 10-minute observations, tagged by
   `param` (`t2m`, `ws_10min`, `r_1h` and so on). `fmi_forecast` holds the forecast for home, rewritten hourly so
   future points are always the latest forecast. NaN values are skipped.
@@ -203,6 +205,7 @@ share a row. It runs once at bootstrap and can be re-run.
 | `mqtt_consumer` | `kind`, `integration_id`, `device_id`, `topic`, `name`, `entity`, `mac`, `brand`, `model`, `model_id`, `type` | one column per MQTT field (`tempc`, `hum`, `batt`, `raw_19`, `"on"`, `state`, `brightness`, `rate`, …) | telegraf-home |
 | `esphome`, `esphome_binary` | `component`, `device_id`, `entity`, `topic` | `value` (double; text `ON`/`OFF`) | telegraf-home |
 | `nibe` | `id`, `name`, `unit` | `value` | telegraf-cloud |
+| `nibe_connection` | `device` | `value` (text) | telegraf-cloud |
 | `fmi_observation`, `fmi_forecast`, `fmi_daily` | `param` | `value` | telegraf-cloud |
 | `fingrid`, `fingrid_hourly` | `series` | `value` | telegraf-cloud (`fingrid_hourly`: backfill only) |
 | `verisure` | `topic` | `value` (text) | telegraf-cloud |
@@ -225,7 +228,7 @@ share a row. It runs once at bootstrap and can be re-run.
   overwrote such points; here the `replace_point` trigger on those tables deletes the stored row with the same tags
   and time first. It is a trigger, not a unique index plus `ON CONFLICT`, because Telegraf can't send
   `ON CONFLICT` and TimescaleDB checks unique indexes on compressed chunks before triggers run. The append-only
-  tables (`mqtt_consumer`, `esphome*`, `nibe`, `verisure`) have none.
+  tables (`mqtt_consumer`, `esphome*`, `nibe*`, `verisure`) have none.
 
 ### Writers
 
@@ -343,6 +346,8 @@ ORDER BY device_id, time DESC;
     for 30 minutes without a 0; 162/163 (high condenser temperature) always cleared within 15 minutes. Alarm 184
     (filter blocked) gets cleaning advice and `notify=maintenance`. myUplink's notifications endpoint is no
     substitute: it reports every alarm as `DismissedByDevice` and `hasAlarm` false even while one is active.
+  - Heat pump is offline: `nibe_connection` not `Connected` for 15 minutes, or no `nibe` rows for 15 minutes
+    (myUplink or telegraf-cloud failing).
   Battery, filament and heat pump filter alerts carry `notify=maintenance`, which repeats every 72 h instead of 12 h.
 - Home, Sauna and Home reminders post to Discord `#home` and to ntfy (`apps/ntfy`, topic `home`, LAN/VPN only). The
   `home.title`/`home.message` templates keep messages to the title and summary; a failed query says so instead of
