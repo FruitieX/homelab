@@ -58,7 +58,7 @@ spec:
             claimName: verisure-bridge-data
       containers:
         - name: bridge
-          image: ghcr.io/fruitiex/verisure-bridge:main@sha256:5027605a4805ffc9cd2f1eed1525e0a7009ea03b25bae358ca65dfebf5937cba
+          image: ghcr.io/fruitiex/verisure-bridge:main@sha256:c5948af84e6a982c82a18ad22813b96cd07984f5fffb3aa7f1a6fb6610cd443b
           env:
             - name: HOME
               value: /home/bridge
