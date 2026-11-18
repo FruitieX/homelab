@@ -30,7 +30,7 @@ spec:
       terminationGracePeriodSeconds: 30
       containers:
         - name: chores
-          image: ghcr.io/fruitiex/chores:569777e95e2e6e5395c41d632b230e16aed40129@sha256:3c122f5f3c311154b285907baec449bb4f6f87eb5f447282abba86c0cf0dc191
+          image: ghcr.io/fruitiex/chores:1b9a0dfb5733ac683bfe440825a147e8b97ac2ee@sha256:a81d680b8a816f51e30d1b031081e9eeec65e7bc2ec8444748044ba6550b353f
           imagePullPolicy: Always
           env:
             - name: CHORES_ORIGIN
