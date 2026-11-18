@@ -343,8 +343,10 @@ ORDER BY device_id, time DESC;
     observed `t2m`, checked 17:00–23:00.
   - Heat pump alarm: NIBE point `45001` holds the pump's current alarm or info code (0 = none). It fires on a
     code other than 183 (defrosting, many times a day, which also masks a standing alarm meanwhile) that has held
-    for 30 minutes without a 0; 162/163 (high condenser temperature) always cleared within 15 minutes. Alarm 184
-    (filter blocked) gets cleaning advice and `notify=maintenance`. myUplink's notifications endpoint is no
+    for 30 minutes without a 0; 162/163 (high condenser temperature) always cleared within 15 minutes. Alarm 184 is
+    the timed filter reminder, not a blockage: it comes every N months, set in point `47275` (3), and myUplink's
+    "filter is blocked" text is misleading. It gets cleaning advice and `notify=maintenance`. The message text is in
+    the rule's annotations keyed by `code`, so rewording it doesn't change the alert's labels. myUplink's notifications endpoint is no
     substitute: it reports every alarm as `DismissedByDevice` and `hasAlarm` false even while one is active.
   - Heat pump is offline: `nibe_connection` not `Connected` for 15 minutes, or no `nibe` rows for 15 minutes
     (myUplink or telegraf-cloud failing).
