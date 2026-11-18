@@ -25,7 +25,7 @@ spec:
         runAsGroup: 101
       containers:
         - name: rsfinity
-          image: ghcr.io/fruitiex/rsfinity:main@sha256:de7b8b0adc09003a76ca0f276f1fe61b0efc4fc275e819767860fb845ad65162
+          image: ghcr.io/fruitiex/rsfinity:main@sha256:0106c3f2a6cc51406d2341f95113d849a84ea27f9c0fac620519e97200147bcd
           imagePullPolicy: Always
           ports:
             - name: http
