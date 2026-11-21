@@ -22,7 +22,7 @@ spec:
 
       containers:
         - name: telegraf
-          image: telegraf:1.40.2@sha256:3992a56245a9477dfad5b98d9354d3ea7c1bced0aab6630ba49f23ac9a4d269e
+          image: telegraf:1.40.3@sha256:3b9fce7c353dc6deba774ee2b2d85619536c6263f43106e7b39b20d47b37ca6c
           env:
             # For the tsdb (TimescaleDB) output, see config.yaml.
             - name: PGPASSWORD
