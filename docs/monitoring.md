@@ -313,11 +313,12 @@ ORDER BY device_id, time DESC;
   plain warning and never reaches Discord. Immich's own database backups are not monitored.
 - Grafana-managed rules for the house data are in `grafana/grafana-alerting.sops.yaml` and query `tsdb`. They cover the freezer, the fridge, water flowing non-stop for 3 hours (normal use always pauses within
   about 2 hours), home sensors going silent, and the sauna being ready, from the upstairs bathroom BLE sensor (device `D83431306571`). It fires when, over the
-  last 20 minutes, the temperature has risen at least 2 °C, humidity at most 5 points, and it is now at least 26 °C:
-  sauna heating is a steady dry rise, while a shower sends humidity up at once and barely moves the temperature. It
-  then stays firing while the bathroom is at least 2.5 °C above its lowest reading of the past 2 hours, so throwing
-  water mid-session doesn't re-notify. Backtested on October 2026 data, it fired once per session (5 of 5, at
-  26.2–27.0 °C, 30–40 min before the room passes 30 °C), never on other days, and resolved 2.5–3 h later. Its own
+  last 20 minutes, the temperature has risen at least 1.2 °C and humidity at most 5 points: sauna heating is a steady
+  dry rise, while a shower sends humidity up at once and barely moves the temperature. It then stays firing while the
+  bathroom is at least 2.5 °C above its lowest reading of the past 2 hours, so throwing water mid-session doesn't
+  re-notify. Backtested on July–November 2026 data, it fired once per session (13 of 13, about 25–30 min before the
+  room passes 30 °C) and never on other days; the largest dry 20-minute rise outside sessions was 1.0 °C, so don't
+  go below 1.2. Its own
   route sets `group_wait: 0s` for an immediate message (a zero `repeat_interval` is invalid and breaks the whole file).
 - More Home rules, with thresholds from July–October 2026 data:
   - Humidity stays high: any indoor sensor above 70% for 2 h (bathrooms never stayed above 70% for more than 1 h after a
