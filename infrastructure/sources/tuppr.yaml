@@ -6,8 +6,8 @@ spec:
   interval: 24h
   url: oci://ghcr.io/home-operations/charts/tuppr
   ref:
-    tag: 0.5.12
-    digest: sha256:3fcc637e75bc3b20ad8cd1ae8b62323a1a6c7eceeaf05e2dabe8592a71c6b626
+    tag: 0.5.14
+    digest: sha256:2d38c3ab5f9e23b5e1ba1b4326aa1fbe79c59ebcb0e2768b5a9781a5e108599c
   layerSelector:
     mediaType: application/vnd.cncf.helm.chart.content.v1.tar+gzip
     operation: copy
