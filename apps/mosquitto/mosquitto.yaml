@@ -86,7 +86,7 @@ spec:
               memory: 16Mi
       containers:
         - name: mosquitto
-          image: eclipse-mosquitto:2.0@sha256:09b62ff32c2e7b64d4b431b9a89236073289b68db273de2b089edeb9b0d92b5c
+          image: eclipse-mosquitto:2.0@sha256:6a332cc7a8dbe011cbc076180cbb76b37c6f0f55809682ea08e7980ef0112ad9
           command: ["mosquitto"]
           args: ["-c", "/mosquitto/config/mosquitto.conf"]
           ports:
