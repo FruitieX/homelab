@@ -28,7 +28,7 @@ spec:
       terminationGracePeriodSeconds: 30
       containers:
         - name: steady
-          image: ghcr.io/fruitiex/steady:11574ecdda3b565c5b7ab17cf81d9f80d32b81c7@sha256:3c408ac600b9bcfa18bfc0926433e947e38d9cb3be163bc0325694571f44c99b
+          image: ghcr.io/fruitiex/steady:f0a23f4efc38d1582e21da3d5eee166e24daeb96@sha256:a207f7a780782da89049011cae4dc6697cadcc54270af119caada1e508ca4a50
           imagePullPolicy: Always
           env:
             - name: STEADY_SQLITE_JOURNAL_MODE
