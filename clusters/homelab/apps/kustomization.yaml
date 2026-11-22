@@ -22,6 +22,7 @@ resources:
   - glimmer.yaml
   - nordpool-mqtt.yaml
   - ntfy.yaml
+  - drop.yaml
   - verisure-bridge.yaml
   - fruitiex-org.yaml
   - jellyfin.yaml

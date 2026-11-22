@@ -1,0 +1,54 @@
+# Uploads land in the NAS scratch share (/volume3/scratch/uploads). The NAS
+# squashes all writes to one user, so the pod's uid doesn't matter there.
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: drop-uploads
+spec:
+  capacity:
+    storage: 10Gi
+  accessModes: [ReadWriteMany]
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: nfs-csi
+  mountOptions:
+    - hard
+    - nfsvers=4.1
+    - noatime
+    - rsize=1048576
+    - wsize=1048576
+    - timeo=600
+    - retrans=2
+  claimRef:
+    namespace: default
+    name: drop-uploads
+  csi:
+    driver: nfs.csi.k8s.io
+    volumeHandle: nectarine.internal.fruitiex.org#volume3/scratch#uploads#drop-uploads#
+    volumeAttributes:
+      server: nectarine.internal.fruitiex.org
+      share: /volume3/scratch
+      subDir: uploads
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: drop-uploads
+spec:
+  accessModes: [ReadWriteMany]
+  storageClassName: nfs-csi
+  volumeName: drop-uploads
+  resources:
+    requests:
+      storage: 10Gi
+---
+# Share database and upload index.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: drop-state
+spec:
+  accessModes: [ReadWriteOnce]
+  storageClassName: nfs-csi
+  resources:
+    requests:
+      storage: 1Gi

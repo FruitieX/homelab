@@ -1,0 +1,37 @@
+# copyparty: upload-only share links into the NAS scratch share.
+#
+# Log in from the LAN at https://drop.fruitiex.org (admin password in the
+# Agents vault, "drop copyparty admin"), open a folder, click "share" and grant
+# only "write". The link (https://drop.fruitiex.org/shr/<key>/) lets anyone
+# upload into that folder but not list or download it. Shares can have an
+# expiry and a password.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: drop-config
+data:
+  drop.conf: |
+    [global]
+      name: drop
+      nih
+      no-robots
+      # Shares live under /shr/ and only admins may create them.
+      shr: /shr
+      shr-who: a
+      shr-site: https://drop.fruitiex.org/
+      shr-db: /state/shares.db
+      hist: /state/hist
+      e2d
+      # Keep some room on the NAS volume.
+      df: 100g
+      # Envoy appends the TCP peer to X-Forwarded-For; trust only its last hop.
+      xff-hdr: x-forwarded-for
+      xff-src: 10.244.0.0/16
+      rproxy: -1
+      # Defence in depth on top of the gateway's LAN-only rule.
+      ipr: 192.168.0.0/16,10.0.0.0/8=admin
+
+    [/]
+      /w
+      accs:
+        A: admin

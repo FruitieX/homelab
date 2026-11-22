@@ -1,0 +1,85 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    configmap.reloader.stakater.com/reload: drop-config
+    secret.reloader.stakater.com/reload: drop-accounts
+  name: drop
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: drop
+  template:
+    metadata:
+      labels:
+        app: drop
+    spec:
+      priorityClassName: homelab-apps
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        fsGroup: 10001
+      containers:
+        - name: copyparty
+          image: copyparty/min:1.20.26@sha256:1411895121989318a2a14c8b7b8a2016b917874a508a73bf14e316c64e8ef9e5
+          env:
+            - name: TZ
+              value: Europe/Helsinki
+            # copyparty writes its own config dir here (/cfg is read-only).
+            - name: XDG_CONFIG_HOME
+              value: /state
+          ports:
+            - name: http
+              containerPort: 3923
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: [ALL]
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              memory: 512Mi
+          volumeMounts:
+            - name: cfg
+              mountPath: /cfg
+              readOnly: true
+            - name: uploads
+              mountPath: /w
+            - name: state
+              mountPath: /state
+            - name: tmp
+              mountPath: /tmp
+          readinessProbe:
+            tcpSocket:
+              port: http
+            periodSeconds: 10
+          livenessProbe:
+            tcpSocket:
+              port: http
+            periodSeconds: 30
+      volumes:
+        - name: cfg
+          projected:
+            sources:
+              - configMap:
+                  name: drop-config
+              - secret:
+                  name: drop-accounts
+        - name: uploads
+          persistentVolumeClaim:
+            claimName: drop-uploads
+        - name: state
+          persistentVolumeClaim:
+            claimName: drop-state
+        - name: tmp
+          emptyDir:
+            sizeLimit: 256Mi

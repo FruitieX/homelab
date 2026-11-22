@@ -1,0 +1,69 @@
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: drop
+  annotations:
+    # Use the existing public wildcard DNS instead of publishing gateway LAN IPs.
+    external-dns.alpha.kubernetes.io/exclude: "true"
+spec:
+  parentRefs:
+    - name: public
+      namespace: envoy-gateway-system
+      sectionName: https
+    - name: private
+      namespace: envoy-gateway-system
+      sectionName: https
+  hostnames:
+    - drop.fruitiex.org
+  rules:
+    # Share links and the static web assets they load are public.
+    - name: shares
+      matches:
+        - path:
+            type: PathPrefix
+            value: /shr/
+        - path:
+            type: PathPrefix
+            value: /.cpr/
+      # A single upload chunk (up to 96 MiB) can take minutes on a slow line.
+      timeouts:
+        request: "0s"
+        backendRequest: "0s"
+      backendRefs:
+        - name: drop
+          port: 80
+    # Everything else (the admin UI, where shares are created) is LAN-only,
+    # see drop-admin-lan-only below.
+    - name: admin
+      matches:
+        - path:
+            type: PathPrefix
+            value: /
+      timeouts:
+        request: "0s"
+        backendRequest: "0s"
+      backendRefs:
+        - name: drop
+          port: 80
+---
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: SecurityPolicy
+metadata:
+  name: drop-admin-lan-only
+spec:
+  targetRefs:
+    - group: gateway.networking.k8s.io
+      kind: HTTPRoute
+      name: drop
+      sectionName: admin
+  authorization:
+    defaultAction: Deny
+    rules:
+      - name: lan-vpn-cluster
+        action: Allow
+        principal:
+          # Envoy sees the TCP peer address (no X-Forwarded-For trust), so this
+          # can't be spoofed. 192.168.0.0/16 covers the LAN, VLANs and VPN.
+          clientCIDRs:
+            - 192.168.0.0/16
+            - 10.0.0.0/8
