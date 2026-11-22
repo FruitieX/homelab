@@ -43,7 +43,7 @@ spec:
           # Single-user Nix store for the runner user (uid 1001). The two
           # root-only database lock files are recreated by Nix.
           - name: init-nix
-            image: docker.io/nixos/nix:2.35.4@sha256:f159a58f390677f41e8e900a74b6e2f9c7f27b364122ae6acf7a652ce6c551c0
+            image: docker.io/nixos/nix:2.35.6@sha256:b49cb33f3a7e5cf3933ad8774529de0e3807ec5cf54987aa7ccdfb49f2fc55ed
             command:
               - /nix/var/nix/profiles/default/bin/sh
               - -c
