@@ -2263,7 +2263,7 @@ spec:
       priorityClassName: homelab-home
       containers:
         - name: postgres
-          image: postgres:18@sha256:ec003ee60c23d320d1b81868f255a6fc724ac06d8f1ced4468532f7d8593f357
+          image: postgres:18@sha256:32f5fdbf4d27ebe0d4552313126a593400f40b21bff207e43617b2305838bce3
           imagePullPolicy: IfNotPresent
           ports:
             - name: postgres
