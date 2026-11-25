@@ -47,7 +47,7 @@ spec:
           containers:
             - name: dump
               # Same image as the cluster, so pg_dump matches its version.
-              image: ghcr.io/fruitiex/postgresql-timescaledb:18@sha256:fa6e5083bb3424f751235b2831ef792dc2a043263796a00735a7070fdbadc99f
+              image: ghcr.io/fruitiex/postgresql-timescaledb:18@sha256:79660cb55eca75b7077990a4010c0801736abc8522edcbfaf2ebae0d59c2aedc
               env:
                 - name: PGHOST
                   value: tsdb-rw
