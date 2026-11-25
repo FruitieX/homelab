@@ -19,7 +19,7 @@ spec:
     spec:
       containers:
         - name: unpoller
-          image: ghcr.io/unpoller/unpoller:v5.9.6@sha256:96c2c7645bce1ed6f43934b11584dfa378a170e262aba78972c18aec6cbc0e16
+          image: ghcr.io/unpoller/unpoller:v5.10.1@sha256:bcbdbf35b03982a2dff6e6bf768c897a78453a6be62e8af6a96e6b730dd514fe
           envFrom:
             - secretRef:
                 name: unpoller
