@@ -27,7 +27,7 @@ spec:
         fsGroup: 10001
       containers:
         - name: copyparty
-          image: copyparty/min:1.20.26@sha256:1411895121989318a2a14c8b7b8a2016b917874a508a73bf14e316c64e8ef9e5
+          image: copyparty/min:1.20.27@sha256:dcb9961050ad0303daa86751558b87bbf261bf5ca8a25143c77ece344f1c3df9
           env:
             - name: TZ
               value: Europe/Helsinki
