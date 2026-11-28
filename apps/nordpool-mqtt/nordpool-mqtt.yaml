@@ -22,7 +22,7 @@ spec:
 
       containers:
         - name: nordpool-mqtt
-          image: ghcr.io/fruitiex/nordpool-mqtt:main@sha256:da3466ae3c051d354a17d249bc19891d94ac8b91a06dccc59be67482792f8824
+          image: ghcr.io/fruitiex/nordpool-mqtt:main@sha256:a47780a54712c7501d51f3079db0205a476e17e9a68171271e9cfd6c3546271a
           resources:
             requests:
               memory: 32Mi
